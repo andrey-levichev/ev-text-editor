@@ -15,7 +15,6 @@ int top, left;
 int width, height;
 
 int line, column;
-int position;
 
 char* text;
 int size, capacity;
@@ -58,6 +57,21 @@ bool readFile(const char* fileName)
     text[size] = 0;
     close(file);
 
+    return true;
+}
+
+bool writeFile(const char* fileName)
+{
+    int file = open(fileName, O_WRONLY | O_CREAT,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+
+    if (file < 0)
+        return false;
+
+    if (write(file, text, size) != size)
+        return false;
+
+    close(file);
     return true;
 }
 
@@ -111,6 +125,29 @@ void setCursorPosition(int col, int line)
     write(STDOUT_FILENO, cmd, strlen(cmd));
 }
 
+void insertChars(const char* chars, int pos, int len)
+{
+    int cap = size + len + 1;
+    if (cap > capacity)
+    {
+        capacity = cap * 2;
+        char* tx = alloc(capacity);
+        strcpy(tx, text);
+        free(text);
+        text = tx;
+    }
+
+    memmove(text + pos + len, text + pos, size - pos + 1);
+    memcpy(text + pos, chars, len);
+    size += len; 
+}
+
+void deleteChars(int pos, int len)
+{
+    memmove(text + pos, text + pos + len, size - pos - len + 1);
+    size -= len;
+}
+
 char* findChar(char* text, char c)
 {
     while (*text && *text != c)
@@ -122,16 +159,10 @@ char* findLine(char* text, int line)
 {
     char* p = text;
 
-    while (line > 1)
+    while (*p && line > 1)
     {
-        p = findChar(p, '\n');
-        if (*p == '\n')
-        {
-            ++p;
+        if (*p++ == '\n')
             --line;
-        }
-        else
-            return p;
     }
 
     return p;
@@ -139,24 +170,73 @@ char* findLine(char* text, int line)
 
 int getLineCount(char* text)
 {
-    int cnt = 1;
-
+    int ln = 1;
     char* p = text;
+
     while (*p)
     {
-        p = findChar(p, '\n');
-        if (*p == '\n')
-        {
-            ++p;
-            ++cnt;
-        }
+        if (*p++ == '\n')
+            ++ln;
     }
 
-    return cnt;
+    return ln;
+}
+
+void positionToLineColumn(int position, int* line, int* column)
+{
+    char* p = text;
+    char* e = text + position;
+    int ln = 1, col = 1;
+
+    while (*p && p < e)
+    {
+        if (*p++ == '\n')
+        {
+            ++ln;
+            col = 1;
+        }
+        else
+            ++col;
+    }
+
+    *line = ln;
+    *column = col;
+}
+
+int lineColumnToPosition(int line, int column)
+{
+    char* p = text;
+    int ln = 1, col = 1;
+
+    while (*p && (ln < line || (ln == line && col < column)))
+    {
+        if (*p++ == '\n')
+        {
+            ++ln;
+            col = 1;
+        }
+        else
+            ++col;
+    }
+
+    if (ln == line && col == column)
+        return p - text;
+    else
+        return -1;
 }
 
 void redrawScreen()
 {
+    if (line < top)
+        top = line;
+    else if (line >= top + height)
+        top = line - height + 1;
+
+    if (column < left)
+        left = column;
+    else if (column >= left + width)
+        left = column - width + 1;
+
     char* p = findLine(text, top);
     char* q = screen;
 
@@ -192,14 +272,8 @@ void redrawScreen()
     setCursorPosition(1, 1);
     write(STDOUT_FILENO, screen, width * height);
 
-    int col = column - left + 1;
-    int ln = line - top + 1;
-
-    if (1 <= col && col <= width && 1 <= ln && ln <= height)
-    {
-        setCursorPosition(col, ln);
-        showCursor();
-    }
+    setCursorPosition(column - left + 1, line - top + 1);
+    showCursor();
 }
 
 bool processKey()
@@ -208,22 +282,22 @@ bool processKey()
 
     if (read(STDIN_FILENO, cmd, 1) > 0)
     {
-        int n = 0;
-        ioctl(STDIN_FILENO, FIONREAD, &n);
+        int len = 0;
+        ioctl(STDIN_FILENO, FIONREAD, &len);
 
-        if (read(STDIN_FILENO, cmd + 1, n) == n)
+        if (read(STDIN_FILENO, cmd + 1, len) == len)
         {
-            ++n;
+            ++len;
 
-            if (n == 1)
+            if (len == 1)
             {
                 if (*cmd == 0x18) // ^X
                     return false;
                 else if (*cmd == 0x02) // ^B
                 {
-                    if (top > 1)
+                    if (line > 1 || column > 1)
                     {
-                        top = 1;
+                        line = column = 1;
                         redrawScreen();
                     }
 
@@ -231,153 +305,122 @@ bool processKey()
                 }
                 else if (*cmd == 0x05) // ^E
                 {
-                    int lastLine = getLineCount(text) - height + 1;
-                    if (top < lastLine)
-                    {
-                        top = lastLine;
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-                else if (*cmd == 0x0c) // ^L
-                {
-                    if (left > 1)
-                    {
-                        --left;
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-                else if (*cmd == 0x12) // ^R
-                {
-                    ++left;
+                    positionToLineColumn(size, &line, &column);
                     redrawScreen();
                     return true;
                 }
             }
-            else if (n == 3)
+            else if (len == 3)
             {
-                if (memcmp(cmd, "\x1b\x5b\x41", n) == 0) // up
+                if (memcmp(cmd, "\x1b\x5b\x41", len) == 0) // up
                 {
+                    if (line > 1)
+                    {
+                        --line;
+                        redrawScreen();
+                    }
+
                     return true;
                 }
-                else if (memcmp(cmd, "\x1b\x5b\x42", n) == 0) // down
+                else if (memcmp(cmd, "\x1b\x5b\x42", len) == 0) // down
                 {
+                    ++line;
+                    redrawScreen();
+
                     return true;
                 }
-                else if (memcmp(cmd, "\x1b\x5b\x43", n) == 0) // right
+                else if (memcmp(cmd, "\x1b\x5b\x43", len) == 0) // right
                 {
+                    ++column;
+                    redrawScreen();
+
                     return true;
                 }
-                else if (memcmp(cmd, "\x1b\x5b\x44", n) == 0) // left
+                else if (memcmp(cmd, "\x1b\x5b\x44", len) == 0) // left
                 {
+                    if (column > 1)
+                    {
+                        --column;
+                        redrawScreen();
+                    }
+
                     return true;
                 }
             }
-            else if (n == 4)
+            else if (len == 4)
             {
-                if (memcmp(cmd, "\x1b\x5b\x36\x7e", n) == 0) // PgDn
+                if (memcmp(cmd, "\x1b\x5b\x36\x7e", len) == 0) // PgDn
                 {
-                    int lastLine = getLineCount(text) - height + 1;
-                    if (top < lastLine)
+                    line += height;
+                    redrawScreen();
+
+                    return true;
+                }
+                else if (memcmp(cmd, "\x1b\x5b\x35\x7e", len) == 0) // PgUp
+                {
+                    if (line > 1)
                     {
-                        if (top < lastLine - height)
-                            top += height;
-                        else
-                            top = lastLine;
+                        line -= height;
+                        if (line < 1)
+                            line = 1;
 
                         redrawScreen();
                     }
 
                     return true;
                 }
-                else if (memcmp(cmd, "\x1b\x5b\x35\x7e", n) == 0) // PgUp
+                else if (memcmp(cmd, "\x1b\x5b\x31\x7e", len) == 0) // Home
                 {
-                    if (top > 1)
+                    if (column > 1)
                     {
-                        if (top > height)
-                            top -= height;
-                        else
-                            top = 1;
-
+                        column = 1;
                         redrawScreen();
                     }
 
                     return true;
                 }
-                else if (memcmp(cmd, "\x1b\x5b\x31\x7e", n) == 0) // Home
+                else if (memcmp(cmd, "\x1b\x5b\x34\x7e", len) == 0) // End
                 {
-                    return true;
-                }
-                else if (memcmp(cmd, "\x1b\x5b\x34\x7e", n) == 0) // End
-                {
+                    int pos = lineColumnToPosition(line, 1);
+                    if (pos >= 0)
+                    {
+                        char* p = findChar(text + pos, '\n');
+                        positionToLineColumn(p - text, &line, &column);
+                        redrawScreen();
+                    }
+
                     return true;
                 }
             }
 
-            write(STDOUT_FILENO, cmd, n);
+            int pos = lineColumnToPosition(line, column);
+            if (pos >= 0)
+            {
+                insertChars(cmd, pos, len);
+
+                if (*cmd == '\n' && len == 1)
+                {
+                    ++line; column = 1;
+                }
+                else
+                    column += len;
+
+                redrawScreen();
+            }
         }
     }
 
     return true;
 }
 
-char* strCopy(char* destStr, const char* srcStr, int len)
+void editor()
 {
-    memcpy(destStr, srcStr, len);
-    return destStr + len;
-}
-
-void insertChars(const char* chars, int pos, int len)
-{
-    int cap = size + len + 1;
-    if (cap > capacity)
-    {
-        capacity = cap * 2;
-        char* tx = alloc(capacity);
-        strcpy(tx, text);
-        free(text);
-        text = tx;
-    }
-
-    memmove(text + pos + len, text + pos, size - pos + 1);
-    memcpy(text + pos, chars, len);
-    size += len; 
-}
-
-void deleteChars(int pos, int len)
-{
-    memmove(text + pos, text + pos + len, size - pos - len + 1);
-    size -= len;
-}
-
-int main(int argc, const char** argv)
-{
-    if (argc == 2)
-    {
-        if (!readFile(argv[1]))
-        {
-            fprintf(stderr, "failed to open %s\n", argv[1]);
-            return 1;
-        }
-    }
-    else
-    {
-        size = 0;
-        capacity = 1;
-        text = alloc(capacity);
-        *text = 0;
-    }
-
     getTerminalSize();
     screen = alloc(width * height);
     setCharInputMode();
 
     top = 1; left = 1;
     line = 1; column = 1;
-    position = 0;
 
     redrawScreen();
 
@@ -385,11 +428,38 @@ int main(int argc, const char** argv)
 
     restoreInputMode();
     free(screen);
-    free(text);
 
     clearScreen();
     setCursorPosition(1, 1);
     showCursor();
+}
 
+int main(int argc, const char** argv)
+{
+    if (argc != 2)
+    {
+        puts("usage: editor filename");
+        return 1;
+    }
+
+    const char* filename = argv[1];
+    if (!readFile(filename))
+    {
+        size = 0;
+        capacity = 1;
+        text = alloc(capacity);
+        *text = 0;
+    }
+
+    editor();
+
+    if (!writeFile(filename))
+    {
+        free(text);
+        fprintf(stderr, "failed to save text to %s\n", filename);
+        return 1;
+    }
+
+    free(text);
     return 0;
 }
