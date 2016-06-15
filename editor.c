@@ -309,6 +309,24 @@ bool processKey()
                     redrawScreen();
                     return true;
                 }
+                else if (*cmd == 0x09) // Tab
+                {
+                    memset(cmd, ' ', 4);
+                    len = 4;
+                }
+                else if (*cmd == 0x7f) // Backspace
+                {
+                    int pos = lineColumnToPosition(line , column);
+                    if (pos > 0)
+                    {
+                        --pos;
+                        deleteChars(pos, 1);
+                        positionToLineColumn(pos, &line, &column);
+                        redrawScreen();
+                    }
+
+                    return true;
+                }
             }
             else if (len == 3)
             {
@@ -386,6 +404,17 @@ bool processKey()
                     {
                         char* p = findChar(text + pos, '\n');
                         positionToLineColumn(p - text, &line, &column);
+                        redrawScreen();
+                    }
+
+                    return true;
+                }
+                else if (memcmp(cmd, "\x1b\x5b\x33\x7e", len) == 0) // Delete
+                {
+                    int pos = lineColumnToPosition(line , column);
+                    if (pos >= 0)
+                    {
+                        deleteChars(pos, 1);
                         redrawScreen();
                     }
 
