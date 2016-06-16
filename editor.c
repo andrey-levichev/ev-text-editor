@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -117,12 +118,40 @@ void hideCursor()
     write(STDOUT_FILENO, "\x1b[?25l", 6);
 }
 
-void setCursorPosition(int col, int line)
+void setCursorPosition(int column, int line)
 {
     char cmd[30];
 
-    sprintf(cmd, "\x1b[%d;%dH", line, col);
+    sprintf(cmd, "\x1b[%d;%dH", line, column);
     write(STDOUT_FILENO, cmd, strlen(cmd));
+}
+
+char* findChar(char* str, char c)
+{
+    while (*str && *str != c)
+        ++str;
+
+    return str;
+}
+
+char* findCharBackwards(char* str, char* pos, char c)
+{
+    while (pos > str)
+        if (*--pos == c)
+            return pos;
+
+    return str;
+}
+
+char* findLine(char* str, int line)
+{
+    while (*str && line > 1)
+    {
+        if (*str++ == '\n')
+            --line;
+    }
+
+    return str;
 }
 
 void insertChars(const char* chars, int pos, int len)
@@ -146,40 +175,6 @@ void deleteChars(int pos, int len)
 {
     memmove(text + pos, text + pos + len, size - pos - len + 1);
     size -= len;
-}
-
-char* findChar(char* text, char c)
-{
-    while (*text && *text != c)
-        ++text;
-    return text;
-}
-
-char* findLine(char* text, int line)
-{
-    char* p = text;
-
-    while (*p && line > 1)
-    {
-        if (*p++ == '\n')
-            --line;
-    }
-
-    return p;
-}
-
-int getLineCount(char* text)
-{
-    int ln = 1;
-    char* p = text;
-
-    while (*p)
-    {
-        if (*p++ == '\n')
-            ++ln;
-    }
-
-    return ln;
 }
 
 void positionToLineColumn(int position, int* line, int* column)
@@ -276,167 +271,191 @@ void redrawScreen()
     showCursor();
 }
 
-bool processKey()
+bool processKeys()
 {
-    char cmd[10];
+    char keys[10];
+    int len = read(STDIN_FILENO, keys, sizeof(keys) - 1);
 
-    if (read(STDIN_FILENO, cmd, 1) > 0)
+    if (len > 0)
+        keys[len] = 0;
+    else
+        return true;
+
+    for (char* key = keys; *key;)
     {
-        int len = 0;
-        ioctl(STDIN_FILENO, FIONREAD, &len);
-
-        if (read(STDIN_FILENO, cmd + 1, len) == len)
+        if (*key == 0x18) // ^X
+            return false;
+        else if (*key == 0x02) // ^B
         {
-            ++len;
-
-            if (len == 1)
+            if (line > 1 || column > 1)
             {
-                if (*cmd == 0x18) // ^X
-                    return false;
-                else if (*cmd == 0x02) // ^B
-                {
-                    if (line > 1 || column > 1)
-                    {
-                        line = column = 1;
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-                else if (*cmd == 0x05) // ^E
-                {
-                    positionToLineColumn(size, &line, &column);
-                    redrawScreen();
-                    return true;
-                }
-                else if (*cmd == 0x09) // Tab
-                {
-                    memset(cmd, ' ', 4);
-                    len = 4;
-                }
-                else if (*cmd == 0x7f) // Backspace
-                {
-                    int pos = lineColumnToPosition(line , column);
-                    if (pos > 0)
-                    {
-                        --pos;
-                        deleteChars(pos, 1);
-                        positionToLineColumn(pos, &line, &column);
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-            }
-            else if (len == 3)
-            {
-                if (memcmp(cmd, "\x1b\x5b\x41", len) == 0) // up
-                {
-                    if (line > 1)
-                    {
-                        --line;
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-                else if (memcmp(cmd, "\x1b\x5b\x42", len) == 0) // down
-                {
-                    ++line;
-                    redrawScreen();
-
-                    return true;
-                }
-                else if (memcmp(cmd, "\x1b\x5b\x43", len) == 0) // right
-                {
-                    ++column;
-                    redrawScreen();
-
-                    return true;
-                }
-                else if (memcmp(cmd, "\x1b\x5b\x44", len) == 0) // left
-                {
-                    if (column > 1)
-                    {
-                        --column;
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-            }
-            else if (len == 4)
-            {
-                if (memcmp(cmd, "\x1b\x5b\x36\x7e", len) == 0) // PgDn
-                {
-                    line += height;
-                    redrawScreen();
-
-                    return true;
-                }
-                else if (memcmp(cmd, "\x1b\x5b\x35\x7e", len) == 0) // PgUp
-                {
-                    if (line > 1)
-                    {
-                        line -= height;
-                        if (line < 1)
-                            line = 1;
-
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-                else if (memcmp(cmd, "\x1b\x5b\x31\x7e", len) == 0) // Home
-                {
-                    if (column > 1)
-                    {
-                        column = 1;
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-                else if (memcmp(cmd, "\x1b\x5b\x34\x7e", len) == 0) // End
-                {
-                    int pos = lineColumnToPosition(line, 1);
-                    if (pos >= 0)
-                    {
-                        char* p = findChar(text + pos, '\n');
-                        positionToLineColumn(p - text, &line, &column);
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
-                else if (memcmp(cmd, "\x1b\x5b\x33\x7e", len) == 0) // Delete
-                {
-                    int pos = lineColumnToPosition(line , column);
-                    if (pos >= 0)
-                    {
-                        deleteChars(pos, 1);
-                        redrawScreen();
-                    }
-
-                    return true;
-                }
+                line = column = 1;
+                redrawScreen();
             }
 
+            ++key;
+            continue;
+        }
+        else if (*key == 0x05) // ^E
+        {
+            positionToLineColumn(size, &line, &column);
+            redrawScreen();
+
+            ++key;
+            continue;
+        }
+        else if (*key == 0x04) // ^D
+        {
+            int pos = lineColumnToPosition(line , column);
+            if (pos > 0)
+            {
+                char* start = findCharBackwards(text, text + pos, '\n');
+                char* end = findChar(text + pos, '\n');
+                deleteChars(start - text, end - start);
+                redrawScreen();
+            }
+
+            ++key;
+            continue;
+        }
+        else if (*key == 0x7f) // Backspace
+        {
+            int pos = lineColumnToPosition(line , column);
+            if (pos > 0)
+            {
+                --pos;
+                deleteChars(pos, 1);
+                positionToLineColumn(pos, &line, &column);
+                redrawScreen();
+            }
+
+            ++key;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x41", 3) == 0) // up
+        {
+            if (line > 1)
+            {
+                --line;
+                redrawScreen();
+            }
+
+            key += 3;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x42", 3) == 0) // down
+        {
+            ++line;
+            redrawScreen();
+
+            key += 3;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x43", 3) == 0) // right
+        {
+            ++column;
+            redrawScreen();
+
+            key += 3;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x44", 3) == 0) // left
+        {
+            if (column > 1)
+            {
+                --column;
+                redrawScreen();
+            }
+
+            key += 3;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x36\x7e", 4) == 0) // PgDn
+        {
+            line += height;
+            redrawScreen();
+
+            key += 4;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x35\x7e", 4) == 0) // PgUp
+        {
+            if (line > 1)
+            {
+                line -= height;
+                if (line < 1)
+                    line = 1;
+
+                redrawScreen();
+            }
+
+            key += 4;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x31\x7e", 4) == 0) // Home
+        {
+            if (column > 1)
+            {
+                column = 1;
+                redrawScreen();
+            }
+
+            key += 4;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x34\x7e", 4) == 0) // End
+        {
+            int pos = lineColumnToPosition(line, 1);
+            if (pos >= 0)
+            {
+                char* p = findChar(text + pos, '\n');
+                positionToLineColumn(p - text, &line, &column);
+                redrawScreen();
+            }
+
+            key += 4;
+            continue;
+        }
+        else if (memcmp(key, "\x1b\x5b\x33\x7e", 4) == 0) // Delete
+        {
+            int pos = lineColumnToPosition(line , column);
+            if (pos >= 0)
+            {
+                deleteChars(pos, 1);
+                redrawScreen();
+            }
+
+            key += 4;
+            continue;
+        }
+
+        if (*key == '\t' || *key == '\n' || isprint(*key))
+        {
             int pos = lineColumnToPosition(line, column);
             if (pos >= 0)
             {
-                insertChars(cmd, pos, len);
-
-                if (*cmd == '\n' && len == 1)
+                if (*key == '\t') // Tab
                 {
-                    ++line; column = 1;
+                    insertChars("    ", pos, 4);
+                    column += 4;
                 }
                 else
-                    column += len;
+                {
+                    insertChars(key, pos, 1);
+
+                    if (*key == '\n')
+                    {
+                        ++line; column = 1;
+                    }
+                    else
+                        ++column;
+                }
 
                 redrawScreen();
             }
         }
+
+        ++key;
     }
 
     return true;
@@ -453,7 +472,7 @@ void editor()
 
     redrawScreen();
 
-    while (processKey());
+    while (processKeys());
 
     restoreInputMode();
     free(screen);
