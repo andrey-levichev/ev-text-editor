@@ -271,17 +271,12 @@ void redrawScreen()
     showCursor();
 }
 
-bool processKeys()
+bool processKey()
 {
-    char keys[10];
-    int len = read(STDIN_FILENO, keys, sizeof(keys) - 1);
+    char key[4];
+    int len = read(STDIN_FILENO, key, sizeof(key));
 
-    if (len > 0)
-        keys[len] = 0;
-    else
-        return true;
-
-    for (char* key = keys; *key;)
+    if (len == 1)
     {
         if (*key == 0x18) // ^X
             return false;
@@ -292,31 +287,28 @@ bool processKeys()
                 line = column = 1;
                 redrawScreen();
             }
-
-            ++key;
-            continue;
         }
         else if (*key == 0x05) // ^E
         {
             positionToLineColumn(size, &line, &column);
             redrawScreen();
-
-            ++key;
-            continue;
         }
         else if (*key == 0x04) // ^D
         {
             int pos = lineColumnToPosition(line , column);
-            if (pos > 0)
+            if (pos >= 0)
             {
                 char* start = findCharBackwards(text, text + pos, '\n');
+                if (*start == '\n')
+                    ++start;
+
                 char* end = findChar(text + pos, '\n');
+                if (*end == '\n')
+                    ++end;
+
                 deleteChars(start - text, end - start);
                 redrawScreen();
             }
-
-            ++key;
-            continue;
         }
         else if (*key == 0x7f) // Backspace
         {
@@ -328,108 +320,8 @@ bool processKeys()
                 positionToLineColumn(pos, &line, &column);
                 redrawScreen();
             }
-
-            ++key;
-            continue;
         }
-        else if (memcmp(key, "\x1b\x5b\x41", 3) == 0) // up
-        {
-            if (line > 1)
-            {
-                --line;
-                redrawScreen();
-            }
-
-            key += 3;
-            continue;
-        }
-        else if (memcmp(key, "\x1b\x5b\x42", 3) == 0) // down
-        {
-            ++line;
-            redrawScreen();
-
-            key += 3;
-            continue;
-        }
-        else if (memcmp(key, "\x1b\x5b\x43", 3) == 0) // right
-        {
-            ++column;
-            redrawScreen();
-
-            key += 3;
-            continue;
-        }
-        else if (memcmp(key, "\x1b\x5b\x44", 3) == 0) // left
-        {
-            if (column > 1)
-            {
-                --column;
-                redrawScreen();
-            }
-
-            key += 3;
-            continue;
-        }
-        else if (memcmp(key, "\x1b\x5b\x36\x7e", 4) == 0) // PgDn
-        {
-            line += height;
-            redrawScreen();
-
-            key += 4;
-            continue;
-        }
-        else if (memcmp(key, "\x1b\x5b\x35\x7e", 4) == 0) // PgUp
-        {
-            if (line > 1)
-            {
-                line -= height;
-                if (line < 1)
-                    line = 1;
-
-                redrawScreen();
-            }
-
-            key += 4;
-            continue;
-        }
-        else if (memcmp(key, "\x1b\x5b\x31\x7e", 4) == 0) // Home
-        {
-            if (column > 1)
-            {
-                column = 1;
-                redrawScreen();
-            }
-
-            key += 4;
-            continue;
-        }
-        else if (memcmp(key, "\x1b\x5b\x34\x7e", 4) == 0) // End
-        {
-            int pos = lineColumnToPosition(line, 1);
-            if (pos >= 0)
-            {
-                char* p = findChar(text + pos, '\n');
-                positionToLineColumn(p - text, &line, &column);
-                redrawScreen();
-            }
-
-            key += 4;
-            continue;
-        }
-        else if (memcmp(key, "\x1b\x5b\x33\x7e", 4) == 0) // Delete
-        {
-            int pos = lineColumnToPosition(line , column);
-            if (pos >= 0)
-            {
-                deleteChars(pos, 1);
-                redrawScreen();
-            }
-
-            key += 4;
-            continue;
-        }
-
-        if (*key == '\t' || *key == '\n' || isprint(*key))
+        else if (*key == '\t' || *key == '\n' || isprint(*key))
         {
             int pos = lineColumnToPosition(line, column);
             if (pos >= 0)
@@ -454,8 +346,81 @@ bool processKeys()
                 redrawScreen();
             }
         }
+    }
+    else if (len == 3)
+    {
+        if (memcmp(key, "\x1b\x5b\x41", 3) == 0) // up
+        {
+            if (line > 1)
+            {
+                --line;
+                redrawScreen();
+            }
+        }
+        else if (memcmp(key, "\x1b\x5b\x42", 3) == 0) // down
+        {
+            ++line;
+            redrawScreen();
+        }
+        else if (memcmp(key, "\x1b\x5b\x43", 3) == 0) // right
+        {
+            ++column;
+            redrawScreen();
+        }
+        else if (memcmp(key, "\x1b\x5b\x44", 3) == 0) // left
+        {
+            if (column > 1)
+            {
+                --column;
+                redrawScreen();
+            }
+        }
+    }
+    else if (len == 4)
+    {
+        if (memcmp(key, "\x1b\x5b\x36\x7e", 4) == 0) // PgDn
+        {
+            line += height;
+            redrawScreen();
+        }
+        else if (memcmp(key, "\x1b\x5b\x35\x7e", 4) == 0) // PgUp
+        {
+            if (line > 1)
+            {
+                line -= height;
+                if (line < 1)
+                    line = 1;
 
-        ++key;
+                redrawScreen();
+            }
+        }
+        else if (memcmp(key, "\x1b\x5b\x31\x7e", 4) == 0) // Home
+        {
+            if (column > 1)
+            {
+                column = 1;
+                redrawScreen();
+            }
+        }
+        else if (memcmp(key, "\x1b\x5b\x34\x7e", 4) == 0) // End
+        {
+            int pos = lineColumnToPosition(line, 1);
+            if (pos >= 0)
+            {
+                char* p = findChar(text + pos, '\n');
+                positionToLineColumn(p - text, &line, &column);
+                redrawScreen();
+            }
+        }
+        else if (memcmp(key, "\x1b\x5b\x33\x7e", 4) == 0) // Delete
+        {
+            int pos = lineColumnToPosition(line , column);
+            if (pos >= 0)
+            {
+                deleteChars(pos, 1);
+                redrawScreen();
+            }
+        }
     }
 
     return true;
@@ -472,7 +437,7 @@ void editor()
 
     redrawScreen();
 
-    while (processKeys());
+    while (processKey());
 
     restoreInputMode();
     free(screen);
