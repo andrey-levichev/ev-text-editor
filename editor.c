@@ -11,6 +11,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+const char* filename;
+
 char* screen;
 int top, left;
 int width, height;
@@ -280,6 +282,14 @@ bool processKey()
     {
         if (*key == 0x18) // ^X
             return false;
+        else if (*key == 0x17) // ^W
+        {
+            if (!writeFile(filename))
+            {
+                fprintf(stderr, "failed to save text to %s\n", filename);
+                abort();
+            }
+        }
         else if (*key == 0x02) // ^B
         {
             if (line > 1 || column > 1)
@@ -455,7 +465,8 @@ int main(int argc, const char** argv)
         return 1;
     }
 
-    const char* filename = argv[1];
+    filename = argv[1];
+
     if (!readFile(filename))
     {
         size = 0;
@@ -465,13 +476,6 @@ int main(int argc, const char** argv)
     }
 
     editor();
-
-    if (!writeFile(filename))
-    {
-        free(text);
-        fprintf(stderr, "failed to save text to %s\n", filename);
-        return 1;
-    }
 
     free(text);
     return 0;
