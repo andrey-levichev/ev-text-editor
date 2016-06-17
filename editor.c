@@ -65,7 +65,7 @@ bool readFile(const char* fileName)
 
 bool writeFile(const char* fileName)
 {
-    int file = open(fileName, O_WRONLY | O_CREAT,
+    int file = open(fileName, O_WRONLY | O_CREAT | O_TRUNC,
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 
     if (file < 0)
@@ -341,16 +341,24 @@ bool processKey()
                     insertChars("    ", pos, 4);
                     column += 4;
                 }
+                else if (*key == '\n')
+                {
+                    char* p = findCharBackwards(text, text + pos, '\n');
+                    if (*p == '\n')
+                        ++p;
+
+                    insertChars(key, pos, 1);
+
+                    int len = strspn(p, " ");
+                    if (len > 0)
+                        insertChars(p, pos + 1, len);
+
+                    ++line; column = len + 1;
+                }
                 else
                 {
                     insertChars(key, pos, 1);
-
-                    if (*key == '\n')
-                    {
-                        ++line; column = 1;
-                    }
-                    else
-                        ++column;
+                    ++column;
                 }
 
                 redrawScreen();
@@ -390,14 +398,14 @@ bool processKey()
     {
         if (memcmp(key, "\x1b\x5b\x36\x7e", 4) == 0) // PgDn
         {
-            line += height;
+            line += height - 1;
             redrawScreen();
         }
         else if (memcmp(key, "\x1b\x5b\x35\x7e", 4) == 0) // PgUp
         {
             if (line > 1)
             {
-                line -= height;
+                line -= height - 1;
                 if (line < 1)
                     line = 1;
 
