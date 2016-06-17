@@ -461,7 +461,15 @@ int main(int argc, const char** argv)
 {
     if (argc != 2)
     {
-        puts("usage: editor filename");
+        puts("usage: editor filename\n");
+        puts("arrows, Home, End, PgUp, PgDn - move around");
+        puts("^B - start of file");
+        puts("^E - end of file\n");
+        puts("Delete, Backspace - delete characters");
+        puts("^D - delete line\n");
+        puts("^W - save");
+        puts("^X - exit");
+
         return 1;
     }
 
