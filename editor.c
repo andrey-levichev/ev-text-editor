@@ -11,6 +11,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+const int TAB_SIZE = 8;
+
 const char* filename;
 
 char* screen;
@@ -193,6 +195,8 @@ void positionToLineColumn()
             ++line;
             column = 1;
         }
+        else if (*p == '\t')
+            column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
         else
             ++column;
 
@@ -213,8 +217,12 @@ void lineColumnToPosition()
 
     while (*p && *p != '\n' && col < column)
     {
+        if (*p == '\t')
+            col = ((col - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+        else
+            ++col;
+
         ++p;
-        ++col;
     }
     
     position = p - text;    
@@ -236,23 +244,27 @@ void redrawScreen()
 
     char* p = findLine(text, top);
     char* q = screen;
+    int len = left + width - 1;
 
     for (int j = 1; j <= height; ++j)
     {
-        for (int i = left; i > 1; --i)
+        for (int i = 1; i <= len; ++i)
         {
-            if (*p && *p != '\n')
-                ++p;
-            else
-                break;
-        }
+            char c;
 
-        for (int i = 1; i <= width; ++i)
-        {
-            if (*p && *p != '\n')
-                *q++ = *p++;
+            if (*p == '\t')
+            {
+                c = ' ';
+                if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
+                    ++p;
+            }
+            else if (*p && *p != '\n')
+                c = *p++;
             else
-                *q++ = ' ';
+                c = ' ';
+
+            if (i >= left)
+                *q++ = c;
         }
 
         if (*p == '\n')
@@ -323,12 +335,7 @@ bool processKey()
         }
         else if (*key == '\t' || *key == '\n' || isprint(*key))
         {
-            if (*key == '\t') // Tab
-            {
-                insertChars("    ", position, 4);
-                position += 4;
-            }
-            else if (*key == '\n') // Enter
+            if (*key == '\n') // Enter
             {
                 char* p = findCharBackwards(text, text + position, '\n');
                 if (*p == '\n')
