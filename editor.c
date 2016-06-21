@@ -23,6 +23,7 @@ int position;
 int line, column;
 
 char* text;
+char* buffer;
 int size, capacity;
 
 struct termios termAttr;
@@ -340,7 +341,7 @@ bool processKey()
             position = size;
             redrawScreen();
         }
-        else if (*key == 0x04) // ^D
+        else if (*key == 0x04 || *key == 0x19) // ^D or ^Y
         {
             char* p = findCharBack(text, text + position, '\n');
             if (*p == '\n')
@@ -350,8 +351,33 @@ bool processKey()
             if (*q == '\n')
                 ++q;
 
-            deleteChars(p - text, q - p);
-            redrawScreen();
+            int len = q - p;
+            if (len > 0)
+            {
+                free(buffer);
+                buffer = alloc(len + 1);
+                memcpy(buffer, p, len);
+                buffer[len] = 0;
+
+                if (*key == 0x04)
+                {
+                    deleteChars(p - text, len);
+                    redrawScreen();
+                }
+            }
+        }
+        else if (*key == 0x10) // ^P
+        {
+            if (buffer)
+            {
+                char* p = findChar(text + position, '\n');
+                if (*p == '\n')
+                    ++p;
+
+                position = p - text;
+                insertChars(buffer, position, strlen(buffer));
+                redrawScreen();
+            }
         }
         else if (*key == 0x1b) // ^[
         {
@@ -376,15 +402,23 @@ bool processKey()
             if (*key == '\n') // Enter
             {
                 char* p = findCharBack(text, text + position, '\n');
+                
+                char* q = p;
                 if (*p == '\n')
-                    ++p;
+                    ++q;
 
-                insertChars(key, position++, 1);
+                while (*q == ' ' || *q == '\t')
+                    ++q;
 
-                int len = strspn(p, " \t");
+                int pos = p - text;
+                int len = q - p;
+
+                if (*p != '\n')
+                    insertChars(key, position++, 1);
+
                 if (len > 0)
                 {
-                    insertChars(p, position, len);
+                    insertChars(text + pos, position, len);
                     position += len;
                 }
             }
@@ -505,6 +539,8 @@ int main(int argc, const char** argv)
         puts("^E - end of file\n");
         puts("Delete, Backspace - delete characters");
         puts("^D - delete line\n");
+        puts("^Y - yank line\n");
+        puts("^P - paste line\n");
         puts("^W - save");
         puts("^X - exit");
 
@@ -512,6 +548,7 @@ int main(int argc, const char** argv)
     }
 
     filename = argv[1];
+    buffer = NULL;
 
     if (!readFile(filename))
     {
@@ -524,5 +561,7 @@ int main(int argc, const char** argv)
     editor();
 
     free(text);
+    free(buffer);
+
     return 0;
 }
