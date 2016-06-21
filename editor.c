@@ -139,13 +139,41 @@ char* findChar(char* str, char c)
     return str;
 }
 
-char* findCharBackwards(char* str, char* pos, char c)
+char* findCharBack(char* start, char* str, char c)
 {
-    while (pos > str)
-        if (*--pos == c)
-            return pos;
+    while (str > start)
+        if (*--str == c)
+            return str;
+
+    return start;
+}
+
+char* wordForward(char* str)
+{
+    while (*str)
+    {
+        if (isspace(*str) && !isspace(*(str + 1)))
+            return str + 1;
+        ++str;
+    }
 
     return str;
+}
+
+char* wordBack(char* start, char* str)
+{
+    if (str > start)
+    {
+        --str;
+        while (str > start)
+        {
+            if (isspace(*(str - 1)) && !isspace(*str))
+                return str;
+            --str;
+        }
+    }
+
+    return start;
 }
 
 char* findLine(char* str, int line)
@@ -302,7 +330,7 @@ bool processKey()
                 abort();
             }
         }
-        else if (*key == 0x02) // ^B
+        else if (*key == 0x01) // ^A
         {
             position = 0;
             redrawScreen();
@@ -314,7 +342,7 @@ bool processKey()
         }
         else if (*key == 0x04) // ^D
         {
-            char* p = findCharBackwards(text, text + position, '\n');
+            char* p = findCharBack(text, text + position, '\n');
             if (*p == '\n')
                 ++p;
 
@@ -323,6 +351,16 @@ bool processKey()
                 ++q;
 
             deleteChars(p - text, q - p);
+            redrawScreen();
+        }
+        else if (*key == 0x1b) // ^[
+        {
+            position = wordBack(text, text + position) - text;
+            redrawScreen();
+        }
+        else if (*key == 0x1d) // ^]
+        {
+            position = wordForward(text + position) - text;
             redrawScreen();
         }
         else if (*key == 0x7f) // Backspace
@@ -337,7 +375,7 @@ bool processKey()
         {
             if (*key == '\n') // Enter
             {
-                char* p = findCharBackwards(text, text + position, '\n');
+                char* p = findCharBack(text, text + position, '\n');
                 if (*p == '\n')
                     ++p;
 
@@ -409,7 +447,7 @@ bool processKey()
         }
         else if (memcmp(key, "\x1b\x5b\x31\x7e", 4) == 0) // Home
         {
-            char* p = findCharBackwards(text, text + position, '\n');
+            char* p = findCharBack(text, text + position, '\n');
             if (*p == '\n')
                 ++p;
 
@@ -461,7 +499,9 @@ int main(int argc, const char** argv)
     {
         puts("usage: editor filename\n");
         puts("arrows, Home, End, PgUp, PgDn - move around");
-        puts("^B - start of file");
+        puts("^[ - previous word\n");
+        puts("^] - next word\n");
+        puts("^A - start of file");
         puts("^E - end of file\n");
         puts("Delete, Backspace - delete characters");
         puts("^D - delete line\n");
