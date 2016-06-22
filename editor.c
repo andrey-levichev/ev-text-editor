@@ -195,10 +195,10 @@ void insertChars(const char* chars, int pos, int len)
 	if (cap > capacity)
 	{
 		capacity = cap * 2;
-		char* tx = alloc(capacity);
-		strcpy(tx, text);
+		char* txt = alloc(capacity);
+		memcpy(txt, text, size + 1);
 		free(text);
-		text = tx;
+		text = txt;
 	}
 
 	memmove(text + pos + len, text + pos, size - pos + 1);
@@ -426,25 +426,21 @@ bool processKey()
 			if (*key == '\n') // Enter
 			{
 				char* p = findCharBack(text, text + position, '\n');
-				
-				char* q = p;
 				if (*p == '\n')
-					++q;
+					++p;
 
+				char* q = p;
 				while (*q == ' ' || *q == '\t')
 					++q;
 
-				int pos = p - text;
-				int len = q - p;
+				int len = q - p + 1;
+				char tmp[len];
 
-				if (*p != '\n')
-					insertChars(key, position++, 1);
+				tmp[0] = '\n';
+				memcpy(tmp + 1, p, q - p);
 
-				if (len > 0)
-				{
-					insertChars(text + pos, position, len);
-					position += len;
-				}
+				insertChars(tmp, position, len);
+				position += len;
 			}
 			else
 				insertChars(key, position++, 1);
