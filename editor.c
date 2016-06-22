@@ -21,6 +21,7 @@ int width, height;
 
 int position;
 int line, column;
+int selection;
 
 char* text;
 char* buffer;
@@ -200,10 +201,10 @@ void insertChars(const char* chars, int pos, int len)
 		free(text);
 		text = txt;
 	}
-
+	
 	memmove(text + pos + len, text + pos, size - pos + 1);
 	memcpy(text + pos, chars, len);
-	size += len; 
+	size += len;
 }
 
 void deleteChars(int pos, int len)
@@ -354,26 +355,38 @@ bool processKey()
 		}
 		else if (*key == 0x04 || *key == 0x19) // ^D or ^Y
 		{
-			char* p = findCharBack(text, text + position, '\n');
-			if (*p == '\n')
-				++p;
-
-			char* q = findChar(text + position, '\n');
-			if (*q == '\n')
-				++q;
-
-			int len = q - p;
-			if (len > 0)
+			if (selection >= 0)
 			{
-				free(buffer);
-				buffer = alloc(len + 1);
-				memcpy(buffer, p, len);
-				buffer[len] = 0;
+				char* p;
+				char* q;
 
-				if (*key == 0x04)
+				if (selection < position)
 				{
-					deleteChars(p - text, len);
-					updateScreen();
+					p = text + selection;
+					q = text + position;
+				}
+				else
+				{
+					p = text + position;
+					q = text + selection;
+				}
+				
+				selection = -1;
+
+				int len = q - p;
+				if (len > 0)
+				{
+					free(buffer);
+					buffer = alloc(len + 1);
+					memcpy(buffer, p, len);
+					buffer[len] = 0;
+
+					if (*key == 0x04)
+					{
+						position = p - text;
+						deleteChars(position, len);
+						updateScreen();
+					}
 				}
 			}
 		}
@@ -381,11 +394,6 @@ bool processKey()
 		{
 			if (buffer)
 			{
-				char* p = findChar(text + position, '\n');
-				if (*p == '\n')
-					++p;
-
-				position = p - text;
 				insertChars(buffer, position, strlen(buffer));
 				updateScreen();
 			}
@@ -412,6 +420,10 @@ bool processKey()
 			
 			setCharInputMode();
 			redrawScreen();
+		}
+		else if (*key == 0x0b) // ^K
+		{
+			selection = position;
 		}
 		else if (*key == 0x7f) // Backspace
 		{
@@ -534,6 +546,7 @@ void editor()
 
 	top = 1; left = 1;
 	position = 0;
+	selection = -1;
 
 	updateScreen();
 
