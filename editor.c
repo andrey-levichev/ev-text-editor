@@ -362,11 +362,21 @@ bool processKey()
 		}
 		else if (*key == 0x04 || *key == 0x19) // ^D or ^Y
 		{
-			if (selection >= 0)
-			{
-				char* p;
-				char* q;
+			char* p;
+			char* q;
 
+			if (selection < 0)
+			{
+				p = findCharBack(text, text + position, '\n');
+				if (*p == '\n')
+					++p;
+						
+				q = findChar(text + position, '\n');
+				if (*q == '\n')
+					++q;
+			}
+			else
+			{
 				if (selection < position)
 				{
 					p = text + selection;
@@ -377,23 +387,23 @@ bool processKey()
 					p = text + position;
 					q = text + selection;
 				}
-				
+			
 				selection = -1;
+			}
 
-				int len = q - p;
-				if (len > 0)
+			int len = q - p;
+			if (len > 0)
+			{
+				free(buffer);
+				buffer = alloc(len + 1);
+				memcpy(buffer, p, len);
+				buffer[len] = 0;
+
+				if (*key == 0x04)
 				{
-					free(buffer);
-					buffer = alloc(len + 1);
-					memcpy(buffer, p, len);
-					buffer[len] = 0;
-
-					if (*key == 0x04)
-					{
-						position = p - text;
-						deleteChars(position, len);
-						updateScreen();
-					}
+					position = p - text;
+					deleteChars(position, len);
+					updateScreen();
 				}
 			}
 		}
