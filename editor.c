@@ -287,7 +287,7 @@ void updateScreen()
 	char* q = screen;
 	int len = left + width - 1;
 
-	for (int j = 1; j <= height; ++j)
+	for (int j = 1; j <= height - 1; ++j)
 	{
 		for (int i = 1; i <= len; ++i)
 		{
@@ -317,6 +317,13 @@ void updateScreen()
 				++p;
 		}
 	}
+	
+	memset(q, ' ', width);
+	
+	char lnCol[30];
+	len = sprintf(lnCol, "%d, %d", line, column);
+	if (len > 0 && len <= width)
+		memcpy(q + width - len, lnCol, len);
 
 	redrawScreen();
 }
@@ -394,7 +401,9 @@ bool processKey()
 		{
 			if (buffer)
 			{
-				insertChars(buffer, position, strlen(buffer));
+				int len = strlen(buffer);
+				insertChars(buffer, position, len);
+				position += len;
 				updateScreen();
 			}
 		}
@@ -568,9 +577,11 @@ int main(int argc, const char** argv)
 		puts("^A - start of file");
 		puts("^E - end of file");
 		puts("Delete, Backspace - delete characters");
-		puts("^D - delete line");
-		puts("^Y - yank line");
-		puts("^P - paste line");
+		puts("^K - start selection");
+		puts("^D - delete line/block");
+		puts("^Y - yank line/block");
+		puts("^P - paste line/block");
+		puts("^B - build with make");
 		puts("^W - save");
 		puts("^X - exit");
 
