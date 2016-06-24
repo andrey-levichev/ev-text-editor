@@ -1,0 +1,45 @@
+editor:
+* some keys don't work in xterm (pgup/pgdn, cursor keys)
+doesn't read key code in one shot
+* don't add autoindent if followed by newline
+* using size vs zero terminator for text
+* remember cursor column when moving between lines
+* check boundary conditions etc
+* save before make
+* back word should stop at end?
+
+features:
+* simple copy - mark begin, end, cut, copy, paste
+selection inclusive of last char?
+use del/insert for delete/paste?
+insertChars, deleteChars should update position?
+typing erases selection
+changing text after selecting will make position invalid
+highlight the selection
+* search/replace
+* go to line
+* delete word forward/back
+* multiple file support
+* text window resizing
+* block indent, comment
+
+arrows - move cursor
+alt+left/right - word back/forward
+alt+up/down - paragraph back/forward
+home/end - start/end of line
+alt+home/end - start/end of file
+pgup/pgdn - page up/down
+alt+pgup/pgdn - half page up/down
+del - delete character at cursor position
+backspace - delete character to the left of cursor position
+alt+del - delete word at cursor position
+alt+backspace - delete word to the left of cursor position
+^K - start selection
+^D - delete line/block
+^Y - yank line/block
+^P - paste line/block
+^B - build with make
+^F - find
+^R - replace
+^W - save
+^X - exit

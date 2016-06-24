@@ -263,7 +263,7 @@ void redrawScreen()
 {
 	hideCursor();
 	setCursorPosition(1, 1);
-	write(STDOUT_FILENO, screen, width * height);
+	write(STDOUT_FILENO, screen, width * (height + 1));
 
 	setCursorPosition(column - left + 1, line - top + 1);
 	showCursor();
@@ -287,7 +287,7 @@ void updateScreen()
 	char* q = screen;
 	int len = left + width - 1;
 
-	for (int j = 1; j <= height - 1; ++j)
+	for (int j = 1; j <= height; ++j)
 	{
 		for (int i = 1; i <= len; ++i)
 		{
@@ -563,6 +563,7 @@ void editor()
 	screen = alloc(width * height);
 	setCharInputMode();
 
+	--height;
 	top = 1; left = 1;
 	position = 0;
 	selection = -1;
@@ -581,20 +582,6 @@ int main(int argc, const char** argv)
 	if (argc != 2)
 	{
 		puts("usage: editor filename\n");
-		puts("arrows, Home, End, PgUp, PgDn - move around");
-		puts("^[ - previous word");
-		puts("^] - next word");
-		puts("^A - start of file");
-		puts("^E - end of file");
-		puts("Delete, Backspace - delete characters");
-		puts("^K - start selection");
-		puts("^D - delete line/block");
-		puts("^Y - yank line/block");
-		puts("^P - paste line/block");
-		puts("^B - build with make");
-		puts("^W - save");
-		puts("^X - exit");
-
 		return 1;
 	}
 
