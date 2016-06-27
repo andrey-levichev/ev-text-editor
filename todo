@@ -1,6 +1,10 @@
 editor:
-* some keys don't work in xterm (pgup/pgdn, cursor keys)
-doesn't read key code in one shot
+* keyboard input improvements
+some keys don't work in xterm (pgup/pgdn, cursor keys)
+xterm doesn't always read one key code with one call
+support unicode input
+copying text from screen doesn't have newlines
+filter out all non-printable key codes from input
 * don't add autoindent if followed by newline
 * using size vs zero terminator for text
 * remember cursor column when moving between lines
@@ -18,7 +22,6 @@ changing text after selecting will make position invalid
 highlight the selection
 * search/replace
 * go to line
-* delete word forward/back
 * multiple file support
 * text window resizing
 * block indent, comment

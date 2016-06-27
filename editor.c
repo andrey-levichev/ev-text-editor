@@ -330,16 +330,18 @@ void updateScreen()
 
 bool processKey()
 {
-	char key[6];
-	int len = read(STDIN_FILENO, key, sizeof(key));
+	char keys[1024];
+	char* key = keys;
+	bool update = false;
 	
-	/*for (int i = 0; i < len; ++i)
-		printf("%x\n", key[i]);
-	printf("\n");
-	return true;*/
-
-	if (len == 1)
+	int len = read(STDIN_FILENO, keys, sizeof(keys) - 1);
+	keys[len] = 0;
+	
+	while (*key)
 	{
+		/*printf("%x\n", ((unsigned char)*key++));
+		continue;*/
+		
 		if (*key == 0x18) // ^X
 			return false;
 		else if (*key == 0x17) // ^W
@@ -349,16 +351,8 @@ bool processKey()
 				fprintf(stderr, "failed to save text to %s\n", filename);
 				abort();
 			}
-		}
-		else if (*key == 0x01) // ^A
-		{
-			position = 0;
-			updateScreen();
-		}
-		else if (*key == 0x05) // ^E
-		{
-			position = size;
-			updateScreen();
+			
+			++key;
 		}
 		else if (*key == 0x04 || *key == 0x19) // ^D or ^Y
 		{
@@ -403,9 +397,11 @@ bool processKey()
 				{
 					position = p - text;
 					deleteChars(position, len);
-					updateScreen();
+					update = true;
 				}
 			}
+
+			++key;
 		}
 		else if (*key == 0x10) // ^P
 		{
@@ -414,18 +410,10 @@ bool processKey()
 				int len = strlen(buffer);
 				insertChars(buffer, position, len);
 				position += len;
-				updateScreen();
+				update = true;
 			}
-		}
-		else if (*key == 0x1b) // ^[
-		{
-			position = wordBack(text, text + position) - text;
-			updateScreen();
-		}
-		else if (*key == 0x1d) // ^]
-		{
-			position = wordForward(text + position) - text;
-			updateScreen();
+			
+			++key;
 		}
 		else if (*key == 0x02) // ^B
 		{
@@ -439,18 +427,180 @@ bool processKey()
 			
 			setCharInputMode();
 			redrawScreen();
+			++key;
 		}
 		else if (*key == 0x0b) // ^K
 		{
 			selection = position;
+			++key;
 		}
 		else if (*key == 0x7f) // Backspace
 		{
 			if (position > 0)
 			{
 				deleteChars(--position, 1);
-				updateScreen();
+				update = true;
 			}
+			
+			++key;
+		}
+		else if (*key == 0x1b)
+		{
+			if (!strcmp(key, "\x1b\x5b\x41")) // up
+			{
+				if (line > 1)
+				{
+					--line;
+					lineColumnToPosition();
+					update = true;
+				}
+				
+				key += 3;
+			}
+			else if (!strcmp(key, "\x1b\x5b\x42")) // down
+			{
+				++line;
+				lineColumnToPosition();
+				update = true;
+				key += 3;
+			}
+			else if (!strcmp(key, "\x1b\x5b\x43")) // right
+			{
+				if (position < size)
+				{
+					++position;
+					update = true;
+				}
+				
+				key += 3;
+			}
+			else if (!strcmp(key, "\x1b\x5b\x44")) // left
+			{
+				if (position > 0)
+				{
+					--position;
+					update = true;
+				}
+				
+				key += 3;
+			}
+			else if (!strcmp(key, "\x1b\x5b\x35\x7e")) // PgUp
+			{
+				line -= height - 1;
+				if (line < 1)
+					line = 1;
+
+				lineColumnToPosition();
+				update = true;
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x5b\x36\x7e")) // PgDn
+			{
+				line += height - 1;
+				lineColumnToPosition();
+				update = true;
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x5b\x31\x7e")) // Home
+			{
+				char* p = findCharBack(text, text + position, '\n');
+				if (*p == '\n')
+					++p;
+
+				position = p - text;
+				update = true;
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x5b\x34\x7e")) // End
+			{
+				position = findChar(text + position, '\n') - text;
+				update = true;
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x5b\x33\x7e")) // Delete
+			{
+				if (position < size)
+				{
+					deleteChars(position, 1);
+					update = true;
+				}
+				
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x41")) // alt+up
+			{
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x42")) // alt+down
+			{
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x43")) // alt+right
+			{
+				position = wordForward(text + position) - text;
+				update = true;
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x44")) // alt+left
+			{
+				position = wordBack(text, text + position) - text;
+				update = true;
+				key += 4;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x35\x7e")) // alt+PgUp
+			{
+				line -= height / 2;
+				if (line < 1)
+					line = 1;
+
+				lineColumnToPosition();
+				update = true;
+				key += 5;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x36\x7e")) // alt+PgDn
+			{
+				line += height / 2;
+				lineColumnToPosition();
+				update = true;
+				key += 5;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x31\x7e")) // alt+Home
+			{
+				position = 0;
+				update = true;
+				key += 5;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x34\x7e")) // alt+End
+			{
+				position = size;
+				update = true;
+				key += 5;
+			}
+			else if (!strcmp(key, "\x1b\x1b\x5b\x33\x7e")) // alt+Delete
+			{
+				int pos = wordForward(text + position) - text;
+				if (pos > position)
+				{
+					deleteChars(position, pos - position);
+					update = true;
+				}
+				
+				key += 5;
+			}
+			else if (!strcmp(key, "\x1b\x7f")) // alt+Backspace
+			{
+				int pos = wordBack(text, text + position) - text;
+				if (pos < position)
+				{
+					deleteChars(pos, position - pos);
+					position = pos;
+					update = true;
+				}
+				
+				key += 2;
+			}
+			else
+				++key;
 		}
 		else if (*key == '\t' || *key == '\n' || isprint(*key))
 		{
@@ -465,94 +615,26 @@ bool processKey()
 					++q;
 
 				int len = q - p + 1;
-				char tmp[len];
+				char chars[len];
 
-				tmp[0] = '\n';
-				memcpy(tmp + 1, p, q - p);
+				chars[0] = '\n';
+				memcpy(chars + 1, p, q - p);
 
-				insertChars(tmp, position, len);
+				insertChars(chars, position, len);
 				position += len;
 			}
 			else
 				insertChars(key, position++, 1);
 
-			updateScreen();
+			update = true;
+			++key;
 		}
+		else
+			++key;
 	}
-	else if (len == 3)
-	{
-		if (memcmp(key, "\x1b\x5b\x41", 3) == 0) // up
-		{
-			if (line > 1)
-			{
-				--line;
-				lineColumnToPosition();
-				updateScreen();
-			}
-		}
-		else if (memcmp(key, "\x1b\x5b\x42", 3) == 0) // down
-		{
-			++line;
-			lineColumnToPosition();
-			updateScreen();
-		}
-		else if (memcmp(key, "\x1b\x5b\x43", 3) == 0) // right
-		{
-			if (position < size)
-			{
-				++position;
-				updateScreen();
-			}
-		}
-		else if (memcmp(key, "\x1b\x5b\x44", 3) == 0) // left
-		{
-			if (position > 0)
-			{
-				--position;
-				updateScreen();
-			}
-		}
-	}
-	else if (len == 4)
-	{
-		if (memcmp(key, "\x1b\x5b\x35\x7e", 4) == 0) // PgUp
-		{
-			line -= height - 1;
-			if (line < 1)
-				line = 1;
-
-			lineColumnToPosition();
-			updateScreen();
-		}
-		else if (memcmp(key, "\x1b\x5b\x36\x7e", 4) == 0) // PgDn
-		{
-			line += height - 1;
-			lineColumnToPosition();
-			updateScreen();
-		}
-		else if (memcmp(key, "\x1b\x5b\x31\x7e", 4) == 0) // Home
-		{
-			char* p = findCharBack(text, text + position, '\n');
-			if (*p == '\n')
-				++p;
-
-			position = p - text;
-			updateScreen();
-		}
-		else if (memcmp(key, "\x1b\x5b\x34\x7e", 4) == 0) // End
-		{
-			position = findChar(text + position, '\n') - text;
-			updateScreen();
-		}
-		else if (memcmp(key, "\x1b\x5b\x33\x7e", 4) == 0) // Delete
-		{
-			if (position < size)
-			{
-				deleteChars(position, 1);
-				updateScreen();
-			}
-		}
-	}
+	
+	if (update)
+		updateScreen();
 
 	return true;
 }
