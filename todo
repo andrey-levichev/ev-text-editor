@@ -1,9 +1,8 @@
 editor:
 * keyboard input improvements
 some keys don't work in xterm (pgup/pgdn, cursor keys)
-xterm doesn't always read one key code with one call
 copying text from screen doesn't have newlines
-filter out non-printable key codes from input but support unicode
+support unicode input
 * trim trailing whitespace on save
 * using size vs zero terminator for text
 * remember cursor column when moving between lines

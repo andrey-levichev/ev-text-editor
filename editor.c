@@ -517,6 +517,10 @@ bool processKey()
                 update = true;
                 key += 4;
             }
+            else if (!strcmp(key, "\x1b\x5b\x32\x7e")) // Insert
+            {
+                key += 4;
+            }
             else if (!strcmp(key, "\x1b\x5b\x33\x7e")) // Delete
             {
                 if (position < size)
@@ -600,7 +604,18 @@ bool processKey()
                 key += 2;
             }
             else
+            {
                 ++key;
+                if (*key == 0x5b)
+                {
+                    ++key;
+                    while (*key && *key != 0x7e)
+                        ++key;
+                    
+                    if (*key == 0x7e)
+                        ++key;
+                }
+            }
         }
         else if (*key == '\n' || *key == '\t' || *key == 0x14 || isprint(*key))
         {
