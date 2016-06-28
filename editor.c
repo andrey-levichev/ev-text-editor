@@ -39,50 +39,6 @@ void* alloc(int size)
     abort();
 }
 
-bool readFile(const char* fileName)
-{
-    struct stat st;
-
-    if (stat(fileName, &st) < 0)
-        return false;
-
-    int file = open(fileName, O_RDONLY);
-
-    if (file < 0)
-        return false;
-
-    size = st.st_size;
-    capacity = size + 1;
-    text = alloc(capacity);
-
-    if (read(file, text, size) != size)
-    {
-        free(text);
-        close(file);
-        return false;
-    }
-
-    text[size] = 0;
-    close(file);
-
-    return true;
-}
-
-bool writeFile(const char* fileName)
-{
-    int file = open(fileName, O_WRONLY | O_CREAT | O_TRUNC,
-        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
-    if (file < 0)
-        return false;
-
-    if (write(file, text, size) != size)
-        return false;
-
-    close(file);
-    return true;
-}
-
 void setCharInputMode()
 {
     struct termios newTermAttr;
@@ -213,6 +169,41 @@ void deleteChars(int pos, int len)
     size -= len;
 }
 
+void trimTrailingWhitespace()
+{
+    char* p = text;
+    char* q = p;
+    char* r = NULL;
+    
+    while (true)
+    {
+        if (*p == ' ' || *p == '\t')
+        {
+            if (!r)
+                r = q;
+        }
+        else if (*p == '\n' || !*p)
+        {
+            if (r)
+            {
+                q = r;
+                r = NULL;
+            }
+        }
+        else
+            r = NULL;
+        
+        *q = *p;
+        
+        if (!*p)
+            break;
+            
+        ++p; ++q;
+    }
+    
+    size = strlen(text);
+}
+
 void positionToLineColumn()
 {
     char* p = text;
@@ -328,6 +319,76 @@ void updateScreen()
     redrawScreen();
 }
 
+bool readFile(const char* fileName)
+{
+    struct stat st;
+
+    if (stat(fileName, &st) < 0)
+        return false;
+
+    int file = open(fileName, O_RDONLY);
+
+    if (file < 0)
+        return false;
+
+    size = st.st_size;
+    capacity = size + 1;
+    text = alloc(capacity);
+
+    if (read(file, text, size) != size)
+    {
+        free(text);
+        close(file);
+        return false;
+    }
+
+    text[size] = 0;
+    close(file);
+
+    return true;
+}
+
+bool writeFile(const char* fileName)        
+{		
+    int file = open(fileName, O_WRONLY | O_CREAT | O_TRUNC,
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+
+    if (file < 0)
+        return false;
+    
+    if (write(file, text, size) != size)
+        return false;
+
+    close(file);
+    return true;
+}
+
+void openFile()
+{
+    if (!readFile(filename))
+    {
+        size = 0;
+        capacity = 1;
+        text = alloc(capacity);
+        *text = 0;
+    }
+
+    position = 0;
+    selection = -1;
+}
+
+void saveFile()
+{
+    trimTrailingWhitespace();
+    lineColumnToPosition();
+    
+    if (!writeFile(filename))
+    {
+        fprintf(stderr, "failed to save text to %s\n", filename);
+        abort();
+    }
+}
+
 bool processKey()
 {
     char keys[1024];
@@ -346,15 +407,11 @@ bool processKey()
             return false;
         else if (*key == 0x17) // ^W
         {
-            if (!writeFile(filename))
-            {
-                fprintf(stderr, "failed to save text to %s\n", filename);
-                abort();
-            }
-            
+            saveFile();
+            update = true;            
             ++key;
         }
-        else if (*key == 0x04 || *key == 0x19) // ^D or ^Y
+        else if (*key == 0x04 || *key == 0x15) // ^D or ^U
         {
             char* p;
             char* q;
@@ -419,14 +476,16 @@ bool processKey()
         {
             restoreInputMode();
             clearScreen();
-            
+
+            saveFile();            
             system("make");
             
             puts("Press ENTER to contiue...");
             getchar();
             
             setCharInputMode();
-            redrawScreen();
+            
+            update = true;
             ++key;
         }
         else if (*key == 0x0b) // ^K
@@ -486,7 +545,7 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x5b\x35\x7e")) // PgUp
             {
-                line -= height - 1;
+                line -= height;
                 if (line < 1)
                     line = 1;
 
@@ -496,7 +555,7 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x5b\x36\x7e")) // PgDn
             {
-                line += height - 1;
+                line += height;
                 lineColumnToPosition();
                 update = true;
                 key += 4;
@@ -671,8 +730,6 @@ void editor()
 
     --height;
     top = 1; left = 1;
-    position = 0;
-    selection = -1;
 
     updateScreen();
 
@@ -694,14 +751,7 @@ int main(int argc, const char** argv)
     filename = argv[1];
     buffer = NULL;
 
-    if (!readFile(filename))
-    {
-        size = 0;
-        capacity = 1;
-        text = alloc(capacity);
-        *text = 0;
-    }
-
+    openFile();    
     editor();
 
     free(text);

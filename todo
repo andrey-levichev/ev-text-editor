@@ -34,7 +34,7 @@ alt+del - delete word at cursor position
 alt+backspace - delete word to the left of cursor position
 ^K - start selection
 ^D - delete line/block
-^Y - yank line/block
+^U - copy line/block
 ^P - paste line/block
 ^B - build with make
 ^F - find
