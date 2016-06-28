@@ -13,9 +13,11 @@
 
 const int TAB_SIZE = 4;
 
+char* screen;
+struct termios termAttr;
+
 const char* filename;
 
-char* screen;
 int top, left;
 int width, height;
 
@@ -26,8 +28,6 @@ int selection;
 char* text;
 char* buffer;
 int size, capacity;
-
-struct termios termAttr;
 
 void* alloc(int size)
 {
@@ -157,16 +157,18 @@ void insertChars(const char* chars, int pos, int len)
         free(text);
         text = txt;
     }
-    
+
     memmove(text + pos + len, text + pos, size - pos + 1);
     memcpy(text + pos, chars, len);
     size += len;
+    selection = -1;
 }
 
 void deleteChars(int pos, int len)
 {
     memmove(text + pos, text + pos + len, size - pos - len + 1);
     size -= len;
+    selection = -1;
 }
 
 void trimTrailingWhitespace()
@@ -174,7 +176,7 @@ void trimTrailingWhitespace()
     char* p = text;
     char* q = p;
     char* r = NULL;
-    
+
     while (true)
     {
         if (*p == ' ' || *p == '\t')
@@ -192,16 +194,17 @@ void trimTrailingWhitespace()
         }
         else
             r = NULL;
-        
+
         *q = *p;
-        
+
         if (!*p)
             break;
-            
+
         ++p; ++q;
     }
-    
+
     size = strlen(text);
+    selection = -1;
 }
 
 void positionToLineColumn()
@@ -246,8 +249,8 @@ void lineColumnToPosition()
 
         ++p;
     }
-    
-    position = p - text;    
+
+    position = p - text;
 }
 
 void redrawScreen()
@@ -308,9 +311,9 @@ void updateScreen()
                 ++p;
         }
     }
-    
+
     memset(q, ' ', width);
-    
+
     char lnCol[30];
     len = sprintf(lnCol, "%d, %d", line, column);
     if (len > 0 && len <= width)
@@ -348,14 +351,14 @@ bool readFile(const char* fileName)
     return true;
 }
 
-bool writeFile(const char* fileName)        
-{		
+bool writeFile(const char* fileName)
+{
     int file = open(fileName, O_WRONLY | O_CREAT | O_TRUNC,
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 
     if (file < 0)
         return false;
-    
+
     if (write(file, text, size) != size)
         return false;
 
@@ -381,7 +384,7 @@ void saveFile()
 {
     trimTrailingWhitespace();
     lineColumnToPosition();
-    
+
     if (!writeFile(filename))
     {
         fprintf(stderr, "failed to save text to %s\n", filename);
@@ -394,21 +397,21 @@ bool processKey()
     char keys[1024];
     char* key = keys;
     bool update = false;
-    
+
     int len = read(STDIN_FILENO, keys, sizeof(keys) - 1);
     keys[len] = 0;
-    
+
     while (*key)
     {
         /*printf("%x\n", ((unsigned char)*key++));
         continue;*/
-        
+
         if (*key == 0x18) // ^X
             return false;
         else if (*key == 0x17) // ^W
         {
             saveFile();
-            update = true;            
+            update = true;
             ++key;
         }
         else if (*key == 0x04 || *key == 0x15) // ^D or ^U
@@ -421,7 +424,7 @@ bool processKey()
                 p = findCharBack(text, text + position, '\n');
                 if (*p == '\n')
                     ++p;
-                        
+
                 q = findChar(text + position, '\n');
                 if (*q == '\n')
                     ++q;
@@ -438,7 +441,7 @@ bool processKey()
                     p = text + position;
                     q = text + selection;
                 }
-            
+
                 selection = -1;
             }
 
@@ -469,7 +472,7 @@ bool processKey()
                 position += len;
                 update = true;
             }
-            
+
             ++key;
         }
         else if (*key == 0x02) // ^B
@@ -477,14 +480,14 @@ bool processKey()
             restoreInputMode();
             clearScreen();
 
-            saveFile();            
+            saveFile();
             system("make");
-            
+
             puts("Press ENTER to contiue...");
             getchar();
-            
+
             setCharInputMode();
-            
+
             update = true;
             ++key;
         }
@@ -500,7 +503,7 @@ bool processKey()
                 deleteChars(--position, 1);
                 update = true;
             }
-            
+
             ++key;
         }
         else if (*key == 0x1b)
@@ -513,7 +516,7 @@ bool processKey()
                     lineColumnToPosition();
                     update = true;
                 }
-                
+
                 key += 3;
             }
             else if (!strcmp(key, "\x1b\x5b\x42")) // down
@@ -530,7 +533,7 @@ bool processKey()
                     ++position;
                     update = true;
                 }
-                
+
                 key += 3;
             }
             else if (!strcmp(key, "\x1b\x5b\x44")) // left
@@ -540,7 +543,7 @@ bool processKey()
                     --position;
                     update = true;
                 }
-                
+
                 key += 3;
             }
             else if (!strcmp(key, "\x1b\x5b\x35\x7e")) // PgUp
@@ -587,7 +590,7 @@ bool processKey()
                     deleteChars(position, 1);
                     update = true;
                 }
-                
+
                 key += 4;
             }
             else if (!strcmp(key, "\x1b\x1b\x5b\x41")) // alt+up
@@ -647,7 +650,7 @@ bool processKey()
                     deleteChars(position, pos - position);
                     update = true;
                 }
-                
+
                 key += 5;
             }
             else if (!strcmp(key, "\x1b\x7f")) // alt+Backspace
@@ -659,7 +662,7 @@ bool processKey()
                     position = pos;
                     update = true;
                 }
-                
+
                 key += 2;
             }
             else
@@ -670,7 +673,7 @@ bool processKey()
                     ++key;
                     while (*key && *key != 0x7e)
                         ++key;
-                    
+
                     if (*key == 0x7e)
                         ++key;
                 }
@@ -715,7 +718,7 @@ bool processKey()
         else
             ++key;
     }
-    
+
     if (update)
         updateScreen();
 
@@ -751,7 +754,7 @@ int main(int argc, const char** argv)
     filename = argv[1];
     buffer = NULL;
 
-    openFile();    
+    openFile();
     editor();
 
     free(text);

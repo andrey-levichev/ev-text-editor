@@ -3,20 +3,16 @@ editor:
 some keys don't work in xterm (pgup/pgdn, cursor keys)
 copying text from screen doesn't have newlines
 support unicode input
-* trim trailing whitespace on save
+control+arrow is not filtered out
 * using size vs zero terminator for text
 * remember cursor column when moving between lines
-* save before make
 
 features:
-* simple copy - mark begin, end, cut, copy, paste
-typing must erase selection
-changing text after selecting will make position invalid
-highlight the selection
+* highlight the selection
 * search/replace
 * go to line
 * multiple file support
-* text window resizing
+* window resizing
 * block indent, comment
 * paragraph back/forward
 
