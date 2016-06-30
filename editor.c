@@ -35,7 +35,7 @@ void* alloc(int size)
     if (p)
         return p;
 
-    fprintf(stderr, "out of memory");
+    fprintf(stderr, "out of memory\n");
     abort();
 }
 
@@ -405,99 +405,7 @@ bool processKey()
         /*printf("%x\n", ((unsigned char)*key++));
         continue;*/
 
-        if (*key == 0x18) // ^X
-            return false;
-        else if (*key == 0x17) // ^W
-        {
-            saveFile();
-            update = true;
-            ++key;
-        }
-        else if (*key == 0x04 || *key == 0x15) // ^D or ^U
-        {
-            char* p;
-            char* q;
-
-            if (selection < 0)
-            {
-                p = findCharBack(text, text + position, '\n');
-                if (*p == '\n')
-                    ++p;
-
-                q = findChar(text + position, '\n');
-                if (*q == '\n')
-                    ++q;
-            }
-            else
-            {
-                if (selection < position)
-                {
-                    p = text + selection;
-                    q = text + position;
-                }
-                else
-                {
-                    p = text + position;
-                    q = text + selection;
-                }
-
-                selection = -1;
-            }
-
-            int len = q - p;
-            if (len > 0)
-            {
-                free(buffer);
-                buffer = alloc(len + 1);
-                memcpy(buffer, p, len);
-                buffer[len] = 0;
-
-                if (*key == 0x04)
-                {
-                    position = p - text;
-                    positionToLineColumn();
-                    deleteChars(position, len);
-                    update = true;
-                }
-            }
-
-            ++key;
-        }
-        else if (*key == 0x10) // ^P
-        {
-            if (buffer)
-            {
-                int len = strlen(buffer);
-                insertChars(buffer, position, len);
-                position += len;
-                positionToLineColumn();
-                update = true;
-            }
-
-            ++key;
-        }
-        else if (*key == 0x02) // ^B
-        {
-            restoreInputMode();
-            clearScreen();
-
-            saveFile();
-            system("make");
-
-            puts("Press ENTER to contiue...");
-            getchar();
-
-            setCharInputMode();
-
-            update = true;
-            ++key;
-        }
-        else if (*key == 0x0b) // ^K
-        {
-            selection = position;
-            ++key;
-        }
-        else if (*key == 0x7f) // Backspace
+        if (*key == 0x7f) // Backspace
         {
             if (position > 0)
             {
@@ -692,6 +600,105 @@ bool processKey()
 
                 key += 2;
             }
+            else if (!strcmp(key, "\x1b\x71")) // alt+q
+            {
+                return false;
+            }
+            else if (!strcmp(key, "\x1b\x73")) // alt+s
+            {
+                saveFile();
+                update = true;
+                key += 2;
+            }
+            else if (!strcmp(key, "\x1b\x78")) // alt+x
+            {
+                saveFile();
+                return false;
+            }
+            else if (!strcmp(key, "\x1b\x64") || !strcmp(key, "\x1b\x63")) // alt+d or alt+c
+            {
+                char* p;
+                char* q;
+
+                if (selection < 0)
+                {
+                    p = findCharBack(text, text + position, '\n');
+                    if (*p == '\n')
+                        ++p;
+
+                    q = findChar(text + position, '\n');
+                    if (*q == '\n')
+                        ++q;
+                }
+                else
+                {
+                    if (selection < position)
+                    {
+                        p = text + selection;
+                        q = text + position;
+                    }
+                    else
+                    {
+                        p = text + position;
+                        q = text + selection;
+                    }
+
+                    selection = -1;
+                }
+
+                int len = q - p;
+                if (len > 0)
+                {
+                    free(buffer);
+                    buffer = alloc(len + 1);
+                    memcpy(buffer, p, len);
+                    buffer[len] = 0;
+
+                    if (*(key + 1) == 0x64)
+                    {
+                        position = p - text;
+                        positionToLineColumn();
+                        deleteChars(position, len);
+                        update = true;
+                    }
+                }
+
+                key += 2;
+            }
+            else if (!strcmp(key, "\x1b\x70")) // alt+p
+            {
+                if (buffer)
+                {
+                    int len = strlen(buffer);
+                    insertChars(buffer, position, len);
+                    position += len;
+                    positionToLineColumn();
+                    update = true;
+                }
+
+                key += 2;
+            }
+            else if (!strcmp(key, "\x1b\x62")) // alt+b
+            {
+                restoreInputMode();
+                clearScreen();
+
+                saveFile();
+                system("make");
+
+                printf("Press ENTER to contiue...");
+                getchar();
+
+                setCharInputMode();
+
+                update = true;
+                key += 2;
+            }
+            else if (!strcmp(key, "\x1b\x6d")) // alt+m
+            {
+                selection = position;
+                key += 2;
+            }
             else
             {
                 ++key;
@@ -775,7 +782,28 @@ int main(int argc, const char** argv)
 {
     if (argc != 2)
     {
-        puts("usage: editor filename\n");
+        printf("usage: editor filename\n\n"
+            "keys:\n"
+            "arrows - move cursor\n"
+            "ctrl+left/right - word back/forward\n"
+            "ctrl+up/down - paragraph back/forward\n"
+            "home/end - start/end of line\n"
+            "alt+home/end - start/end of file\n"
+            "pgup/pgdn - page up/down\n"
+            "alt+pgup/pgdn - half page up/down\n"
+            "del - delete character at cursor position\n"
+            "backspace - delete character to the left of cursor position\n"
+            "alt+del - delete word at cursor position\n"
+            "alt+backspace - delete word to the left of cursor position\n"
+            "alt+M - mark selection start\n"
+            "alt+D - delete line/selection\n"
+            "alt+C - copy line/selection\n"
+            "alt+P - paste line/selection\n"
+            "alt+B - build with make\n"
+            "alt+S - save\n"
+            "alt+X - quit and save\n"
+            "alt+Q - quit without saving\n\n");
+
         return 1;
     }
 

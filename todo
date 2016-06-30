@@ -3,38 +3,15 @@ editor:
 some keys don't work in xterm (pgup/pgdn, cursor keys)
 copying text from screen doesn't have newlines
 support unicode input
-control+arrow is not filtered out
 * using size vs zero terminator for text
 * remember cursor column when moving between lines
 
 features:
-* unindent
-* highlight the selection
+* unindent with backspace
+* selection with highlighting and alt+arrows
 * search/replace
 * go to line
 * multiple file support
 * window resizing
 * block indent, comment
 * paragraph back/forward
-
-keys:
-arrows - move cursor
-alt+left/right - word back/forward
-alt+up/down - paragraph back/forward
-home/end - start/end of line
-alt+home/end - start/end of file
-pgup/pgdn - page up/down
-alt+pgup/pgdn - half page up/down
-del - delete character at cursor position
-backspace - delete character to the left of cursor position
-alt+del - delete word at cursor position
-alt+backspace - delete word to the left of cursor position
-^K - start selection
-^D - delete line/block
-^U - copy line/block
-^P - paste line/block
-^B - build with make
-^F - find
-^R - replace
-^W - save
-^X - exit
