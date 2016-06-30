@@ -1,3 +1,6 @@
 *.swp
 editor
 test
+editor.aix
+editor.linux
+editor.solaris

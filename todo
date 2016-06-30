@@ -8,6 +8,7 @@ control+arrow is not filtered out
 * remember cursor column when moving between lines
 
 features:
+* unindent
 * highlight the selection
 * search/replace
 * go to line

@@ -265,8 +265,6 @@ void redrawScreen()
 
 void updateScreen()
 {
-    positionToLineColumn();
-
     if (line < top)
         top = line;
     else if (line >= top + height)
@@ -377,6 +375,7 @@ void openFile()
     }
 
     position = 0;
+    line = 1; column = 1;
     selection = -1;
 }
 
@@ -456,6 +455,7 @@ bool processKey()
                 if (*key == 0x04)
                 {
                     position = p - text;
+                    positionToLineColumn();
                     deleteChars(position, len);
                     update = true;
                 }
@@ -470,6 +470,7 @@ bool processKey()
                 int len = strlen(buffer);
                 insertChars(buffer, position, len);
                 position += len;
+                positionToLineColumn();
                 update = true;
             }
 
@@ -501,6 +502,7 @@ bool processKey()
             if (position > 0)
             {
                 deleteChars(--position, 1);
+                positionToLineColumn();
                 update = true;
             }
 
@@ -531,6 +533,7 @@ bool processKey()
                 if (position < size)
                 {
                     ++position;
+                    positionToLineColumn();
                     update = true;
                 }
 
@@ -541,6 +544,7 @@ bool processKey()
                 if (position > 0)
                 {
                     --position;
+                    positionToLineColumn();
                     update = true;
                 }
 
@@ -548,7 +552,7 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x5b\x35\x7e")) // PgUp
             {
-                line -= height;
+                line -= height - 1;
                 if (line < 1)
                     line = 1;
 
@@ -558,7 +562,7 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x5b\x36\x7e")) // PgDn
             {
-                line += height;
+                line += height - 1;
                 lineColumnToPosition();
                 update = true;
                 key += 4;
@@ -570,12 +574,14 @@ bool processKey()
                     ++p;
 
                 position = p - text;
+                positionToLineColumn();
                 update = true;
                 key += 4;
             }
             else if (!strcmp(key, "\x1b\x5b\x34\x7e")) // End
             {
                 position = findChar(text + position, '\n') - text;
+                positionToLineColumn();
                 update = true;
                 key += 4;
             }
@@ -593,6 +599,28 @@ bool processKey()
 
                 key += 4;
             }
+            else if (!strcmp(key, "\x1b\x4f\x41")) // ^up
+            {
+                key += 3;
+            }
+            else if (!strcmp(key, "\x1b\x4f\x42")) // ^down
+            {
+                key += 3;
+            }
+            else if (!strcmp(key, "\x1b\x4f\x43")) // ^right
+            {
+                position = wordForward(text + position) - text;
+                positionToLineColumn();
+                update = true;
+                key += 3;
+            }
+            else if (!strcmp(key, "\x1b\x4f\x44")) // ^left
+            {
+                position = wordBack(text, text + position) - text;
+                positionToLineColumn();
+                update = true;
+                key += 3;
+            }
             else if (!strcmp(key, "\x1b\x1b\x5b\x41")) // alt+up
             {
                 key += 4;
@@ -603,14 +631,10 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x1b\x5b\x43")) // alt+right
             {
-                position = wordForward(text + position) - text;
-                update = true;
                 key += 4;
             }
             else if (!strcmp(key, "\x1b\x1b\x5b\x44")) // alt+left
             {
-                position = wordBack(text, text + position) - text;
-                update = true;
                 key += 4;
             }
             else if (!strcmp(key, "\x1b\x1b\x5b\x35\x7e")) // alt+PgUp
@@ -633,12 +657,14 @@ bool processKey()
             else if (!strcmp(key, "\x1b\x1b\x5b\x31\x7e")) // alt+Home
             {
                 position = 0;
+                positionToLineColumn();
                 update = true;
                 key += 5;
             }
             else if (!strcmp(key, "\x1b\x1b\x5b\x34\x7e")) // alt+End
             {
                 position = size;
+                positionToLineColumn();
                 update = true;
                 key += 5;
             }
@@ -660,6 +686,7 @@ bool processKey()
                 {
                     deleteChars(pos, position - pos);
                     position = pos;
+                    positionToLineColumn();
                     update = true;
                 }
 
@@ -712,6 +739,7 @@ bool processKey()
             else
                 insertChars(key, position++, 1);
 
+            positionToLineColumn();
             update = true;
             ++key;
         }
