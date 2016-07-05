@@ -22,7 +22,7 @@ int top, left;
 int width, height;
 
 int position;
-int line, column;
+int line, column, preferredColumn;
 int selection;
 
 char* text;
@@ -76,7 +76,7 @@ void hideCursor()
     write(STDOUT_FILENO, "\x1b[?25l", 6);
 }
 
-void setCursorPosition(int column, int line)
+void setCursorPosition(int line, int column)
 {
     char cmd[30];
 
@@ -227,25 +227,28 @@ void positionToLineColumn()
 
         ++p;
     }
+
+    preferredColumn = column;
 }
 
 void lineColumnToPosition()
 {
     char* p = text;
-    int ln = 1, col = 1;
+    int preferredLine = line;
+    line = 1; column = 1;
 
-    while (*p && ln < line)
+    while (*p && line < preferredLine)
     {
         if (*p++ == '\n')
-            ++ln;
+            ++line;
     }
 
-    while (*p && *p != '\n' && col < column)
+    while (*p && *p != '\n' && column < preferredColumn)
     {
         if (*p == '\t')
-            col = ((col - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+            column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
         else
-            ++col;
+            ++column;
 
         ++p;
     }
@@ -259,7 +262,7 @@ void redrawScreen()
     setCursorPosition(1, 1);
     write(STDOUT_FILENO, screen, width * (height + 1));
 
-    setCursorPosition(column - left + 1, line - top + 1);
+    setCursorPosition(line - top + 1, column - left + 1);
     showCursor();
 }
 
@@ -376,6 +379,7 @@ void openFile()
 
     position = 0;
     line = 1; column = 1;
+    preferredColumn = 1;
     selection = -1;
 }
 
