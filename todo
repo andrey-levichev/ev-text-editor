@@ -4,7 +4,6 @@ some keys don't work in xterm (pgup/pgdn, cursor keys)
 copying text from screen doesn't have newlines
 support unicode input
 * using size vs zero terminator for text
-* remember cursor column when moving between lines
 
 features:
 * unindent with backspace
