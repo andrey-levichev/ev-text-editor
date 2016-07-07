@@ -482,7 +482,7 @@ bool copyDeleteText(bool delete)
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -532,6 +532,25 @@ bool findNext()
     }
 
     return false;
+}
+
+void findWord()
+{
+    restoreInputMode();
+    clearScreen();
+
+    printf("find: ");
+
+    free(pattern);
+    pattern = alloc(100);
+    fgets(pattern, 100, stdin);
+
+    int len = strlen(pattern);
+    if (pattern[len - 1] == '\n')
+        pattern[len - 1] = 0;
+
+    setCharInputMode();
+    findNext();
 }
 
 bool findWordAtCursor()
@@ -829,6 +848,12 @@ bool processKey()
             else if (!strcmp(key, "\x1b\x6d")) // alt+m
             {
                 selection = position;
+                key += 2;
+            }
+            else if (!strcmp(key, "\x1b\x66")) // alt+f
+            {
+                findWord();
+                update = true;
                 key += 2;
             }
             else if (!strcmp(key, "\x1b\x6f")) // alt+o
