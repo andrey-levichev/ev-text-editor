@@ -412,6 +412,194 @@ void saveFile()
     }
 }
 
+bool deleteWordForward()
+{
+    int pos = wordForward(text + position) - text;
+    if (pos > position)
+    {
+        deleteChars(position, pos - position);
+        return true;
+    }
+
+    return false;
+}
+
+bool deleteWordBack()
+{
+    int pos = wordBack(text, text + position) - text;
+    if (pos < position)
+    {
+        deleteChars(pos, position - pos);
+        position = pos;
+        positionToLineColumn();
+        return true;
+    }
+
+    return false;
+}
+
+bool copyDeleteText(bool delete)
+{
+    char* p;
+    char* q;
+
+    if (selection < 0)
+    {
+        p = findCharBack(text, text + position, '\n');
+        if (*p == '\n')
+            ++p;
+
+        q = findChar(text + position, '\n');
+        if (*q == '\n')
+            ++q;
+    }
+    else
+    {
+        if (selection < position)
+        {
+            p = text + selection;
+            q = text + position;
+        }
+        else
+        {
+            p = text + position;
+            q = text + selection;
+        }
+
+        selection = -1;
+    }
+
+    if (p < q)
+    {
+        free(buffer);
+        buffer = copyChars(p, q);
+
+        if (delete)
+        {
+            position = p - text;
+            positionToLineColumn();
+            deleteChars(position, q - p);
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool pasteText()
+{
+    if (buffer)
+    {
+        int len = strlen(buffer);
+        insertChars(buffer, position, len);
+        position += len;
+        positionToLineColumn();
+        return true;
+    }
+
+    return false;
+}
+
+void buildProject()
+{
+    restoreInputMode();
+    clearScreen();
+
+    saveFile();
+    system("make");
+
+    printf("Press ENTER to contiue...");
+    getchar();
+
+    setCharInputMode();
+}
+
+bool findNext()
+{
+    if (pattern)
+    {
+        char* p = text + position;
+        char* q = strstr(p + 1, pattern);
+        if (!q)
+            q = strstr(text, pattern);
+
+        if (q && q != p)
+        {
+            position = q - text;
+            positionToLineColumn();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool findWordAtCursor()
+{
+    char* p = text + position;
+    free(pattern);
+
+    if (isIdent(*p))
+    {
+        while (p > text)
+        {
+            if (!isIdent(*(p - 1)))
+                break;
+            --p;
+        }
+
+        char* q = text + position + 1;
+        while (*q)
+        {
+            if (!isIdent(*q))
+                break;
+            ++q;
+        }
+
+        pattern = copyChars(p, q);
+    }
+    else
+        pattern = NULL;
+
+    return findNext();
+}
+
+void insertChar(char c)
+{
+    if (c == '\n') // Enter
+    {
+        char* p = findCharBack(text, text + position, '\n');
+        if (*p == '\n')
+            ++p;
+
+        char* q = p;
+        while (*q == ' ' || *q == '\t')
+            ++q;
+
+        int len = q - p + 1;
+        char chars[len];
+
+        chars[0] = '\n';
+        memcpy(chars + 1, p, q - p);
+
+        insertChars(chars, position, len);
+        position += len;
+    }
+    else if (c == '\t') // Tab
+    {
+        char chars[16];
+        memset(chars, ' ', TAB_SIZE);
+        insertChars(chars, position, TAB_SIZE);
+        position += TAB_SIZE;
+    }
+    else if (c == 0x14) // real tab
+        insertChars("\t", position++, 1);
+    else
+        insertChars(&c, position++, 1);
+
+    positionToLineColumn();
+}
+
 bool processKey()
 {
     char keys[1024];
@@ -599,26 +787,12 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x1b\x5b\x33\x7e")) // alt+Delete
             {
-                int pos = wordForward(text + position) - text;
-                if (pos > position)
-                {
-                    deleteChars(position, pos - position);
-                    update = true;
-                }
-
+                update = deleteWordForward();
                 key += 5;
             }
             else if (!strcmp(key, "\x1b\x7f")) // alt+Backspace
             {
-                int pos = wordBack(text, text + position) - text;
-                if (pos < position)
-                {
-                    deleteChars(pos, position - pos);
-                    position = pos;
-                    positionToLineColumn();
-                    update = true;
-                }
-
+                update = deleteWordBack();
                 key += 2;
             }
             else if (!strcmp(key, "\x1b\x71")) // alt+q
@@ -638,77 +812,17 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x64") || !strcmp(key, "\x1b\x63")) // alt+d or alt+c
             {
-                char* p;
-                char* q;
-
-                if (selection < 0)
-                {
-                    p = findCharBack(text, text + position, '\n');
-                    if (*p == '\n')
-                        ++p;
-
-                    q = findChar(text + position, '\n');
-                    if (*q == '\n')
-                        ++q;
-                }
-                else
-                {
-                    if (selection < position)
-                    {
-                        p = text + selection;
-                        q = text + position;
-                    }
-                    else
-                    {
-                        p = text + position;
-                        q = text + selection;
-                    }
-
-                    selection = -1;
-                }
-
-                if (p < q)
-                {
-                    free(buffer);
-                    buffer = copyChars(p, q);
-
-                    if (*(key + 1) == 0x64)
-                    {
-                        position = p - text;
-                        positionToLineColumn();
-                        deleteChars(position, len);
-                        update = true;
-                    }
-                }
-
+                update = copyDeleteText(*(key + 1) == 0x64);
                 key += 2;
             }
             else if (!strcmp(key, "\x1b\x70")) // alt+p
             {
-                if (buffer)
-                {
-                    int len = strlen(buffer);
-                    insertChars(buffer, position, len);
-                    position += len;
-                    positionToLineColumn();
-                    update = true;
-                }
-
+                update = pasteText();
                 key += 2;
             }
             else if (!strcmp(key, "\x1b\x62")) // alt+b
             {
-                restoreInputMode();
-                clearScreen();
-
-                saveFile();
-                system("make");
-
-                printf("Press ENTER to contiue...");
-                getchar();
-
-                setCharInputMode();
-
+                buildProject();
                 update = true;
                 key += 2;
             }
@@ -719,62 +833,12 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x6f")) // alt+o
             {
-                char* p = text + position;
-                free(pattern);
-
-                if (isIdent(*p))
-                {
-                    while (p > text)
-                    {
-                        if (!isIdent(*(p - 1)))
-                            break;
-                        --p;
-                    }
-
-                    char* q = text + position + 1;
-                    while (*q)
-                    {
-                        if (!isIdent(*q))
-                            break;
-                        ++q;
-                    }
-
-                    pattern = copyChars(p, q);
-
-                    p = text + position;
-                    q = strstr(p + 1, pattern);
-                    if (!q)
-                        q = strstr(text, pattern);
-
-                    if (q && q != p)
-                    {
-                        position = q - text;
-                        positionToLineColumn();
-                        update = true;
-                    }
-                }
-                else
-                    pattern = NULL;
-
+                update = findWordAtCursor();
                 key += 2;
             }
             else if (!strcmp(key, "\x1b\x6e")) // alt+n
             {
-                if (pattern)
-                {
-                    char* p = text + position;
-                    char* q = strstr(p + 1, pattern);
-                    if (!q)
-                        q = strstr(text, pattern);
-
-                    if (q && q != p)
-                    {
-                        position = q - text;
-                        positionToLineColumn();
-                        update = true;
-                    }
-                }
-
+                update = findNext();
                 key += 2;
             }
             else
@@ -793,38 +857,7 @@ bool processKey()
         }
         else if (*key == '\n' || *key == '\t' || *key == 0x14 || isprint(*key))
         {
-            if (*key == '\n') // Enter
-            {
-                char* p = findCharBack(text, text + position, '\n');
-                if (*p == '\n')
-                    ++p;
-
-                char* q = p;
-                while (*q == ' ' || *q == '\t')
-                    ++q;
-
-                int len = q - p + 1;
-                char chars[len];
-
-                chars[0] = '\n';
-                memcpy(chars + 1, p, q - p);
-
-                insertChars(chars, position, len);
-                position += len;
-            }
-            else if (*key == '\t') // Tab
-            {
-                char chars[16];
-                memset(chars, ' ', TAB_SIZE);
-                insertChars(chars, position, TAB_SIZE);
-                position += TAB_SIZE;
-            }
-            else if (*key == 0x14) // real tab
-                insertChars("\t", position++, 1);
-            else
-                insertChars(key, position++, 1);
-
-            positionToLineColumn();
+            insertChar(*key);
             update = true;
             ++key;
         }
@@ -836,6 +869,30 @@ bool processKey()
         updateScreen();
 
     return true;
+}
+
+void editor()
+{
+    openFile();
+
+    getTerminalSize();
+    screen = alloc(width * height);
+    setCharInputMode();
+
+    --height;
+    top = 1; left = 1;
+
+    updateScreen();
+
+    while (processKey());
+
+    restoreInputMode();
+    clearScreen();
+
+    free(screen);
+    free(text);
+    free(buffer);
+    free(pattern);
 }
 
 int main(int argc, const char** argv)
@@ -868,26 +925,7 @@ int main(int argc, const char** argv)
     }
 
     filename = argv[1];
-    openFile();
-
-    getTerminalSize();
-    screen = alloc(width * height);
-    setCharInputMode();
-
-    --height;
-    top = 1; left = 1;
-
-    updateScreen();
-
-    while (processKey());
-
-    restoreInputMode();
-    clearScreen();
-
-    free(screen);
-    free(text);
-    free(buffer);
-    free(pattern);
+    editor();
 
     return 0;
 }
