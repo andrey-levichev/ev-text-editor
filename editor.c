@@ -26,8 +26,10 @@ int line, column, preferredColumn;
 int selection;
 
 char* text;
-char* buffer;
 int size, capacity;
+
+char* buffer;
+char* pattern;
 
 void* alloc(int size)
 {
@@ -88,6 +90,11 @@ void clearScreen()
 {
     write(STDOUT_FILENO, "\x1b[2J", 4);
     setCursorPosition(1, 1);
+}
+
+bool isIdent(char c)
+{
+    return isalnum(c) || c == '_';
 }
 
 char* findChar(char* str, char c)
@@ -205,6 +212,16 @@ void trimTrailingWhitespace()
 
     size = strlen(text);
     selection = -1;
+}
+
+char* copyChars(const char* start, const char* end)
+{
+    int len = end - start;
+    char* str = alloc(len + 1);
+    memcpy(str, start, len);
+    str[len] = 0;
+
+    return str;
 }
 
 void positionToLineColumn()
@@ -650,13 +667,10 @@ bool processKey()
                     selection = -1;
                 }
 
-                int len = q - p;
-                if (len > 0)
+                if (p < q)
                 {
                     free(buffer);
-                    buffer = alloc(len + 1);
-                    memcpy(buffer, p, len);
-                    buffer[len] = 0;
+                    buffer = copyChars(p, q);
 
                     if (*(key + 1) == 0x64)
                     {
@@ -701,6 +715,66 @@ bool processKey()
             else if (!strcmp(key, "\x1b\x6d")) // alt+m
             {
                 selection = position;
+                key += 2;
+            }
+            else if (!strcmp(key, "\x1b\x6f")) // alt+o
+            {
+                char* p = text + position;
+                free(pattern);
+
+                if (isIdent(*p))
+                {
+                    while (p > text)
+                    {
+                        if (!isIdent(*(p - 1)))
+                            break;
+                        --p;
+                    }
+
+                    char* q = text + position + 1;
+                    while (*q)
+                    {
+                        if (!isIdent(*q))
+                            break;
+                        ++q;
+                    }
+
+                    pattern = copyChars(p, q);
+
+                    p = text + position;
+                    q = strstr(p + 1, pattern);
+                    if (!q)
+                        q = strstr(text, pattern);
+
+                    if (q && q != p)
+                    {
+                        position = q - text;
+                        positionToLineColumn();
+                        update = true;
+                    }
+                }
+                else
+                    pattern = NULL;
+
+                key += 2;
+            }
+            else if (!strcmp(key, "\x1b\x6e")) // alt+n
+            {
+                if (pattern)
+                {
+                    char* p = text + position;
+                    char* q = strstr(p + 1, pattern);
+                    if (!q)
+                        q = strstr(text, pattern);
+
+                    if (q && q != p)
+                    {
+                        position = q - text;
+                        positionToLineColumn();
+                        update = true;
+                    }
+                }
+
                 key += 2;
             }
             else
@@ -764,24 +838,6 @@ bool processKey()
     return true;
 }
 
-void editor()
-{
-    getTerminalSize();
-    screen = alloc(width * height);
-    setCharInputMode();
-
-    --height;
-    top = 1; left = 1;
-
-    updateScreen();
-
-    while (processKey());
-
-    restoreInputMode();
-    clearScreen();
-    free(screen);
-}
-
 int main(int argc, const char** argv)
 {
     if (argc != 2)
@@ -812,13 +868,26 @@ int main(int argc, const char** argv)
     }
 
     filename = argv[1];
-    buffer = NULL;
-
     openFile();
-    editor();
 
+    getTerminalSize();
+    screen = alloc(width * height);
+    setCharInputMode();
+
+    --height;
+    top = 1; left = 1;
+
+    updateScreen();
+
+    while (processKey());
+
+    restoreInputMode();
+    clearScreen();
+
+    free(screen);
     free(text);
     free(buffer);
+    free(pattern);
 
     return 0;
 }
