@@ -536,20 +536,50 @@ bool findNext()
 
 void findWord()
 {
-    restoreInputMode();
-    clearScreen();
-
-    printf("find: ");
-
     free(pattern);
-    pattern = alloc(100);
-    fgets(pattern, 100, stdin);
 
-    int len = strlen(pattern);
-    if (pattern[len - 1] == '\n')
-        pattern[len - 1] = 0;
+    int pos = 0, h = height + 1;
+    char cmd[width];
 
-    setCharInputMode();
+    memset(cmd, ' ', width);
+    memcpy(cmd, "find:", 5);
+    setCursorPosition(h, 1);
+    write(STDOUT_FILENO, cmd, width);
+    setCursorPosition(h, 7);
+
+    while (true)
+    {
+        char key;
+        read(STDIN_FILENO, &key, 1);
+
+        if (key == 0x7f) // Backspace
+        {
+            if (pos > 0)
+            {
+                --pos;
+                write(STDOUT_FILENO, &key, 1);
+            }
+        }
+        else if (key == '\n') // Enter
+        {
+            pattern = copyChars(cmd, cmd + pos);
+            break;
+        }
+        else if (key == 0x1b) // Esc
+        {
+            break;
+        }
+        else
+        {
+            if (pos < width)
+            {
+                setCursorPosition(h, pos + 7);
+                write(STDOUT_FILENO, &key, 1);
+                cmd[pos++] = key;
+            }
+        }
+    }
+
     findNext();
 }
 
@@ -941,6 +971,9 @@ int main(int argc, const char** argv)
             "alt+D - delete line/selection\n"
             "alt+C - copy line/selection\n"
             "alt+P - paste line/selection\n"
+            "alt+F - find\n"
+            "alt+O - find word at cursor\n"
+            "alt+N - find again\n"
             "alt+B - build with make\n"
             "alt+S - save\n"
             "alt+X - quit and save\n"
