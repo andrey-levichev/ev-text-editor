@@ -6,13 +6,13 @@ all:
 	ssh nyibldo5 'cd ~/projects/eve; PATH=/opt/bb/bin:/opt/bb/lib/xlc-13.01/opt/IBM/xlC/13.1.0/bin:$$PATH make eve.aix'
 
 eve.linux: eve.c
-	gcc -std=gnu11 -g $^ -o $@
+	gcc -std=gnu11 -O2 $^ -o $@
 
 eve.solaris: eve.c
-	cc -g $^ -o $@
+	cc -O2 $^ -o $@
 
 eve.aix: eve.c
-	xlc -g $^ -o $@
+	xlc -O2 $^ -o $@
 
 clean:
 	-rm eve.linux eve.solaris eve.aix
