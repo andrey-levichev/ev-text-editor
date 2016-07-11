@@ -1,4 +1,4 @@
-editor:
+bugs & misc:
 * keyboard input improvements
 some keys don't work in xterm (pgup/pgdn, cursor keys)
 copying text from screen doesn't have newlines
@@ -7,12 +7,26 @@ support unicode input
 * paste lines at any column
 * extra indent when adding new line
 
-features:
-* unindent with backspace
-* selection with highlighting and alt+arrows
+basic features:
 * search/replace
+* selection with highlighting and alt+arrows
+* unindent with backspace
 * go to line
-* multiple file support
-* window resizing
+* terminal window resizing
 * block indent, comment
 * paragraph back/forward
+
+advanced features:
+* multiple file support
+* regex search/replace
+* search/replace in files
+* parse build output for errors
+* syntax highlighting
+basic highlighting based on file suffix for a few common languages
+keywords, numbers, strings, comments
+* word completion
+parse a set of directories for words
+cache results in a file
+offer completion after second letter
+offer recently used, located nearby first
+complete on tab or punctuation
