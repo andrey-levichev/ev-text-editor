@@ -1,24 +1,24 @@
-default: editor.linux
+default: eve.linux
 
 all:
-	ssh nylxdev1 'cd ~/projects/editor; PATH=/opt/bb/bin:/opt/swt/install/gcc-4.9.2/bin:$$PATH make editor.linux'
-	ssh njtsdev2 'cd ~/projects/editor; PATH=/opt/bb/bin:/home/aleviche/projects/solarisstudio12.5/bin:$$PATH make editor.solaris'
-	ssh nyibldo5 'cd ~/projects/editor; PATH=/opt/bb/bin:/opt/bb/lib/xlc-13.01/opt/IBM/xlC/13.1.0/bin:$$PATH make editor.aix'
+	ssh nylxdev2 'cd ~/projects/eve; PATH=/opt/bb/bin:/opt/swt/install/gcc-4.9.2/bin:$$PATH make eve.linux'
+	ssh njtsdev2 'cd ~/projects/eve; PATH=/opt/bb/bin:/home/aleviche/projects/solarisstudio12.5/bin:$$PATH make eve.solaris'
+	ssh nyibldo5 'cd ~/projects/eve; PATH=/opt/bb/bin:/opt/bb/lib/xlc-13.01/opt/IBM/xlC/13.1.0/bin:$$PATH make eve.aix'
 
-editor.linux: editor.c
+eve.linux: eve.c
 	gcc -std=gnu11 -g $^ -o $@
 
-editor.solaris: editor.c
+eve.solaris: eve.c
 	cc -g $^ -o $@
 
-editor.aix: editor.c
+eve.aix: eve.c
 	xlc -g $^ -o $@
 
 clean:
-	-rm editor.linux editor.solaris editor.aix
+	-rm eve.linux eve.solaris eve.aix
 
 depl:
-	cp editor.linux ~/bin/Linux/e
-	cp editor.solaris ~/bin/SunOS/e
-	cp editor.aix ~/bin/AIX/e
+	cp eve.linux ~/bin/Linux/eve
+	cp eve.solaris ~/bin/SunOS/eve
+	cp eve.aix ~/bin/AIX/eve
 

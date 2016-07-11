@@ -954,7 +954,7 @@ int main(int argc, const char** argv)
 {
     if (argc != 2)
     {
-        printf("usage: editor filename\n\n"
+        printf("usage: eve filename\n\n"
             "keys:\n"
             "arrows - move cursor\n"
             "ctrl+left/right - word back/forward\n"
