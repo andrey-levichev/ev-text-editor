@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <alloca.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -34,11 +35,13 @@ char* pattern;
 void* alloc(int size)
 {
     void* p = malloc(size);
-    if (p)
-        return p;
+    if (!p)
+    {
+        fprintf(stderr, "out of memory\n");
+        abort();
+    }
 
-    fprintf(stderr, "out of memory\n");
-    abort();
+    return p;
 }
 
 void setCharInputMode()
@@ -159,7 +162,7 @@ void insertChars(const char* chars, int pos, int len)
     if (cap > capacity)
     {
         capacity = cap * 2;
-        char* txt = alloc(capacity);
+        char* txt = (char*)alloc(capacity);
         memcpy(txt, text, size + 1);
         free(text);
         text = txt;
@@ -217,7 +220,7 @@ void trimTrailingWhitespace()
 char* copyChars(const char* start, const char* end)
 {
     int len = end - start;
-    char* str = alloc(len + 1);
+    char* str = (char*)alloc(len + 1);
     memcpy(str, start, len);
     str[len] = 0;
 
@@ -354,7 +357,7 @@ bool readFile(const char* fileName)
 
     size = st.st_size;
     capacity = size + 1;
-    text = alloc(capacity);
+    text = (char*)alloc(capacity);
 
     if (read(file, text, size) != size)
     {
@@ -390,7 +393,7 @@ void openFile()
     {
         size = 0;
         capacity = 1;
-        text = alloc(capacity);
+        text = (char*)alloc(capacity);
         *text = 0;
     }
 
@@ -438,7 +441,7 @@ bool deleteWordBack()
     return false;
 }
 
-bool copyDeleteText(bool delete)
+bool copyDeleteText(bool deleteFlag)
 {
     char* p;
     char* q;
@@ -474,7 +477,7 @@ bool copyDeleteText(bool delete)
         free(buffer);
         buffer = copyChars(p, q);
 
-        if (delete)
+        if (deleteFlag)
         {
             position = p - text;
             positionToLineColumn();
@@ -539,7 +542,7 @@ void findWord()
     free(pattern);
 
     int pos = 0, h = height + 1;
-    char cmd[width];
+    char* cmd = (char*)alloca(width);
 
     memset(cmd, ' ', width);
     memcpy(cmd, "find:", 5);
@@ -626,7 +629,7 @@ void insertChar(char c)
             ++q;
 
         int len = q - p + 1;
-        char chars[len];
+        char* chars = (char*)alloca(len);
 
         chars[0] = '\n';
         memcpy(chars + 1, p, q - p);
@@ -931,7 +934,7 @@ void editor()
     openFile();
 
     getTerminalSize();
-    screen = alloc(width * height);
+    screen = (char*)alloc(width * height);
     setCharInputMode();
 
     --height;

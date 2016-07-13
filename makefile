@@ -1,18 +1,15 @@
-default: eve.linux
+SOURCES=eve.cpp Foundation.cpp
 
-all:
-	ssh nylxdev2 'cd ~/projects/eve; PATH=/opt/bb/bin:/opt/swt/install/gcc-4.9.2/bin:$$PATH make eve.linux'
-	ssh njtsdev2 'cd ~/projects/eve; PATH=/opt/bb/bin:/home/aleviche/projects/solarisstudio12.5/bin:$$PATH make eve.solaris'
-	ssh nyibldo5 'cd ~/projects/eve; PATH=/opt/bb/bin:/opt/bb/lib/xlc-13.01/opt/IBM/xlC/13.1.0/bin:$$PATH make eve.aix'
+all: eve.linux
 
-eve.linux: eve.c
-	gcc -std=gnu11 -O2 $^ -o $@
+eve.linux: $(SOURCES)
+	g++ -std=gnu++11 -Wall -O2 $^ -o $@ -I.
 
-eve.solaris: eve.c
-	cc -O2 $^ -o $@
+eve.solaris: $(SOURCES)
+	CC -std=c++14 +w -O2 $^ -o $@ -I.
 
-eve.aix: eve.c
-	xlc -O2 $^ -o $@
+eve.aix: $(SOURCES)
+	xlC_r -qflag=w -qlanglvl=extended0x -O2 $^ -o $@ -I.
 
 clean:
 	-rm eve.linux eve.solaris eve.aix
