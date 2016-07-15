@@ -1,11 +1,13 @@
 #include <Foundation.hpp>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #ifdef PLATFORM_WINDOWS
 #include <io.h>
 #else
+#include <termios.h>
 #include <unistd.h>
 #endif
 
@@ -1001,6 +1003,30 @@ void Console::openConsole()
     _wfreopen(STR("CONOUT$"), STR("w"), stdout);
 }
 
+#else
+
+void Console::setCharInputMode()
+{
+    struct termios ta;
+
+    tcgetattr(STDIN_FILENO, &ta);
+    ta.c_lflag &= ~(ECHO|ICANON);
+    ta.c_cc[VTIME] = 0;
+    ta.c_cc[VMIN] = 1;
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
+}
+
+void Console::setLineInputMode()
+{
+    struct termios ta;
+
+    tcgetattr(STDIN_FILENO, &ta);
+    ta.c_lflag |= ECHO|ICANON;
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
+}
+
 #endif
 
 void Console::write(char_t ch)
@@ -1061,6 +1087,65 @@ String Console::readLine()
     line[len] = 0;
     return String(static_cast<const char_t*>(line));
 }
+
+#ifdef PLATFORM_WINDOWS
+
+void Console::getSize(int& width, int& height)
+{
+}
+
+void Console::clearScreen()
+{
+}
+
+void Console::showCursor()
+{
+}
+
+void Console::hideCursor()
+{
+}
+
+void Console::setCursorPosition(int line, int column)
+{
+}
+
+#else
+
+void Console::getSize(int& width, int& height)
+{
+    struct winsize ws;
+
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
+    width = ws.ws_col;
+    height = ws.ws_row;
+}
+
+void Console::clearScreen()
+{
+    ::write(STDOUT_FILENO, "\x1b[2J", 4);
+    setCursorPosition(1, 1);
+}
+
+void Console::showCursor()
+{
+    ::write(STDOUT_FILENO, "\x1b[?25h", 6);
+}
+
+void Console::hideCursor()
+{
+    ::write(STDOUT_FILENO, "\x1b[?25l", 6);
+}
+
+void Console::setCursorPosition(int line, int column)
+{
+    char cmd[30];
+
+    sprintf(cmd, "\x1b[%d;%dH", line, column);
+    ::write(STDOUT_FILENO, cmd, strlen(cmd));
+}
+
+#endif
 
 // StringBuilder
 
@@ -1164,7 +1249,8 @@ File::File() :
 File::File(const String& fileName, FileMode openMode) :
     _handle(INVALID_HANDLE_VALUE)
 {
-    open(fileName, openMode);
+    if (!open(fileName, openMode))
+        throw Exception(STR("failed to open file"));
 }
 
 File::~File()
@@ -1172,7 +1258,7 @@ File::~File()
     close();
 }
 
-void File::open(const String& fileName, FileMode openMode)
+bool File::open(const String& fileName, FileMode openMode)
 {
     if (_handle != INVALID_HANDLE_VALUE)
         throw Exception(STR("file already open"));
@@ -1227,8 +1313,7 @@ void File::open(const String& fileName, FileMode openMode)
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 #endif
     
-    if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("failed to open file"));
+    return _handle != INVALID_HANDLE_VALUE;
 }
 
 void File::close()

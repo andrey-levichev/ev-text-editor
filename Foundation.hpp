@@ -335,7 +335,7 @@ inline int hash(const _Type1& val1, const _Type2& val2)
 class Exception
 {
 public:
-    Exception() : _message(STR("failed"))
+    Exception() : _message(STR("operation failed"))
     {
     }
 
@@ -2443,6 +2443,9 @@ public:
 #ifdef PLATFORM_WINDOWS
     static void enableUnicode();
     static void openConsole();
+#else
+    static void setCharInputMode();
+    static void setLineInputMode();
 #endif
 
     static void write(char_t ch);
@@ -2454,6 +2457,13 @@ public:
     static void writeLine(const char_t* format, ...);
 
     static String readLine();
+
+    static void getSize(int& width, int& height);
+    static void clearScreen();
+
+    static void showCursor();
+    static void hideCursor();
+    static void setCursorPosition(int line, int column);
 };
 
 // StringBuilder
@@ -2524,7 +2534,7 @@ public:
     
     File& operator=(const File&) = delete;
     
-    void open(const String& fileName, 
+    bool open(const String& fileName, 
         FileMode openMode = FILE_MODE_OPEN_EXISTING);
         
     void close();

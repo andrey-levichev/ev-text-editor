@@ -1,3 +1,5 @@
+#include <Foundation.hpp>
+
 #include <assert.h>
 #include <alloca.h>
 #include <stdio.h>
@@ -14,10 +16,7 @@
 
 const int TAB_SIZE = 4;
 
-char* screen;
-struct termios termAttr;
-
-const char* filename;
+String fileName;
 
 int top, left;
 int width, height;
@@ -26,81 +25,18 @@ int position;
 int line, column, preferredColumn;
 int selection;
 
-char* text;
+char_t* text;
 int size, capacity;
 
-char* buffer;
-char* pattern;
+char_t* buffer;
+char_t* pattern;
 
-void* alloc(int size)
-{
-    void* p = malloc(size);
-    if (!p)
-    {
-        fprintf(stderr, "out of memory\n");
-        abort();
-    }
-
-    return p;
-}
-
-void setCharInputMode()
-{
-    struct termios newTermAttr;
-
-    tcgetattr(STDIN_FILENO, &termAttr);
-    memcpy(&newTermAttr, &termAttr, sizeof(termAttr));
-
-    newTermAttr.c_lflag &= ~(ECHO|ICANON);
-    newTermAttr.c_cc[VTIME] = 0;
-    newTermAttr.c_cc[VMIN] = 1;
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &newTermAttr);
-}
-
-void restoreInputMode()
-{
-    tcsetattr(STDIN_FILENO, TCSANOW, &termAttr);
-}
-
-void getTerminalSize()
-{
-    struct winsize ws;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
-    width = ws.ws_col;
-    height = ws.ws_row;
-}
-
-void showCursor()
-{
-    write(STDOUT_FILENO, "\x1b[?25h", 6);
-}
-
-void hideCursor()
-{
-    write(STDOUT_FILENO, "\x1b[?25l", 6);
-}
-
-void setCursorPosition(int line, int column)
-{
-    char cmd[30];
-
-    sprintf(cmd, "\x1b[%d;%dH", line, column);
-    write(STDOUT_FILENO, cmd, strlen(cmd));
-}
-
-void clearScreen()
-{
-    write(STDOUT_FILENO, "\x1b[2J", 4);
-    setCursorPosition(1, 1);
-}
-
-bool isIdent(char c)
+bool isIdent(char_t c)
 {
     return isalnum(c) || c == '_';
 }
 
-char* findChar(char* str, char c)
+char_t* findChar(char_t* str, char_t c)
 {
     while (*str && *str != c)
         ++str;
@@ -108,7 +44,7 @@ char* findChar(char* str, char c)
     return str;
 }
 
-char* findCharBack(char* start, char* str, char c)
+char_t* findCharBack(char_t* start, char_t* str, char_t c)
 {
     while (str > start)
         if (*--str == c)
@@ -117,7 +53,7 @@ char* findCharBack(char* start, char* str, char c)
     return start;
 }
 
-char* wordForward(char* str)
+char_t* wordForward(char_t* str)
 {
     while (*str)
     {
@@ -129,7 +65,7 @@ char* wordForward(char* str)
     return str;
 }
 
-char* wordBack(char* start, char* str)
+char_t* wordBack(char_t* start, char_t* str)
 {
     if (str > start)
     {
@@ -145,7 +81,7 @@ char* wordBack(char* start, char* str)
     return start;
 }
 
-char* findLine(char* str, int line)
+char_t* findLine(char_t* str, int line)
 {
     while (*str && line > 1)
     {
@@ -156,13 +92,13 @@ char* findLine(char* str, int line)
     return str;
 }
 
-void insertChars(const char* chars, int pos, int len)
+void insertChars(const char_t* chars, int pos, int len)
 {
     int cap = size + len + 1;
     if (cap > capacity)
     {
         capacity = cap * 2;
-        char* txt = (char*)alloc(capacity);
+        char_t* txt = Memory::allocateArray<char_t>(capacity);
         memcpy(txt, text, size + 1);
         free(text);
         text = txt;
@@ -183,9 +119,9 @@ void deleteChars(int pos, int len)
 
 void trimTrailingWhitespace()
 {
-    char* p = text;
-    char* q = p;
-    char* r = NULL;
+    char_t* p = text;
+    char_t* q = p;
+    char_t* r = NULL;
 
     while (true)
     {
@@ -217,10 +153,10 @@ void trimTrailingWhitespace()
     selection = -1;
 }
 
-char* copyChars(const char* start, const char* end)
+char_t* copyChars(const char_t* start, const char_t* end)
 {
     int len = end - start;
-    char* str = (char*)alloc(len + 1);
+    char_t* str = Memory::allocateArray<char_t>(len + 1);
     memcpy(str, start, len);
     str[len] = 0;
 
@@ -229,8 +165,8 @@ char* copyChars(const char* start, const char* end)
 
 void positionToLineColumn()
 {
-    char* p = text;
-    char* q = text + position;
+    char_t* p = text;
+    char_t* q = text + position;
     line = 1, column = 1;
 
     while (*p && p < q)
@@ -253,7 +189,7 @@ void positionToLineColumn()
 
 void lineColumnToPosition()
 {
-    char* p = text;
+    char_t* p = text;
     int preferredLine = line;
     line = 1; column = 1;
 
@@ -278,16 +214,12 @@ void lineColumnToPosition()
 
 void redrawScreen()
 {
-    hideCursor();
-    setCursorPosition(1, 1);
-    write(STDOUT_FILENO, screen, width * (height + 1));
-
-    setCursorPosition(line - top + 1, column - left + 1);
-    showCursor();
 }
 
 void updateScreen()
 {
+    char* screen = (char*)alloca(width * height);
+
     if (line < top)
         top = line;
     else if (line >= top + height)
@@ -298,15 +230,15 @@ void updateScreen()
     else if (column >= left + width)
         left = column - width + 1;
 
-    char* p = findLine(text, top);
-    char* q = screen;
+    char_t* p = findLine(text, top);
+    char_t* q = screen;
     int len = left + width - 1;
 
     for (int j = 1; j <= height; ++j)
     {
         for (int i = 1; i <= len; ++i)
         {
-            char c;
+            char_t c;
 
             if (*p == '\t')
             {
@@ -335,65 +267,34 @@ void updateScreen()
 
     memset(q, ' ', width);
 
-    char lnCol[30];
+    char_t lnCol[30];
     len = sprintf(lnCol, "%d, %d", line, column);
     if (len > 0 && len <= width)
         memcpy(q + width - len, lnCol, len);
 
-    redrawScreen();
-}
+    Console::hideCursor();
+    Console::setCursorPosition(1, 1);
+    write(STDOUT_FILENO, screen, width * (height + 1));
 
-bool readFile(const char* fileName)
-{
-    struct stat st;
-
-    if (stat(fileName, &st) < 0)
-        return false;
-
-    int file = open(fileName, O_RDONLY);
-
-    if (file < 0)
-        return false;
-
-    size = st.st_size;
-    capacity = size + 1;
-    text = (char*)alloc(capacity);
-
-    if (read(file, text, size) != size)
-    {
-        free(text);
-        close(file);
-        return false;
-    }
-
-    text[size] = 0;
-    close(file);
-
-    return true;
-}
-
-bool writeFile(const char* fileName)
-{
-    int file = open(fileName, O_WRONLY | O_CREAT | O_TRUNC,
-        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
-    if (file < 0)
-        return false;
-
-    if (write(file, text, size) != size)
-        return false;
-
-    close(file);
-    return true;
+    Console::setCursorPosition(line - top + 1, column - left + 1);
+    Console::showCursor();
 }
 
 void openFile()
 {
-    if (!readFile(filename))
+    File file;
+
+    if (file.open(fileName))
+    {
+        text = file.readString().release();
+        capacity = strlen(text);
+        size = 0;
+    }
+    else
     {
         size = 0;
         capacity = 1;
-        text = (char*)alloc(capacity);
+        text = Memory::allocateArray<char_t>(capacity);
         *text = 0;
     }
 
@@ -408,11 +309,8 @@ void saveFile()
     trimTrailingWhitespace();
     lineColumnToPosition();
 
-    if (!writeFile(filename))
-    {
-        fprintf(stderr, "failed to save text to %s\n", filename);
-        abort();
-    }
+    File file(fileName);
+    file.writeString(text);
 }
 
 bool deleteWordForward()
@@ -443,8 +341,8 @@ bool deleteWordBack()
 
 bool copyDeleteText(bool deleteFlag)
 {
-    char* p;
-    char* q;
+    char_t* p;
+    char_t* q;
 
     if (selection < 0)
     {
@@ -505,8 +403,8 @@ bool pasteText()
 
 void buildProject()
 {
-    restoreInputMode();
-    clearScreen();
+    Console::setLineInputMode();
+    Console::clearScreen();
 
     saveFile();
     system("make");
@@ -514,15 +412,15 @@ void buildProject()
     printf("Press ENTER to contiue...");
     getchar();
 
-    setCharInputMode();
+    Console::setCharInputMode();
 }
 
 bool findNext()
 {
     if (pattern)
     {
-        char* p = text + position;
-        char* q = strstr(p + 1, pattern);
+        char_t* p = text + position;
+        char_t* q = strstr(p + 1, pattern);
         if (!q)
             q = strstr(text, pattern);
 
@@ -542,17 +440,17 @@ void findWord()
     free(pattern);
 
     int pos = 0, h = height + 1;
-    char* cmd = (char*)alloca(width);
+    char_t* cmd = (char_t*)alloca(width);
 
     memset(cmd, ' ', width);
     memcpy(cmd, "find:", 5);
-    setCursorPosition(h, 1);
+    Console::setCursorPosition(h, 1);
     write(STDOUT_FILENO, cmd, width);
-    setCursorPosition(h, 7);
+    Console::setCursorPosition(h, 7);
 
     while (true)
     {
-        char key;
+        char_t key;
         read(STDIN_FILENO, &key, 1);
 
         if (key == 0x7f) // Backspace
@@ -576,7 +474,7 @@ void findWord()
         {
             if (pos < width)
             {
-                setCursorPosition(h, pos + 7);
+                Console::setCursorPosition(h, pos + 7);
                 write(STDOUT_FILENO, &key, 1);
                 cmd[pos++] = key;
             }
@@ -588,7 +486,7 @@ void findWord()
 
 bool findWordAtCursor()
 {
-    char* p = text + position;
+    char_t* p = text + position;
     free(pattern);
 
     if (isIdent(*p))
@@ -600,7 +498,7 @@ bool findWordAtCursor()
             --p;
         }
 
-        char* q = text + position + 1;
+        char_t* q = text + position + 1;
         while (*q)
         {
             if (!isIdent(*q))
@@ -616,20 +514,20 @@ bool findWordAtCursor()
     return findNext();
 }
 
-void insertChar(char c)
+void insertChar(char_t c)
 {
     if (c == '\n') // Enter
     {
-        char* p = findCharBack(text, text + position, '\n');
+        char_t* p = findCharBack(text, text + position, '\n');
         if (*p == '\n')
             ++p;
 
-        char* q = p;
+        char_t* q = p;
         while (*q == ' ' || *q == '\t')
             ++q;
 
         int len = q - p + 1;
-        char* chars = (char*)alloca(len);
+        char_t* chars = (char_t*)alloca(len);
 
         chars[0] = '\n';
         memcpy(chars + 1, p, q - p);
@@ -639,7 +537,7 @@ void insertChar(char c)
     }
     else if (c == '\t') // Tab
     {
-        char chars[16];
+        char_t chars[16];
         memset(chars, ' ', TAB_SIZE);
         insertChars(chars, position, TAB_SIZE);
         position += TAB_SIZE;
@@ -654,8 +552,8 @@ void insertChar(char c)
 
 bool processKey()
 {
-    char keys[1024];
-    char* key = keys;
+    char_t keys[1024];
+    char_t* key = keys;
     bool update = false;
 
     int len = read(STDIN_FILENO, keys, sizeof(keys) - 1);
@@ -663,7 +561,7 @@ bool processKey()
 
     while (*key)
     {
-        /*printf("%x\n", ((unsigned char)*key++));
+        /*printf("%x\n", ((unsigned char_t)*key++));
         continue;*/
 
         if (*key == 0x7f) // Backspace
@@ -738,7 +636,7 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x5b\x31\x7e")) // Home
             {
-                char* p = findCharBack(text, text + position, '\n');
+                char_t* p = findCharBack(text, text + position, '\n');
                 if (*p == '\n')
                     ++p;
 
@@ -933,9 +831,8 @@ void editor()
 {
     openFile();
 
-    getTerminalSize();
-    screen = (char*)alloc(width * height);
-    setCharInputMode();
+    Console::getSize(width, height);
+    Console::setCharInputMode();
 
     --height;
     top = 1; left = 1;
@@ -944,49 +841,61 @@ void editor()
 
     while (processKey());
 
-    restoreInputMode();
-    clearScreen();
+    Console::setLineInputMode();
+    Console::clearScreen();
 
-    free(screen);
     free(text);
     free(buffer);
     free(pattern);
 }
 
-int main(int argc, const char** argv)
+int MAIN(int argc, const char_t** argv)
 {
-    if (argc != 2)
+    try
     {
-        printf("usage: eve filename\n\n"
-            "keys:\n"
-            "arrows - move cursor\n"
-            "ctrl+left/right - word back/forward\n"
-            "ctrl+up/down - paragraph back/forward\n"
-            "home/end - start/end of line\n"
-            "alt+home/end - start/end of file\n"
-            "pgup/pgdn - page up/down\n"
-            "alt+pgup/pgdn - half page up/down\n"
-            "del - delete character at cursor position\n"
-            "backspace - delete character to the left of cursor position\n"
-            "alt+del - delete word at cursor position\n"
-            "alt+backspace - delete word to the left of cursor position\n"
-            "alt+M - mark selection start\n"
-            "alt+D - delete line/selection\n"
-            "alt+C - copy line/selection\n"
-            "alt+P - paste line/selection\n"
-            "alt+F - find\n"
-            "alt+O - find word at cursor\n"
-            "alt+N - find again\n"
-            "alt+B - build with make\n"
-            "alt+S - save\n"
-            "alt+X - quit and save\n"
-            "alt+Q - quit without saving\n\n");
+        if (argc != 2)
+        {
+            Console::writeLine(STR("usage: eve filename\n\n"
+                "keys:\n"
+                "arrows - move cursor\n"
+                "ctrl+left/right - word back/forward\n"
+                "ctrl+up/down - paragraph back/forward\n"
+                "home/end - start/end of line\n"
+                "alt+home/end - start/end of file\n"
+                "pgup/pgdn - page up/down\n"
+                "alt+pgup/pgdn - half page up/down\n"
+                "del - delete character at cursor position\n"
+                "backspace - delete character to the left of cursor position\n"
+                "alt+del - delete word at cursor position\n"
+                "alt+backspace - delete word to the left of cursor position\n"
+                "alt+M - mark selection start\n"
+                "alt+D - delete line/selection\n"
+                "alt+C - copy line/selection\n"
+                "alt+P - paste line/selection\n"
+                "alt+F - find\n"
+                "alt+O - find word at cursor\n"
+                "alt+N - find again\n"
+                "alt+B - build with make\n"
+                "alt+S - save\n"
+                "alt+X - quit and save\n"
+                "alt+Q - quit without saving\n\n"));
 
+            return 1;
+        }
+
+        fileName = argv[1];
+        editor();
+    }
+    catch (Exception& ex)
+    {
+        Console::writeLine(ex.message());
         return 1;
     }
-
-    filename = argv[1];
-    editor();
+    catch (...)
+    {
+        Console::writeLine(STR("unknown error"));
+        return 1;
+    }
 
     return 0;
 }
