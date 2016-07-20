@@ -1,19 +1,5 @@
 #include <Foundation.hpp>
 
-#include <assert.h>
-#include <alloca.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
 const int TAB_SIZE = 4;
 
 String fileName;
@@ -849,10 +835,22 @@ void editor()
     free(pattern);
 }
 
+
+void test()
+{
+    String s(STR("abcdef"));
+    s.replace(2, 3, String(STR("*****")));
+    Console::writeLine(s);
+
+    exit(1);
+}
+
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
+        test();
+
         if (argc != 2)
         {
             Console::writeLine(STR("usage: eve filename\n\n"

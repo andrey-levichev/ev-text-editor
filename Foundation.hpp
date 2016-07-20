@@ -9,6 +9,10 @@
 #include <string.h>
 #include <wchar.h>
 #include <ctype.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 // 32/64 bit
 
@@ -117,13 +121,14 @@
 #ifdef PLATFORM_WINDOWS
 
 #include <windows.h>
+#include <io.h>
 
 #define MAIN wmain
-#define STR(s) L##s
+#define STR(arg) L##arg
 typedef wchar_t char_t;
 
 #define STRLEN wcslen
-#define MEMCPY wmemcpy
+#define STRCPY wcscpy
 #define STRSET wmemset
 #define STRCMP wcscmp
 #define STRNCMP wcsncmp
@@ -149,12 +154,15 @@ typedef wchar_t char_t;
 
 #else
 
+#include <termios.h>
+#include <unistd.h>
+
 #define MAIN main
-#define STR(s) s
+#define STR(arg) arg
 typedef char char_t;
 
 #define STRLEN strlen
-#define MEMCPY memcpy
+#define STRCPY strcpy
 #define STRSET memset
 #define STRCMP strcmp
 #define STRNCMP strncmp
@@ -188,52 +196,77 @@ typedef char char_t;
 
 #ifdef ABORT_ON_ASSERT_FAILURE
 
-#define ASSERT_MSG(condition, message) do { \
+#define ASSERT_MSG(condition, message) \
+    do { \
         if (!(condition)) { \
             PUTS(STR("assertion failed in ") \
                 STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message); \
-            abort(); } \
-        } while (false)
+            abort(); \
+        } \
+    } while (false)
     
 #else
     
-#define THROW_ASSERT_EXCEPTION(message) throw Exception(STR("assertion failed in ") \
-        STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message)
-
-#define ASSERT_MSG(condition, message) if (!(condition)) THROW_ASSERT_EXCEPTION(message)
+#define ASSERT_MSG(condition, message) \
+    do { \
+        if (!(condition)) \
+            throw Exception(STR("assertion failed in ") \
+                STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message); \
+    } while (false)
 
 #endif
 
 #define ASSERT(...) ASSERT_MSG(__VA_ARGS__, STR(#__VA_ARGS__))
+#define ASSERT_FAIL(message) ASSERT_MSG(false, message)
 
-#define ASSERT_FAIL(message) THROW_ASSERT_EXCEPTION(message)
-
-#define ASSERT_EXCEPTION(exception, ...) do { try \
-        { __VA_ARGS__; ASSERT_FAIL(STR("expected ") STR(#exception)); } \
+#define ASSERT_EXCEPTION(exception, ...) \
+    do { \
+        try { \
+            __VA_ARGS__; \
+            ASSERT_FAIL(STR("expected ") STR(#exception)); \
+        } \
         catch (exception&) {} \
-        catch (...) { ASSERT_FAIL(STR("expected ") STR(#exception)); } } while(false)
+        catch (...) { \
+            ASSERT_FAIL(STR("expected ") STR(#exception)); \
+        } \
+    } while(false)
 
-#define ASSERT_NO_EXCEPTION(...) do { try \
-        { __VA_ARGS__; } \
-        catch (...) { ASSERT_FAIL(STR("unexpected exception")); } } while (false)
+#define ASSERT_NO_EXCEPTION(...) \
+    do { \
+        try { __VA_ARGS__; } \
+        catch (...) { \
+            ASSERT_FAIL(STR("unexpected exception")); \
+        } \
+    } while (false)
 
-#define ASSERT_EXCEPTION_MSG(exception, msg, ...) do { try \
-        { __VA_ARGS__; ASSERT_FAIL(STR("expected ") STR(#exception)); } \
+#define ASSERT_EXCEPTION_MSG(exception, msg, ...) \
+    do { \
+        try { \
+            __VA_ARGS__; \
+            ASSERT_FAIL(STR("expected ") STR(#exception)); \
+        } \
         catch (exception& ex) \
-        { ASSERT_MSG(STRSTR(ex.message(), msg) != nullptr, \
-                STR(#exception) STR(" doesn't contain expected message")); } \
-        catch (...) { ASSERT_FAIL(STR("expected ") STR(#exception)); } } while(false)
-            
-#define PRINT_TEST_BANNER(component) Console::writeLine( \
-        String::format(STR("running %s tests\n"), component))
-
+        { \
+            ASSERT_MSG(STRSTR(ex.message(), msg) != nullptr, \
+                STR(#exception) STR(" doesn't contain expected message")); \
+        } \
+        catch (...) { \
+            ASSERT_FAIL(STR("expected ") STR(#exception)); \
+        } \
+    } while(false)
 
 // string helper functions
 
 inline char_t* STRNCPY(char_t* destStr, const char_t* srcStr, int len)
 {
-    MEMCPY(destStr, srcStr, len);
+    len *= sizeof(char_t);
+    memcpy(destStr, srcStr, len);
     return destStr + len;
+}
+
+inline void STRMOVE(char_t* destStr, const char_t* srcStr, int len)
+{
+    memmove(destStr, srcStr, len * sizeof(char_t));
 }
 
 // equality function
@@ -836,6 +869,8 @@ public:
 
 public:
     String() :
+        _length(0),
+        _capacity(0),
         _chars(nullptr)
     {
     }
@@ -848,7 +883,12 @@ public:
 
     String(String&& other)
     {
+        _length = other._length;
+        _capacity = other._capacity;
         _chars = other._chars;
+
+        other._length = 0;
+        other._capacity = 0;
         other._chars = nullptr;
     }
 
@@ -861,6 +901,16 @@ public:
     String& operator+=(const String& str);
     String& operator+=(const char_t* chars);
 
+    int length() const
+    {
+        return _length;
+    }
+
+    int capacity() const
+    {
+        return _capacity;
+    }
+
     const char_t* str() const
     {
         return _chars ? _chars : STR("");
@@ -871,14 +921,15 @@ public:
         return _chars;
     }
 
-    int length() const;
-
     bool empty() const
     {
-        return _chars == nullptr;
+        return _length == 0;
     }
 
     String substr(int pos, int len) const;
+
+    void ensureCapacity(int capacity);
+    void shrinkToLength();
 
     void assign(const String& str);
     void assign(const char_t* chars);
@@ -894,19 +945,15 @@ public:
     void erase(const char_t* chars);
     
     void clear();
+    void reset();
     
     static String acquire(char_t* chars)
     {
         return String(chars);
     }
     
-    char_t* release()
-    {
-        char_t* chars = _chars;
-        _chars = nullptr;
-        return chars;
-    }
-    
+    char_t* release();
+
     void replace(int pos, int len, const String& str);
     void replace(int pos, int len, const char_t* chars);
     void replace(const String& searchStr, const String& replaceStr);
@@ -977,6 +1024,8 @@ public:
     
     friend void swap(String& left, String& right)
     {
+        swap(left._length, right._length);
+        swap(left._capacity, right._capacity);
         swap(left._chars, right._chars);
     }
 
@@ -986,10 +1035,8 @@ public:
     }
 
 private:
-    explicit String(char_t* chars)
-    {
-       _chars = chars;
-    }
+    explicit String(char_t* chars);
+    explicit String(int capacity);
 
     static char_t* allocate(int len);
     
@@ -998,7 +1045,7 @@ private:
     {
         int len = STRLEN(chars);
         char_t* destChars = concatInternal(totalLen + len, args...);
-        MEMCPY(destChars + totalLen, chars, len);
+        STRNCPY(destChars + totalLen, chars, len);
         return destChars;
     }
     
@@ -1007,7 +1054,7 @@ private:
         int len = STRLEN(chars);
         char_t* destChars = allocate(totalLen + len + 1);
         destChars[totalLen + len] = 0;        
-        MEMCPY(destChars + totalLen, chars, len);
+        STRNCPY(destChars + totalLen, chars, len);
         return destChars;
     }
     
@@ -1016,9 +1063,8 @@ private:
     {
         if (str._chars)
         {
-            int len = STRLEN(str._chars);
-            char_t* destChars = concatInternal(totalLen + len, args...);
-            MEMCPY(destChars + totalLen, str._chars, len);
+            char_t* destChars = concatInternal(totalLen + str._length, args...);
+            STRNCPY(destChars + totalLen, str._chars, str._length);
             return destChars;
         }
         else
@@ -1029,10 +1075,9 @@ private:
     {
         if (str._chars)
         {
-            int len = STRLEN(str._chars);
-            char_t* destChars = allocate(totalLen + len + 1);
-            destChars[totalLen + len] = 0;        
-            MEMCPY(destChars + totalLen, str._chars, len);
+            char_t* destChars = allocate(totalLen + str._length + 1);
+            destChars[totalLen + str._length] = 0;        
+            STRNCPY(destChars + totalLen, str._chars, str._length);
             return destChars;
         }
         else
@@ -1044,6 +1089,8 @@ private:
     }
     
 private:
+    int _length;
+    int _capacity;
     char_t* _chars;
 };
 
@@ -2464,50 +2511,6 @@ public:
     static void showCursor();
     static void hideCursor();
     static void setCursorPosition(int line, int column);
-};
-
-// StringBuilder
-
-class StringBuilder
-{
-public:
-    StringBuilder() :
-        _chars(nullptr), _length(0), _capacity(0)
-    {
-    }
-
-    StringBuilder(int capacity);
-    StringBuilder(const StringBuilder& other);
-    ~StringBuilder();
-
-    StringBuilder& operator=(const StringBuilder& other);
-
-    const char_t* chars() const;
-    int length() const;
-    int capacity() const;
-    bool empty() const;
-
-    void append(const char_t* chars);
-
-    void append(const String& str)
-    {
-        append(str.str());
-    }
-
-    friend void swap(StringBuilder& left, StringBuilder& right)
-    {
-        swap(left._chars, right._chars);
-        swap(left._length, right._length);
-        swap(left._capacity, right._capacity);
-    }
-
-private:
-    void assign(const char_t* chars);
-
-private:
-    char_t* _chars;
-    int _length;
-    int _capacity;
 };
 
 // File

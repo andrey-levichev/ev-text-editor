@@ -6,6 +6,17 @@ support unicode input
 * using size vs zero terminator for text
 * paste lines at any column
 * extra indent when adding new line
+* set selection to empty after every text editing operation
+
+conversion to c++:
+* read only, write only files
+support seek, reading into char buffer
+* change array to use capacity
+* for containers with capacity
+round allocation to next greater power of 2
+to take advantage of memory allocator implementation
+* add asserts to all other classes
+* write unit tests for all classes
 
 basic features:
 * search/replace
