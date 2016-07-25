@@ -14,8 +14,10 @@ int vasprintf(char_t** str, const char_t* format, va_list args)
 #endif
     va_end(args2);
 
-    if (len < 0 || !(*str = Memory::allocateArray<char_t>(len + 1)))
+    if (len < 0)
         return -1;
+
+    *str = Memory::allocateArray<char_t>(len + 1);
 
 #ifdef PLATFORM_WINDOWS
     return _vsnwprintf(*str, len + 1, format, args);
@@ -45,7 +47,7 @@ String::String(int count, char_t c)
     {
         _length = count;
         _capacity = _length + 1;
-        _chars = allocate(_capacity);
+        _chars = Memory::allocateArray<char_t>(_capacity);
         STRSET(_chars, c, _length);
         _chars[_length] = 0;
     }
@@ -69,7 +71,7 @@ String::String(const String& other)
     {
         _length = other._length;
         _capacity = _length + 1;
-        _chars = allocate(_capacity);
+        _chars = Memory::allocateArray<char_t>(_capacity);
         STRCPY(_chars, other._chars);
     }
 }
@@ -79,7 +81,7 @@ String::String(const String& other, int pos, int len)
     ASSERT(pos >= 0 && pos <= other._length);
     ASSERT(len >= 0 && pos + len <= other._length);
 
-    if (other.empty())
+    if (other.empty() || len == 0)
     {
         _length = 0;
         _capacity = 0;
@@ -89,7 +91,7 @@ String::String(const String& other, int pos, int len)
     {
         _length = len;
         _capacity = _length + 1;
-        _chars = allocate(_capacity);
+        _chars = Memory::allocateArray<char_t>(_capacity);
         STRNCPY(_chars, other._chars + pos, _length);
         _chars[_length] = 0;
     }
@@ -103,7 +105,7 @@ String::String(const char_t* chars)
     {
         _length = STRLEN(chars);
         _capacity = _length + 1;
-        _chars = allocate(_capacity);
+        _chars = Memory::allocateArray<char_t>(_capacity);
         STRCPY(_chars, chars);
     }
     else
@@ -120,11 +122,11 @@ String::String(const char_t* chars, int pos, int len)
     ASSERT(pos >= 0);
     ASSERT(len >= 0);
 
-    if (*chars)
+    if (*(chars + pos) && len > 0)
     {
         _length = len;
         _capacity = _length + 1;
-        _chars = allocate(_capacity);
+        _chars = Memory::allocateArray<char_t>(_capacity);
         STRNCPY(_chars, chars + pos, _length);
         _chars[_length] = 0;
     }
@@ -153,7 +155,7 @@ String::String(int capacity)
     {
         _length = 0;
         _capacity = capacity;
-        _chars = allocate(_capacity);
+        _chars = Memory::allocateArray<char_t>(_capacity);
         *_chars = 0;
     }
     else
@@ -239,16 +241,16 @@ void String::shrinkToLength()
 
 void String::assign(const String& str)
 {
-    if (str.empty())
-    {
-        if (_chars)
-        {
-            _length = 0;
-            *_chars = 0;
-        }
-    }
-    else
-    {
+//    if (str.empty())
+//    {
+//        if (_chars)
+//        {
+//            _length = 0;
+//            *_chars = 0;
+//        }
+//    }
+//    else
+//    {
         int capacity = str._length + 1;
 
         if (capacity > _capacity)
@@ -261,26 +263,38 @@ void String::assign(const String& str)
             _length = str._length;
             STRCPY(_chars, str._chars);
         }
-    }
+//    }
 }
 
 void String::assign(const char_t* chars)
 {
     ASSERT(chars);
 
-    int len = STRLEN(chars);
-    int capacity = len + 1;
+//    if (*chars)
+//    {
+        int len = STRLEN(chars);
+        int capacity = len + 1;
 
-    if (capacity > _capacity)
-    {
-        String tmp(chars);
-        swap(*this, tmp);
-    }
-    else
-    {
-        _length = len;
-        STRCPY(_chars, chars);
-    }
+        if (capacity > _capacity)
+        {
+            String tmp(chars);
+            swap(*this, tmp);
+        }
+        else
+        {
+            _length = len;
+            STRCPY(_chars, chars);
+        }
+//    }
+//    else
+//    {
+//        if (_chars)
+//        {
+//            _length = 0;
+//            *_chars = 0;
+//        }
+//    }
+//
 }
 
 void String::append(const String& str)
@@ -567,7 +581,7 @@ void String::replace(const String& searchStr, const String& replaceStr)
                 
                 if (newLen > 0)
                 {
-                    char_t* newChars = allocate(newLen + 1);
+                    char_t* newChars = Memory::allocateArray<char_t>(newLen + 1);
                     char_t* to = newChars;
 
                     while ((found = STRSTR(from, searchStr._chars)) != nullptr)
@@ -612,7 +626,7 @@ void String::replace(const char_t* searchChars, const char_t* replaceChars)
             
             if (newLen > 0)
             {
-                char_t* newChars = allocate(newLen + 1);
+                char_t* newChars = Memory::allocateArray<char_t>(newLen + 1);
                 char_t* to = newChars;
 
                 while ((found = STRSTR(from, searchChars)) != nullptr)
@@ -646,7 +660,7 @@ void String::trim()
         if (p < q)
         {
             int len = q - p;
-            char_t* newChars = allocate(len + 1);
+            char_t* newChars = Memory::allocateArray<char_t>(len + 1);
             *STRNCPY(newChars, p, len) = 0;
             Memory::deallocate(_chars);
             _chars = newChars;
@@ -667,7 +681,7 @@ void String::trimRight()
         if (_chars < p)
         {
             int len = p - _chars;
-            char_t* newChars = allocate(len + 1);
+            char_t* newChars = Memory::allocateArray<char_t>(len + 1);
             *STRNCPY(newChars, _chars, len) = 0;
             Memory::deallocate(_chars);
             _chars = newChars;
@@ -688,7 +702,7 @@ void String::trimLeft()
         int len = STRLEN(p);
         if (len > 0)
         {
-            char_t* newChars = allocate(len + 1);
+            char_t* newChars = Memory::allocateArray<char_t>(len + 1);
             *STRNCPY(newChars, p, len) = 0;
             Memory::deallocate(_chars);
             _chars = newChars;
@@ -990,29 +1004,24 @@ String String::format(const char_t* format, va_list args)
     return String(chars);
 }
 
-char_t* String::allocate(int len)
-{
-    char_t* chars = Memory::allocateArray<char_t>(len);
-    if (!chars)
-        throw OutOfMemoryException();
-    return chars;
-}
-
 // string concatenation
 
 String operator+(const String& x, const String& y)
 {
-    return String::concat(x, y);
+//    return x.append(y);
+    return String();
 }
 
 String operator+(const String& x, const char_t* y)
 {
-    return String::concat(x, y);
+//    return x.append(y);
+    return String();
 }
 
 String operator+(const char_t* x, const String& y)
 {
-    return String::concat(x, y);
+//    return y.insert(0, x);
+    return String();
 }
 
 // string compare

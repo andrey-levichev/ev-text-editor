@@ -259,8 +259,7 @@ typedef char char_t;
 
 inline char_t* STRNCPY(char_t* destStr, const char_t* srcStr, int len)
 {
-    len *= sizeof(char_t);
-    memcpy(destStr, srcStr, len);
+    memcpy(destStr, srcStr, len * sizeof(char_t));
     return destStr + len;
 }
 
@@ -417,13 +416,23 @@ namespace Memory
 template<typename _Type>
 inline _Type* allocate()
 {
-    return static_cast<_Type*>(malloc(sizeof(_Type)));
+    _Type* ptr = static_cast<_Type*>(malloc(sizeof(_Type)));
+
+    if (ptr)
+        return ptr;
+    else
+        throw OutOfMemoryException();
 }
 
 template<typename _Type>
 inline _Type* allocateArray(int size)
 {
-    return static_cast<_Type*>(malloc(sizeof(_Type) * size));
+    _Type* ptr = static_cast<_Type*>(malloc(sizeof(_Type) * size));
+
+    if (ptr)
+        return ptr;
+    else
+        throw OutOfMemoryException();
 }
 
 inline void deallocate(void* ptr)
@@ -436,20 +445,15 @@ inline _Type* create(_Args&&... args)
 {
     _Type* ptr = allocate<_Type>();
 
-    if (ptr)
+    try
     {
-        try
-        {
-            ::new(ptr) _Type(static_cast<_Args&&>(args)...);
-        }
-        catch (...)
-        {
-            deallocate(ptr);
-            throw;
-        }
+        ::new(ptr) _Type(static_cast<_Args&&>(args)...);
     }
-    else
-        throw OutOfMemoryException();
+    catch (...)
+    {
+        deallocate(ptr);
+        throw;
+    }
 
     return ptr;
 }
@@ -469,26 +473,21 @@ inline _Type* createArrayCopy(int size, const _Type* elements)
 {
     _Type* ptr = allocateArray<_Type>(size);
 
-    if (ptr)
+    int i = 0;
+
+    try
     {
-        int i = 0;
-
-        try
-        {
-            for (; i < size; ++i)
-                ::new(ptr + i) _Type(elements[i]);
-        }
-        catch (...)
-        {
-            while (i-- > 0)
-                ptr[i].~_Type();
-
-            deallocate(ptr);
-            throw;
-        }
+        for (; i < size; ++i)
+            ::new(ptr + i) _Type(elements[i]);
     }
-    else
-        throw OutOfMemoryException();
+    catch (...)
+    {
+        while (i-- > 0)
+            ptr[i].~_Type();
+
+        deallocate(ptr);
+        throw;
+    }
 
     return ptr;
 }
@@ -498,36 +497,31 @@ inline _Type* createArrayResize(int size, _Type* elements, int newSize)
 {
     _Type* ptr = allocateArray<_Type>(newSize);
 
-    if (ptr)
+    int i = 0;
+
+    try
     {
-        int i = 0;
-
-        try
+        if (newSize > size)
         {
-            if (newSize > size)
-            {
-                for (; i < size; ++i)
-                    ::new(ptr + i) _Type(static_cast<_Type&&>(elements[i]));
-                for (; i < newSize; ++i)
-                    ::new(ptr + i) _Type();
-            }
-            else
-            {
-                for (; i < newSize; ++i)
-                    ::new(ptr + i) _Type(static_cast<_Type&&>(elements[i]));
-            }
+            for (; i < size; ++i)
+                ::new(ptr + i) _Type(static_cast<_Type&&>(elements[i]));
+            for (; i < newSize; ++i)
+                ::new(ptr + i) _Type();
         }
-        catch (...)
+        else
         {
-            while (i-- > 0)
-                ptr[i].~_Type();
-
-            deallocate(ptr);
-            throw;
+            for (; i < newSize; ++i)
+                ::new(ptr + i) _Type(static_cast<_Type&&>(elements[i]));
         }
     }
-    else
-        throw OutOfMemoryException();
+    catch (...)
+    {
+        while (i-- > 0)
+            ptr[i].~_Type();
+
+        deallocate(ptr);
+        throw;
+    }
 
     return ptr;
 }
@@ -537,26 +531,21 @@ inline _Type* createArrayFill(int size, _Args&&... args)
 {
     _Type* ptr = allocateArray<_Type>(size);
 
-    if (ptr)
+    int i = 0;
+
+    try
     {
-        int i = 0;
-
-        try
-        {
-            for (; i < size; ++i)
-                ::new(ptr + i) _Type(static_cast<_Args&&>(args)...);
-        }
-        catch (...)
-        {
-            while (i-- > 0)
-                ptr[i].~_Type();
-
-            deallocate(ptr);
-            throw;
-        }
+        for (; i < size; ++i)
+            ::new(ptr + i) _Type(static_cast<_Args&&>(args)...);
     }
-    else
-        throw OutOfMemoryException();
+    catch (...)
+    {
+        while (i-- > 0)
+            ptr[i].~_Type();
+
+        deallocate(ptr);
+        throw;
+    }
 
     return ptr;
 }
@@ -881,6 +870,9 @@ public:
     String(const char_t* chars);
     String(const char_t* chars, int pos, int len);
 
+    explicit String(char_t* chars);
+    explicit String(int capacity);
+
     String(String&& other)
     {
         _length = other._length;
@@ -987,13 +979,6 @@ public:
     bool contains(const String& str) const;
     bool contains(const char_t* chars) const;
     
-    template<typename... _Args>
-    static String concat(_Args&&... args)
-    {
-        char_t* chars = concatInternal(0, args...);
-        return String(chars);
-    }
-
     // conversion from string
 
     bool toBool() const;
@@ -1034,60 +1019,6 @@ public:
         return hash(val.str());
     }
 
-private:
-    explicit String(char_t* chars);
-    explicit String(int capacity);
-
-    static char_t* allocate(int len);
-    
-    template<typename... _Args>
-    static char_t* concatInternal(int totalLen, const char_t* chars, _Args&&... args)
-    {
-        int len = STRLEN(chars);
-        char_t* destChars = concatInternal(totalLen + len, args...);
-        STRNCPY(destChars + totalLen, chars, len);
-        return destChars;
-    }
-    
-    static char_t* concatInternal(int totalLen, const char_t* chars)
-    {
-        int len = STRLEN(chars);
-        char_t* destChars = allocate(totalLen + len + 1);
-        destChars[totalLen + len] = 0;        
-        STRNCPY(destChars + totalLen, chars, len);
-        return destChars;
-    }
-    
-    template<typename... _Args>
-    static char_t* concatInternal(int totalLen, const String& str, _Args&&... args)
-    {
-        if (str._chars)
-        {
-            char_t* destChars = concatInternal(totalLen + str._length, args...);
-            STRNCPY(destChars + totalLen, str._chars, str._length);
-            return destChars;
-        }
-        else
-            return concatInternal(totalLen, args...);
-    }
-    
-    static char_t* concatInternal(int totalLen, const String& str)
-    {
-        if (str._chars)
-        {
-            char_t* destChars = allocate(totalLen + str._length + 1);
-            destChars[totalLen + str._length] = 0;        
-            STRNCPY(destChars + totalLen, str._chars, str._length);
-            return destChars;
-        }
-        else
-        {
-            char_t* destChars = allocate(totalLen + 1);
-            destChars[totalLen] = 0;        
-            return destChars;
-        }
-    }
-    
 private:
     int _length;
     int _capacity;

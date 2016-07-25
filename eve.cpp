@@ -835,21 +835,14 @@ void editor()
     free(pattern);
 }
 
-
-void test()
-{
-    String s(STR("abcdef"));
-    s.replace(2, 3, String(STR("*****")));
-    Console::writeLine(s);
-
-    exit(1);
-}
+extern void testFoundation();
 
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        test();
+        testFoundation();
+        return 0;
 
         if (argc != 2)
         {

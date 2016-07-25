@@ -17,6 +17,10 @@ round allocation to next greater power of 2
 to take advantage of memory allocator implementation
 * add asserts to all other classes
 * write unit tests for all classes
+* figure out _chars == nullptr vs _length == 0
+* findNoCase, appendFormat
+* fix string concat
+* acquire/release vs constructor
 
 basic features:
 * search/replace
