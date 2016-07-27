@@ -870,7 +870,6 @@ public:
     String(const char_t* chars);
     String(const char_t* chars, int pos, int len);
 
-    explicit String(char_t* chars);
     explicit String(int capacity);
 
     String(String&& other)
@@ -1018,6 +1017,9 @@ public:
     {
         return hash(val.str());
     }
+
+private:
+    explicit String(char_t* chars);
 
 private:
     int _length;
