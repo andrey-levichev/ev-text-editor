@@ -1029,30 +1029,30 @@ private:
 
 // string concatenation
 
-String operator+(const String& x, const String& y);
-String operator+(const String& x, const char_t* y);
-String operator+(const char_t* x, const String& y);
+String operator+(const String& left, const String& right);
+String operator+(const String& left, const char_t* right);
+String operator+(const char_t* left, const String& right);
 
 // string compare
 
-bool operator==(const String& x, const String& y);
-bool operator!=(const String& x, const String& y);
-bool operator<(const String& x, const String& y);
-bool operator<=(const String& x, const String& y);
-bool operator>(const String& x, const String& y);
-bool operator>=(const String& x, const String& y);
-bool operator==(const char_t* x, const String& y);
-bool operator==(const String& x, const char_t* y);
-bool operator!=(const char_t* x, const String& y);
-bool operator!=(const String& x, const char_t* y);
-bool operator<(const char_t* x, const String& y);
-bool operator<(const String& x, const char_t* y);
-bool operator<=(const char_t* x, const String& y);
-bool operator<=(const String& x, const char_t* y);
-bool operator>(const char_t* x, const String& y);
-bool operator>(const String& x, const char_t* y);
-bool operator>=(const char_t* x, const String& y);
-bool operator>=(const String& x, const char_t* y);
+bool operator==(const String& left, const String& right);
+bool operator!=(const String& left, const String& right);
+bool operator<(const String& left, const String& right);
+bool operator<=(const String& left, const String& right);
+bool operator>(const String& left, const String& right);
+bool operator>=(const String& left, const String& right);
+bool operator==(const char_t* left, const String& right);
+bool operator==(const String& left, const char_t* right);
+bool operator!=(const char_t* left, const String& right);
+bool operator!=(const String& left, const char_t* right);
+bool operator<(const char_t* left, const String& right);
+bool operator<(const String& left, const char_t* right);
+bool operator<=(const char_t* left, const String& right);
+bool operator<=(const String& left, const char_t* right);
+bool operator>(const char_t* left, const String& right);
+bool operator>(const String& left, const char_t* right);
+bool operator>=(const char_t* left, const String& right);
+bool operator>=(const String& left, const char_t* right);
 
 // Array
 

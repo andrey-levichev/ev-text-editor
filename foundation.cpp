@@ -1,4 +1,4 @@
-#include <Foundation.hpp>
+#include <foundation.h>
 
 // string formatting
 
@@ -392,8 +392,10 @@ void String::erase(const String& str)
                     from = _chars;
                     while ((found = STRSTR(from, str._chars)) != nullptr)
                     {
-                        from = found + str._length;
-                        STRMOVE(found, from, _chars + _length - from + 1);
+                        STRMOVE(found, found + str._length, 
+                            _chars + _length - found - str._length + 1);
+
+                        from = found;
                         _length -= str._length;
                     }
                 }
@@ -408,7 +410,7 @@ void String::erase(const char_t* chars)
 {
     ASSERT(chars);
 
-    if (*_chars)
+    if (*chars)
     {
         if (_length > 0)
         {
@@ -430,8 +432,10 @@ void String::erase(const char_t* chars)
                     from = _chars;
                     while ((found = STRSTR(from, chars)) != nullptr)
                     {
-                        from = found + len;
-                        STRMOVE(found, from, _chars + _length - from + 1);
+                        STRMOVE(found, found + len,
+                            _chars + _length - found - len + 1);
+
+                        from = found;
                         _length -= len;
                     }
                 }
@@ -475,13 +479,13 @@ void String::replace(int pos, int len, const String& str)
     if (str._length > 0)
     {
         int newLen = _length - len + str._length;
-        int capacity = newLen + 1;
-
-        if (capacity > _capacity)
-            ensureCapacity(capacity * 2);
         
         if (newLen > 0)
         {
+            int capacity = newLen + 1;
+            if (capacity > _capacity)
+                ensureCapacity(capacity * 2);
+
             char_t* p = _chars + pos;
             STRMOVE(p + str._length, p + len, _length - pos - len + 1);
             STRNCPY(p, str._chars, str._length);
@@ -500,145 +504,149 @@ void String::replace(int pos, int len, const char_t* chars)
     ASSERT(len >= 0 && pos + len <= _length);
     ASSERT(chars);
 
-    if (!*chars)
+    if (*chars)
     {
-        erase(pos, len);
-    }
-    else if (_chars)
-    {
-        int replLen = STRLEN(chars);
-        int newLen = _length - len + replLen;
-        int capacity = newLen + 1;
-
-        if (capacity > _capacity)
-            ensureCapacity(capacity * 2);
+        int replaceLen = STRLEN(chars);
+        int newLen = _length - len + replaceLen;
         
         if (newLen > 0)
         {
+            int capacity = newLen + 1;
+            if (capacity > _capacity)
+                ensureCapacity(capacity * 2);
+
             char_t* p = _chars + pos;
-            STRMOVE(p + replLen, p + len, _length - pos - len + 1);
-            STRNCPY(p, chars, replLen);
+            STRMOVE(p + replaceLen, p + len, _length - pos - len + 1);
+            STRNCPY(p, chars, replaceLen);
             _length = newLen;
         }
         else
             clear();
     }
+    else
+        erase(pos, len);
 }
 
 void String::replace(const String& searchStr, const String& replaceStr)
 {
-    if (!replaceStr._chars)
+    if (searchStr._length > 0)
     {
-        erase(searchStr);
-    }
-    else if (_chars && searchStr._chars)
-    {
-        int searchLen = STRLEN(searchStr._chars);
-        
-        if (searchLen > 0)
+        if (replaceStr._length > 0)
         {
-            const char_t* from = _chars;
-            const char_t* found;
-            int foundCnt = 0;
-
-            while ((found = STRSTR(from, searchStr._chars)) != nullptr)
+            if (_length > 0)
             {
-                ++foundCnt;
-                from = found + searchLen;
-            }
+                char_t* from = _chars;
+                char_t* found;
+                int foundCnt = 0;
 
-            if (foundCnt > 0)
-            {
-                from = _chars;
-                int curLen = STRLEN(_chars);
-                int replLen = STRLEN(replaceStr._chars);
-                int newLen = curLen - foundCnt * searchLen + foundCnt * replLen;
-                
-                if (newLen > 0)
+                while ((found = STRSTR(from, searchStr._chars)) != nullptr)
                 {
-                    char_t* newChars = Memory::allocateArray<char_t>(newLen + 1);
-                    char_t* to = newChars;
-
-                    while ((found = STRSTR(from, searchStr._chars)) != nullptr)
-                    {
-                        to = STRNCPY(STRNCPY(to, from, found - from), replaceStr._chars, replLen);
-                        from = found + searchLen;
-                    }
-
-                    *STRNCPY(to, from, _chars + curLen - from) = 0;
-                    Memory::deallocate(_chars);
-                    _chars = newChars;
+                    ++foundCnt;
+                    from = found + searchStr._length;
                 }
-                else
-                    clear();
+
+                if (foundCnt > 0)
+                {
+                    int newLen = _length + foundCnt * (replaceStr._length - searchStr._length);
+
+                    if (newLen > 0)
+                    {
+                        int capacity = newLen + 1;
+                        if (capacity > _capacity)
+                            ensureCapacity(capacity * 2);
+
+                        from = _chars;
+                        while ((found = STRSTR(from, searchStr._chars)) != nullptr)
+                        {
+                            STRMOVE(found + replaceStr._length, found + searchStr._length,
+                                _chars + _length - found - searchStr._length + 1);
+                            STRNCPY(found, replaceStr._chars, replaceStr._length);
+
+                            from = found + replaceStr._length;
+                            _length += replaceStr._length - searchStr._length;
+                        }
+                    }
+                    else
+                        clear();
+                }
             }
         }
+        else
+            erase(searchStr);
     }
 }
 
 void String::replace(const char_t* searchChars, const char_t* replaceChars)
 {
-    int searchLen = STRLEN(searchChars);
-        
-    if (searchLen > 0)
+    ASSERT(searchChars);
+    ASSERT(replaceChars);
+
+    if (*searchChars)
     {
-        const char_t* from = _chars;
-        const char_t* found;
-        int foundCnt = 0;
-
-        while ((found = STRSTR(from, searchChars)) != nullptr)
+        if (*replaceChars)
         {
-            ++foundCnt;
-            from = found + searchLen;
-        }
-
-        if (foundCnt > 0)
-        {
-            from = _chars;
-            int curLen = STRLEN(_chars);
-            int replLen = STRLEN(replaceChars);
-            int newLen = curLen - foundCnt * searchLen + foundCnt * replLen;
-            
-            if (newLen > 0)
+            if (_length > 0)
             {
-                char_t* newChars = Memory::allocateArray<char_t>(newLen + 1);
-                char_t* to = newChars;
+                char_t* from = _chars;
+                char_t* found;
+                int foundCnt = 0;
+                int searchLen = STRLEN(searchChars);
 
                 while ((found = STRSTR(from, searchChars)) != nullptr)
                 {
-                    to = STRNCPY(STRNCPY(to, from, found - from), replaceChars, replLen);
+                    ++foundCnt;
                     from = found + searchLen;
                 }
 
-                *STRNCPY(to, from, _chars + curLen - from) = 0;
-                Memory::deallocate(_chars);
-                _chars = newChars;
+                if (foundCnt > 0)
+                {
+                    int replaceLen = STRLEN(replaceChars);
+                    int newLen = _length + foundCnt * (replaceLen - searchLen);
+
+                    if (newLen > 0)
+                    {
+                        int capacity = newLen + 1;
+                        if (capacity > _capacity)
+                            ensureCapacity(capacity * 2);
+
+                        from = _chars;
+                        while ((found = STRSTR(from, searchChars)) != nullptr)
+                        {
+                            STRMOVE(found + replaceLen, found + searchLen,
+                                _chars + _length - found - searchLen + 1);
+                            STRNCPY(found, replaceChars, replaceLen);
+
+                            from = found + replaceLen;
+                            _length += replaceLen - searchLen;
+                        }
+                    }
+                    else
+                        clear();
+                }
             }
-            else
-                clear();
         }
+        else
+            erase(searchChars);
     }
 }
 
 void String::trim()
 {
-    if (_chars)
+    if (_length > 0)
     {
         char_t* p = _chars;
         while (ISBLANK(*p))
             ++p;
 
-        char_t* q = p + STRLEN(p);
+        char_t* q = _chars + _length;
         while (p < q && ISBLANK(*(q - 1)))
             --q;
 
         if (p < q)
         {
-            int len = q - p;
-            char_t* newChars = Memory::allocateArray<char_t>(len + 1);
-            *STRNCPY(newChars, p, len) = 0;
-            Memory::deallocate(_chars);
-            _chars = newChars;
+            _length = q - p;
+            STRMOVE(_chars, p, _length);
+            _chars[_length] = 0;
         }
         else
             clear();
@@ -647,19 +655,18 @@ void String::trim()
 
 void String::trimRight()
 {
-    if (_chars)
+    if (_length > 0)
     {
-        char_t* p = _chars + STRLEN(_chars);
-        while (_chars < p && ISBLANK(*(p - 1)))
-            --p;
+        char_t* p = _chars;
 
-        if (_chars < p)
+        char_t* q = _chars + _length;
+        while (p < q && ISBLANK(*(q - 1)))
+            --q;
+
+        if (p < q)
         {
-            int len = p - _chars;
-            char_t* newChars = Memory::allocateArray<char_t>(len + 1);
-            *STRNCPY(newChars, _chars, len) = 0;
-            Memory::deallocate(_chars);
-            _chars = newChars;
+            _length = q - p;
+            _chars[_length] = 0;
         }
         else
             clear();
@@ -668,19 +675,19 @@ void String::trimRight()
 
 void String::trimLeft()
 {
-    if (_chars)
+    if (_length > 0)
     {
         char_t* p = _chars;
         while (ISBLANK(*p))
             ++p;
 
-        int len = STRLEN(p);
-        if (len > 0)
+        char_t* q = _chars + _length;
+
+        if (p < q)
         {
-            char_t* newChars = Memory::allocateArray<char_t>(len + 1);
-            *STRNCPY(newChars, p, len) = 0;
-            Memory::deallocate(_chars);
-            _chars = newChars;
+            _length = q - p;
+            STRMOVE(_chars, p, _length);
+            _chars[_length] = 0;
         }
         else
             clear();
@@ -689,10 +696,10 @@ void String::trimLeft()
 
 void String::reverse()
 {
-    if (_chars)
+    if (_length > 0)
     {
         char_t* p = _chars;
-        char_t* q = _chars + STRLEN(_chars) - 1;
+        char_t* q = _chars + _length - 1;
 
         while (p < q)
         {
@@ -704,20 +711,14 @@ void String::reverse()
 
 void String::toUpper()
 {
-    if (_chars)
-    {
-        for (char_t* p = _chars; *p; ++p)
-            *p = TOUPPER(*p);
-    }
+    for (int i = 0; i < _length; ++i)
+        _chars[i] = TOUPPER(_chars[i]);
 }
 
 void String::toLower()
 {
-    if (_chars)
-    {
-        for (char_t* p = _chars; *p; ++p)
-            *p = TOLOWER(*p);
-    }
+    for (int i = 0; i < _length; ++i)
+        _chars[i] = TOLOWER(_chars[i]);
 }
 
 int String::compare(const String& str) const
@@ -727,16 +728,22 @@ int String::compare(const String& str) const
 
 int String::compare(const char_t* chars) const
 {
+    ASSERT(chars);
     return STRCMP(str(), chars);
 }
 
 int String::compare(int pos, int len, const String& str) const
 {
+    ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(len >= 0 && pos + len <= _length);
     return STRNCMP(this->str() + pos, str.str(), len);
 }
 
 int String::compare(int pos, int len, const char_t* chars) const
 {
+    ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(len >= 0 && pos + len <= _length);
+    ASSERT(chars);
     return STRNCMP(str() + pos, chars, len);
 }
 
@@ -747,26 +754,37 @@ int String::compareNoCase(const String& str) const
 
 int String::compareNoCase(const char_t* chars) const
 {
+    ASSERT(chars);
     return STRICMP(str(), chars);
 }
 
 int String::compareNoCase(int pos, int len, const String& str) const
 {
+    ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(len >= 0 && pos + len <= _length);
     return STRNICMP(this->str() + pos, str.str(), len);
 }
 
 int String::compareNoCase(int pos, int len, const char_t* chars) const
 {
+    ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(len >= 0 && pos + len <= _length);
+    ASSERT(chars);
     return STRNICMP(str() + pos, chars, len);
 }
 
 int String::find(const String& str, int pos) const
 {
-    if (_chars)
+    ASSERT(pos >= 0 && pos <= _length);
+
+    if (str._length > 0)
     {
-        const char_t* found = STRSTR(_chars + pos, str.str());
-        if (found)
-            return found - _chars;
+        if (_length > 0)
+        {
+            const char_t* found = STRSTR(_chars + pos, str._chars);
+            if (found)
+                return found - _chars;
+        }
     }
 
     return INVALID_POS;
@@ -774,11 +792,17 @@ int String::find(const String& str, int pos) const
 
 int String::find(const char_t* chars, int pos) const
 {
-    if (_chars)
+    ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(chars);
+
+    if (*chars)
     {
-        const char_t* found = STRSTR(_chars + pos, chars);
-        if (found)
-            return found - _chars;
+        if (_length > 0)
+        {
+            const char_t* found = STRSTR(_chars + pos, chars);
+            if (found)
+                return found - _chars;
+        }
     }
 
     return INVALID_POS;
@@ -786,30 +810,40 @@ int String::find(const char_t* chars, int pos) const
 
 bool String::startsWith(const String& str) const
 {
-    return compare(0, str.length(), str) == 0;
+    if (str._length > 0 && _length > 0)
+        return STRNCMP(_chars, str._chars, str._length) == 0;
+    else
+        return false;
 }
 
 bool String::startsWith(const char_t* chars) const
 {
-    return compare(0, STRLEN(chars), chars) == 0;
+    ASSERT(chars);
+
+    int len = STRLEN(chars);
+    if (len > 0 && _length > 0)
+        return STRNCMP(_chars, chars, len) == 0;
+    else
+        return false;
 }
 
 bool String::endsWith(const String& str) const
 {
-    int len1 = length(), len2 = str.length();
-    if (len1 < len2)
+    if (str._length > 0 && _length > 0 && str._length <= _length)
+        return STRCMP(_chars + _length - str._length, str._chars) == 0;
+    else
         return false;
-
-    return compare(len1 - len2, len2, str) == 0;
 }
 
 bool String::endsWith(const char_t* chars) const
 {
-    int len1 = length(), len2 = STRLEN(chars);
-    if (len1 < len2)
-        return false;
+    ASSERT(chars);
 
-    return compare(len1 - len2, len2, chars) == 0;
+    int len = STRLEN(chars);
+    if (len > 0 && _length > 0 && len <= _length)
+        return STRCMP(_chars + _length - len, chars) == 0;
+    else
+        return false;
 }
 
 bool String::contains(const String& str) const
@@ -955,6 +989,8 @@ String String::from(double value, int precision)
 
 String String::format(const char_t* format, ...)
 {
+    ASSERT(format);
+
     char_t* chars;
     va_list args;
 
@@ -970,6 +1006,8 @@ String String::format(const char_t* format, ...)
 
 String String::format(const char_t* format, va_list args)
 {
+    ASSERT(format);
+
     char_t* chars;
 
     int rc = vasprintf(&chars, format, args);
@@ -981,114 +1019,119 @@ String String::format(const char_t* format, va_list args)
 
 // string concatenation
 
-String operator+(const String& x, const String& y)
+String operator+(const String& left, const String& right)
 {
-//    return x.append(y);
-    return String();
+    String result(left);
+    result.append(right);
+    return result;
 }
 
-String operator+(const String& x, const char_t* y)
+String operator+(const String& left, const char_t* right)
 {
-//    return x.append(y);
-    return String();
+    ASSERT(right);
+    String result(left);
+    result.append(right);
+    return result;
 }
 
-String operator+(const char_t* x, const String& y)
+String operator+(const char_t* left, const String& right)
 {
-//    return y.insert(0, x);
-    return String();
+    ASSERT(left);
+    String result(left);
+    result.append(right);
+    return result;
 }
 
 // string compare
 
-bool operator==(const String& x, const String& y)
+bool operator==(const String& left, const String& right)
 {
-    return STRCMP(x.str(), y.str()) == 0;
+    return STRCMP(left.str(), right.str()) == 0;
 }
 
-bool operator!=(const String& x, const String& y)
+bool operator!=(const String& left, const String& right)
 {
-    return STRCMP(x.str(), y.str()) != 0;
+    return STRCMP(left.str(), right.str()) != 0;
 }
 
-bool operator<(const String& x, const String& y)
+bool operator<(const String& left, const String& right)
 {
-    return STRCMP(x.str(), y.str()) < 0;
+    return STRCMP(left.str(), right.str()) < 0;
 }
 
-bool operator<=(const String& x, const String& y)
+bool operator<=(const String& left, const String& right)
 {
-    return STRCMP(x.str(), y.str()) <= 0;
+    return STRCMP(left.str(), right.str()) <= 0;
 }
 
-bool operator>(const String& x, const String& y)
+bool operator>(const String& left, const String& right)
 {
-    return STRCMP(x.str(), y.str()) > 0;
+    return STRCMP(left.str(), right.str()) > 0;
 }
 
-bool operator>=(const String& x, const String& y)
+bool operator>=(const String& left, const String& right)
 {
-    return STRCMP(x.str(), y.str()) >= 0;
+    return STRCMP(left.str(), right.str()) >= 0;
 }
 
-bool operator==(const char_t* x, const String& y)
+bool operator==(const char_t* left, const String& right)
 {
-    return STRCMP(x, y.str()) == 0;
+    return STRCMP(left, right.str()) == 0;
 }
 
-bool operator==(const String& x, const char_t* y)
+bool operator==(const String& left, const char_t* right)
 {
-    return STRCMP(x.str(), y) == 0;
+    return STRCMP(left.str(), right) == 0;
 }
 
-bool operator!=(const char_t* x, const String& y)
+bool operator!=(const char_t* left, const String& right)
 {
-    return STRCMP(x, y.str()) != 0;
+    return STRCMP(left, right.str()) != 0;
 }
 
-bool operator!=(const String& x, const char_t* y)
+bool operator!=(const String& left, const char_t* right)
 {
-    return STRCMP(x.str(), y) != 0;
+    return STRCMP(left.str(), right) != 0;
 }
 
-bool operator<(const char_t* x, const String& y)
+bool operator<(const char_t* left, const String& right)
 {
-    return STRCMP(x, y.str()) < 0;
+    return STRCMP(left, right.str()) < 0;
 }
 
-bool operator<(const String& x, const char_t* y)
+bool operator<(const String& left, const char_t* right)
 {
-    return STRCMP(x.str(), y) < 0;
+    return STRCMP(left.str(), right) < 0;
 }
 
-bool operator<=(const char_t* x, const String& y)
+bool operator<=(const char_t* left, const String& right)
 {
-    return STRCMP(x, y.str()) <= 0;
+    return STRCMP(left, right.str()) <= 0;
 }
 
-bool operator<=(const String& x, const char_t* y)
+bool operator<=(const String& left, const char_t* right)
 {
-    return STRCMP(x.str(), y) <= 0;
+    return STRCMP(left.str(), right) <= 0;
 }
 
-bool operator>(const char_t* x, const String& y)
+bool operator>(const char_t* left, const String& right)
 {
-    return STRCMP(x, y.str()) > 0;
+    return STRCMP(left, right.str()) > 0;
 }
 
-bool operator>(const String& x, const char_t* y)
+bool operator>(const String& left, const char_t* right)
 {
-    return STRCMP(x.str(), y) > 0;
+    return STRCMP(left.str(), right) > 0;
 }
 
-bool operator>=(const char_t* x, const String& y)
+bool operator>=(const char_t* left, const String& right)
 {
-    return STRCMP(x, y.str()) >= 0;
+    return STRCMP(left, right.str()) >= 0;
 }
 
-bool operator>=(const String& x, const char_t* y)
+bool operator>=(const String& left, const char_t* right)
 {
-    return STRCMP(x.str(), y) >= 0;
+    return STRCMP(left.str(), right) >= 0;
 }
 
 // Console

@@ -1,21 +1,24 @@
-HEADERS=$(wildcard *.hpp)
+HEADERS=$(wildcard *.h)
 SOURCES=$(wildcard *.cpp)
 
-all: eve.linux
+all: eve.gcc
 
-eve.linux: $(HEADERS) $(SOURCES)
+eve.gcc: $(HEADERS) $(SOURCES)
 	g++ -std=gnu++14 -g $(SOURCES) -o $@ -I.
 
-eve.solaris: $(HEADERS) $(SOURCES)
-	CC -std=c++14 -g $(SOURCES) -o $@ -I.
+eve.clang: $(HEADERS) $(SOURCES)
+	clang++ -std=gnu++14 -g $(SOURCES) -o $@ -I.
 
-eve.aix: $(HEADERS) $(SOURCES)
+eve.solstudio: $(HEADERS) $(SOURCES)
+	CC -std=c++11 -g $(SOURCES) -o $@ -I.
+
+eve.xlc: $(HEADERS) $(SOURCES)
 	xlC_r -qlanglvl=extended0x -g $(SOURCES) -o $@ -I.
 
 clean:
-	-rm eve.linux eve.solaris eve.aix
+	-rm eve.gcc eve.clang eve.solstudio eve.xlc
 
 depl:
-	cp eve.linux ~/bin/Linux/eve
-	cp eve.solaris ~/bin/SunOS/eve
-	cp eve.aix ~/bin/AIX/eve
+	cp eve.gcc ~/bin/Linux/eve
+	cp eve.solstudio ~/bin/SunOS/eve
+	cp eve.xlc ~/bin/AIX/eve

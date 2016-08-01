@@ -15,12 +15,10 @@ support seek, reading into char buffer
 * for containers with capacity
 round allocation to next greater power of 2
 to take advantage of memory allocator implementation
-* add asserts to all other classes
+* add asserts for invalid params to all other functions
 * write unit tests for all classes
-* figure out _chars == nullptr vs _length == 0
 * findNoCase, appendFormat
-* fix string concat
-* acquire/release vs constructor
+* better string concat
 
 basic features:
 * search/replace
