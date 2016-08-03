@@ -492,7 +492,7 @@ void String::replace(int pos, int len, const String& str)
             _length = newLen;
         }
         else
-            clear();
+            this->assign(str);
     }
     else
         erase(pos, len);
@@ -521,7 +521,7 @@ void String::replace(int pos, int len, const char_t* chars)
             _length = newLen;
         }
         else
-            clear();
+            this->assign(chars);
     }
     else
         erase(pos, len);
@@ -547,27 +547,20 @@ void String::replace(const String& searchStr, const String& replaceStr)
 
                 if (foundCnt > 0)
                 {
-                    int newLen = _length + foundCnt * (replaceStr._length - searchStr._length);
+                    int capacity = _length + foundCnt * (replaceStr._length - searchStr._length) + 1;
+                    if (capacity > _capacity)
+                        ensureCapacity(capacity * 2);
 
-                    if (newLen > 0)
+                    from = _chars;
+                    while ((found = STRSTR(from, searchStr._chars)) != nullptr)
                     {
-                        int capacity = newLen + 1;
-                        if (capacity > _capacity)
-                            ensureCapacity(capacity * 2);
+                        STRMOVE(found + replaceStr._length, found + searchStr._length,
+                            _chars + _length - found - searchStr._length + 1);
+                        STRNCPY(found, replaceStr._chars, replaceStr._length);
 
-                        from = _chars;
-                        while ((found = STRSTR(from, searchStr._chars)) != nullptr)
-                        {
-                            STRMOVE(found + replaceStr._length, found + searchStr._length,
-                                _chars + _length - found - searchStr._length + 1);
-                            STRNCPY(found, replaceStr._chars, replaceStr._length);
-
-                            from = found + replaceStr._length;
-                            _length += replaceStr._length - searchStr._length;
-                        }
+                        from = found + replaceStr._length;
+                        _length += replaceStr._length - searchStr._length;
                     }
-                    else
-                        clear();
                 }
             }
         }
@@ -601,27 +594,21 @@ void String::replace(const char_t* searchChars, const char_t* replaceChars)
                 if (foundCnt > 0)
                 {
                     int replaceLen = STRLEN(replaceChars);
-                    int newLen = _length + foundCnt * (replaceLen - searchLen);
 
-                    if (newLen > 0)
+                    int capacity = _length + foundCnt * (replaceLen - searchLen) + 1;
+                    if (capacity > _capacity)
+                        ensureCapacity(capacity * 2);
+
+                    from = _chars;
+                    while ((found = STRSTR(from, searchChars)) != nullptr)
                     {
-                        int capacity = newLen + 1;
-                        if (capacity > _capacity)
-                            ensureCapacity(capacity * 2);
+                        STRMOVE(found + replaceLen, found + searchLen,
+                            _chars + _length - found - searchLen + 1);
+                        STRNCPY(found, replaceChars, replaceLen);
 
-                        from = _chars;
-                        while ((found = STRSTR(from, searchChars)) != nullptr)
-                        {
-                            STRMOVE(found + replaceLen, found + searchLen,
-                                _chars + _length - found - searchLen + 1);
-                            STRNCPY(found, replaceChars, replaceLen);
-
-                            from = found + replaceLen;
-                            _length += replaceLen - searchLen;
-                        }
+                        from = found + replaceLen;
+                        _length += replaceLen - searchLen;
                     }
-                    else
-                        clear();
                 }
             }
         }
