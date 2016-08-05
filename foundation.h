@@ -10,7 +10,7 @@
 #include <wchar.h>
 #include <ctype.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
+// #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -135,6 +135,7 @@ typedef wchar_t char_t;
 #define STRICMP _wcsicmp
 #define STRNICMP _wcsnicmp
 #define STRSTR wcsstr
+#define STRISTR wcscasestr
 #define STRTOL wcstol
 #define STRTOUL wcstoul
 #define STRTOLL wcstoll
@@ -154,6 +155,7 @@ typedef wchar_t char_t;
 
 #else
 
+#include <alloca.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -169,6 +171,7 @@ typedef char char_t;
 #define STRICMP strcasecmp
 #define STRNICMP strncasecmp
 #define STRSTR strstr
+#define STRISTR strcasestr
 #define STRTOL strtol
 #define STRTOUL strtoul
 #define STRTOLL strtoll
@@ -267,6 +270,18 @@ inline void STRMOVE(char_t* destStr, const char_t* srcStr, int len)
 {
     memmove(destStr, srcStr, len * sizeof(char_t));
 }
+
+#ifdef PLATFORM_WINDOWS
+
+inline const wchar_t* wcscasestr(const wchar_t* str, const wchar_t* searchStr)
+{
+    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, FIND_FROMSTART | LINGUISTIC_IGNORECASE, 
+        str, -1, searchStr, -1, nullptr, nullptr, nullptr, 0);
+
+    return index >= 0 ? str + index : nullptr;
+}
+
+#endif
 
 // equality function
 
@@ -959,15 +974,13 @@ public:
 
     int compare(const String& str) const;
     int compare(const char_t* chars) const;
-    int compare(int pos, int len, const String& str) const;
-    int compare(int pos, int len, const char_t* chars) const;    
     int compareNoCase(const String& str) const;
     int compareNoCase(const char_t* chars) const;
-    int compareNoCase(int pos, int len, const String& str) const;
-    int compareNoCase(int pos, int len, const char_t* chars) const;
 
     int find(const String& str, int pos = 0) const;
     int find(const char_t* chars, int pos = 0) const;
+    int findNoCase(const String& str, int pos = 0) const;
+    int findNoCase(const char_t* chars, int pos = 0) const;
     
     bool startsWith(const String& str) const;
     bool startsWith(const char_t* chars) const;

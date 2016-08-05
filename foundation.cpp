@@ -719,21 +719,6 @@ int String::compare(const char_t* chars) const
     return STRCMP(str(), chars);
 }
 
-int String::compare(int pos, int len, const String& str) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(len >= 0 && pos + len <= _length);
-    return STRNCMP(this->str() + pos, str.str(), len);
-}
-
-int String::compare(int pos, int len, const char_t* chars) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(len >= 0 && pos + len <= _length);
-    ASSERT(chars);
-    return STRNCMP(str() + pos, chars, len);
-}
-
 int String::compareNoCase(const String& str) const
 {
     return STRICMP(this->str(), str.str());
@@ -743,21 +728,6 @@ int String::compareNoCase(const char_t* chars) const
 {
     ASSERT(chars);
     return STRICMP(str(), chars);
-}
-
-int String::compareNoCase(int pos, int len, const String& str) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(len >= 0 && pos + len <= _length);
-    return STRNICMP(this->str() + pos, str.str(), len);
-}
-
-int String::compareNoCase(int pos, int len, const char_t* chars) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(len >= 0 && pos + len <= _length);
-    ASSERT(chars);
-    return STRNICMP(str() + pos, chars, len);
 }
 
 int String::find(const String& str, int pos) const
@@ -787,6 +757,41 @@ int String::find(const char_t* chars, int pos) const
         if (_length > 0)
         {
             const char_t* found = STRSTR(_chars + pos, chars);
+            if (found)
+                return found - _chars;
+        }
+    }
+
+    return INVALID_POS;
+}
+
+int String::findNoCase(const String& str, int pos) const
+{
+    ASSERT(pos >= 0 && pos <= _length);
+
+    if (str._length > 0)
+    {
+        if (_length > 0)
+        {
+            const char_t* found = STRISTR(_chars + pos, str._chars);
+            if (found)
+                return found - _chars;
+        }
+    }
+
+    return INVALID_POS;
+}
+
+int String::findNoCase(const char_t* chars, int pos) const
+{
+    ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(chars);
+
+    if (*chars)
+    {
+        if (_length > 0)
+        {
+            const char_t* found = STRISTR(_chars + pos, chars);
             if (found)
                 return found - _chars;
         }

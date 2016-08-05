@@ -19,6 +19,7 @@ to take advantage of memory allocator implementation
 * write unit tests for all classes
 * findNoCase, appendFormat
 * better string concat
+* string and textbuffer?
 
 basic features:
 * search/replace

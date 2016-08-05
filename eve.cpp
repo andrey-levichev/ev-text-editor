@@ -1,5 +1,4 @@
 #include <foundation.h>
-#include <alloca.h>
 
 const int TAB_SIZE = 4;
 
@@ -136,7 +135,7 @@ void trimTrailingWhitespace()
         ++p; ++q;
     }
 
-    size = strlen(text);
+    size = STRLEN(text);
     selection = -1;
 }
 

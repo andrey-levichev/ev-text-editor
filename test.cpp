@@ -100,7 +100,7 @@ void testString()
     // String(const char_t* chars)
 
     {
-        const char* p = nullptr;
+        const char_t* p = nullptr;
         ASSERT_EXCEPTION(Exception, String s(p));
     }
 
@@ -180,7 +180,7 @@ void testString()
         ASSERT(s1.empty());
         ASSERT(s1.capacity() == 0);
 
-        ASSERT(s2 == "a");
+        ASSERT(s2 == STR("a"));
         ASSERT(s2.length() == 1);
         ASSERT(s2.capacity() == 2);
     }
@@ -190,7 +190,7 @@ void testString()
     {
         String s1(STR("a")), s2;
         s2 = s1;
-        ASSERT(s2 == "a");
+        ASSERT(s2 == STR("a"));
     }
 
     // String& operator=(const char_t* chars);
@@ -198,7 +198,7 @@ void testString()
     {
         String s;
         s = STR("a");
-        ASSERT(s == "a");
+        ASSERT(s == STR("a"));
     }
 
     // String& operator=(String&& other);
@@ -211,7 +211,7 @@ void testString()
         ASSERT(s1.empty());
         ASSERT(s1.capacity() == 0);
 
-        ASSERT(s2 == "a");
+        ASSERT(s2 == STR("a"));
         ASSERT(s2.length() == 1);
         ASSERT(s2.capacity() == 2);
     }
@@ -221,13 +221,13 @@ void testString()
     {
         String s(STR("a"));
         s += String(STR("b"));
-        ASSERT(s == "ab");
+        ASSERT(s == STR("ab"));
     }
 
     {
         String s(STR("a"));
         s += STR("b");
-        ASSERT(s == "ab");
+        ASSERT(s == STR("ab"));
     }
 
     // length/capacity/str/chars/empty
@@ -696,13 +696,13 @@ void testString()
     // String acquire(char_t* chars)
 
     {
-        char* p = nullptr;
+        char_t* p = nullptr;
         ASSERT_EXCEPTION(Exception, String(p));
     }
 
     {
-        char* p = Memory::allocateArray<char_t>(1);
-        STRCPY(p, "");
+        char_t* p = Memory::allocateArray<char_t>(1);
+        STRCPY(p, STR(""));
         String s = String::acquire(p);
         ASSERT(s.chars() == p);
         ASSERT(s == STR(""));
@@ -711,8 +711,8 @@ void testString()
     }
 
     {
-        char* p = Memory::allocateArray<char_t>(2);
-        STRCPY(p, "a");
+        char_t* p = Memory::allocateArray<char_t>(2);
+        STRCPY(p, STR("a"));
         String s = String::acquire(p);
         ASSERT(s.chars() == p);
         ASSERT(s == STR("a"));
@@ -749,7 +749,7 @@ void testString()
 
     {
         String s(STR("a"));
-        s.replace(0, 1, String("b"));
+        s.replace(0, 1, String(STR("b")));
         ASSERT(s == STR("b"));
         ASSERT(s.length() == 1);
         ASSERT(s.capacity() == 2);
@@ -757,7 +757,7 @@ void testString()
 
     {
         String s(STR("abcd"));
-        s.replace(1, 2, String("x"));
+        s.replace(1, 2, String(STR("x")));
         ASSERT(s == STR("axd"));
         ASSERT(s.length() == 3);
         ASSERT(s.capacity() == 5);
@@ -765,7 +765,7 @@ void testString()
 
     {
         String s(STR("abcd"));
-        s.replace(1, 2, String("xyz"));
+        s.replace(1, 2, String(STR("xyz")));
         ASSERT(s == STR("axyzd"));
         ASSERT(s.length() == 5);
         ASSERT(s.capacity() == 12);
@@ -773,7 +773,7 @@ void testString()
 
     {
         String s(STR("abcd"));
-        s.replace(0, 2, String("x"));
+        s.replace(0, 2, String(STR("x")));
         ASSERT(s == STR("xcd"));
         ASSERT(s.length() == 3);
         ASSERT(s.capacity() == 5);
@@ -781,7 +781,7 @@ void testString()
 
     {
         String s(STR("abcd"));
-        s.replace(2, 2, String("x"));
+        s.replace(2, 2, String(STR("x")));
         ASSERT(s == STR("abx"));
         ASSERT(s.length() == 3);
         ASSERT(s.capacity() == 5);
@@ -1133,9 +1133,55 @@ void testString()
         s.toLower();
         ASSERT(s == STR("abc"));
     }
+
+    // int compare(const String& str) const
+
+    ASSERT(String(STR("ab")).compare(String(STR("a"))) > 0);
+    ASSERT(String(STR("a")).compare(String(STR("ab"))) < 0);
+    ASSERT(String(STR("a")).compare(String(STR("a"))) == 0);
+
+    // int compare(const char_t* chars) const
+
+    ASSERT_EXCEPTION(Exception, String().compare(nullptr));
+    ASSERT(String(STR("ab")).compare(STR("a")) > 0);
+    ASSERT(String(STR("a")).compare(STR("ab")) < 0);
+    ASSERT(String(STR("a")).compare(STR("a")) == 0);
+
+    // int compareNoCase(const String& str) const
+
+    ASSERT(String(STR("AB")).compareNoCase(String(STR("a"))) > 0);
+    ASSERT(String(STR("A")).compareNoCase(String(STR("ab"))) < 0);
+    ASSERT(String(STR("A")).compareNoCase(String(STR("a"))) == 0);
+
+    // int compareNoCase(const char_t* chars) const
+
+    ASSERT_EXCEPTION(Exception, String().compareNoCase(nullptr));
+    ASSERT(String(STR("AB")).compareNoCase(STR("a")) > 0);
+    ASSERT(String(STR("A")).compareNoCase(STR("ab")) < 0);
+    ASSERT(String(STR("A")).compareNoCase(STR("a")) == 0);
 }
 
 void testFoundation()
 {
     testString();
+}
+
+int wmain()
+{
+    try
+    {
+        testFoundation();
+    }
+    catch (Exception& ex)
+    {
+        Console::writeLine(ex.message());
+        return 1;
+    }
+    catch (...)
+    {
+        Console::writeLine(STR("unknown error"));
+        return 1;
+    }
+
+    return 0;
 }
