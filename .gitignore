@@ -1,6 +1,10 @@
 *.swp
-editor
-test
-editor.aix
-editor.linux
-editor.solaris
+*.pdb
+*.o
+*.obj
+*.exe
+*.ilk
+eve.gcc
+eve.clang
+eve.solstudio
+eve.xlc
