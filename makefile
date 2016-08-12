@@ -1,29 +1,37 @@
-HEADERS=$(wildcard *.h)
-SOURCES=$(wildcard *.cpp)
+TARGET=eve
+HEADERS=
+SOURCES=eve.cpp
 
-all: eve.vcpp.exe
+all: $(TARGET).mingw.exe
 
-eve.vcpp.exe: $(HEADERS) $(SOURCES)
-	cl /nologo /EHsc /MT /Zi /W3 /wd4996 /wd4267 /wd4244 test.cpp foundation.cpp \
-		/I. /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
+$(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
+	cl /nologo /EHsc /MT /Zi /W3 /wd4996 /wd4267 /wd4244 $(SOURCES) \
+		/I. /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
 		/link /out:$@
 
-eve.gcc: $(HEADERS) $(SOURCES)
+$(TARGET).gcc: $(HEADERS) $(SOURCES)
 	g++ -std=gnu++14 -g $(SOURCES) -o $@ -I.
 
-eve.clang: $(HEADERS) $(SOURCES)
+$(TARGET).mingw.exe: $(HEADERS) $(SOURCES)
+	g++ -std=gnu++14 -g $(SOURCES) -o $@ -I. \
+		-D_WIN32_WINNT=_WIN32_WINNT_WIN7
+
+$(TARGET).clang: $(HEADERS) $(SOURCES)
 	clang++ -std=gnu++14 -g $(SOURCES) -o $@ -I.
 
-eve.solstudio: $(HEADERS) $(SOURCES)
+$(TARGET).clang.exe: $(HEADERS) $(SOURCES)
+	clang++ -std=gnu++14 -g $(SOURCES) -o $@ \
+		-fno-color-diagnostics -fms-compatibility-version=19 -fexceptions \
+		-I. -D_WIN32_WINNT=_WIN32_WINNT_WIN7 -D_CRT_SECURE_NO_WARNINGS
+
+$(TARGET).solstudio: $(HEADERS) $(SOURCES)
 	CC -std=c++11 -g $(SOURCES) -o $@ -I.
 
-eve.xlc: $(HEADERS) $(SOURCES)
+$(TARGET).xlc: $(HEADERS) $(SOURCES)
 	xlC_r -qlanglvl=extended0x -g $(SOURCES) -o $@ -I.
 
 clean:
-	-rm eve.gcc eve.clang eve.solstudio eve.xlc
+	-rm $(TARGET).gcc $(TARGET).clang $(TARGET).solstudio $(TARGET).xlc
 
-depl:
-	cp eve.gcc ~/bin/Linux/eve
-	cp eve.solstudio ~/bin/SunOS/eve
-	cp eve.xlc ~/bin/AIX/eve
+clean_win:
+	-del *.exe *.o *.obj *.ilk *.pdb

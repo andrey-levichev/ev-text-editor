@@ -9,10 +9,6 @@
 #include <string.h>
 #include <wchar.h>
 #include <ctype.h>
-#include <fcntl.h>
-// #include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 // 32/64 bit
 
@@ -122,6 +118,7 @@
 
 #include <windows.h>
 #include <io.h>
+#include <fcntl.h>
 
 #define MAIN wmain
 #define STR(arg) L##arg
@@ -148,6 +145,7 @@ typedef wchar_t char_t;
 #define FPUTS fputws
 #define PUTS _putws
 #define PRINTF wprintf
+#define SPRINTF swprintf
 #define VPRINTF vwprintf
 #define PUTCHAR putwchar
 #define GETCHAR getwchar
@@ -158,6 +156,10 @@ typedef wchar_t char_t;
 #include <alloca.h>
 #include <termios.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define MAIN main
 #define STR(arg) arg
@@ -184,6 +186,7 @@ typedef char char_t;
 #define FPUTS fputs
 #define PUTS puts
 #define PRINTF printf
+#define SPRINTF snprintf
 #define VPRINTF vprintf
 #define PUTCHAR putchar
 #define GETCHAR getchar

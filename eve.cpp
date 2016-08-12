@@ -1,8 +1,35 @@
-#include <foundation.h>
+#include <assert.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#ifdef _WIN32
+
+#include <malloc.h>
+#include <io.h>
+#include <windows.h>
+
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
+
+#else
+    
+#include <alloca.h>
+#include <unistd.h>
+#include <termios.h>
+#include <sys/ioctl.h>
+
+#endif
 
 const int TAB_SIZE = 4;
 
-String fileName;
+char* screen;
+const char* filename;
 
 int top, left;
 int width, height;
@@ -11,18 +38,109 @@ int position;
 int line, column, preferredColumn;
 int selection;
 
-char_t* text;
+char* text;
 int size, capacity;
 
-char_t* buffer;
-char_t* pattern;
+char* buffer;
+char* pattern;
 
-bool isIdent(char_t c)
+char* alloc(int size)
+{
+    char* p = (char*)malloc(size);
+    if (p)
+        return p;
+
+    fprintf(stderr, "out of memory\n");
+    abort();
+}
+
+void setCharInputMode(bool charMode)
+{
+#ifndef _WIN32
+    struct termios ta;
+    tcgetattr(STDIN_FILENO, &ta);
+
+    if (charMode)
+    {
+        ta.c_lflag &= ~(ECHO | ICANON);
+        ta.c_cc[VTIME] = 0;
+        ta.c_cc[VMIN] = 1;
+    }
+    else
+        ta.c_lflag |= ECHO | ICANON;
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
+#endif
+}
+
+void getConsoleSize()
+{
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    width = csbi.dwSize.X;
+    height = csbi.dwSize.Y;
+#else
+    struct winsize ws;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
+    width = ws.ws_col;
+    height = ws.ws_row;
+#endif
+}
+
+void showCursor(bool show)
+{
+#ifdef _WIN32
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cci;
+    
+    GetConsoleCursorInfo(handle, &cci);
+    cci.bVisible = show;
+    SetConsoleCursorInfo(handle, &cci);
+#else
+    write(STDOUT_FILENO, "\x1b[?25" (show ? "h" : "l"), 6);
+#endif
+}
+
+void setCursorPosition(int line, int column)
+{
+#ifdef _WIN32
+    COORD pos;
+    pos.X = column - 1;
+    pos.Y = line - 1;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+#else
+    char cmd[30];
+    sprintf(cmd, "\x1b[%d;%dH", line, column);
+    write(STDOUT_FILENO, cmd, strlen(cmd));
+#endif
+}
+
+void clearConsole()
+{
+#ifdef _WIN32
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    
+    COORD pos = { 0, 0 };
+    DWORD size = csbi.dwSize.X * csbi.dwSize.Y, written;
+    
+    FillConsoleOutputCharacter(handle, ' ', size, pos, &written);
+    FillConsoleOutputAttribute(handle, csbi.wAttributes, size, pos, &written);
+    SetConsoleCursorPosition(handle, pos);
+#else
+    write(STDOUT_FILENO, "\x1b[2J", 4);
+    setCursorPosition(1, 1);
+#endif
+}
+
+bool isIdent(char c)
 {
     return isalnum(c) || c == '_';
 }
 
-char_t* findChar(char_t* str, char_t c)
+char* findChar(char* str, char c)
 {
     while (*str && *str != c)
         ++str;
@@ -30,7 +148,7 @@ char_t* findChar(char_t* str, char_t c)
     return str;
 }
 
-char_t* findCharBack(char_t* start, char_t* str, char_t c)
+char* findCharBack(char* start, char* str, char c)
 {
     while (str > start)
         if (*--str == c)
@@ -39,7 +157,7 @@ char_t* findCharBack(char_t* start, char_t* str, char_t c)
     return start;
 }
 
-char_t* wordForward(char_t* str)
+char* wordForward(char* str)
 {
     while (*str)
     {
@@ -51,7 +169,7 @@ char_t* wordForward(char_t* str)
     return str;
 }
 
-char_t* wordBack(char_t* start, char_t* str)
+char* wordBack(char* start, char* str)
 {
     if (str > start)
     {
@@ -67,7 +185,7 @@ char_t* wordBack(char_t* start, char_t* str)
     return start;
 }
 
-char_t* findLine(char_t* str, int line)
+char* findLine(char* str, int line)
 {
     while (*str && line > 1)
     {
@@ -78,13 +196,13 @@ char_t* findLine(char_t* str, int line)
     return str;
 }
 
-void insertChars(const char_t* chars, int pos, int len)
+void insertChars(const char* chars, int pos, int len)
 {
     int cap = size + len + 1;
     if (cap > capacity)
     {
         capacity = cap * 2;
-        char_t* txt = Memory::allocateArray<char_t>(capacity);
+        char* txt = alloc(capacity);
         memcpy(txt, text, size + 1);
         free(text);
         text = txt;
@@ -105,9 +223,9 @@ void deleteChars(int pos, int len)
 
 void trimTrailingWhitespace()
 {
-    char_t* p = text;
-    char_t* q = p;
-    char_t* r = NULL;
+    char* p = text;
+    char* q = p;
+    char* r = NULL;
 
     while (true)
     {
@@ -135,14 +253,14 @@ void trimTrailingWhitespace()
         ++p; ++q;
     }
 
-    size = STRLEN(text);
+    size = strlen(text);
     selection = -1;
 }
 
-char_t* copyChars(const char_t* start, const char_t* end)
+char* copyChars(const char* start, const char* end)
 {
     int len = end - start;
-    char_t* str = Memory::allocateArray<char_t>(len + 1);
+    char* str = alloc(len + 1);
     memcpy(str, start, len);
     str[len] = 0;
 
@@ -151,8 +269,8 @@ char_t* copyChars(const char_t* start, const char_t* end)
 
 void positionToLineColumn()
 {
-    char_t* p = text;
-    char_t* q = text + position;
+    char* p = text;
+    char* q = text + position;
     line = 1, column = 1;
 
     while (*p && p < q)
@@ -175,7 +293,7 @@ void positionToLineColumn()
 
 void lineColumnToPosition()
 {
-    char_t* p = text;
+    char* p = text;
     int preferredLine = line;
     line = 1; column = 1;
 
@@ -200,12 +318,16 @@ void lineColumnToPosition()
 
 void redrawScreen()
 {
+    showCursor(false);
+    setCursorPosition(1, 1);
+    write(STDOUT_FILENO, screen, width * (height + 1));
+
+    setCursorPosition(line - top + 1, column - left + 1);
+    showCursor(true);
 }
 
 void updateScreen()
 {
-    char* screen = (char*)alloca(width * height);
-
     if (line < top)
         top = line;
     else if (line >= top + height)
@@ -216,15 +338,15 @@ void updateScreen()
     else if (column >= left + width)
         left = column - width + 1;
 
-    char_t* p = findLine(text, top);
-    char_t* q = screen;
+    char* p = findLine(text, top);
+    char* q = screen;
     int len = left + width - 1;
 
     for (int j = 1; j <= height; ++j)
     {
         for (int i = 1; i <= len; ++i)
         {
-            char_t c;
+            char c;
 
             if (*p == '\t')
             {
@@ -253,34 +375,69 @@ void updateScreen()
 
     memset(q, ' ', width);
 
-    char_t lnCol[30];
+    char lnCol[30];
     len = sprintf(lnCol, "%d, %d", line, column);
     if (len > 0 && len <= width)
         memcpy(q + width - len, lnCol, len);
 
-    Console::hideCursor();
-    Console::setCursorPosition(1, 1);
-    write(STDOUT_FILENO, screen, width * (height + 1));
+    redrawScreen();
+}
 
-    Console::setCursorPosition(line - top + 1, column - left + 1);
-    Console::showCursor();
+bool readFile(const char* fileName)
+{
+    struct stat st;
+
+    if (stat(fileName, &st) < 0)
+        return false;
+
+    int file = open(fileName, O_RDONLY);
+
+    if (file < 0)
+        return false;
+
+    size = st.st_size;
+    capacity = size + 1;
+    text = alloc(capacity);
+
+    if (read(file, text, size) != size)
+    {
+        free(text);
+        close(file);
+        return false;
+    }
+
+    text[size] = 0;
+    close(file);
+
+    return true;
+}
+
+bool writeFile(const char* fileName)
+{
+    int file = open(fileName, O_WRONLY | O_CREAT | O_TRUNC,
+#ifdef _WIN32
+        _S_IREAD | _S_IWRITE);
+#else
+        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+#endif
+
+    if (file < 0)
+        return false;
+
+    if (write(file, text, size) != size)
+        return false;
+
+    close(file);
+    return true;
 }
 
 void openFile()
 {
-    File file;
-
-    if (file.open(fileName))
-    {
-        text = file.readString().release();
-        capacity = strlen(text);
-        size = 0;
-    }
-    else
+    if (!readFile(filename))
     {
         size = 0;
         capacity = 1;
-        text = Memory::allocateArray<char_t>(capacity);
+        text = alloc(capacity);
         *text = 0;
     }
 
@@ -295,8 +452,11 @@ void saveFile()
     trimTrailingWhitespace();
     lineColumnToPosition();
 
-    File file(fileName);
-    file.writeString(text);
+    if (!writeFile(filename))
+    {
+        fprintf(stderr, "failed to save text to %s\n", filename);
+        abort();
+    }
 }
 
 bool deleteWordForward()
@@ -325,10 +485,10 @@ bool deleteWordBack()
     return false;
 }
 
-bool copyDeleteText(bool deleteFlag)
+bool copyDeleteText(bool copy)
 {
-    char_t* p;
-    char_t* q;
+    char* p;
+    char* q;
 
     if (selection < 0)
     {
@@ -361,7 +521,7 @@ bool copyDeleteText(bool deleteFlag)
         free(buffer);
         buffer = copyChars(p, q);
 
-        if (deleteFlag)
+        if (!copy)
         {
             position = p - text;
             positionToLineColumn();
@@ -389,8 +549,8 @@ bool pasteText()
 
 void buildProject()
 {
-    Console::setLineInputMode();
-    Console::clearScreen();
+    setCharInputMode(false);
+    clearConsole();
 
     saveFile();
     system("make");
@@ -398,15 +558,15 @@ void buildProject()
     printf("Press ENTER to contiue...");
     getchar();
 
-    Console::setCharInputMode();
+    setCharInputMode(true);
 }
 
 bool findNext()
 {
     if (pattern)
     {
-        char_t* p = text + position;
-        char_t* q = strstr(p + 1, pattern);
+        char* p = text + position;
+        char* q = strstr(p + 1, pattern);
         if (!q)
             q = strstr(text, pattern);
 
@@ -426,17 +586,17 @@ void findWord()
     free(pattern);
 
     int pos = 0, h = height + 1;
-    char_t* cmd = (char_t*)alloca(width);
+    char* cmd = (char*)alloca(width);
 
     memset(cmd, ' ', width);
     memcpy(cmd, "find:", 5);
-    Console::setCursorPosition(h, 1);
+    setCursorPosition(h, 1);
     write(STDOUT_FILENO, cmd, width);
-    Console::setCursorPosition(h, 7);
+    setCursorPosition(h, 7);
 
     while (true)
     {
-        char_t key;
+        char key;
         read(STDIN_FILENO, &key, 1);
 
         if (key == 0x7f) // Backspace
@@ -460,7 +620,7 @@ void findWord()
         {
             if (pos < width)
             {
-                Console::setCursorPosition(h, pos + 7);
+                setCursorPosition(h, pos + 7);
                 write(STDOUT_FILENO, &key, 1);
                 cmd[pos++] = key;
             }
@@ -472,7 +632,7 @@ void findWord()
 
 bool findWordAtCursor()
 {
-    char_t* p = text + position;
+    char* p = text + position;
     free(pattern);
 
     if (isIdent(*p))
@@ -484,7 +644,7 @@ bool findWordAtCursor()
             --p;
         }
 
-        char_t* q = text + position + 1;
+        char* q = text + position + 1;
         while (*q)
         {
             if (!isIdent(*q))
@@ -500,20 +660,20 @@ bool findWordAtCursor()
     return findNext();
 }
 
-void insertChar(char_t c)
+void insertChar(char c)
 {
     if (c == '\n') // Enter
     {
-        char_t* p = findCharBack(text, text + position, '\n');
+        char* p = findCharBack(text, text + position, '\n');
         if (*p == '\n')
             ++p;
 
-        char_t* q = p;
+        char* q = p;
         while (*q == ' ' || *q == '\t')
             ++q;
 
         int len = q - p + 1;
-        char_t* chars = (char_t*)alloca(len);
+        char* chars = (char*)alloca(len);
 
         chars[0] = '\n';
         memcpy(chars + 1, p, q - p);
@@ -523,7 +683,7 @@ void insertChar(char_t c)
     }
     else if (c == '\t') // Tab
     {
-        char_t chars[16];
+        char chars[16];
         memset(chars, ' ', TAB_SIZE);
         insertChars(chars, position, TAB_SIZE);
         position += TAB_SIZE;
@@ -538,8 +698,8 @@ void insertChar(char_t c)
 
 bool processKey()
 {
-    char_t keys[1024];
-    char_t* key = keys;
+    char keys[1024];
+    char* key = keys;
     bool update = false;
 
     int len = read(STDIN_FILENO, keys, sizeof(keys) - 1);
@@ -547,7 +707,7 @@ bool processKey()
 
     while (*key)
     {
-        /*printf("%x\n", ((unsigned char_t)*key++));
+        /*printf("%x\n", ((unsigned char)*key++));
         continue;*/
 
         if (*key == 0x7f) // Backspace
@@ -622,7 +782,7 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x5b\x31\x7e")) // Home
             {
-                char_t* p = findCharBack(text, text + position, '\n');
+                char* p = findCharBack(text, text + position, '\n');
                 if (*p == '\n')
                     ++p;
 
@@ -748,7 +908,7 @@ bool processKey()
             }
             else if (!strcmp(key, "\x1b\x64") || !strcmp(key, "\x1b\x63")) // alt+d or alt+c
             {
-                update = copyDeleteText(*(key + 1) == 0x64);
+                update = copyDeleteText(*(key + 1) == 0x63);
                 key += 2;
             }
             else if (!strcmp(key, "\x1b\x70")) // alt+p
@@ -817,8 +977,9 @@ void editor()
 {
     openFile();
 
-    Console::getSize(width, height);
-    Console::setCharInputMode();
+    getConsoleSize();
+    screen = alloc(width * height);
+    setCharInputMode(true);
 
     --height;
     top = 1; left = 1;
@@ -827,66 +988,49 @@ void editor()
 
     while (processKey());
 
-    Console::setLineInputMode();
-    Console::clearScreen();
+    setCharInputMode(false);
+    clearConsole();
 
+    free(screen);
     free(text);
     free(buffer);
     free(pattern);
 }
 
-extern void testFoundation();
-
-int MAIN(int argc, const char_t** argv)
+int main(int argc, const char** argv)
 {
-    try
+    if (argc != 2)
     {
-        testFoundation();
-        return 0;
+        printf("usage: eve filename\n\n"
+            "keys:\n"
+            "arrows - move cursor\n"
+            "ctrl+left/right - word back/forward\n"
+            "ctrl+up/down - paragraph back/forward\n"
+            "home/end - start/end of line\n"
+            "alt+home/end - start/end of file\n"
+            "pgup/pgdn - page up/down\n"
+            "alt+pgup/pgdn - half page up/down\n"
+            "del - delete character at cursor position\n"
+            "backspace - delete character to the left of cursor position\n"
+            "alt+del - delete word at cursor position\n"
+            "alt+backspace - delete word to the left of cursor position\n"
+            "alt+M - mark selection start\n"
+            "alt+D - delete line/selection\n"
+            "alt+C - copy line/selection\n"
+            "alt+P - paste line/selection\n"
+            "alt+F - find\n"
+            "alt+O - find word at cursor\n"
+            "alt+N - find again\n"
+            "alt+B - build with make\n"
+            "alt+S - save\n"
+            "alt+X - quit and save\n"
+            "alt+Q - quit without saving\n\n");
 
-        if (argc != 2)
-        {
-            Console::writeLine(STR("usage: eve filename\n\n"
-                "keys:\n"
-                "arrows - move cursor\n"
-                "ctrl+left/right - word back/forward\n"
-                "ctrl+up/down - paragraph back/forward\n"
-                "home/end - start/end of line\n"
-                "alt+home/end - start/end of file\n"
-                "pgup/pgdn - page up/down\n"
-                "alt+pgup/pgdn - half page up/down\n"
-                "del - delete character at cursor position\n"
-                "backspace - delete character to the left of cursor position\n"
-                "alt+del - delete word at cursor position\n"
-                "alt+backspace - delete word to the left of cursor position\n"
-                "alt+M - mark selection start\n"
-                "alt+D - delete line/selection\n"
-                "alt+C - copy line/selection\n"
-                "alt+P - paste line/selection\n"
-                "alt+F - find\n"
-                "alt+O - find word at cursor\n"
-                "alt+N - find again\n"
-                "alt+B - build with make\n"
-                "alt+S - save\n"
-                "alt+X - quit and save\n"
-                "alt+Q - quit without saving\n\n"));
-
-            return 1;
-        }
-
-        fileName = argv[1];
-        editor();
-    }
-    catch (Exception& ex)
-    {
-        Console::writeLine(ex.message());
         return 1;
     }
-    catch (...)
-    {
-        Console::writeLine(STR("unknown error"));
-        return 1;
-    }
+
+    filename = argv[1];
+    editor();
 
     return 0;
 }

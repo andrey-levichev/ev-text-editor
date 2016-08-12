@@ -20,6 +20,9 @@ to take advantage of memory allocator implementation
 * findNoCase, appendFormat
 * better string concat
 * string and textbuffer?
+* don't know how much memory to allocate for utf-8
+using char_t for single char is incorrect
+pos, len must be in chars not in bytes
 
 basic features:
 * search/replace
