@@ -17,9 +17,17 @@
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 
+#define open _open
+#define close _close
+#define read _read
+#define write _write
+
 #else
     
+#ifdef __sun
 #include <alloca.h>
+#endif
+
 #include <unistd.h>
 #include <termios.h>
 #include <sys/ioctl.h>
@@ -80,6 +88,8 @@ char* alloc(int size)
 
     fprintf(stderr, "out of memory\n");
     abort();
+
+    return nullptr;
 }
 
 void setCharInputMode(bool charMode)
@@ -106,8 +116,8 @@ void getConsoleSize()
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    width = csbi.srWindow.Right - csbi.srWindow.Left;
-    height = csbi.srWindow.Bottom - csbi.srWindow.Top;
+    width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 #else
     struct winsize ws;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
@@ -126,7 +136,7 @@ void showCursor(bool show)
     cci.bVisible = show;
     SetConsoleCursorInfo(handle, &cci);
 #else
-    write(STDOUT_FILENO, "\x1b[?25" (show ? "h" : "l"), 6);
+    write(STDOUT_FILENO, show ? "\x1b[?25h" : "\x1b[?25l", 6);
 #endif
 }
 
@@ -166,14 +176,14 @@ void clearConsole()
 void readKey(KeyEvent& key)
 {
 #ifdef _WIN32
-    INPUT_RECORD event;
-    DWORD numEvents = 0;
-        
-    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &event, 1, &numEvents);
-        
-    if (numEvents > 0)
+    while (true)
     {
-        if (event.EventType == KEY_EVENT && event.Event.KeyEvent.bKeyDown)
+        INPUT_RECORD event;
+        DWORD numEvents = 0;
+            
+        ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &event, 1, &numEvents);
+            
+        if (numEvents > 0 && event.EventType == KEY_EVENT && event.Event.KeyEvent.bKeyDown)
         {
             key.ch = 0;
             
@@ -233,9 +243,272 @@ void readKey(KeyEvent& key)
             key.ctrl = (controlKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
             key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
             key.shift = (controlKeys & SHIFT_PRESSED) != 0;
+            
+            return;
         }
     }
 #else
+    char key[6];
+
+    int len = read(STDIN_FILENO, key, sizeof(key) - 1);
+    key[len] = 0;
+
+    switch (*key)
+    {
+        case '\x7f':
+            key.code = KEY_BACKSPACE;
+            break;
+        case '\x1b':
+            {
+                
+            }
+           
+    }
+
+    else if (*key == 0x1b)
+    {
+        if (!strcmp(key, "\x1b\x5b\x41")) // up
+        {
+            if (line > 1)
+            {
+                --line;
+                lineColumnToPosition();
+                update = true;
+            }
+
+            key += 3;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x42")) // down
+        {
+            ++line;
+            lineColumnToPosition();
+            update = true;
+            key += 3;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x43")) // right
+        {
+            if (position < size)
+            {
+                ++position;
+                positionToLineColumn();
+                update = true;
+            }
+
+            key += 3;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x44")) // left
+        {
+            if (position > 0)
+            {
+                --position;
+                positionToLineColumn();
+                update = true;
+            }
+
+            key += 3;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x35\x7e")) // PgUp
+        {
+            line -= height - 1;
+            if (line < 1)
+                line = 1;
+
+            lineColumnToPosition();
+            update = true;
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x36\x7e")) // PgDn
+        {
+            line += height - 1;
+            lineColumnToPosition();
+            update = true;
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x31\x7e")) // Home
+        {
+            char* p = findCharBack(text, text + position, '\n');
+            if (*p == '\n')
+                ++p;
+
+            position = p - text;
+            positionToLineColumn();
+            update = true;
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x34\x7e")) // End
+        {
+            position = findChar(text + position, '\n') - text;
+            positionToLineColumn();
+            update = true;
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x32\x7e")) // Insert
+        {
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x5b\x33\x7e")) // Delete
+        {
+            if (position < size)
+            {
+                deleteChars(position, 1);
+                update = true;
+            }
+
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x4f\x41")) // ^up
+        {
+            key += 3;
+        }
+        else if (!strcmp(key, "\x1b\x4f\x42")) // ^down
+        {
+            key += 3;
+        }
+        else if (!strcmp(key, "\x1b\x4f\x43")) // ^right
+        {
+            position = wordForward(text + position) - text;
+            positionToLineColumn();
+            update = true;
+            key += 3;
+        }
+        else if (!strcmp(key, "\x1b\x4f\x44")) // ^left
+        {
+            position = wordBack(text, text + position) - text;
+            positionToLineColumn();
+            update = true;
+            key += 3;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x41")) // alt+up
+        {
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x42")) // alt+down
+        {
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x43")) // alt+right
+        {
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x44")) // alt+left
+        {
+            key += 4;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x35\x7e")) // alt+PgUp
+        {
+            line -= height / 2;
+            if (line < 1)
+                line = 1;
+
+            lineColumnToPosition();
+            update = true;
+            key += 5;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x36\x7e")) // alt+PgDn
+        {
+            line += height / 2;
+            lineColumnToPosition();
+            update = true;
+            key += 5;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x31\x7e")) // alt+Home
+        {
+            position = 0;
+            positionToLineColumn();
+            update = true;
+            key += 5;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x34\x7e")) // alt+End
+        {
+            position = size;
+            positionToLineColumn();
+            update = true;
+            key += 5;
+        }
+        else if (!strcmp(key, "\x1b\x1b\x5b\x33\x7e")) // alt+Delete
+        {
+            update = deleteWordForward();
+            key += 5;
+        }
+        else if (!strcmp(key, "\x1b\x7f")) // alt+Backspace
+        {
+            update = deleteWordBack();
+            key += 2;
+        }
+        else if (!strcmp(key, "\x1b\x71")) // alt+q
+        {
+            return false;
+        }
+        else if (!strcmp(key, "\x1b\x73")) // alt+s
+        {
+            saveFile();
+            update = true;
+            key += 2;
+        }
+        else if (!strcmp(key, "\x1b\x78")) // alt+x
+        {
+            saveFile();
+            return false;
+        }
+        else if (!strcmp(key, "\x1b\x64") || !strcmp(key, "\x1b\x63")) // alt+d or alt+c
+        {
+            update = copyDeleteText(*(key + 1) == 0x63);
+            key += 2;
+        }
+        else if (!strcmp(key, "\x1b\x70")) // alt+p
+        {
+            update = pasteText();
+            key += 2;
+        }
+        else if (!strcmp(key, "\x1b\x62")) // alt+b
+        {
+            buildProject();
+            update = true;
+            key += 2;
+        }
+        else if (!strcmp(key, "\x1b\x6d")) // alt+m
+        {
+            selection = position;
+            key += 2;
+        }
+        else if (!strcmp(key, "\x1b\x66")) // alt+f
+        {
+            findWord();
+            update = true;
+            key += 2;
+        }
+        else if (!strcmp(key, "\x1b\x6f")) // alt+o
+        {
+            update = findWordAtCursor();
+            key += 2;
+        }
+        else if (!strcmp(key, "\x1b\x6e")) // alt+n
+        {
+            update = findNext();
+            key += 2;
+        }
+        else
+        {
+            ++key;
+            if (*key == 0x5b)
+            {
+                ++key;
+                while (*key && *key != 0x7e)
+                    ++key;
+
+                if (*key == 0x7e)
+                    ++key;
+            }
+        }
+    }
+    else if (*key == '\n' || *key == '\t' || *key == 0x14 || isprint(*key))
+    {
+        insertChar(*key);
+        update = true;
+        ++key;
+    }
+    else
+        ++key;
 #endif
 }
 
@@ -329,7 +602,7 @@ void trimTrailingWhitespace()
 {
     char* p = text;
     char* q = p;
-    char* r = NULL;
+    char* r = nullptr;
 
     while (true)
     {
@@ -343,11 +616,11 @@ void trimTrailingWhitespace()
             if (r)
             {
                 q = r;
-                r = NULL;
+                r = nullptr;
             }
         }
         else
-            r = NULL;
+            r = nullptr;
 
         *q = *p;
 
@@ -490,34 +763,31 @@ void updateScreen()
 bool readFile(const char* fileName)
 {
     struct stat st;
-
     if (stat(fileName, &st) < 0)
         return false;
 
-    int file = open(fileName, O_RDONLY
-#ifdef _WIN32
-        | _O_BINARY
-#endif
-    );
-
+    int file = open(fileName, O_RDONLY);
     if (file < 0)
         return false;
 
     size = st.st_size;
     capacity = size + 1;
     text = alloc(capacity);
+    
+    size = read(file, text, size);
 
-    if (read(file, text, size) != size)
+    if (size >= 0)
+    {
+        text[size] = 0;
+        close(file);
+        return true;
+    }
+    else
     {
         free(text);
         close(file);
         return false;
     }
-
-    text[size] = 0;
-    close(file);
-
-    return true;
 }
 
 bool writeFile(const char* fileName)
@@ -532,11 +802,16 @@ bool writeFile(const char* fileName)
     if (file < 0)
         return false;
 
-    if (write(file, text, size) != size)
+    if (write(file, text, size) >= 0)
+    {
+        close(file);
+        return true;
+    }
+    else
+    {
+        close(file);
         return false;
-
-    close(file);
-    return true;
+    }
 }
 
 void openFile()
@@ -758,7 +1033,7 @@ bool findWordAtCursor()
         pattern = copyChars(p, q);
     }
     else
-        pattern = NULL;
+        pattern = nullptr;
 
     return findNext();
 }
