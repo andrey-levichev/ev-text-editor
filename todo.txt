@@ -8,7 +8,7 @@ support unicode input
 * extra indent when adding new line
 * set selection to empty after every text editing operation
 
-conversion to c++:
+porting to windows and c++:
 * read only, write only files
 support seek, reading into char buffer
 * change array to use capacity
@@ -23,6 +23,8 @@ to take advantage of memory allocator implementation
 * don't know how much memory to allocate for utf-8
 using char_t for single char is incorrect
 pos, len must be in chars not in bytes
+* flickering on windows
+* how to handle new lines on windows?
 
 basic features:
 * search/replace

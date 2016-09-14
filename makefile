@@ -2,7 +2,7 @@ TARGET=eve
 HEADERS=
 SOURCES=eve.cpp
 
-all: $(TARGET).clang
+all: $(TARGET).vcpp.exe
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
