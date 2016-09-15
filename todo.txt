@@ -25,6 +25,8 @@ using char_t for single char is incorrect
 pos, len must be in chars not in bytes
 * flickering on windows
 * how to handle new lines on windows?
+* real tab doesn't work anymore
+* how to report uppercase chars? lowercase with shift on?
 
 basic features:
 * search/replace

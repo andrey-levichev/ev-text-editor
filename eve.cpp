@@ -57,11 +57,11 @@ enum KeyCode
 
 struct KeyEvent
 {
-    KeyCode code;
-    char ch;
-    bool ctrl;
-    bool alt;
-    bool shift;
+    KeyCode code = KEY_NONE;
+    char ch = 0;
+    bool ctrl = false;
+    bool alt = false;
+    bool shift = false;;
 };
 
 char* screen;
@@ -201,8 +201,6 @@ void readKey(KeyEvent& key)
             
         if (numEvents > 0 && event.EventType == KEY_EVENT && event.Event.KeyEvent.bKeyDown)
         {
-            key.ch = 0;
-            
             switch (event.Event.KeyEvent.wVirtualKeyCode)
             {
                 case VK_ESCAPE:
@@ -264,6 +262,155 @@ void readKey(KeyEvent& key)
         }
     }
 #else
+    while (true)
+    {
+        char input[6];
+        int len = read(STDIN_FILENO, input, sizeof(input) - 1);
+        input[len] = 0;
+
+        if (*input == 0x7f)
+        {
+            key.code = KEY_BACKSPACE;
+        }
+        else if (*input == 0x1b)
+        {
+            if (!strcmp(input, "\x1b"))
+                key.code = KEY_ESC;
+            else if (!strcmp(input, "\x1b\x5b\x41"))
+                key.code = KEY_UP;
+            else if (!strcmp(input, "\x1b\x5b\x42"))
+                key.code = KEY_DOWN;
+            else if (!strcmp(input, "\x1b\x5b\x43"))
+                key.code = KEY_RIGHT;
+            else if (!strcmp(input, "\x1b\x5b\x44"))
+                key.code = KEY_LEFT;
+            else if (!strcmp(input, "\x1b\x5b\x35\x7e"))
+                key.code = KEY_PGUP;
+            else if (!strcmp(input, "\x1b\x5b\x36\x7e"))
+                key.code = KEY_PGDN;
+            else if (!strcmp(input, "\x1b\x5b\x31\x7e"))
+                key.code = KEY_HOME;
+            else if (!strcmp(input, "\x1b\x5b\x34\x7e"))
+                key.code = KEY_END;
+            else if (!strcmp(input, "\x1b\x5b\x33\x7e"))
+                key.code = KEY_DELETE;
+            else if (!strcmp(input, "\x1b\x4f\x43"))
+            {
+                key.code = KEY_RIGHT;
+                key.ctrl = true;
+            }
+            else if (!strcmp(input, "\x1b\x4f\x44"))
+            {
+                key.code = KEY_LEFT;
+                key.ctrl = true;
+            }
+            else if (!strcmp(input, "\x1b\x1b\x5b\x35\x7e"))
+            {
+                key.code = KEY_PGUP;
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x1b\x5b\x36\x7e"))
+            {
+                key.code = KEY_PGDN;
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x1b\x5b\x31\x7e"))
+            {
+                key.code = KEY_HOME;
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x1b\x5b\x34\x7e"))
+            {
+                key.code = KEY_END;
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x1b\x5b\x33\x7e"))
+            {
+                key.code = KEY_DELETE;
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x7f"))
+            {
+                key.code = KEY_BACKSPACE;
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x71"))
+            {
+                key.ch = 'q';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x73"))
+            {
+                key.ch = 's';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x78"))
+            {
+                key.ch = 'x';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x64"))
+            {
+                key.ch = 'd';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x63"))
+            {
+                key.ch = 'c';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x70"))
+            {
+                key.ch = 'p';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x62"))
+            {
+                key.ch = 'b';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x6d"))
+            {
+                key.ch = 'm';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x66"))
+            {
+                key.ch = 'f';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x6f"))
+            {
+                key.ch = 'o';
+                key.alt = true;
+            }
+            else if (!strcmp(input, "\x1b\x6e"))
+            {
+                key.ch = 'n';
+                key.alt = true;
+            }
+            else
+                continue;
+        }
+        else if (*input == '\n')
+        {
+            key.code = KEY_ENTER;
+            key.ch = '\n';
+        }
+        else if (*input == '\t')
+        {
+            key.code = KEY_TAB;
+            key.ch = '\t';
+        }
+        else if (isprint(*input))
+        {
+            key.ch = *input;
+        }
+        else
+            continue;
+
+        break;
+    }
 #endif
 }
 
@@ -778,7 +925,7 @@ bool findWordAtCursor()
 
 void insertChar(char c)
 {
-    if (c == '\n') // Enter
+    if (c == '\n') // new line
     {
         char* p = findCharBack(text, text + position, '\n');
         if (*p == '\n')
@@ -797,7 +944,7 @@ void insertChar(char c)
         insertChars(chars, position, len);
         position += len;
     }
-    else if (c == '\t') // Tab
+    else if (c == '\t') // tab
     {
         char chars[16];
         memset(chars, ' ', TAB_SIZE);
