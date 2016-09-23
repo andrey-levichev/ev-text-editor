@@ -52,7 +52,19 @@ enum KeyCode
     KEY_HOME,
     KEY_END,
     KEY_PGUP,
-    KEY_PGDN
+    KEY_PGDN,
+    KEY_F1,
+    KEY_F2,
+    KEY_F3,
+    KEY_F4,
+    KEY_F5,
+    KEY_F6,
+    KEY_F7,
+    KEY_F8,
+    KEY_F9,
+    KEY_F10,
+    KEY_F11,
+    KEY_F12
 };
 
 struct KeyEvent
@@ -79,6 +91,12 @@ int size, capacity;
 
 char* buffer;
 char* pattern;
+
+int inputSize = 16;
+char* input;
+
+int keysSize = inputSize;
+KeyEvent* keys;
 
 char* alloc(int size)
 {
@@ -1187,8 +1205,227 @@ void editor()
     free(pattern);
 }
 
+void readRegularKey(const char c, KeyEvent& key)
+{
+    key.ch = c;
+
+    if (c == '\t')
+        key.code = KEY_TAB;
+    else if (c == '\n')
+        key.code = KEY_ENTER;
+    else if (c == 0x7f)
+        key.code = KEY_BACKSPACE;
+    else if (iscntrl(c))
+        key.ctrl = true;
+    else
+        key.shift = isupper(c);
+}
+
+const char* readSpecialKey(const char* p, KeyEvent& key)
+{
+    ++p;
+    bool read7e = true;
+
+    if (*p == 0x31)
+    {
+        ++p;
+
+        if (*p == 0x31)
+            key.code = KEY_F1;
+        else if (*p == 0x32)
+            key.code = KEY_F2;
+        else if (*p == 0x33)
+            key.code = KEY_F3;
+        else if (*p == 0x34)
+            key.code = KEY_F4;
+        else if (*p == 0x35)
+            key.code = KEY_F5;
+        else if (*p == 0x37)
+            key.code = KEY_F6;
+        else if (*p == 0x38)
+            key.code = KEY_F7;
+        else if (*p == 0x39)
+            key.code = KEY_F8;
+        else if (*p == 0x7e)
+        {
+            read7e = false;
+            key.code = KEY_HOME;
+        }
+        else
+            return p;
+    }
+    else if (*p == 0x32)
+    {
+        ++p;
+
+        if (*p == 0x30)
+            key.code = KEY_F9;
+        else if (*p == 0x31)
+            key.code = KEY_F10;
+        else if (*p == 0x33)
+            key.code = KEY_F11;
+        else if (*p == 0x34)
+            key.code = KEY_F12;
+        else if (*p == 0x7e)
+        {
+            read7e = false;
+            key.code = KEY_INSERT;
+        }
+        else
+            return p;
+    }
+    else if (*p == 0x33)
+        key.code = KEY_DELETE;
+    else if (*p == 0x34)
+        key.code = KEY_END;
+    else if (*p == 0x35)
+        key.code = KEY_PGUP;
+    else if (*p == 0x36)
+        key.code = KEY_PGDN;
+    else if (*p == 0x41)
+    {
+        read7e = false;
+        key.code = KEY_UP;
+    }
+    else if (*p == 0x42)
+    {
+        read7e = false;
+        key.code = KEY_DOWN;
+    }
+    else if (*p == 0x43)
+    {
+        read7e = false;
+        key.code = KEY_RIGHT;
+    }
+    else if (*p == 0x44)
+    {
+        read7e = false;
+        key.code = KEY_LEFT;
+    }
+    else
+        return p;
+
+    ++p;
+    if (read7e && *p == 0x7e)
+        ++p;
+
+    return p;
+}
+
+int readInput()
+{
+    int numKeys = 0;
+    int len = read(STDIN_FILENO, input, inputSize - 1);
+
+    if (len > 0)
+    {
+        int remaining;
+        ioctl(STDIN_FILENO, FIONREAD, &remaining);
+
+        if (remaining > 0)
+        {
+            if (len + remaining + 1 > inputSize)
+            {
+                inputSize = len + remaining + 1;
+                input = (char*)realloc(input, inputSize);
+            }
+
+            len += read(STDIN_FILENO, input + len, remaining);
+        }
+
+        input[len] = 0;
+        const char* p = input;
+
+        for (int i = 0; i < len; ++i)
+            printf("\\x%x", (unsigned char)input[i]);
+        printf(":\n");
+
+        while (*p)
+        {
+            KeyEvent key;
+
+            if (*p == 0x1b)
+            {
+                ++p;
+
+                if (*p == 0x1b)
+                {
+                    ++p;
+                    key.alt = true;
+
+                    if (*p == 0x5b)
+                        p = readSpecialKey(p, key);
+                    else
+                        continue;
+                }
+                else if (*p == 0x5b)
+                {
+                    p = readSpecialKey(p, key);
+                }
+                else if (*p)
+                {
+                    key.alt = true;
+                    readRegularKey(*p, key);
+                    ++p;
+                }
+                else
+                    key.code = KEY_ESC;
+            }
+            else
+            {
+                readRegularKey(*p, key);
+                ++p;
+            }
+
+            if (numKeys == keysSize)
+            {
+                keysSize *= 2;
+                keys = (KeyEvent*)realloc(keys, sizeof(KeyEvent) * keysSize);
+            }
+
+            keys[numKeys++] = key;
+        }
+    }
+
+    return numKeys;
+}
+
+void printInput(int numKeys)
+{
+    printf("printing input:\n");
+
+    for (int i = 0; i < numKeys; ++i)
+    {
+        KeyEvent key = keys[i];
+        printf("code: %d ch: %c alt: %s ctrl: %s shift: %s\n", key.code, key.ch,
+            key.alt ? "on" : "off", key.ctrl ? "on" : "off", key.shift ? "on" : "off");
+    }
+}
+
+void testInput()
+{
+    setCharInputMode(true);
+
+    input = (char*)malloc(inputSize);
+    keys = (KeyEvent*)malloc(sizeof(KeyEvent) * keysSize);
+
+    while (true)
+    {
+        int numKeys = readInput();
+        printInput(numKeys);
+    }
+
+    free(input);
+    free(keys);
+
+    setCharInputMode(false);
+}
+
 int main(int argc, const char** argv)
 {
+    testInput();
+    return 0;
+
     if (argc != 2)
     {
         printf("usage: eve filename\n\n"
