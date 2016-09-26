@@ -139,7 +139,9 @@ typedef wchar_t char_t;
 #define STRTOULL wcstoull
 #define STRTOF wcstof
 #define STRTOD wcstod
-#define ISBLANK iswblank
+#define ISSPACE iswspace
+#define ISPRINT iswprint
+#define ISALNUM iswalnum
 #define TOLOWER towlower
 #define TOUPPER towupper
 #define FPUTS fputws
@@ -180,7 +182,9 @@ typedef char char_t;
 #define STRTOULL strtoull
 #define STRTOF strtof
 #define STRTOD strtod
-#define ISBLANK isblank
+#define ISSPACE isspace
+#define ISPRINT isprint
+#define ISALNUM isalnum
 #define TOLOWER tolower
 #define TOUPPER toupper
 #define FPUTS fputs
@@ -269,9 +273,10 @@ inline char_t* STRNCPY(char_t* destStr, const char_t* srcStr, int len)
     return destStr + len;
 }
 
-inline void STRMOVE(char_t* destStr, const char_t* srcStr, int len)
+inline char_t* STRMOVE(char_t* destStr, const char_t* srcStr, int len)
 {
     memmove(destStr, srcStr, len * sizeof(char_t));
+    return destStr + len;
 }
 
 #ifdef PLATFORM_WINDOWS
@@ -443,9 +448,20 @@ inline _Type* allocate()
 }
 
 template<typename _Type>
-inline _Type* allocateArray(int size)
+inline _Type* allocate(int size)
 {
     _Type* ptr = static_cast<_Type*>(malloc(sizeof(_Type) * size));
+
+    if (ptr)
+        return ptr;
+    else
+        throw OutOfMemoryException();
+}
+
+template<typename _Type>
+inline _Type* reallocate(_Type* ptr, int size)
+{
+    ptr = static_cast<_Type*>(realloc(ptr, sizeof(_Type) * size));
 
     if (ptr)
         return ptr;
@@ -489,7 +505,7 @@ inline void destroy(_Type* ptr)
 template<typename _Type>
 inline _Type* createArrayCopy(int size, const _Type* elements)
 {
-    _Type* ptr = allocateArray<_Type>(size);
+    _Type* ptr = allocate<_Type>(size);
 
     int i = 0;
 
@@ -513,7 +529,7 @@ inline _Type* createArrayCopy(int size, const _Type* elements)
 template<typename _Type>
 inline _Type* createArrayResize(int size, _Type* elements, int newSize)
 {
-    _Type* ptr = allocateArray<_Type>(newSize);
+    _Type* ptr = allocate<_Type>(newSize);
 
     int i = 0;
 
@@ -547,7 +563,7 @@ inline _Type* createArrayResize(int size, _Type* elements, int newSize)
 template<typename _Type, typename... _Args>
 inline _Type* createArrayFill(int size, _Args&&... args)
 {
-    _Type* ptr = allocateArray<_Type>(size);
+    _Type* ptr = allocate<_Type>(size);
 
     int i = 0;
 
@@ -945,7 +961,9 @@ public:
     
     void append(const String& str);
     void append(const char_t* chars);
-    
+    void appendFormat(const char_t* format, ...);
+    void appendFormat(const char_t* format, va_list args);
+
     void insert(int pos, const String& str);
     void insert(int pos, const char_t* chars);
     
@@ -994,6 +1012,13 @@ public:
     bool contains(const String& str) const;
     bool contains(const char_t* chars) const;
     
+    template<typename... _Args>
+    static String concat(_Args&&... args)
+    {
+        char_t* chars = concatInternal(0, args...);
+        return String(chars);
+    }
+    
     // conversion from string
 
     bool toBool() const;
@@ -1036,6 +1061,56 @@ public:
 
 private:
     explicit String(char_t* chars);
+    
+    template<typename... _Args>
+    static char_t* concatInternal(int totalLen, const char_t* chars, _Args&&... args)
+    {
+        int len = STRLEN(chars);
+        char_t* destChars = concatInternal(totalLen + len, args...);
+        STRNCPY(destChars + totalLen, chars, len);
+        return destChars;
+    }
+    
+    static char_t* concatInternal(int totalLen, const char_t* chars)
+    {
+        int len = STRLEN(chars);
+        char_t* destChars = Memory::allocate<char_t>(totalLen + len + 1);
+        destChars[totalLen + len] = 0;        
+        STRNCPY(destChars + totalLen, chars, len);
+        return destChars;
+    }
+    
+    template<typename... _Args>
+    static char_t* concatInternal(int totalLen, const String& str, _Args&&... args)
+    {
+        if (str._chars)
+        {
+            int len = STRLEN(str._chars);
+            char_t* destChars = concatInternal(totalLen + len, args...);
+            STRNCPY(destChars + totalLen, str._chars, len);
+            return destChars;
+        }
+        else
+            return concatInternal(totalLen, args...);
+    }
+    
+    static char_t* concatInternal(int totalLen, const String& str)
+    {
+        if (str._chars)
+        {
+            int len = STRLEN(str._chars);
+            char_t* destChars = Memory::allocate<char_t>(totalLen + len + 1);
+            destChars[totalLen + len] = 0;        
+            STRNCPY(destChars + totalLen, str._chars, len);
+            return destChars;
+        }
+        else
+        {
+            char_t* destChars = Memory::allocate<char_t>(totalLen + 1);
+            destChars[totalLen] = 0;        
+            return destChars;
+        }
+    }
 
 private:
     int _length;

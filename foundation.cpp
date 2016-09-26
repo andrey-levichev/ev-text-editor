@@ -17,7 +17,7 @@ int vasprintf(char_t** str, const char_t* format, va_list args)
     if (len < 0)
         return -1;
 
-    *str = Memory::allocateArray<char_t>(len + 1);
+    *str = Memory::allocate<char_t>(len + 1);
 
 #ifdef PLATFORM_WINDOWS
     return _vsnwprintf(*str, len + 1, format, args);
@@ -47,7 +47,7 @@ String::String(int count, char_t c)
     {
         _length = count;
         _capacity = _length + 1;
-        _chars = Memory::allocateArray<char_t>(_capacity);
+        _chars = Memory::allocate<char_t>(_capacity);
         STRSET(_chars, c, _length);
         _chars[_length] = 0;
     }
@@ -65,7 +65,7 @@ String::String(const String& other)
     {
         _length = other._length;
         _capacity = _length + 1;
-        _chars = Memory::allocateArray<char_t>(_capacity);
+        _chars = Memory::allocate<char_t>(_capacity);
         STRCPY(_chars, other._chars);
     }
     else
@@ -85,7 +85,7 @@ String::String(const String& other, int pos, int len)
     {
         _length = len;
         _capacity = _length + 1;
-        _chars = Memory::allocateArray<char_t>(_capacity);
+        _chars = Memory::allocate<char_t>(_capacity);
         STRNCPY(_chars, other._chars + pos, _length);
         _chars[_length] = 0;
     }
@@ -105,7 +105,7 @@ String::String(const char_t* chars)
     {
         _length = STRLEN(chars);
         _capacity = _length + 1;
-        _chars = Memory::allocateArray<char_t>(_capacity);
+        _chars = Memory::allocate<char_t>(_capacity);
         STRCPY(_chars, chars);
     }
     else
@@ -126,7 +126,7 @@ String::String(const char_t* chars, int pos, int len)
     {
         _length = len;
         _capacity = _length + 1;
-        _chars = Memory::allocateArray<char_t>(_capacity);
+        _chars = Memory::allocate<char_t>(_capacity);
         STRNCPY(_chars, chars + pos, _length);
         _chars[_length] = 0;
     }
@@ -155,7 +155,7 @@ String::String(int capacity)
     {
         _length = 0;
         _capacity = capacity;
-        _chars = Memory::allocateArray<char_t>(_capacity);
+        _chars = Memory::allocate<char_t>(_capacity);
         *_chars = 0;
     }
     else
@@ -317,6 +317,16 @@ void String::append(const char_t* chars)
     }
 }
 
+void String::appendFormat(const char_t* format, ...)
+{
+    
+}
+
+void String::appendFormat(const char_t* format, va_list args)
+{
+    
+}
+    
 void String::insert(int pos, const String& str)
 {
     ASSERT(pos >= 0 && pos <= _length);
@@ -622,11 +632,11 @@ void String::trim()
     if (_length > 0)
     {
         char_t* p = _chars;
-        while (ISBLANK(*p))
+        while (ISSPACE(*p))
             ++p;
 
         char_t* q = _chars + _length;
-        while (p < q && ISBLANK(*(q - 1)))
+        while (p < q && ISSPACE(*(q - 1)))
             --q;
 
         if (p < q)
@@ -647,7 +657,7 @@ void String::trimRight()
         char_t* p = _chars;
 
         char_t* q = _chars + _length;
-        while (p < q && ISBLANK(*(q - 1)))
+        while (p < q && ISSPACE(*(q - 1)))
             --q;
 
         if (p < q)
@@ -665,7 +675,7 @@ void String::trimLeft()
     if (_length > 0)
     {
         char_t* p = _chars;
-        while (ISBLANK(*p))
+        while (ISSPACE(*p))
             ++p;
 
         char_t* q = _chars + _length;

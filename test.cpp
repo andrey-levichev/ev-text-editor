@@ -695,13 +695,10 @@ void testString()
 
     // String acquire(char_t* chars)
 
-    {
-        char_t* p = nullptr;
-        ASSERT_EXCEPTION(Exception, String(p));
-    }
+    ASSERT_EXCEPTION(Exception, String::acquire(nullptr));
 
     {
-        char_t* p = Memory::allocateArray<char_t>(1);
+        char_t* p = Memory::allocate<char_t>(1);
         STRCPY(p, STR(""));
         String s = String::acquire(p);
         ASSERT(s.chars() == p);
@@ -711,7 +708,7 @@ void testString()
     }
 
     {
-        char_t* p = Memory::allocateArray<char_t>(2);
+        char_t* p = Memory::allocate<char_t>(2);
         STRCPY(p, STR("a"));
         String s = String::acquire(p);
         ASSERT(s.chars() == p);
@@ -1166,7 +1163,7 @@ void testFoundation()
     testString();
 }
 
-int wmain()
+int MAIN()
 {
     try
     {

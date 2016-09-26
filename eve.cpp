@@ -17,7 +17,7 @@
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 
-#define open _open
+#define open _wopen
 #define close _close
 #define read _read
 #define write _write
@@ -26,6 +26,7 @@
     
 #ifdef __sun
 #include <alloca.h>
+#include <sys/filio.h>
 #endif
 
 #include <unistd.h>
@@ -33,6 +34,8 @@
 #include <sys/ioctl.h>
 
 #endif
+
+#include <foundation.h>
 
 const int TAB_SIZE = 4;
 
@@ -70,14 +73,14 @@ enum KeyCode
 struct Key
 {
     KeyCode code = KEY_NONE;
-    char ch = 0;
+    char_t ch = 0;
     bool ctrl = false;
     bool alt = false;
-    bool shift = false;;
+    bool shift = false;
 };
 
-char* screen;
-const char* filename;
+char_t* screen;
+const char_t* filename;
 
 int top, left;
 int width, height;
@@ -86,33 +89,21 @@ int position;
 int line, column, preferredColumn;
 int selection;
 
-char* text;
+char_t* text;
 int size, capacity;
 
-char* buffer;
-char* pattern;
+char_t* buffer;
+char_t* pattern;
 
 int inputSize = 10;
 #ifdef _WIN32
 INPUT_RECORD* input;
 #else
-char* input;
+char_t* input;
 #endif
 
 int keysSize = inputSize;
 Key* keys;
-
-char* alloc(int size)
-{
-    char* p = (char*)malloc(size);
-    if (p)
-        return p;
-
-    fprintf(stderr, "out of memory\n");
-    abort();
-
-    return nullptr;
-}
 
 void setCharInputMode(bool charMode)
 {
@@ -170,13 +161,13 @@ void setCursorPosition(int line, int column)
     pos.Y = line - 1;
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
 #else
-    char cmd[30];
+    char_t cmd[30];
     sprintf(cmd, "\x1b[%d;%dH", line, column);
     write(STDOUT_FILENO, cmd, strlen(cmd));
 #endif
 }
 
-void writeToConsole(int line, int column, const char* chars, int len)
+void writeToConsole(int line, int column, const char_t* chars, int len)
 {
 #ifdef _WIN32
     DWORD written;
@@ -213,7 +204,7 @@ void clearConsole()
 
 #ifndef _WIN32
 
-void readRegularKey(const char c, Key& key)
+void readRegularKey(const char_t c, Key& key)
 {
     key.ch = c;
 
@@ -229,7 +220,7 @@ void readRegularKey(const char c, Key& key)
         key.shift = isupper(c);
 }
 
-const char* readSpecialKey(const char* p, Key& key)
+const char_t* readSpecialKey(const char_t* p, Key& key)
 {
     ++p;
     bool read7e = true;
@@ -387,7 +378,7 @@ int readKeys()
                 break;
             default:
                 key.code = KEY_NONE;
-                key.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
+                key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
                 break;
             }
 
@@ -399,7 +390,7 @@ int readKeys()
             if (numKeys == keysSize)
             {
                 keysSize *= 2;
-                keys = (Key*)realloc(keys, sizeof(Key) * keysSize);
+                keys = Memory::reallocate<Key>(keys, keysSize);
             }
 
             keys[numKeys++] = key;
@@ -422,14 +413,14 @@ int readKeys()
             if (len + remaining + 1 > inputSize)
             {
                 inputSize = len + remaining + 1;
-                input = (char*)realloc(input, inputSize);
+                input = Memory::reallocate<char_t>(input, inputSize);
             }
 
             len += read(STDIN_FILENO, input + len, remaining);
         }
 
         input[len] = 0;
-        const char* p = input;
+        const char_t* p = input;
 
         while (*p)
         {
@@ -483,7 +474,7 @@ int readKeys()
             if (numKeys == keysSize)
             {
                 keysSize *= 2;
-                keys = (Key*)realloc(keys, sizeof(Key) * keysSize);
+                keys = Memory::reallocate<Key>(keys, keysSize);
             }
 
             keys[numKeys++] = key;
@@ -495,12 +486,12 @@ int readKeys()
     return numKeys;
 }
 
-bool isIdent(char c)
+bool isIdent(char_t c)
 {
-    return isalnum(c) || c == '_';
+    return ISALNUM(c) || c == '_';
 }
 
-char* findChar(char* str, char c)
+char_t* findChar(char_t* str, char_t c)
 {
     while (*str && *str != c)
         ++str;
@@ -508,7 +499,7 @@ char* findChar(char* str, char c)
     return str;
 }
 
-char* findCharBack(char* start, char* str, char c)
+char_t* findCharBack(char_t* start, char_t* str, char_t c)
 {
     while (str > start)
         if (*--str == c)
@@ -517,11 +508,11 @@ char* findCharBack(char* start, char* str, char c)
     return start;
 }
 
-char* wordForward(char* str)
+char_t* wordForward(char_t* str)
 {
     while (*str)
     {
-        if (isspace(*str) && !isspace(*(str + 1)))
+        if (ISSPACE(*str) && !ISSPACE(*(str + 1)))
             return str + 1;
         ++str;
     }
@@ -529,14 +520,14 @@ char* wordForward(char* str)
     return str;
 }
 
-char* wordBack(char* start, char* str)
+char_t* wordBack(char_t* start, char_t* str)
 {
     if (str > start)
     {
         --str;
         while (str > start)
         {
-            if (isspace(*(str - 1)) && !isspace(*str))
+            if (ISSPACE(*(str - 1)) && !ISSPACE(*str))
                 return str;
             --str;
         }
@@ -545,7 +536,7 @@ char* wordBack(char* start, char* str)
     return start;
 }
 
-char* findLine(char* str, int line)
+char_t* findLine(char_t* str, int line)
 {
     while (*str && line > 1)
     {
@@ -556,36 +547,36 @@ char* findLine(char* str, int line)
     return str;
 }
 
-void insertChars(const char* chars, int pos, int len)
+void insertChars(const char_t* chars, int pos, int len)
 {
     int cap = size + len + 1;
     if (cap > capacity)
     {
         capacity = cap * 2;
-        char* txt = alloc(capacity);
-        memcpy(txt, text, size + 1);
-        free(text);
+        char_t* txt = Memory::allocate<char_t>(capacity);
+        STRNCPY(txt, text, size + 1);
+        Memory::deallocate(text);
         text = txt;
     }
 
-    memmove(text + pos + len, text + pos, size - pos + 1);
-    memcpy(text + pos, chars, len);
+    STRMOVE(text + pos + len, text + pos, size - pos + 1);
+    STRNCPY(text + pos, chars, len);
     size += len;
     selection = -1;
 }
 
 void deleteChars(int pos, int len)
 {
-    memmove(text + pos, text + pos + len, size - pos - len + 1);
+    STRMOVE(text + pos, text + pos + len, size - pos - len + 1);
     size -= len;
     selection = -1;
 }
 
 void trimTrailingWhitespace()
 {
-    char* p = text;
-    char* q = p;
-    char* r = nullptr;
+    char_t* p = text;
+    char_t* q = p;
+    char_t* r = nullptr;
 
     while (true)
     {
@@ -613,15 +604,15 @@ void trimTrailingWhitespace()
         ++p; ++q;
     }
 
-    size = strlen(text);
+    size = STRLEN(text);
     selection = -1;
 }
 
-char* copyChars(const char* start, const char* end)
+char_t* copyChars(const char_t* start, const char_t* end)
 {
     int len = end - start;
-    char* str = alloc(len + 1);
-    memcpy(str, start, len);
+    char_t* str = Memory::allocate<char_t>(len + 1);
+    STRNCPY(str, start, len);
     str[len] = 0;
 
     return str;
@@ -629,8 +620,8 @@ char* copyChars(const char* start, const char* end)
 
 void positionToLineColumn()
 {
-    char* p = text;
-    char* q = text + position;
+    char_t* p = text;
+    char_t* q = text + position;
     line = 1, column = 1;
 
     while (*p && p < q)
@@ -653,7 +644,7 @@ void positionToLineColumn()
 
 void lineColumnToPosition()
 {
-    char* p = text;
+    char_t* p = text;
     int preferredLine = line;
     line = 1; column = 1;
 
@@ -688,15 +679,15 @@ void updateScreen()
     else if (column >= left + width)
         left = column - width + 1;
 
-    char* p = findLine(text, top);
-    char* q = screen;
+    char_t* p = findLine(text, top);
+    char_t* q = screen;
     int len = left + width - 1;
 
     for (int j = 1; j <= height; ++j)
     {
         for (int i = 1; i <= len; ++i)
         {
-            char c;
+            char_t c;
 
             if (*p == '\t')
             {
@@ -723,32 +714,43 @@ void updateScreen()
         }
     }
 
-    memset(q, ' ', width);
+    STRSET(q, ' ', width);
 
-    char lnCol[30];
-    len = sprintf(lnCol, "%d, %d", line, column);
+    char_t lnCol[30];
+    len = SPRINTF(lnCol, 30, STR("%d, %d"), line, column);
     if (len > 0 && len <= width)
-        memcpy(q + width - len, lnCol, len);
+        STRNCPY(q + width - len, lnCol, len);
 
     writeToConsole(1, 1, screen, width * (height + 1));
     setCursorPosition(line - top + 1, column - left + 1);
 }
 
-bool readFile(const char* fileName)
+bool readFile(const char_t* fileName)
 {
+#ifdef _WIN32
+    struct _stat st;
+    if (_wstat(fileName, &st) < 0)
+        return false;
+#else
     struct stat st;
     if (stat(fileName, &st) < 0)
         return false;
+#endif
 
-    int file = open(fileName, O_RDONLY);
+    int file = open(fileName, 
+#ifdef _WIN32
+    _O_RDONLY | _O_U16TEXT);
+#else
+    O_RDONLY);
+#endif
+
     if (file < 0)
         return false;
 
-    size = st.st_size;
-    capacity = size + 1;
-    text = alloc(capacity);
+    capacity = st.st_size / sizeof(char_t) + 1;
+    text = Memory::allocate<char_t>(capacity);
     
-    size = read(file, text, size);
+    size = read(file, text, st.st_size) / sizeof(char_t);
 
     if (size >= 0)
     {
@@ -758,25 +760,27 @@ bool readFile(const char* fileName)
     }
     else
     {
-        free(text);
+        Memory::deallocate(text);
         close(file);
         return false;
     }
 }
 
-bool writeFile(const char* fileName)
+bool writeFile(const char_t* fileName)
 {
-    int file = open(fileName, O_WRONLY | O_CREAT | O_TRUNC,
+    int file = open(fileName, 
 #ifdef _WIN32
+        _O_WRONLY | _O_CREAT | _O_TRUNC | _O_U16TEXT,
         _S_IREAD | _S_IWRITE);
 #else
+        O_WRONLY | O_CREAT | O_TRUNC,
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 #endif
 
     if (file < 0)
         return false;
 
-    if (write(file, text, size) >= 0)
+    if (write(file, text, sizeof(char_t) * size) >= 0)
     {
         close(file);
         return true;
@@ -794,7 +798,7 @@ void openFile()
     {
         size = 0;
         capacity = 1;
-        text = alloc(capacity);
+        text = Memory::allocate<char_t>(capacity);
         *text = 0;
     }
 
@@ -810,16 +814,16 @@ void saveFile()
     lineColumnToPosition();
 
     if (!writeFile(filename))
-        fprintf(stderr, "failed to save text to %s\n", filename);
+        throw Exception(STR("failed to save file"));
 }
 
-char* getCommand(const char* prompt)
+char_t* getCommand(const char_t* prompt)
 {
-    int start = strlen(prompt), end = start, cmdLine = height + 1;
-    char* cmd = (char*)alloca(width);
+    int start = STRLEN(prompt), end = start, cmdLine = height + 1;
+    char_t* cmd = (char_t*)alloca(sizeof(char_t) * width);
     
-    memset(cmd, ' ', width);
-    memcpy(cmd, prompt, start);
+    STRSET(cmd, ' ', width);
+    STRNCPY(cmd, prompt, start);
     writeToConsole(cmdLine, 1, cmd, width);
     setCursorPosition(cmdLine, end + 1);
 
@@ -884,8 +888,8 @@ bool deleteWordBack()
 
 bool copyDeleteText(bool copy)
 {
-    char* p;
-    char* q;
+    char_t* p;
+    char_t* q;
 
     if (selection < 0)
     {
@@ -915,7 +919,7 @@ bool copyDeleteText(bool copy)
 
     if (p < q)
     {
-        free(buffer);
+        Memory::deallocate(buffer);
         buffer = copyChars(p, q);
 
         if (!copy)
@@ -934,7 +938,7 @@ bool pasteText()
 {
     if (buffer)
     {
-        int len = strlen(buffer);
+        int len = STRLEN(buffer);
         insertChars(buffer, position, len);
         position += len;
         positionToLineColumn();
@@ -962,10 +966,10 @@ bool findNext()
 {
     if (pattern)
     {
-        char* p = text + position;
-        char* q = strstr(p + 1, pattern);
+        char_t* p = text + position;
+        char_t* q = STRSTR(p + 1, pattern);
         if (!q)
-            q = strstr(text, pattern);
+            q = STRSTR(text, pattern);
 
         if (q && q != p)
         {
@@ -980,8 +984,8 @@ bool findNext()
 
 bool findWordAtCursor()
 {
-    char* p = text + position;
-    free(pattern);
+    char_t* p = text + position;
+    Memory::deallocate(pattern);
 
     if (isIdent(*p))
     {
@@ -992,7 +996,7 @@ bool findWordAtCursor()
             --p;
         }
 
-        char* q = text + position + 1;
+        char_t* q = text + position + 1;
         while (*q)
         {
             if (!isIdent(*q))
@@ -1008,36 +1012,36 @@ bool findWordAtCursor()
     return findNext();
 }
 
-void insertChar(char c)
+void insertChar(char_t c)
 {
     if (c == '\n') // new line
     {
-        char* p = findCharBack(text, text + position, '\n');
+        char_t* p = findCharBack(text, text + position, '\n');
         if (*p == '\n')
             ++p;
 
-        char* q = p;
+        char_t* q = p;
         while (*q == ' ' || *q == '\t')
             ++q;
 
         int len = q - p + 1;
-        char* chars = (char*)alloca(len);
+        char_t* chars = (char_t*)alloca(sizeof(char_t) * len);
 
         chars[0] = '\n';
-        memcpy(chars + 1, p, q - p);
+        STRNCPY(chars + 1, p, q - p);
 
         insertChars(chars, position, len);
         position += len;
     }
     else if (c == '\t') // tab
     {
-        char chars[16];
-        memset(chars, ' ', TAB_SIZE);
+        char_t chars[16];
+        STRSET(chars, ' ', TAB_SIZE);
         insertChars(chars, position, TAB_SIZE);
         position += TAB_SIZE;
     }
     else if (c == 0x14) // real tab
-        insertChars("\t", position++, 1);
+        insertChars(STR("\t"), position++, 1);
     else
         insertChars(&c, position++, 1);
 
@@ -1142,8 +1146,8 @@ bool processKey()
             }
             else if (key.ch == 'f')
             {
-                free(pattern);
-                pattern = getCommand("find: ");
+                Memory::deallocate(pattern);
+                pattern = getCommand(STR("find: "));
                 findNext();
                 update = true;
             }
@@ -1208,7 +1212,7 @@ bool processKey()
         }
         else if (key.code == KEY_HOME)
         {
-            char* p = findCharBack(text, text + position, '\n');
+            char_t* p = findCharBack(text, text + position, '\n');
             if (*p == '\n')
                 ++p;
 
@@ -1238,7 +1242,7 @@ bool processKey()
             update = true;
         }
         else if (key.ch == '\n' || key.ch == '\t' || 
-            key.ch == 0x14 || isprint(key.ch))
+            key.ch == 0x14 || ISPRINT(key.ch))
         {
             insertChar(key.ch);
             update = true;
@@ -1256,7 +1260,7 @@ void editor()
     openFile();
 
     getConsoleSize();
-    screen = alloc(width * height);
+    screen = Memory::allocate<char_t>(width * height);
 
     --height;
     top = 1; left = 1;
@@ -1265,26 +1269,26 @@ void editor()
     setCharInputMode(true);
 
 #ifdef _WIN32
-    input = (INPUT_RECORD*)malloc(sizeof(INPUT_RECORD) * inputSize);
+    input = Memory::allocate<INPUT_RECORD>(inputSize);
 #else
-    input = (char*)malloc(inputSize);
+    input = Memory::allocate<char_t>(inputSize);
 #endif
-    keys = (Key*)malloc(sizeof(Key) * keysSize);
+    keys = Memory::allocate<Key>(keysSize);
 
     while (processKey());
 
     setCharInputMode(false);
     clearConsole();
 
-    free(screen);
-    free(text);
-    free(buffer);
-    free(pattern);
-    free(input);
-    free(keys);
+    Memory::deallocate(screen);
+    Memory::deallocate(text);
+    Memory::deallocate(buffer);
+    Memory::deallocate(pattern);
+    Memory::deallocate(input);
+    Memory::deallocate(keys);
 }
 
-int main(int argc, const char** argv)
+int MAIN(int argc, const char_t** argv)
 {
     if (argc != 2)
     {
@@ -1315,8 +1319,21 @@ int main(int argc, const char** argv)
         return 1;
     }
 
-    filename = argv[1];
-    editor();
+    try
+    {
+        filename = argv[1];
+        editor();
+    }
+    catch (Exception& ex)
+    {
+        Console::writeLine(ex.message());
+        return 1;
+    }
+    catch (...)
+    {
+        Console::writeLine(STR("unknown error"));
+        return 1;
+    }
 
     return 0;
 }

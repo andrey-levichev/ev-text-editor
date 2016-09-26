@@ -9,8 +9,6 @@ support unicode input
 * set selection to empty after every text editing operation
 
 porting to windows and c++:
-* read only, write only files
-support seek, reading into char buffer
 * change array to use capacity
 * for containers with capacity
 round allocation to next greater power of 2
@@ -19,14 +17,14 @@ to take advantage of memory allocator implementation
 * write unit tests for all classes
 * findNoCase, appendFormat
 * better string concat
-* string and textbuffer?
 * don't know how much memory to allocate for utf-8
 using char_t for single char is incorrect
 pos, len must be in chars not in bytes
 * screen update slow and flickering on windows
 * how to handle new lines on windows?
+decode/encode text from file to runtime enconding
 * real tab doesn't work anymore
-* how to report uppercase chars? lowercase with shift on?
+* use realloc where appropriate
 
 basic features:
 * search/replace
