@@ -31,5 +31,8 @@ $(TARGET).xlc: $(HEADERS) $(SOURCES)
 	xlC_r -qlanglvl=extended0x -g $(SOURCES) -o $@ -I.
 
 clean:
-	-rm $(TARGET).gcc $(TARGET).clang $(TARGET).solstudio $(TARGET).xlc *.o
+ifeq ($(OS),Windows_NT)
 	-del $(TARGET).vcpp.exe $(TARGET).mingw.exe $(TARGET).clang.exe *.obj *.ilk *.pdb
+else
+	-rm $(TARGET).gcc $(TARGET).clang $(TARGET).solstudio $(TARGET).xlc *.o
+endif

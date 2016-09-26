@@ -67,7 +67,7 @@ enum KeyCode
     KEY_F12
 };
 
-struct KeyEvent
+struct Key
 {
     KeyCode code = KEY_NONE;
     char ch = 0;
@@ -92,11 +92,15 @@ int size, capacity;
 char* buffer;
 char* pattern;
 
-int inputSize = 16;
+int inputSize = 10;
+#ifdef _WIN32
+INPUT_RECORD* input;
+#else
 char* input;
+#endif
 
 int keysSize = inputSize;
-KeyEvent* keys;
+Key* keys;
 
 char* alloc(int size)
 {
@@ -207,229 +211,288 @@ void clearConsole()
 #endif
 }
 
-void readKey(KeyEvent& key)
+#ifndef _WIN32
+
+void readRegularKey(const char c, Key& key)
 {
-#ifdef _WIN32
-    while (true)
+    key.ch = c;
+
+    if (c == '\t')
+        key.code = KEY_TAB;
+    else if (c == '\n')
+        key.code = KEY_ENTER;
+    else if (c == 0x7f)
+        key.code = KEY_BACKSPACE;
+    else if (iscntrl(c))
+        key.ctrl = true;
+    else
+        key.shift = isupper(c);
+}
+
+const char* readSpecialKey(const char* p, Key& key)
+{
+    ++p;
+    bool read7e = true;
+
+    if (*p == 0x31)
     {
-        INPUT_RECORD event;
-        DWORD numEvents = 0;
-            
-        ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &event, 1, &numEvents);
-            
-        if (numEvents > 0 && event.EventType == KEY_EVENT && event.Event.KeyEvent.bKeyDown)
+        ++p;
+
+        if (*p == 0x31)
+            key.code = KEY_F1;
+        else if (*p == 0x32)
+            key.code = KEY_F2;
+        else if (*p == 0x33)
+            key.code = KEY_F3;
+        else if (*p == 0x34)
+            key.code = KEY_F4;
+        else if (*p == 0x35)
+            key.code = KEY_F5;
+        else if (*p == 0x37)
+            key.code = KEY_F6;
+        else if (*p == 0x38)
+            key.code = KEY_F7;
+        else if (*p == 0x39)
+            key.code = KEY_F8;
+        else if (*p == 0x7e)
         {
-            switch (event.Event.KeyEvent.wVirtualKeyCode)
+            read7e = false;
+            key.code = KEY_HOME;
+        }
+        else
+            return p;
+    }
+    else if (*p == 0x32)
+    {
+        ++p;
+
+        if (*p == 0x30)
+            key.code = KEY_F9;
+        else if (*p == 0x31)
+            key.code = KEY_F10;
+        else if (*p == 0x33)
+            key.code = KEY_F11;
+        else if (*p == 0x34)
+            key.code = KEY_F12;
+        else if (*p == 0x7e)
+        {
+            read7e = false;
+            key.code = KEY_INSERT;
+        }
+        else
+            return p;
+    }
+    else if (*p == 0x33)
+        key.code = KEY_DELETE;
+    else if (*p == 0x34)
+        key.code = KEY_END;
+    else if (*p == 0x35)
+        key.code = KEY_PGUP;
+    else if (*p == 0x36)
+        key.code = KEY_PGDN;
+    else if (*p == 0x41)
+    {
+        read7e = false;
+        key.code = KEY_UP;
+    }
+    else if (*p == 0x42)
+    {
+        read7e = false;
+        key.code = KEY_DOWN;
+    }
+    else if (*p == 0x43)
+    {
+        read7e = false;
+        key.code = KEY_RIGHT;
+    }
+    else if (*p == 0x44)
+    {
+        read7e = false;
+        key.code = KEY_LEFT;
+    }
+    else
+        return p;
+
+    ++p;
+    if (read7e && *p == 0x7e)
+        ++p;
+
+    return p;
+}
+
+#endif
+
+int readKeys()
+{
+    int numKeys = 0;
+
+#ifdef _WIN32
+
+    DWORD numInputRec = 0;
+    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), input, inputSize, &numInputRec);
+
+    for (DWORD i = 0; i < numInputRec; ++i)
+    {
+        INPUT_RECORD& inputRec = input[i];
+
+        if (inputRec.EventType == KEY_EVENT && inputRec.Event.KeyEvent.bKeyDown)
+        {
+            Key key;
+
+            switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
             {
-                case VK_ESCAPE:
-                    key.code = KEY_ESC;
-                    break;
-                case VK_TAB:
-                    key.code = KEY_TAB;
-                    key.ch = '\t';
-                    break;
-                case VK_BACK:
-                    key.code = KEY_BACKSPACE;
-                    break;
-                case VK_RETURN:
-                    key.code = KEY_ENTER;
-                    key.ch = '\n';
-                    break;
-                case VK_UP:
-                    key.code = KEY_UP;
-                    break;
-                case VK_DOWN:
-                    key.code = KEY_DOWN;
-                    break;
-                case VK_LEFT:
-                    key.code = KEY_LEFT;
-                    break;
-                case VK_RIGHT:
-                    key.code = KEY_RIGHT;
-                    break;
-                case VK_INSERT:
-                    key.code = KEY_INSERT;
-                    break;
-                case VK_DELETE:
-                    key.code = KEY_DELETE;
-                    break;
-                case VK_HOME:
-                    key.code = KEY_HOME;
-                    break;
-                case VK_END:
-                    key.code = KEY_END;
-                    break;
-                case VK_PRIOR:
-                    key.code = KEY_PGUP;
-                    break;
-                case VK_NEXT:
-                    key.code = KEY_PGDN;
-                    break;
-                default:
-                    key.code = KEY_NONE;
-                    key.ch = event.Event.KeyEvent.uChar.AsciiChar;
-                    break;
+            case VK_ESCAPE:
+                key.code = KEY_ESC;
+                break;
+            case VK_TAB:
+                key.code = KEY_TAB;
+                key.ch = '\t';
+                break;
+            case VK_BACK:
+                key.code = KEY_BACKSPACE;
+                break;
+            case VK_RETURN:
+                key.code = KEY_ENTER;
+                key.ch = '\n';
+                break;
+            case VK_UP:
+                key.code = KEY_UP;
+                break;
+            case VK_DOWN:
+                key.code = KEY_DOWN;
+                break;
+            case VK_LEFT:
+                key.code = KEY_LEFT;
+                break;
+            case VK_RIGHT:
+                key.code = KEY_RIGHT;
+                break;
+            case VK_INSERT:
+                key.code = KEY_INSERT;
+                break;
+            case VK_DELETE:
+                key.code = KEY_DELETE;
+                break;
+            case VK_HOME:
+                key.code = KEY_HOME;
+                break;
+            case VK_END:
+                key.code = KEY_END;
+                break;
+            case VK_PRIOR:
+                key.code = KEY_PGUP;
+                break;
+            case VK_NEXT:
+                key.code = KEY_PGDN;
+                break;
+            default:
+                key.code = KEY_NONE;
+                key.ch = inputRec.Event.KeyEvent.uChar.AsciiChar;
+                break;
             }
-            
-            DWORD controlKeys = event.Event.KeyEvent.dwControlKeyState;
+
+            DWORD controlKeys = inputRec.Event.KeyEvent.dwControlKeyState;
             key.ctrl = (controlKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
             key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
             key.shift = (controlKeys & SHIFT_PRESSED) != 0;
-            
-            return;
+
+            if (numKeys == keysSize)
+            {
+                keysSize *= 2;
+                keys = (Key*)realloc(keys, sizeof(Key) * keysSize);
+            }
+
+            keys[numKeys++] = key;
         }
     }
-#else
-    while (true)
-    {
-        char input[6];
-        int len = read(STDIN_FILENO, input, sizeof(input) - 1);
-        input[len] = 0;
 
-        if (*input == 0x7f)
+    return numKeys;
+
+#else
+
+    int len = read(STDIN_FILENO, input, inputSize - 1);
+
+    if (len > 0)
+    {
+        int remaining;
+        ioctl(STDIN_FILENO, FIONREAD, &remaining);
+
+        if (remaining > 0)
         {
-            key.code = KEY_BACKSPACE;
+            if (len + remaining + 1 > inputSize)
+            {
+                inputSize = len + remaining + 1;
+                input = (char*)realloc(input, inputSize);
+            }
+
+            len += read(STDIN_FILENO, input + len, remaining);
         }
-        else if (*input == 0x1b)
+
+        input[len] = 0;
+        const char* p = input;
+
+        while (*p)
         {
-            if (!strcmp(input, "\x1b"))
-                key.code = KEY_ESC;
-            else if (!strcmp(input, "\x1b\x5b\x41"))
-                key.code = KEY_UP;
-            else if (!strcmp(input, "\x1b\x5b\x42"))
-                key.code = KEY_DOWN;
-            else if (!strcmp(input, "\x1b\x5b\x43"))
-                key.code = KEY_RIGHT;
-            else if (!strcmp(input, "\x1b\x5b\x44"))
-                key.code = KEY_LEFT;
-            else if (!strcmp(input, "\x1b\x5b\x35\x7e"))
-                key.code = KEY_PGUP;
-            else if (!strcmp(input, "\x1b\x5b\x36\x7e"))
-                key.code = KEY_PGDN;
-            else if (!strcmp(input, "\x1b\x5b\x31\x7e"))
-                key.code = KEY_HOME;
-            else if (!strcmp(input, "\x1b\x5b\x34\x7e"))
-                key.code = KEY_END;
-            else if (!strcmp(input, "\x1b\x5b\x33\x7e"))
-                key.code = KEY_DELETE;
-            else if (!strcmp(input, "\x1b\x4f\x43"))
+            Key key;
+
+            if (*p == 0x1b)
             {
-                key.code = KEY_RIGHT;
-                key.ctrl = true;
-            }
-            else if (!strcmp(input, "\x1b\x4f\x44"))
-            {
-                key.code = KEY_LEFT;
-                key.ctrl = true;
-            }
-            else if (!strcmp(input, "\x1b\x1b\x5b\x35\x7e"))
-            {
-                key.code = KEY_PGUP;
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x1b\x5b\x36\x7e"))
-            {
-                key.code = KEY_PGDN;
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x1b\x5b\x31\x7e"))
-            {
-                key.code = KEY_HOME;
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x1b\x5b\x34\x7e"))
-            {
-                key.code = KEY_END;
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x1b\x5b\x33\x7e"))
-            {
-                key.code = KEY_DELETE;
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x7f"))
-            {
-                key.code = KEY_BACKSPACE;
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x71"))
-            {
-                key.ch = 'q';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x73"))
-            {
-                key.ch = 's';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x78"))
-            {
-                key.ch = 'x';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x64"))
-            {
-                key.ch = 'd';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x63"))
-            {
-                key.ch = 'c';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x70"))
-            {
-                key.ch = 'p';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x62"))
-            {
-                key.ch = 'b';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x6d"))
-            {
-                key.ch = 'm';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x66"))
-            {
-                key.ch = 'f';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x6f"))
-            {
-                key.ch = 'o';
-                key.alt = true;
-            }
-            else if (!strcmp(input, "\x1b\x6e"))
-            {
-                key.ch = 'n';
-                key.alt = true;
+                ++p;
+
+                if (*p == 0x1b)
+                {
+                    ++p;
+                    key.alt = true;
+
+                    if (*p == 0x5b)
+                    {
+                        p = readSpecialKey(p, key);
+                    }
+                    else if (*p == 0x4f)
+                    {
+                        key.ctrl = true;
+                        p = readSpecialKey(p, key);
+                    }
+                    else
+                        continue;
+                }
+                else if (*p == 0x5b)
+                {
+                    p = readSpecialKey(p, key);
+                }
+                else if (*p == 0x4f)
+                {
+                    key.ctrl = true;
+                    p = readSpecialKey(p, key);
+                }
+                else if (*p)
+                {
+                    key.alt = true;
+                    readRegularKey(*p, key);
+                    ++p;
+                }
+                else
+                    key.code = KEY_ESC;
             }
             else
-                continue;
-        }
-        else if (*input == '\n')
-        {
-            key.code = KEY_ENTER;
-            key.ch = '\n';
-        }
-        else if (*input == '\t')
-        {
-            key.code = KEY_TAB;
-            key.ch = '\t';
-        }
-        else if (isprint(*input))
-        {
-            key.ch = *input;
-        }
-        else
-            continue;
+            {
+                readRegularKey(*p, key);
+                ++p;
+            }
 
-        break;
+            if (numKeys == keysSize)
+            {
+                keysSize *= 2;
+                keys = (Key*)realloc(keys, sizeof(Key) * keysSize);
+            }
+
+            keys[numKeys++] = key;
+        }
     }
+
 #endif
+
+    return numKeys;
 }
 
 bool isIdent(char c)
@@ -762,30 +825,34 @@ char* getCommand(const char* prompt)
 
     while (true)
     {
-        KeyEvent key;
-        readKey(key);
+        int numKeys = readKeys();
 
-        if (key.code == KEY_ENTER)
+        for (int i = 0; i < numKeys; ++i)
         {
-            return copyChars(cmd + start, cmd + end);
+            Key& key = keys[i];
+
+            if (key.code == KEY_ENTER)
+            {
+                return copyChars(cmd + start, cmd + end);
+            }
+            else if (key.code == KEY_ESC)
+            {
+                return nullptr;
+            }
+            else if (key.code == KEY_BACKSPACE)
+            {
+                if (end > start)
+                    cmd[--end] = ' ';
+            }
+            else
+            {
+                if (end < width)
+                    cmd[end++] = key.ch;
+            }
+            
+            writeToConsole(cmdLine, 1, cmd, width);
+            setCursorPosition(cmdLine, end + 1);
         }
-        else if (key.code == KEY_ESC)
-        {
-            return nullptr;
-        }
-        else if (key.code == KEY_BACKSPACE)
-        {
-            if (end > start)
-                cmd[--end] = ' ';
-        }
-        else
-        {
-            if (end < width)
-                cmd[end++] = key.ch;
-        }
-        
-        writeToConsole(cmdLine, 1, cmd, width);
-        setCursorPosition(cmdLine, end + 1);
     }
 }
 
@@ -980,50 +1047,184 @@ void insertChar(char c)
 bool processKey()
 {
     bool update = false;
-    KeyEvent key;
-    
-    readKey(key);
+    int numKeys = readKeys();
 
-    if (key.ctrl)
+    for (int i = 0; i < numKeys; ++i)
     {
-        if (key.code == KEY_RIGHT)
+        Key& key = keys[i];
+
+        if (key.ctrl)
         {
-            position = wordForward(text + position) - text;
-            positionToLineColumn();
-            update = true;
+            if (key.code == KEY_RIGHT)
+            {
+                position = wordForward(text + position) - text;
+                positionToLineColumn();
+                update = true;
+            }
+            else if (key.code == KEY_LEFT)
+            {
+                position = wordBack(text, text + position) - text;
+                positionToLineColumn();
+                update = true;
+            }
         }
-        else if (key.code == KEY_LEFT)
+        else if (key.alt)
         {
-            position = wordBack(text, text + position) - text;
-            positionToLineColumn();
-            update = true;
-        }
-    }
-    else if (key.alt)
-    {
-        if (key.code == KEY_DELETE)
-        {
-            update = deleteWordForward();
+            if (key.code == KEY_DELETE)
+            {
+                update = deleteWordForward();
+            }
+            else if (key.code == KEY_BACKSPACE)
+            {
+                update = deleteWordBack();
+            }
+            else if (key.code == KEY_HOME)
+            {
+                position = 0;
+                positionToLineColumn();
+                update = true;
+            }
+            else if (key.code == KEY_END)
+            {
+                position = size;
+                positionToLineColumn();
+                update = true;
+            }
+            else if (key.code == KEY_PGUP)
+            {
+                line -= height / 2;
+                if (line < 1)
+                    line = 1;
+
+                lineColumnToPosition();
+                update = true;
+            }
+            else if (key.code == KEY_PGDN)
+            {
+                line += height / 2;
+                lineColumnToPosition();
+                update = true;
+            }
+            else if (key.ch == 'q')
+            {
+                return false;
+            }
+            else if (key.ch == 's')
+            {
+                saveFile();
+                update = true;
+            }
+            else if (key.ch == 'x')
+            {
+                saveFile();
+                return false;
+            }
+            else if (key.ch == 'd')
+            {
+                update = copyDeleteText(false);
+            }
+            else if (key.ch == 'c')
+            {
+                update = copyDeleteText(true);
+            }
+            else if (key.ch == 'p')
+            {
+                update = pasteText();
+            }
+            else if (key.ch == 'b')
+            {
+                buildProject();
+                update = true;
+            }
+            else if (key.ch == 'm')
+            {
+                selection = position;
+            }
+            else if (key.ch == 'f')
+            {
+                free(pattern);
+                pattern = getCommand("find: ");
+                findNext();
+                update = true;
+            }
+            else if (key.ch == 'o')
+            {
+                update = findWordAtCursor();
+            }
+            else if (key.ch == 'n')
+            {
+                update = findNext();
+            }
         }
         else if (key.code == KEY_BACKSPACE)
         {
-            update = deleteWordBack();
+            if (position > 0)
+            {
+                deleteChars(--position, 1);
+                positionToLineColumn();
+                update = true;
+            }
+        }
+        else if (key.code == KEY_DELETE)
+        {
+            if (position < size)
+            {
+                deleteChars(position, 1);
+                update = true;
+            }
+        }
+        else if (key.code == KEY_UP)
+        {
+            if (line > 1)
+            {
+                --line;
+                lineColumnToPosition();
+                update = true;
+            }
+        }
+        else if (key.code == KEY_DOWN)
+        {
+            ++line;
+            lineColumnToPosition();
+            update = true;
+        }
+        else if (key.code == KEY_RIGHT)
+        {
+            if (position < size)
+            {
+                ++position;
+                positionToLineColumn();
+                update = true;
+            }
+        }
+        else if (key.code == KEY_LEFT)
+        {
+            if (position > 0)
+            {
+                --position;
+                positionToLineColumn();
+                update = true;
+            }
         }
         else if (key.code == KEY_HOME)
         {
-            position = 0;
+            char* p = findCharBack(text, text + position, '\n');
+            if (*p == '\n')
+                ++p;
+
+            position = p - text;
             positionToLineColumn();
             update = true;
         }
         else if (key.code == KEY_END)
         {
-            position = size;
+            position = findChar(text + position, '\n') - text;
             positionToLineColumn();
             update = true;
         }
         else if (key.code == KEY_PGUP)
         {
-            line -= height / 2;
+            line -= height - 1;
             if (line < 1)
                 line = 1;
 
@@ -1032,147 +1233,16 @@ bool processKey()
         }
         else if (key.code == KEY_PGDN)
         {
-            line += height / 2;
+            line += height - 1;
             lineColumnToPosition();
             update = true;
         }
-        else if (key.ch == 'q')
+        else if (key.ch == '\n' || key.ch == '\t' || 
+            key.ch == 0x14 || isprint(key.ch))
         {
-            return false;
-        }
-        else if (key.ch == 's')
-        {
-            saveFile();
+            insertChar(key.ch);
             update = true;
         }
-        else if (key.ch == 'x')
-        {
-            saveFile();
-            return false;
-        }
-        else if (key.ch == 'd')
-        {
-            update = copyDeleteText(false);
-        }
-        else if (key.ch == 'c')
-        {
-            update = copyDeleteText(true);
-        }
-        else if (key.ch == 'p')
-        {
-            update = pasteText();
-        }
-        else if (key.ch == 'b')
-        {
-            buildProject();
-            update = true;
-        }
-        else if (key.ch == 'm')
-        {
-            selection = position;
-        }
-        else if (key.ch == 'f')
-        {
-            free(pattern);
-            pattern = getCommand("find: ");
-            findNext();
-            update = true;
-        }
-        else if (key.ch == 'o')
-        {
-            update = findWordAtCursor();
-        }
-        else if (key.ch == 'n')
-        {
-            update = findNext();
-        }
-    }
-    else if (key.code == KEY_BACKSPACE)
-    {
-        if (position > 0)
-        {
-            deleteChars(--position, 1);
-            positionToLineColumn();
-            update = true;
-        }
-    }
-    else if (key.code == KEY_DELETE)
-    {
-        if (position < size)
-        {
-            deleteChars(position, 1);
-            update = true;
-        }
-    }
-    else if (key.code == KEY_UP)
-    {
-        if (line > 1)
-        {
-            --line;
-            lineColumnToPosition();
-            update = true;
-        }
-    }
-    else if (key.code == KEY_DOWN)
-    {
-        ++line;
-        lineColumnToPosition();
-        update = true;
-    }
-    else if (key.code == KEY_RIGHT)
-    {
-        if (position < size)
-        {
-            ++position;
-            positionToLineColumn();
-            update = true;
-        }
-    }
-    else if (key.code == KEY_LEFT)
-    {
-        if (position > 0)
-        {
-            --position;
-            positionToLineColumn();
-            update = true;
-        }
-    }
-    else if (key.code == KEY_HOME)
-    {
-        char* p = findCharBack(text, text + position, '\n');
-        if (*p == '\n')
-            ++p;
-
-        position = p - text;
-        positionToLineColumn();
-        update = true;
-    }
-    else if (key.code == KEY_END)
-    {
-        position = findChar(text + position, '\n') - text;
-        positionToLineColumn();
-        update = true;
-    }
-    else if (key.code == KEY_PGUP)
-    {
-        line -= height - 1;
-        if (line < 1)
-            line = 1;
-
-        lineColumnToPosition();
-        update = true;
-    }
-    else if (key.code == KEY_PGDN)
-    {
-        line += height - 1;
-        lineColumnToPosition();
-        update = true;
-    }
-    else if (key.ch == '\n' || key.ch == '\t' || 
-        key.ch == 0x14 || isprint(key.ch))
-    {
-        insertChar(key.ch);
-        update = true;
     }
 
     if (update)
@@ -1187,12 +1257,19 @@ void editor()
 
     getConsoleSize();
     screen = alloc(width * height);
-    setCharInputMode(true);
 
     --height;
     top = 1; left = 1;
 
     updateScreen();
+    setCharInputMode(true);
+
+#ifdef _WIN32
+    input = (INPUT_RECORD*)malloc(sizeof(INPUT_RECORD) * inputSize);
+#else
+    input = (char*)malloc(inputSize);
+#endif
+    keys = (Key*)malloc(sizeof(Key) * keysSize);
 
     while (processKey());
 
@@ -1203,229 +1280,12 @@ void editor()
     free(text);
     free(buffer);
     free(pattern);
-}
-
-void readRegularKey(const char c, KeyEvent& key)
-{
-    key.ch = c;
-
-    if (c == '\t')
-        key.code = KEY_TAB;
-    else if (c == '\n')
-        key.code = KEY_ENTER;
-    else if (c == 0x7f)
-        key.code = KEY_BACKSPACE;
-    else if (iscntrl(c))
-        key.ctrl = true;
-    else
-        key.shift = isupper(c);
-}
-
-const char* readSpecialKey(const char* p, KeyEvent& key)
-{
-    ++p;
-    bool read7e = true;
-
-    if (*p == 0x31)
-    {
-        ++p;
-
-        if (*p == 0x31)
-            key.code = KEY_F1;
-        else if (*p == 0x32)
-            key.code = KEY_F2;
-        else if (*p == 0x33)
-            key.code = KEY_F3;
-        else if (*p == 0x34)
-            key.code = KEY_F4;
-        else if (*p == 0x35)
-            key.code = KEY_F5;
-        else if (*p == 0x37)
-            key.code = KEY_F6;
-        else if (*p == 0x38)
-            key.code = KEY_F7;
-        else if (*p == 0x39)
-            key.code = KEY_F8;
-        else if (*p == 0x7e)
-        {
-            read7e = false;
-            key.code = KEY_HOME;
-        }
-        else
-            return p;
-    }
-    else if (*p == 0x32)
-    {
-        ++p;
-
-        if (*p == 0x30)
-            key.code = KEY_F9;
-        else if (*p == 0x31)
-            key.code = KEY_F10;
-        else if (*p == 0x33)
-            key.code = KEY_F11;
-        else if (*p == 0x34)
-            key.code = KEY_F12;
-        else if (*p == 0x7e)
-        {
-            read7e = false;
-            key.code = KEY_INSERT;
-        }
-        else
-            return p;
-    }
-    else if (*p == 0x33)
-        key.code = KEY_DELETE;
-    else if (*p == 0x34)
-        key.code = KEY_END;
-    else if (*p == 0x35)
-        key.code = KEY_PGUP;
-    else if (*p == 0x36)
-        key.code = KEY_PGDN;
-    else if (*p == 0x41)
-    {
-        read7e = false;
-        key.code = KEY_UP;
-    }
-    else if (*p == 0x42)
-    {
-        read7e = false;
-        key.code = KEY_DOWN;
-    }
-    else if (*p == 0x43)
-    {
-        read7e = false;
-        key.code = KEY_RIGHT;
-    }
-    else if (*p == 0x44)
-    {
-        read7e = false;
-        key.code = KEY_LEFT;
-    }
-    else
-        return p;
-
-    ++p;
-    if (read7e && *p == 0x7e)
-        ++p;
-
-    return p;
-}
-
-int readInput()
-{
-    int numKeys = 0;
-    int len = read(STDIN_FILENO, input, inputSize - 1);
-
-    if (len > 0)
-    {
-        int remaining;
-        ioctl(STDIN_FILENO, FIONREAD, &remaining);
-
-        if (remaining > 0)
-        {
-            if (len + remaining + 1 > inputSize)
-            {
-                inputSize = len + remaining + 1;
-                input = (char*)realloc(input, inputSize);
-            }
-
-            len += read(STDIN_FILENO, input + len, remaining);
-        }
-
-        input[len] = 0;
-        const char* p = input;
-
-        for (int i = 0; i < len; ++i)
-            printf("\\x%x", (unsigned char)input[i]);
-        printf(":\n");
-
-        while (*p)
-        {
-            KeyEvent key;
-
-            if (*p == 0x1b)
-            {
-                ++p;
-
-                if (*p == 0x1b)
-                {
-                    ++p;
-                    key.alt = true;
-
-                    if (*p == 0x5b)
-                        p = readSpecialKey(p, key);
-                    else
-                        continue;
-                }
-                else if (*p == 0x5b)
-                {
-                    p = readSpecialKey(p, key);
-                }
-                else if (*p)
-                {
-                    key.alt = true;
-                    readRegularKey(*p, key);
-                    ++p;
-                }
-                else
-                    key.code = KEY_ESC;
-            }
-            else
-            {
-                readRegularKey(*p, key);
-                ++p;
-            }
-
-            if (numKeys == keysSize)
-            {
-                keysSize *= 2;
-                keys = (KeyEvent*)realloc(keys, sizeof(KeyEvent) * keysSize);
-            }
-
-            keys[numKeys++] = key;
-        }
-    }
-
-    return numKeys;
-}
-
-void printInput(int numKeys)
-{
-    printf("printing input:\n");
-
-    for (int i = 0; i < numKeys; ++i)
-    {
-        KeyEvent key = keys[i];
-        printf("code: %d ch: %c alt: %s ctrl: %s shift: %s\n", key.code, key.ch,
-            key.alt ? "on" : "off", key.ctrl ? "on" : "off", key.shift ? "on" : "off");
-    }
-}
-
-void testInput()
-{
-    setCharInputMode(true);
-
-    input = (char*)malloc(inputSize);
-    keys = (KeyEvent*)malloc(sizeof(KeyEvent) * keysSize);
-
-    while (true)
-    {
-        int numKeys = readInput();
-        printInput(numKeys);
-    }
-
     free(input);
     free(keys);
-
-    setCharInputMode(false);
 }
 
 int main(int argc, const char** argv)
 {
-    testInput();
-    return 0;
-
     if (argc != 2)
     {
         printf("usage: eve filename\n\n"
