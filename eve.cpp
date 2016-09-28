@@ -80,10 +80,11 @@ struct Key
 };
 
 char_t* screen;
+char_t* window;
 const char_t* filename;
 
 int top, left;
-int width, height;
+int width, height, screenHeight;
 
 int position;
 int line, column, preferredColumn;
@@ -124,7 +125,7 @@ void setCharInputMode(bool charMode)
 #endif
 }
 
-void getConsoleSize()
+void getConsoleSize(int& width, int& height)
 {
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -141,14 +142,7 @@ void getConsoleSize()
 
 void showCursor(bool show)
 {
-#ifdef _WIN32
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO cci;
-    
-    GetConsoleCursorInfo(handle, &cci);
-    cci.bVisible = show;
-    SetConsoleCursorInfo(handle, &cci);
-#else
+#ifndef _WIN32
     write(STDOUT_FILENO, show ? "\x1b[?25h" : "\x1b[?25l", 6);
 #endif
 }
@@ -553,10 +547,7 @@ void insertChars(const char_t* chars, int pos, int len)
     if (cap > capacity)
     {
         capacity = cap * 2;
-        char_t* txt = Memory::allocate<char_t>(capacity);
-        STRNCPY(txt, text, size + 1);
-        Memory::deallocate(text);
-        text = txt;
+        text = Memory::reallocate<char_t>(text, capacity);
     }
 
     STRMOVE(text + pos + len, text + pos, size - pos + 1);
@@ -680,7 +671,7 @@ void updateScreen()
         left = column - width + 1;
 
     char_t* p = findLine(text, top);
-    char_t* q = screen;
+    char_t* q = window;
     int len = left + width - 1;
 
     for (int j = 1; j <= height; ++j)
@@ -721,8 +712,40 @@ void updateScreen()
     if (len > 0 && len <= width)
         STRNCPY(q + width - len, lnCol, len);
 
-    writeToConsole(1, 1, screen, width * (height + 1));
+    int i = 0, j = 0;
+    bool matching = true;
+    int nchars = width * screenHeight;
+    
+    showCursor(false);
+    
+    for (; j < nchars; ++j)
+    {
+        if (window[j] == screen[j])
+        {
+            if (!matching)
+            {
+                writeToConsole(i / width + 1, i % width + 1, window + i, j - i);
+                i = j;
+                matching = true;
+            }
+        }
+        else
+        {
+            if (matching)
+            {
+                i = j;
+                matching = false;
+            }
+        }
+    }
+    
+    if (!matching)
+        writeToConsole(i / width + 1, i % width + 1, window + i, j - i);
+    
     setCursorPosition(line - top + 1, column - left + 1);
+    showCursor(true);
+    
+    swap(window, screen);
 }
 
 bool readFile(const char_t* fileName)
@@ -819,7 +842,7 @@ void saveFile()
 
 char_t* getCommand(const char_t* prompt)
 {
-    int start = STRLEN(prompt), end = start, cmdLine = height + 1;
+    int start = STRLEN(prompt), end = start, cmdLine = screenHeight;
     char_t* cmd = (char_t*)alloca(sizeof(char_t) * width);
     
     STRSET(cmd, ' ', width);
@@ -1071,6 +1094,11 @@ bool processKey()
                 positionToLineColumn();
                 update = true;
             }
+            else if (key.code == KEY_TAB || key.ch == 0x14)
+            {
+                insertChar(0x14);
+                update = true;
+            }
         }
         else if (key.alt)
         {
@@ -1241,8 +1269,7 @@ bool processKey()
             lineColumnToPosition();
             update = true;
         }
-        else if (key.ch == '\n' || key.ch == '\t' || 
-            key.ch == 0x14 || ISPRINT(key.ch))
+        else if (key.ch == '\n' || key.ch == '\t' || ISPRINT(key.ch))
         {
             insertChar(key.ch);
             update = true;
@@ -1259,10 +1286,12 @@ void editor()
 {
     openFile();
 
-    getConsoleSize();
-    screen = Memory::allocate<char_t>(width * height);
+    getConsoleSize(width, screenHeight);
+    screen = Memory::allocate<char_t>(width * screenHeight);
+    memset(screen, 0, sizeof(char_t) * width * screenHeight);
+    window = Memory::allocate<char_t>(width * screenHeight);
 
-    --height;
+    height = screenHeight - 1;
     top = 1; left = 1;
 
     updateScreen();
@@ -1281,6 +1310,7 @@ void editor()
     clearConsole();
 
     Memory::deallocate(screen);
+    Memory::deallocate(window);
     Memory::deallocate(text);
     Memory::deallocate(buffer);
     Memory::deallocate(pattern);

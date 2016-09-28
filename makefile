@@ -2,7 +2,7 @@ TARGET=eve
 HEADERS=foundation.h
 SOURCES=eve.cpp foundation.cpp
 
-all: $(TARGET).solstudio
+all: $(TARGET).mingw.exe
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
