@@ -1,6 +1,6 @@
 TARGET=eve
 HEADERS=foundation.h
-SOURCES=eve.cpp foundation.cpp
+SOURCES=test.cpp foundation.cpp
 
 all: $(TARGET).mingw.exe
 

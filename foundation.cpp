@@ -319,12 +319,16 @@ void String::append(const char_t* chars)
 
 void String::appendFormat(const char_t* format, ...)
 {
-    
+    va_list args;
+
+    va_start(args, format);
+    append(String::format(format, args));
+    va_end(args);
 }
 
 void String::appendFormat(const char_t* format, va_list args)
 {
-    
+    append(String::format(format, args));
 }
     
 void String::insert(int pos, const String& str)
@@ -1023,25 +1027,17 @@ String String::format(const char_t* format, va_list args)
 
 String operator+(const String& left, const String& right)
 {
-    String result(left);
-    result.append(right);
-    return result;
+    return String::concat(left, right);
 }
 
 String operator+(const String& left, const char_t* right)
 {
-    ASSERT(right);
-    String result(left);
-    result.append(right);
-    return result;
+    return String::concat(left, right);
 }
 
 String operator+(const char_t* left, const String& right)
 {
-    ASSERT(left);
-    String result(left);
-    result.append(right);
-    return result;
+    return String::concat(left, right);
 }
 
 // string compare

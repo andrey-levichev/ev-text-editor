@@ -9,10 +9,8 @@ support unicode input
 * set selection to empty after every text editing operation
 
 porting to windows and c++:
-* findNoCase, appendFormat
-* better string concat
 * change array to use capacity
-* write unit tests for all classes
+* asserts and unit tests for all classes
 * don't know how much memory to allocate for utf-8
 using char_t for single char is incorrect
 pos, len must be in chars not in bytes
