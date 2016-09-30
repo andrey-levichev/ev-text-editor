@@ -166,6 +166,17 @@ String::String(int capacity)
     }
 }
 
+String::String(String&& other)
+{
+    _length = other._length;
+    _capacity = other._capacity;
+    _chars = other._chars;
+
+    other._length = 0;
+    other._capacity = 0;
+    other._chars = nullptr;
+}
+
 String::~String()
 {
     Memory::deallocate(_chars);
@@ -190,7 +201,7 @@ String& String::operator=(String&& other)
     _length = other._length;
     _capacity = other._capacity;
     _chars = other._chars;
-
+    
     other._length = 0;
     other._capacity = 0;
     other._chars = nullptr;
@@ -482,6 +493,7 @@ char_t* String::release()
     _length = 0;
     _capacity = 0;
     _chars = nullptr;
+    
     return chars;
 }
 

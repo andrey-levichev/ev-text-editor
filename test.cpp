@@ -1158,9 +1158,15 @@ void testString()
     ASSERT(String(STR("A")).compareNoCase(STR("a")) == 0);
 }
 
+void testArray()
+{
+    
+}
+
 void testFoundation()
 {
-    testString();
+    // testString();
+    testArray();
 }
 
 int MAIN()

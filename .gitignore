@@ -8,3 +8,5 @@ eve.gcc
 eve.clang
 eve.solstudio
 eve.xlc
+tags
+test.txt
