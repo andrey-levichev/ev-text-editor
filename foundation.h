@@ -291,6 +291,18 @@ inline const wchar_t* wcscasestr(const wchar_t* str, const wchar_t* searchStr)
 
 #endif
 
+#ifdef PLATFORM_AIX
+
+inline const char* strcasestr(const char* str, const char* searchStr)
+{
+    for (; *str; ++str)
+        if (!strcasecmp(str, searchStr))
+            return str;
+    return nullptr;
+}
+
+#endif
+
 // equality function
 
 template<typename _Type>
@@ -452,12 +464,17 @@ inline _Type* allocate(int size)
 {
     ASSERT(size >= 0);
 
-    _Type* ptr = static_cast<_Type*>(malloc(sizeof(_Type) * size));
+    if (size > 0)
+    {
+        _Type* ptr = static_cast<_Type*>(malloc(sizeof(_Type) * size));
 
-    if (ptr)
-        return ptr;
+        if (ptr)
+            return ptr;
+        else
+            throw OutOfMemoryException();
+    }
     else
-        throw OutOfMemoryException();
+        return nullptr;
 }
 
 template<typename _Type>
@@ -507,7 +524,7 @@ template<typename _Type>
 inline void destruct(_Type* ptr)
 {
     ASSERT(ptr);
-    ptr->~Type();
+    ptr->~_Type();
 }
 
 template<typename _Type>
@@ -547,7 +564,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 template<typename _Type>
 inline _Type* createArrayCopy(int size, int capacity, const _Type* elements)
 {
-    ASSERT(size >= 0);
+    ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -557,42 +574,6 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* elements)
     {
         for (; i < size; ++i)
             ::new(ptr + i) _Type(elements[i]);
-    }
-    catch (...)
-    {
-        while (i-- > 0)
-            ptr[i].~_Type();
-
-        deallocate(ptr);
-        throw;
-    }
-
-    return ptr;
-}
-
-template<typename _Type>
-inline _Type* createArrayResize(int size, int newSize, _Type* elements)
-{
-    ASSERT(size >= 0);
-    ASSERT(newSize >= 0);
-
-    _Type* ptr = allocate<_Type>(newSize);
-    int i = 0;
-
-    try
-    {
-        if (newSize > size)
-        {
-            for (; i < size; ++i)
-                ::new(ptr + i) _Type(static_cast<_Type&&>(elements[i]));
-            for (; i < newSize; ++i)
-                ::new(ptr + i) _Type();
-        }
-        else
-        {
-            for (; i < newSize; ++i)
-                ::new(ptr + i) _Type(static_cast<_Type&&>(elements[i]));
-        }
     }
     catch (...)
     {
@@ -620,12 +601,14 @@ template<typename _Type>
 inline void destroyArray(int size, _Type* elements)
 {
     ASSERT(size >= 0);
-    ASSERT(elements);
 
-    for (int i = 0; i < size; ++i)
-        elements[i].~_Type();
+    if (elements)
+    {
+        for (int i = 0; i < size; ++i)
+            elements[i].~_Type();
 
-    deallocate(elements);
+        deallocate(elements);
+    }
 }
 
 };
@@ -1197,58 +1180,39 @@ public:
     {
     }
 
-    Array(int size, int capacity = size)
+    Array(int size) : Array(size, size)
+    {
+    }
+
+    Array(int size, int capacity)
     {
         ASSERT(size >= 0);
         ASSERT(capacity >= 0 && size <= capacity);
         
-        if (size > 0)
-        {
-            _size = size;
-            _capacity = capacity;
-            _elements = Memory::createArrayFill<_Type>(size, capacity);
-        }
-        else
-        {
-            _size = 0;
-            _capacity = 0;
-            _elements = nullptr;
-        }
+        _size = size;
+        _capacity = capacity;
+        _elements = Memory::createArrayFill<_Type>(size, capacity);
     }
     
-    Array(int size, const _Type* elements, int capacity = size)
+    Array(int size, const _Type* elements) : Array(size, size, elements)
     {
-        ASSERT(size >= 0);
+    }
+
+    Array(int size, int capacity, const _Type* elements)
+    {
+        ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
         ASSERT(capacity >= 0 && size <= capacity);
         
-        if (size > 0)
-        {
-            _size = size;
-            _capacity = capacity;
-            _elements = Memory::createArrayCopy(size, capacity, elements);
-        }
-        else
-        {
-            _size = 0;
-            _capacity = 0;
-            _elements = nullptr;
-        }
+        _size = size;
+        _capacity = capacity;
+        _elements = Memory::createArrayCopy(size, capacity, elements);
     }
 
     Array(const Array<_Type>& other)
     {
-        if (other._size > 0)
-        {
-            _size = other._size;
-            _capacity = other._size;
-            _elements = Memory::createArrayCopy(other._size, other._size, other._elements);
-        }
-        else
-        {
-            _size = 0;
-            _capacity = 0;
-            _elements = nullptr;
-        }
+        _size = other._size;
+        _capacity = other._size;
+        _elements = Memory::createArrayCopy(other._size, other._size, other._elements);
     }
     
     Array(Array<_Type>&& other)
@@ -1382,31 +1346,88 @@ public:
     
     void pushBack(const _Type& value)
     {
+        if (_size >= _capacity)
+        {
+            Array<_Type> tmp(_size, _capacity * 2 + 1, _elements);
+            swap(*this, tmp);
+        }
 
-        
+        Memory::construct(_elements + _size, value);
+        ++_size;
     }
     
     void pushBack(_Type&& value)
     {
-        
+        if (_size >= _capacity)
+        {
+            Array<_Type> tmp(_size, _capacity * 2 + 1, _elements);
+            swap(*this, tmp);
+        }
+
+        Memory::construct(_elements + _size, static_cast<_Type&&>(value));
+        ++_size;
     }
     
     void insert(int index, const _Type& value)
     {
+        ASSERT(index >= 0 && index <= _size);
         
+        if (_size >= _capacity)
+        {
+            Array<_Type> tmp(_size, _capacity * 2 + 1, _elements);
+            swap(*this, tmp);
+        }
+
+        for (int i = _size; i > index; --i)
+            _elements[i] = static_cast<_Type&&>(_elements[i - 1]);
+
+        Memory::construct(_elements + index, value);
+        ++_size;
     }
     
     void insert(int index, _Type&& value)
     {
+        ASSERT(index >= 0 && index <= _size);
         
+        if (_size >= _capacity)
+        {
+            Array<_Type> tmp(_size, _capacity * 2 + 1, _elements);
+            swap(*this, tmp);
+        }
+
+        for (int i = _size; i > index; --i)
+            _elements[i] = static_cast<_Type&&>(_elements[i - 1]);
+
+        Memory::construct(_elements + index, static_cast<_Type&&>(value));
+        ++_size;
     }
     
     void remove(int index)
     {
         ASSERT(index >= 0 && index < _size);
         
-        for (int i = index; i < _size - 1; ++i)
-            _elements[i] = _elements[i + 1];
+        int n = _size - 1;
+        for (int i = index; i < n; ++i)
+            _elements[i] = static_cast<_Type&&>(_elements[i + 1]);
+
+        Memory::destruct(_elements + n);
+        --_size;
+    }
+
+    void resize(int size, const _Type& value = _Type())
+    {
+        ensureCapacity(size);
+
+        if (size > _size)
+        {
+            for (; _size < size; ++_size)
+                Memory::construct(_elements + _size, value);
+        }
+        else
+        {
+            for (; _size > size; --_size)
+                Memory::destruct(_elements + _size);
+        }
     }
     
     void clear()
@@ -1439,12 +1460,6 @@ public:
         return elements;
     }
 
-    void resize(int size)
-    {
-        Array<_Type> tmp(*this, size);
-        swap(*this, tmp);
-    }
-
     friend void swap(Array<_Type>& left, Array<_Type>& right)
     {
         swap(left._size, right._size);
@@ -1456,12 +1471,6 @@ private:
     Array(int size, _Type* elements) :
         _size(size), _capacity(size), _elements(elements)
     {
-    }
-    
-    Array(Array<_Type>& other, int size)
-    {
-        _size = size;
-        _elements = Memory::createArrayResize(other._size, size, other._elements);
     }
 
 private:

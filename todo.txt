@@ -10,6 +10,8 @@ support unicode input
 
 porting to windows and c++:
 * change array to use capacity
+compare vs string
+fill/constructor
 * asserts and unit tests for all classes
 * don't know how much memory to allocate for utf-8
 using char_t for single char is incorrect
