@@ -1373,12 +1373,118 @@ void testArray()
         ASSERT(a2.elements() != nullptr);
         ASSERT(a2[0] == 0);
     }
+
+    // _Type& operator[](int index)
+
+    {
+        Array<int> a(12);
+        a[0] = 1; a[1] = 2;
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
+    }
+
+    // const _Type& operator[](int index) const
+
+    {
+        Array<int> a(12);
+        a[0] = 1; a[1] = 2;
+
+        const Array<int>& ca = a;
+        ASSERT(ca[0] == 1);
+        ASSERT(ca[1] == 2);
+    }
+
+    // int size() const
+
+    {
+        Array<int> a;
+        ASSERT(a.size() == 0);
+        ASSERT(a.capacity() == 0);
+        ASSERT(a.empty());
+        ASSERT(a.elements() == nullptr);
+    }
+
+    {
+        Array<int> a(3, 5);
+        a[0] = 1; a[1] = 2; a[2] = 3;
+
+        ASSERT(a.size() == 3);
+        ASSERT(a.capacity() == 5);
+        ASSERT(!a.empty());
+        ASSERT(a.elements() != nullptr);
+        ASSERT(*a.elements() == 1);
+        ASSERT(*(a.elements() + 1) == 2);
+        ASSERT(*(a.elements() + 2) == 3);
+        ASSERT(a.front() == 1);
+        ASSERT(a.back() == 3);
+
+        const Array<int>& ca = a;
+        ASSERT(ca.elements() != nullptr);
+        ASSERT(*ca.elements() == 1);
+        ASSERT(*(ca.elements() + 1) == 2);
+        ASSERT(*(ca.elements() + 2) == 3);
+        ASSERT(ca.front() == 1);
+        ASSERT(ca.back() == 3);
+    }
+
+    // void ensureCapacity(int capacity)
+
+    {
+        Array<int> a(3);
+        a[0] = 1; a[1] = 2; a[2] = 3;
+        ASSERT(a.capacity() == 3);
+        a.ensureCapacity(3);
+        ASSERT(a.capacity() == 3);
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
+        ASSERT(a[2] == 3);
+    }
+
+    {
+        Array<int> a(3);
+        a[0] = 1; a[1] = 2; a[2] = 3;
+        ASSERT(a.capacity() == 3);
+        a.ensureCapacity(5);
+        ASSERT(a.capacity() == 5);
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
+        ASSERT(a[2] == 3);
+    }
+
+    // void shrinkToLength()
+
+    {
+        Array<int> a(3);
+        a[0] = 1; a[1] = 2; a[2] = 3;
+        ASSERT(a.capacity() == 3);
+        a.shrinkToLength();
+        ASSERT(a.capacity() == 3);
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
+        ASSERT(a[2] == 3);
+    }
+
+    {
+        Array<int> a(3, 5);
+        a[0] = 1; a[1] = 2; a[2] = 3;
+        ASSERT(a.capacity() == 5);
+        a.shrinkToLength();
+        ASSERT(a.capacity() == 3);
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
+        ASSERT(a[2] == 3);
+    }
 }
 
 void testFoundation()
 {
 //    testString();
     testArray();
+
+    Array<Test> a;
+    Test t;
+    a.insert(0, t);
+    a.insert(1, t);
 }
 
 int MAIN()

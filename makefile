@@ -1,5 +1,5 @@
 TARGET=eve
-HEADERS=foundation.h
+HEADERS=test.h foundation.h
 SOURCES=test.cpp foundation.cpp
 
 all: $(TARGET).gcc

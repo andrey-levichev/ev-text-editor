@@ -11,7 +11,7 @@ support unicode input
 porting to windows and c++:
 * change array to use capacity
 compare vs string
-fill/constructor
+assign must not allocate memory if enough capacity is available
 * asserts and unit tests for all classes
 * don't know how much memory to allocate for utf-8
 using char_t for single char is incorrect

@@ -63,6 +63,11 @@ public:
         return _val;
     }
     
+    friend void swap(Test& left, Test& right)
+    {
+        swap(left._val, right._val);
+    }
+
     friend bool operator==(const Test& left, const Test& right)
     {
         return left._val == right._val;

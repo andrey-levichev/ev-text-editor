@@ -1287,22 +1287,12 @@ public:
         return _elements;
     }
 
-    Array<_Type>& front()
+    const _Type& front() const
     {
         return _elements[0];
     }
 
-    const Array<_Type>& front() const
-    {
-        return _elements[0];
-    }
-
-    Array<_Type>& back()
-    {
-        return _elements[_size - 1];
-    }
-
-    const Array<_Type>& back() const
+    const _Type& back() const
     {
         return _elements[_size - 1];
     }
@@ -1337,8 +1327,8 @@ public:
     {
         if (_size > 0)
         {
-            --_size;
             Memory::destruct(_elements + _size);
+            --_size;
         }
         else
             throw Exception("array is empty");
@@ -1378,10 +1368,11 @@ public:
             swap(*this, tmp);
         }
 
-        for (int i = _size; i > index; --i)
-            _elements[i] = static_cast<_Type&&>(_elements[i - 1]);
+        Memory::construct(_elements + _size, value);
 
-        Memory::construct(_elements + index, value);
+        for (int i = _size; i > index; --i)
+            swap(_elements[i], _elements[i - 1]);
+
         ++_size;
     }
     
@@ -1395,10 +1386,11 @@ public:
             swap(*this, tmp);
         }
 
-        for (int i = _size; i > index; --i)
-            _elements[i] = static_cast<_Type&&>(_elements[i - 1]);
+        Memory::construct(_elements + _size, static_cast<_Type&&>(value));
 
-        Memory::construct(_elements + index, static_cast<_Type&&>(value));
+        for (int i = _size; i > index; --i)
+            swap(_elements[i], _elements[i - 1]);
+
         ++_size;
     }
     
@@ -1406,12 +1398,12 @@ public:
     {
         ASSERT(index >= 0 && index < _size);
         
-        int n = _size - 1;
-        for (int i = index; i < n; ++i)
-            _elements[i] = static_cast<_Type&&>(_elements[i + 1]);
-
-        Memory::destruct(_elements + n);
         --_size;
+
+        for (int i = index; i < _size; ++i)
+            swap(_elements[i], _elements[i + 1]);
+
+        Memory::destruct(_elements + _size);
     }
 
     void resize(int size, const _Type& value = _Type())
