@@ -39,7 +39,7 @@ int asprintf(char_t** str, const char_t* format, ...)
 
 // String
 
-String::String(int count, char_t c)
+String::String(int count, char_t ch)
 {
     ASSERT(count >= 0);
 
@@ -48,7 +48,7 @@ String::String(int count, char_t c)
         _length = count;
         _capacity = _length + 1;
         _chars = Memory::allocate<char_t>(_capacity);
-        STRSET(_chars, c, _length);
+        STRSET(_chars, ch, _length);
         _chars[_length] = 0;
     }
     else
@@ -221,6 +221,12 @@ String& String::operator+=(const char_t* chars)
     return *this;
 }
 
+String& String::operator+=(const char_t ch)
+{
+    append(ch);
+    return *this;
+}
+
 String String::substr(int pos, int len) const
 {
     return String(*this, pos, len);
@@ -326,6 +332,17 @@ void String::append(const char_t* chars)
         STRCPY(_chars + _length, chars);
         _length += len;
     }
+}
+
+void String::append(const char_t ch)
+{
+    int capacity = _length + 2;
+
+    if (capacity > _capacity)
+        ensureCapacity(capacity * 2);
+
+    _chars[_length++] = ch;
+    _chars[_length] = 0;
 }
 
 void String::appendFormat(const char_t* format, ...)
@@ -716,7 +733,7 @@ void String::reverse()
 
         while (p < q)
         {
-            char_t c = *p; *p = *q; *q = c;
+            char_t ch = *p; *p = *q; *q = ch;
             ++p; --q;
         }
     }
@@ -1226,22 +1243,16 @@ void Console::writeLine(const char_t* format, ...)
 
 String Console::readLine()
 {
-    char_t line[1024];
-    int len = 0, maxlen = sizeof(line) - 1;
+    String line;
+    int ch = GETCHAR();
 
-    do
+    while (!(ch == '\n' || ch == CHAR_EOF))
     {
-        int c = GETCHAR();
-
-        if (c == '\n' || c == CHAR_EOF)
-            break;
-
-        line[len++] = c;
+        line.append(ch);
+        ch = GETCHAR();
     }
-    while (len < maxlen);
 
-    line[len] = 0;
-    return String(static_cast<const char_t*>(line));
+    return line;
 }
 
 #ifdef PLATFORM_WINDOWS

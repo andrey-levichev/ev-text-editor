@@ -673,7 +673,7 @@ public:
             throw NullPointerException();
     }
 
-    operator bool()
+    operator bool() const
     {
         return _ptr != nullptr;
     }
@@ -686,7 +686,7 @@ public:
     template<typename... _Args>
     void create(_Args&&... args)
     {
-        Memory::destroy(_ptr);
+        reset();
         _ptr = Memory::create<_Type>(static_cast<_Args&&>(args)...);
     }
 
@@ -792,7 +792,7 @@ public:
             throw NullPointerException();
     }
 
-    operator bool()
+    operator bool() const
     {
         return _sharedPtr != nullptr;
     }
@@ -816,9 +816,7 @@ public:
     template<typename... _Args>
     void create(_Args&&... args)
     {
-        if (_sharedPtr)
-            releaseRef();
-
+        reset();
         _sharedPtr = Memory::create<RefCountedObject>(static_cast<_Args&&>(args)...);
     }
 
@@ -913,7 +911,7 @@ public:
     {
     }
 
-    String(int count, char_t c);
+    String(int count, char_t ch);
     String(const String& other);
     String(const String& other, int pos, int len);
     String(const char_t* chars);
@@ -931,6 +929,7 @@ public:
     
     String& operator+=(const String& str);
     String& operator+=(const char_t* chars);
+    String& operator+=(const char_t ch);
 
     int length() const
     {
@@ -967,6 +966,8 @@ public:
     
     void append(const String& str);
     void append(const char_t* chars);
+    void append(const char_t ch);
+
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
 

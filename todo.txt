@@ -7,19 +7,10 @@ support unicode input
 * paste lines at any column
 * extra indent when adding new line
 * set selection to empty after every text editing operation
-
-porting to windows and c++:
-* change array to use capacity
-compare vs string
-assign must not allocate memory if enough capacity is available
-* asserts and unit tests for all classes
 * don't know how much memory to allocate for utf-8
 using char_t for single char is incorrect
 pos, len must be in chars not in bytes
 * decode/encode text from file to runtime enconding, translate newlines
-* list front/back should return references
-maybe add frontNode/backNode for pointers
-add front/back to string?
 
 basic features:
 * search/replace
@@ -44,3 +35,30 @@ cache results in a file
 offer completion after second letter
 offer recently used, located nearby first
 complete on tab or punctuation
+
+foundation features:
+* convert any object to string
+* simple parsing a la scanf
+* type safe string formatting
+need functions to format numbers
+can use sprintf but it can't format floating point numbers with full precision
+%s is not handled consistently between compilers
+* date and time
+* locales (formatting, string compare/search/case conversion)
+* encoding conversion
+* threads/atomics/async
+* initializer_list support
+* function objects (function/bind)
+* type traits
+* review rval ref usage, insert in place, insert rval ref
+* minimize copying and memory allocation in existing classes
+* string to binary/hex conversion
+* change array to use capacity
+compare vs string
+assign must not allocate memory if enough capacity is available
+* asserts and unit tests for all classes
+* separate array class for pod types?
+* list front/back should return references
+maybe add frontNode/backNode for pointers
+add front/back to string?
+* map/set move constructor is broken

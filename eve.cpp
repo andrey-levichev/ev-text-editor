@@ -198,20 +198,20 @@ void clearConsole()
 
 #ifndef _WIN32
 
-void readRegularKey(const char_t c, Key& key)
+void readRegularKey(const char_t ch, Key& key)
 {
-    key.ch = c;
+    key.ch = ch;
 
-    if (c == '\t')
+    if (ch == '\t')
         key.code = KEY_TAB;
-    else if (c == '\n')
+    else if (ch == '\n')
         key.code = KEY_ENTER;
-    else if (c == 0x7f)
+    else if (ch == 0x7f)
         key.code = KEY_BACKSPACE;
-    else if (iscntrl(c))
+    else if (iscntrl(ch))
         key.ctrl = true;
     else
-        key.shift = isupper(c);
+        key.shift = isupper(ch);
 }
 
 const char_t* readSpecialKey(const char_t* p, Key& key)
@@ -480,23 +480,23 @@ int readKeys()
     return numKeys;
 }
 
-bool isIdent(char_t c)
+bool isIdent(char_t ch)
 {
-    return ISALNUM(c) || c == '_';
+    return ISALNUM(ch) || ch == '_';
 }
 
-char_t* findChar(char_t* str, char_t c)
+char_t* findChar(char_t* str, char_t ch)
 {
-    while (*str && *str != c)
+    while (*str && *str != ch)
         ++str;
 
     return str;
 }
 
-char_t* findCharBack(char_t* start, char_t* str, char_t c)
+char_t* findCharBack(char_t* start, char_t* str, char_t ch)
 {
     while (str > start)
-        if (*--str == c)
+        if (*--str == ch)
             return str;
 
     return start;
@@ -678,21 +678,21 @@ void updateScreen()
     {
         for (int i = 1; i <= len; ++i)
         {
-            char_t c;
+            char_t ch;
 
             if (*p == '\t')
             {
-                c = ' ';
+                ch = ' ';
                 if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
                     ++p;
             }
             else if (*p && *p != '\n')
-                c = *p++;
+                ch = *p++;
             else
-                c = ' ';
+                ch = ' ';
 
             if (i >= left)
-                *q++ = c;
+                *q++ = ch;
         }
 
         if (*p == '\n')
@@ -1035,9 +1035,9 @@ bool findWordAtCursor()
     return findNext();
 }
 
-void insertChar(char_t c)
+void insertChar(char_t ch)
 {
-    if (c == '\n') // new line
+    if (ch == '\n') // new line
     {
         char_t* p = findCharBack(text, text + position, '\n');
         if (*p == '\n')
@@ -1056,17 +1056,17 @@ void insertChar(char_t c)
         insertChars(chars, position, len);
         position += len;
     }
-    else if (c == '\t') // tab
+    else if (ch == '\t') // tab
     {
         char_t chars[16];
         STRSET(chars, ' ', TAB_SIZE);
         insertChars(chars, position, TAB_SIZE);
         position += TAB_SIZE;
     }
-    else if (c == 0x14) // real tab
+    else if (ch == 0x14) // real tab
         insertChars(STR("\t"), position++, 1);
     else
-        insertChars(&c, position++, 1);
+        insertChars(&ch, position++, 1);
 
     positionToLineColumn();
 }

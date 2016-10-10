@@ -12,7 +12,7 @@ void testString()
         ASSERT(s.capacity() == 0);
     }
 
-    // String(int count, char_t c)
+    // String(int count, char_t ch)
 
     ASSERT_EXCEPTION(Exception, String(-1));
 
