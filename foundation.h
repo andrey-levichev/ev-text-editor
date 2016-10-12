@@ -120,6 +120,21 @@
 #include <io.h>
 #include <fcntl.h>
 
+#else
+
+#include <alloca.h>
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#endif
+
+#if defined(PLATFORM_WINDOWS) && !defined(COMPILER_GCC)
+
+#define CHAR_ENCODING_UTF16
 #define MAIN wmain
 #define STR(arg) L##arg
 typedef wchar_t char_t;
@@ -155,14 +170,7 @@ typedef wchar_t char_t;
 
 #else
 
-#include <alloca.h>
-#include <termios.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
+#define CHAR_ENCODING_UTF8
 #define MAIN main
 #define STR(arg) arg
 typedef char char_t;
@@ -279,7 +287,7 @@ inline char_t* STRMOVE(char_t* destStr, const char_t* srcStr, int len)
     return destStr + len;
 }
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) && !defined(COMPILER_GCC)
 
 inline const wchar_t* wcscasestr(const wchar_t* str, const wchar_t* searchStr)
 {
@@ -289,9 +297,7 @@ inline const wchar_t* wcscasestr(const wchar_t* str, const wchar_t* searchStr)
     return index >= 0 ? str + index : nullptr;
 }
 
-#endif
-
-#ifdef PLATFORM_AIX
+#elif defined(PLATFORM_AIX) || (defined(PLATFORM_WINDOWS) && defined(COMPILER_GCC))
 
 inline const char* strcasestr(const char* str, const char* searchStr)
 {
@@ -2657,13 +2663,7 @@ private:
 class Console
 {
 public:
-#ifdef PLATFORM_WINDOWS
-    static void enableUnicode();
-    static void openConsole();
-#else
-    static void setCharInputMode();
-    static void setLineInputMode();
-#endif
+    static void setConsoleMode(bool unicode, bool canonical);
 
     static void write(char_t ch);
     static void write(const String& str);

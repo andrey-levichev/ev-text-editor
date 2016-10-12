@@ -42,7 +42,7 @@ foundation features:
 * type safe string formatting
 need functions to format numbers
 can use sprintf but it can't format floating point numbers with full precision
-%s is not handled consistently between compilers
+%s doesn't work in mingw with wchar_t
 * date and time
 * locales (formatting, string compare/search/case conversion)
 * encoding conversion

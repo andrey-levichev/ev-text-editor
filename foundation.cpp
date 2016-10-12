@@ -7,7 +7,7 @@ int vasprintf(char_t** str, const char_t* format, va_list args)
     va_list args2;
 
     va_copy(args2, args);
-#ifdef PLATFORM_WINDOWS
+#ifdef CHAR_ENCODING_UTF16
     int len = _vscwprintf(format, args2);
 #else
     int len = vsnprintf(nullptr, 0, format, args2);
@@ -19,7 +19,7 @@ int vasprintf(char_t** str, const char_t* format, va_list args)
 
     *str = Memory::allocate<char_t>(len + 1);
 
-#ifdef PLATFORM_WINDOWS
+#ifdef CHAR_ENCODING_UTF16
     return _vsnwprintf(*str, len + 1, format, args);
 #else
     return vsnprintf(*str, len + 1, format, args);
@@ -1163,44 +1163,26 @@ bool operator>=(const String& left, const char_t* right)
 
 // Console
 
+void Console::setConsoleMode(bool unicode, bool canonical)
+{
 #ifdef PLATFORM_WINDOWS
-
-void Console::enableUnicode()
-{
-    _setmode(_fileno(stdout), _O_U16TEXT);
-}
-
-void Console::openConsole()
-{
-    AllocConsole();
-    _wfreopen(STR("CONOUT$"), STR("w"), stdout);
-}
-
+    _setmode(_fileno(stdout), unicode ? _O_U16TEXT : _O_U8TEXT);
 #else
-
-void Console::setCharInputMode()
-{
-    struct termios ta;
-
+    termios ta;
     tcgetattr(STDIN_FILENO, &ta);
-    ta.c_lflag &= ~(ECHO|ICANON);
-    ta.c_cc[VTIME] = 0;
-    ta.c_cc[VMIN] = 1;
 
-    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
-}
+    if (canonical)
+        ta.c_lflag |= ECHO | ICANON;
+    else
+    {
+        ta.c_lflag &= ~(ECHO | ICANON);
+        ta.c_cc[VTIME] = 0;
+        ta.c_cc[VMIN] = 1;
+    }
 
-void Console::setLineInputMode()
-{
-    struct termios ta;
-
-    tcgetattr(STDIN_FILENO, &ta);
-    ta.c_lflag |= ECHO|ICANON;
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
-}
-
+    tcsetattr(STDIN_FILENO, TCSANOW, &ta);    
 #endif
+}
 
 void Console::write(char_t ch)
 {

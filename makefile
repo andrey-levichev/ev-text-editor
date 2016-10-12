@@ -2,7 +2,7 @@ TARGET=eve
 HEADERS=test.h foundation.h
 SOURCES=test.cpp foundation.cpp
 
-all: $(TARGET).mingw.exe
+all: $(TARGET).vcpp.exe
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
@@ -13,8 +13,8 @@ $(TARGET).gcc: $(HEADERS) $(SOURCES)
 	g++ -std=gnu++11 -g $(SOURCES) -o $@ -I.
 
 $(TARGET).mingw.exe: $(HEADERS) $(SOURCES)
-	g++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -municode -I. \
-		-D_UNICODE -DUNICODE -D_WIN32_WINNT=_WIN32_WINNT_WIN7
+	g++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I. \
+		-D_WIN32_WINNT=_WIN32_WINNT_WIN7
 
 $(TARGET).clang: $(HEADERS) $(SOURCES)
 	clang++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I.
