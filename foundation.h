@@ -535,6 +535,30 @@ inline void destroy(_Type* ptr)
     deallocate(ptr);
 }
 
+template<typename _Type>
+inline void destructArray(int size, _Type* elements)
+{
+    ASSERT(size >= 0);
+    ASSERT(elements);
+
+    while (size-- > 0)
+        elements[size].~_Type();
+}
+
+template<typename _Type>
+inline void destroyArray(int size, _Type* elements)
+{
+    ASSERT(size >= 0);
+
+    if (elements)
+    {
+        while (size-- > 0)
+            elements[size].~_Type();
+
+        deallocate(elements);
+    }
+}
+
 template<typename _Type, typename... _Args>
 inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 {
@@ -551,10 +575,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
     }
     catch (...)
     {
-        while (i-- > 0)
-            ptr[i].~_Type();
-
-        deallocate(ptr);
+        destroyArray(i, ptr);
         throw;
     }
 
@@ -577,38 +598,11 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* elements)
     }
     catch (...)
     {
-        while (i-- > 0)
-            ptr[i].~_Type();
-
-        deallocate(ptr);
+        destroyArray(i, ptr);
         throw;
     }
 
     return ptr;
-}
-
-template<typename _Type>
-inline void destructArray(int size, _Type* elements)
-{
-    ASSERT(size >= 0);
-    ASSERT(elements);
-
-    for (int i = 0; i < size; ++i)
-        elements[i].~_Type();
-}
-
-template<typename _Type>
-inline void destroyArray(int size, _Type* elements)
-{
-    ASSERT(size >= 0);
-
-    if (elements)
-    {
-        for (int i = 0; i < size; ++i)
-            elements[i].~_Type();
-
-        deallocate(elements);
-    }
 }
 
 };
@@ -1286,16 +1280,6 @@ public:
     const _Type* elements() const
     {
         return _elements;
-    }
-
-    const _Type& front() const
-    {
-        return _elements[0];
-    }
-
-    const _Type& back() const
-    {
-        return _elements[_size - 1];
     }
 
     void ensureCapacity(int capacity)
@@ -1995,7 +1979,7 @@ public:
     }
 
     Map(Map<_Key, _Value>&& other) :
-        _keyValues(other._keyValues)
+        _keyValues(static_cast<Array<List<KeyValue>>&&>(other._keyValues))
     {
         _size = other._size;
         other._size = 0;
@@ -2415,7 +2399,7 @@ public:
     }
 
     Set(Set<_Type>&& other) :
-        _values(other._values)
+        _values(static_cast<Array<List<_Type>>&&>(other._values))
     {
         _size = other._size;
         other._size = 0;

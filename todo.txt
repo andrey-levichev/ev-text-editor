@@ -56,9 +56,5 @@ can use sprintf but it can't format floating point numbers with full precision
 * change array to use capacity
 compare vs string
 assign must not allocate memory if enough capacity is available
+separate array class for pod types?
 * asserts and unit tests for all classes
-* separate array class for pod types?
-* list front/back should return references
-maybe add frontNode/backNode for pointers
-add front/back to string?
-* map/set move constructor is broken

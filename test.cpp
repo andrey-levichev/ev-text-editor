@@ -1415,16 +1415,12 @@ void testArray()
         ASSERT(*a.elements() == 1);
         ASSERT(*(a.elements() + 1) == 2);
         ASSERT(*(a.elements() + 2) == 3);
-        ASSERT(a.front() == 1);
-        ASSERT(a.back() == 3);
 
         const Array<int>& ca = a;
         ASSERT(ca.elements() != nullptr);
         ASSERT(*ca.elements() == 1);
         ASSERT(*(ca.elements() + 1) == 2);
         ASSERT(*(ca.elements() + 2) == 3);
-        ASSERT(ca.front() == 1);
-        ASSERT(ca.back() == 3);
     }
 
     // void ensureCapacity(int capacity)
@@ -1480,18 +1476,18 @@ void testFoundation()
 {
 //    testString();
     testArray();
+}
 
-    Array<Test> a;
-    Test t;
-    a.insert(0, t);
-    a.insert(1, t);
+void testMisc()
+{
+    Console::writeLine(STR("str = %s"), STR("zhopa"));
 }
 
 int MAIN()
 {
     try
     {
-        testFoundation();
+        testMisc();
     }
     catch (Exception& ex)
     {
