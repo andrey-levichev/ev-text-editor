@@ -40,9 +40,6 @@ foundation features:
 * convert any object to string
 * simple parsing a la scanf
 * type safe string formatting
-need functions to format numbers
-can use sprintf but it can't format floating point numbers with full precision
-%s doesn't work in mingw with wchar_t
 * date and time
 * locales (formatting, string compare/search/case conversion)
 * encoding conversion
@@ -53,8 +50,7 @@ can use sprintf but it can't format floating point numbers with full precision
 * review rval ref usage, insert in place, insert rval ref
 * minimize copying and memory allocation in existing classes
 * string to binary/hex conversion
-* change array to use capacity
-compare vs string
-assign must not allocate memory if enough capacity is available
-separate array class for pod types?
 * asserts and unit tests for all classes
+why implementation of string and array is different
+string with capacity constructors
+go back to doubling capacity?

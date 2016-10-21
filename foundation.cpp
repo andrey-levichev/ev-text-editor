@@ -66,7 +66,7 @@ String::String(const String& other)
         _length = other._length;
         _capacity = _length + 1;
         _chars = Memory::allocate<char_t>(_capacity);
-        STRCPY(_chars, other._chars);
+        STRNCPY(_chars, other._chars, _length + 1);
     }
     else
     {
@@ -106,7 +106,7 @@ String::String(const char_t* chars)
         _length = STRLEN(chars);
         _capacity = _length + 1;
         _chars = Memory::allocate<char_t>(_capacity);
-        STRCPY(_chars, chars);
+        STRNCPY(_chars, chars, _length + 1);
     }
     else
     {
@@ -196,16 +196,8 @@ String& String::operator=(const char_t* chars)
 
 String& String::operator=(String&& other)
 {
-    Memory::deallocate(_chars);
-
-    _length = other._length;
-    _capacity = other._capacity;
-    _chars = other._chars;
-    
-    other._length = 0;
-    other._capacity = 0;
-    other._chars = nullptr;
-
+    String tmp(static_cast<String&&>(other));
+    swap(*this, tmp);
     return *this;
 }
 
@@ -238,109 +230,117 @@ void String::ensureCapacity(int capacity)
 
     if (capacity > _capacity)
     {
-        String tmp(capacity);
-        swap(*this, tmp);
-        
-        if (tmp._length > 0)
+        if (_chars)
+            _chars = Memory::reallocate(_chars, capacity);
+        else
         {
-            _length = tmp._length;
-            STRCPY(_chars, tmp._chars);
+            _chars = Memory::allocate<char_t>(capacity);
+            *_chars = 0;
         }
+
+        _capacity = capacity;
     }
 }
 
 void String::shrinkToLength()
 {
-    if (_capacity > _length + 1)
+    if (_length > 0)
     {
-        String tmp(*this);
-        swap(*this, tmp);
+        int capacity = _length + 1;
+
+        if (_capacity > capacity)
+        {
+            _chars = Memory::reallocate(_chars, capacity);
+            _capacity = capacity;
+        }
     }
+    else
+        reset();
 }
 
 void String::assign(const String& str)
 {
-    if (str._length > 0)
+    if (this != &str)
     {
-        int capacity = str._length + 1;
-
-        if (capacity > _capacity)
+        if (str._length > 0)
         {
-            String tmp(str);
-            swap(*this, tmp);
+            int capacity = str._length + 1;
+
+            if (capacity > _capacity)
+            {
+                String tmp(str);
+                swap(*this, tmp);
+            }
+            else
+            {
+                _length = str._length;
+                STRNCPY(_chars, str._chars, _length + 1);
+            }
         }
         else
-        {
-            _length = str._length;
-            STRCPY(_chars, str._chars);
-        }
+            clear();
     }
-    else
-        clear();
 }
 
 void String::assign(const char_t* chars)
 {
     ASSERT(chars);
 
-    if (*chars)
+    if (_chars != chars)
     {
-        int len = STRLEN(chars);
-        int capacity = len + 1;
-
-        if (capacity > _capacity)
+        if (*chars)
         {
-            String tmp(chars);
-            swap(*this, tmp);
+            int len = STRLEN(chars);
+            int capacity = len + 1;
+
+            if (capacity > _capacity)
+            {
+                String tmp(chars);
+                swap(*this, tmp);
+            }
+            else
+            {
+                _length = len;
+                STRNCPY(_chars, chars, _length + 1);
+            }
         }
         else
-        {
-            _length = len;
-            STRCPY(_chars, chars);
-        }
+            clear();
     }
-    else
-        clear();
 }
 
 void String::append(const String& str)
 {
+    ASSERT(this != &str);
+
     if (str._length > 0)
     {
-        int capacity = _length + str._length + 1;
-
-        if (capacity > _capacity)
-            ensureCapacity(capacity * 2);
-
-        STRCPY(_chars + _length, str._chars);
+        ensureCapacity(_length + str._length + 1);
+        STRNCPY(_chars + _length, str._chars, str._length);
         _length += str._length;
+        _chars[_length] = 0;
     }
 }
 
 void String::append(const char_t* chars)
 {
     ASSERT(chars);
+    ASSERT(_chars != chars);
 
     if (*chars)
     {
         int len = STRLEN(chars);
-        int capacity = _length + len + 1;
 
-        if (capacity > _capacity)
-            ensureCapacity(capacity * 2);
-
-        STRCPY(_chars + _length, chars);
+        ensureCapacity(_length + len + 1);
+        STRNCPY(_chars + _length, chars, len);
         _length += len;
+        _chars[_length] = 0;
     }
 }
 
 void String::append(const char_t ch)
 {
-    int capacity = _length + 2;
-
-    if (capacity > _capacity)
-        ensureCapacity(capacity * 2);
-
+    ensureCapacity(_length + 2);
     _chars[_length++] = ch;
     _chars[_length] = 0;
 }
@@ -362,13 +362,11 @@ void String::appendFormat(const char_t* format, va_list args)
 void String::insert(int pos, const String& str)
 {
     ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(this != &str);
 
     if (str._length > 0)
     {
-        int capacity = _length + str._length + 1;
-
-        if (capacity > _capacity)
-            ensureCapacity(capacity * 2);
+        ensureCapacity(_length + str._length + 1);
 
         char_t* p = _chars + pos;
         STRMOVE(p + str._length, p, _length - pos + 1);
@@ -381,14 +379,12 @@ void String::insert(int pos, const char_t* chars)
 {
     ASSERT(pos >= 0 && pos <= _length);
     ASSERT(chars);
+    ASSERT(_chars != chars);
 
     if (*chars)
     {
         int len = STRLEN(chars);
-        int capacity = _length + len + 1;
-
-        if (capacity > _capacity)
-            ensureCapacity(capacity * 2);
+        ensureCapacity(_length + len + 1);
 
         char_t* p = _chars + pos;
         STRMOVE(p + len, p, _length - pos + 1);
@@ -412,6 +408,8 @@ void String::erase(int pos, int len)
 
 void String::erase(const String& str)
 {
+    ASSERT(this != &str);
+
     if (str._length > 0)
     {
         if (_length > 0)
@@ -451,6 +449,7 @@ void String::erase(const String& str)
 void String::erase(const char_t* chars)
 {
     ASSERT(chars);
+    ASSERT(_chars != chars);
 
     if (*chars)
     {
@@ -518,6 +517,7 @@ void String::replace(int pos, int len, const String& str)
 {
     ASSERT(pos >= 0 && pos <= _length);
     ASSERT(len >= 0 && pos + len <= _length);
+    ASSERT(this != &str);
 
     if (str._length > 0)
     {
@@ -525,9 +525,7 @@ void String::replace(int pos, int len, const String& str)
         
         if (newLen > 0)
         {
-            int capacity = newLen + 1;
-            if (capacity > _capacity)
-                ensureCapacity(capacity * 2);
+            ensureCapacity(newLen + 1);
 
             char_t* p = _chars + pos;
             STRMOVE(p + str._length, p + len, _length - pos - len + 1);
@@ -546,6 +544,7 @@ void String::replace(int pos, int len, const char_t* chars)
     ASSERT(pos >= 0 && pos <= _length);
     ASSERT(len >= 0 && pos + len <= _length);
     ASSERT(chars);
+    ASSERT(_chars != chars);
 
     if (*chars)
     {
@@ -554,9 +553,7 @@ void String::replace(int pos, int len, const char_t* chars)
         
         if (newLen > 0)
         {
-            int capacity = newLen + 1;
-            if (capacity > _capacity)
-                ensureCapacity(capacity * 2);
+            ensureCapacity(newLen + 1);
 
             char_t* p = _chars + pos;
             STRMOVE(p + replaceLen, p + len, _length - pos - len + 1);
@@ -572,6 +569,9 @@ void String::replace(int pos, int len, const char_t* chars)
 
 void String::replace(const String& searchStr, const String& replaceStr)
 {
+    ASSERT(this != &searchStr);
+    ASSERT(this != &replaceStr);
+
     if (searchStr._length > 0)
     {
         if (replaceStr._length > 0)
@@ -591,8 +591,7 @@ void String::replace(const String& searchStr, const String& replaceStr)
                 if (foundCnt > 0)
                 {
                     int capacity = _length + foundCnt * (replaceStr._length - searchStr._length) + 1;
-                    if (capacity > _capacity)
-                        ensureCapacity(capacity * 2);
+                    ensureCapacity(capacity);
 
                     from = _chars;
                     while ((found = STRSTR(from, searchStr._chars)) != nullptr)
@@ -615,7 +614,9 @@ void String::replace(const String& searchStr, const String& replaceStr)
 void String::replace(const char_t* searchChars, const char_t* replaceChars)
 {
     ASSERT(searchChars);
+    ASSERT(_chars != searchChars);
     ASSERT(replaceChars);
+    ASSERT(_chars != replaceChars);
 
     if (*searchChars)
     {
@@ -639,8 +640,7 @@ void String::replace(const char_t* searchChars, const char_t* replaceChars)
                     int replaceLen = STRLEN(replaceChars);
 
                     int capacity = _length + foundCnt * (replaceLen - searchLen) + 1;
-                    if (capacity > _capacity)
-                        ensureCapacity(capacity * 2);
+                    ensureCapacity(capacity);
 
                     from = _chars;
                     while ((found = STRSTR(from, searchChars)) != nullptr)

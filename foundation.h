@@ -536,9 +536,11 @@ inline void destruct(_Type* ptr)
 template<typename _Type>
 inline void destroy(_Type* ptr)
 {
-    ASSERT(ptr);
-    ptr->~_Type();
-    deallocate(ptr);
+    if (ptr)
+    {
+        ptr->~_Type();
+        deallocate(ptr);
+    }
 }
 
 template<typename _Type>
@@ -566,7 +568,7 @@ inline void destroyArray(int size, _Type* elements)
 }
 
 template<typename _Type, typename... _Args>
-inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
+inline _Type* createFillArray(int size, int capacity, _Args&&... args)
 {
     ASSERT(size >= 0);
     ASSERT(capacity >= 0 && size <= capacity);
@@ -589,7 +591,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 }
 
 template<typename _Type>
-inline _Type* createArrayCopy(int size, int capacity, const _Type* elements)
+inline _Type* createCopyArray(int size, int capacity, const _Type* elements)
 {
     ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
     ASSERT(capacity >= 0 && size <= capacity);
@@ -651,9 +653,8 @@ public:
 
     UniquePtr& operator=(UniquePtr<_Type>&& other)
     {
-        Memory::destroy(_ptr);
-        _ptr = other._ptr;
-        other._ptr = nullptr;
+        UniquePtr<_Type> tmp(static_cast<UniquePtr<_Type>&&>(other));
+        swap(*this, tmp);
         return *this;
     }
 
@@ -765,14 +766,8 @@ public:
 
     SharedPtr<_Type>& operator=(const SharedPtr<_Type>& other)
     {
-        if (_sharedPtr)
-            releaseRef();
-
-        _sharedPtr = other._sharedPtr;
-
-        if (_sharedPtr)
-            addRef();
-
+        SharedPtr<_Type> tmp(other);
+        swap(*this, tmp);
         return *this;
     }
 
@@ -1192,7 +1187,7 @@ public:
         
         _size = size;
         _capacity = capacity;
-        _elements = Memory::createArrayFill<_Type>(size, capacity);
+        _elements = Memory::createFillArray<_Type>(size, capacity);
     }
     
     Array(int size, const _Type* elements) : Array(size, size, elements)
@@ -1206,14 +1201,14 @@ public:
         
         _size = size;
         _capacity = capacity;
-        _elements = Memory::createArrayCopy(size, capacity, elements);
+        _elements = Memory::createCopyArray(size, capacity, elements);
     }
 
     Array(const Array<_Type>& other)
     {
         _size = other._size;
         _capacity = other._size;
-        _elements = Memory::createArrayCopy(other._size, other._size, other._elements);
+        _elements = Memory::createCopyArray(other._size, other._size, other._elements);
     }
     
     Array(Array<_Type>&& other)
@@ -1240,16 +1235,8 @@ public:
 
     Array<_Type>& operator=(Array<_Type>&& other)
     {
-        Memory::destroyArray(_size, _elements);
-
-        _size = other._size;
-        _capacity = other._capacity;
-        _elements = other._elements;
-        
-        other._size = 0;
-        other._capacity = 0;
-        other._elements = nullptr;
-
+        Array<_Type> tmp(static_cast<Array<_Type>&&>(other));
+        swap(*this, tmp);
         return *this;
     }
 
@@ -1310,8 +1297,24 @@ public:
 
     void assign(const Array<_Type>& other)
     {
-        Array<_Type> tmp(other);
-        swap(*this, tmp);
+        if (this != &other)
+        {
+            if (other._size <= _capacity)
+            {
+                clear();
+
+                while (_size < other._size)
+                {
+                    Memory::construct<_Type>(_elements + _size, other[_size]);
+                    ++_size;
+                }
+            }
+            else
+            {
+                Array<_Type> tmp(other);
+                swap(*this, tmp);
+            }
+        }
     }
 
     void popBack()
@@ -1632,13 +1635,8 @@ public:
 
     List<_Type>& operator=(List<_Type>&& other)
     {
-        destroyNodes();
-
-        _front = other._front;
-        _back = other._back;
-        other._front = nullptr;
-        other._back = nullptr;
-
+        List<_Type> tmp(static_cast<List<_Type>&&>(other));
+        swap(*this, tmp);
         return *this;
     }
 
@@ -2051,12 +2049,8 @@ public:
 
     Map<_Key, _Value>& operator=(Map<_Key, _Value>&& other)
     {
-        clear();
-
-        _keyValues = other._keyValues;
-        _size = other._size;
-        other._size = 0;
-
+        Map<_Key, _Value> tmp(static_cast<Map<_Key, _Value>&&>(other));
+        swap(*this, tmp);
         return *this;
     }
 
@@ -2420,12 +2414,8 @@ public:
 
     Set<_Type>& operator=(Set<_Type>&& other)
     {
-        clear();
-
-        _values = other._values;
-        _size = other._size;
-        other._size = 0;
-
+        Set<_Type> tmp(static_cast<Set<_Type>&&>(other));
+        swap(*this, tmp);
         return *this;
     }
 
