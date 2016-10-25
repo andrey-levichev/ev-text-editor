@@ -188,19 +188,7 @@ void testString()
 
     // String& operator=(const String& other);
 
-    {
-        String s1(STR("a")), s2;
-        s2 = s1;
-        ASSERT(s2 == STR("a"));
-    }
-
     // String& operator=(const char_t* chars);
-
-    {
-        String s;
-        s = STR("a");
-        ASSERT(s == STR("a"));
-    }
 
     // String& operator=(String&& other);
 
@@ -219,27 +207,9 @@ void testString()
 
     // String& operator+=(const String& str);
 
-    {
-        String s(STR("a"));
-        s += String(STR("b"));
-        ASSERT(s == STR("ab"));
-    }
-
     // String& operator+=(const char_t* chars)
 
-    {
-        String s(STR("a"));
-        s += STR("b");
-        ASSERT(s == STR("ab"));
-    }
-
     // String& operator+=(const char_t ch)
-
-    {
-        String s(STR("a"));
-        s += 'b';
-        ASSERT(s == STR("ab"));
-    }
 
     // length/capacity/str/chars/empty
 
@@ -465,6 +435,16 @@ void testString()
         s.append(STR("b"));
         ASSERT(s == STR("b"));
         ASSERT(s.capacity() == 10);
+    }
+
+    // void append(const char_t ch)
+
+    {
+        String s;
+        s.append('a');
+        ASSERT(s == STR("a"));
+        s.append('b');
+        ASSERT(s == STR("ab"));
     }
 
     // void appendFormat(const char_t* format, ...)
@@ -797,8 +777,6 @@ void testString()
     }
 
     // String acquire(char_t* chars)
-
-    ASSERT_EXCEPTION(Exception, String::acquire(nullptr));
 
     {
         char_t* p = Memory::allocate<char_t>(1);
@@ -1452,6 +1430,15 @@ void testString()
             STR("abc"), 123, 123.45) == STR("str = abc, int = 123, float = 123.45"));
 }
 
+template<typename _Type>
+bool compareArray(const Array<_Type>& array, const _Type* elements)
+{
+    for (int i = 0; i < array.size(); ++i)
+        if (array[i] != elements[i])
+            return false;
+    return true;
+}
+
 void testArray()
 {
     int elem[] = { 1, 2, 3 };
@@ -1554,14 +1541,6 @@ void testArray()
         }
 
         {
-            Array<int> a(1, 1, ep);
-            ASSERT(a.size() == 1);
-            ASSERT(a.capacity() == 1);
-            ASSERT(a.elements() != ep);
-            ASSERT(a[0] == *ep);
-        }
-
-        {
             Array<int> a(1, 2, ep);
             ASSERT(a.size() == 1);
             ASSERT(a.capacity() == 2);
@@ -1575,10 +1554,6 @@ void testArray()
     {
         Array<int> a1, a2(a1);
 
-        ASSERT(a1.size() == 0);
-        ASSERT(a1.capacity() == 0);
-        ASSERT(a1.elements() == nullptr);
-
         ASSERT(a2.size() == 0);
         ASSERT(a2.capacity() == 0);
         ASSERT(a2.elements() == nullptr);
@@ -1586,11 +1561,6 @@ void testArray()
 
     {
         Array<int> a1(1), a2(a1);
-
-        ASSERT(a1.size() == 1);
-        ASSERT(a1.capacity() == 1);
-        ASSERT(a1.elements() != nullptr);
-        ASSERT(a1[0] == 0);
 
         ASSERT(a2.size() == 1);
         ASSERT(a2.capacity() == 1);
@@ -1617,36 +1587,6 @@ void testArray()
 
     // Array<_Type>& operator=(const Array<_Type>& other)
 
-    {
-        Array<int> a1, a2(1);
-        a2 = a1;
-
-        ASSERT(a1.size() == 0);
-        ASSERT(a1.capacity() == 0);
-        ASSERT(a1.elements() == nullptr);
-
-        ASSERT(a2.size() == 0);
-        ASSERT(a2.capacity() == 1);
-        ASSERT(a2.elements() != nullptr);
-    }
-
-    {
-        Array<int> a1(1), a2;
-        a2 = a1;
-
-        ASSERT(a1.size() == 1);
-        ASSERT(a1.capacity() == 1);
-        ASSERT(a1.elements() != nullptr);
-        ASSERT(a1[0] == 0);
-
-        ASSERT(a2.size() == 1);
-        ASSERT(a2.capacity() == 1);
-        ASSERT(a2.elements() != nullptr);
-        ASSERT(a2[0] == 0);
-
-        ASSERT(a1.elements() != a2.elements());
-    }
-
     // Array<_Type>& operator=(Array<_Type>&& other)
 
     {
@@ -1666,21 +1606,23 @@ void testArray()
     // _Type& operator[](int index)
 
     {
-        Array<int> a(2, ep);
-        ASSERT(a[0] == 1);
-        ASSERT(a[1] == 2);
+        Array<int> a(3, ep);
+        ASSERT(compareArray(a, ep));
     }
 
     // const _Type& operator[](int index) const
 
     {
-        Array<int> a(2, ep);
+        Array<int> a(3, ep);
         const Array<int>& ca = a;
-        ASSERT(ca[0] == 1);
-        ASSERT(ca[1] == 2);
+        ASSERT(compareArray(ca, ep));
     }
 
     // int size() const
+    // int capacity() const
+    // bool empty() const
+    // _Type* elements()
+    // const _Type* elements() const
 
     {
         Array<int> a;
@@ -1708,6 +1650,31 @@ void testArray()
         ASSERT(*(ca.elements() + 2) == 3);
     }
 
+    // _Type& front()
+    // const _Type& front() const
+    // _Type& back()
+    // const _Type& back() const
+
+    {
+        Array<int> a;
+        ASSERT_EXCEPTION(Exception, a.front());
+        ASSERT_EXCEPTION(Exception, a.back());
+
+        const Array<int>& ca = a;
+        ASSERT_EXCEPTION(Exception, ca.front());
+        ASSERT_EXCEPTION(Exception, ca.back());
+    }
+
+    {
+        Array<int> a(3, ep);
+        ASSERT(a.front() == 1);
+        ASSERT(a.back() == 3);
+
+        const Array<int>& ca = a;
+        ASSERT(a.front() == 1);
+        ASSERT(a.back() == 3);
+    }
+
     // void ensureCapacity(int capacity)
 
     {
@@ -1715,9 +1682,7 @@ void testArray()
         ASSERT(a.capacity() == 3);
         a.ensureCapacity(2);
         ASSERT(a.capacity() == 3);
-        ASSERT(a[0] == 1);
-        ASSERT(a[1] == 2);
-        ASSERT(a[2] == 3);
+        ASSERT(compareArray(a, ep));
     }
 
     {
@@ -1725,9 +1690,7 @@ void testArray()
         ASSERT(a.capacity() == 3);
         a.ensureCapacity(5);
         ASSERT(a.capacity() == 5);
-        ASSERT(a[0] == 1);
-        ASSERT(a[1] == 2);
-        ASSERT(a[2] == 3);
+        ASSERT(compareArray(a, ep));
     }
 
     // void shrinkToLength()
@@ -1737,9 +1700,7 @@ void testArray()
         ASSERT(a.capacity() == 3);
         a.shrinkToLength();
         ASSERT(a.capacity() == 3);
-        ASSERT(a[0] == 1);
-        ASSERT(a[1] == 2);
-        ASSERT(a[2] == 3);
+        ASSERT(compareArray(a, ep));
     }
 
     {
@@ -1747,12 +1708,282 @@ void testArray()
         ASSERT(a.capacity() == 5);
         a.shrinkToLength();
         ASSERT(a.capacity() == 3);
-        ASSERT(a[0] == 1);
-        ASSERT(a[1] == 2);
-        ASSERT(a[2] == 3);
+        ASSERT(compareArray(a, ep));
     }
 
     // void assign(const Array<_Type>& other)
+
+    {
+        Array<int> a(3, ep);
+        a.assign(a);
+        ASSERT(a.size() == 3);
+        ASSERT(compareArray(a, ep));
+    }
+
+    {
+        Array<int> a1, a2(1);
+        a2.assign(a1);
+
+        ASSERT(a2.size() == 0);
+        ASSERT(a2.capacity() == 1);
+        ASSERT(a2.elements() != nullptr);
+    }
+
+    {
+        Array<int> a1(1), a2;
+        a2.assign(a1);
+
+        ASSERT(a2.size() == 1);
+        ASSERT(a2.capacity() == 1);
+        ASSERT(a2.elements() != nullptr);
+        ASSERT(a2[0] == 0);
+    }
+
+    {
+        Array<int> a1(1), a2(3, ep);
+        a2.assign(a1);
+
+        ASSERT(a2.size() == 1);
+        ASSERT(a2.capacity() == 3);
+        ASSERT(a2.elements() != nullptr);
+        ASSERT(a2[0] == 0);
+    }
+
+    // void popBack()
+
+    ASSERT_EXCEPTION(Exception, Array<int>().popBack());
+
+    {
+        Array<int> a(3, ep);
+        a.popBack();
+        ASSERT(a.size() == 2);
+    }
+
+    // void pushBack(const _Type& value)
+
+    {
+        Array<int> a;
+        int v1 = 1, v2 = 2, v3 = 3;
+
+        a.pushBack(v1);
+        ASSERT(a.back() == v1);
+        ASSERT(a.size() == 1);
+        ASSERT(a.capacity() == 1);
+
+        a.pushBack(v2);
+        ASSERT(a.back() == v2);
+        ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+
+        a.pushBack(v3);
+        ASSERT(a.back() == v3);
+        ASSERT(a.size() == 3);
+        ASSERT(a.capacity() == 3);
+    }
+
+    // void pushBack(_Type&& value)
+
+    {
+        Array<int> a;
+
+        a.pushBack(1);
+        ASSERT(a.back() == 1);
+        ASSERT(a.size() == 1);
+        ASSERT(a.capacity() == 1);
+
+        a.pushBack(2);
+        ASSERT(a.back() == 2);
+        ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+
+        a.pushBack(3);
+        ASSERT(a.back() == 3);
+        ASSERT(a.size() == 3);
+        ASSERT(a.capacity() == 3);
+    }
+
+    // void insert(int index, const _Type& value)
+
+    {
+        Array<int> a(1);
+        int v = 1;
+        ASSERT_EXCEPTION(Exception, a.insert(-1, v));
+        ASSERT_EXCEPTION(Exception, a.insert(2, v));
+    }
+
+    {
+        Array<int> a;
+        int v1 = 1, v2 = 2, v3 = 3, v4 = 4;
+
+        a.insert(0, v1);
+        ASSERT(a.back() == v1);
+        ASSERT(a.size() == 1);
+        ASSERT(a.capacity() == 1);
+
+        a.insert(1, v2);
+        ASSERT(a.back() == v2);
+        ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+
+        a.insert(0, v3);
+        ASSERT(a.front() == v3);
+        ASSERT(a.size() == 3);
+        ASSERT(a.capacity() == 3);
+
+        a.insert(1, v4);
+        ASSERT(a[1] == v4);
+        ASSERT(a.size() == 4);
+        ASSERT(a.capacity() == 7);
+    }
+
+    // void insert(int index, _Type&& value)
+
+    {
+        Array<int> a(1);
+        ASSERT_EXCEPTION(Exception, a.insert(-1, 1));
+        ASSERT_EXCEPTION(Exception, a.insert(2, 1));
+    }
+
+    {
+        Array<int> a;
+
+        a.insert(0, 1);
+        ASSERT(a.back() == 1);
+        ASSERT(a.size() == 1);
+        ASSERT(a.capacity() == 1);
+
+        a.insert(1, 2);
+        ASSERT(a.back() == 2);
+        ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+
+        a.insert(0, 3);
+        ASSERT(a.front() == 3);
+        ASSERT(a.size() == 3);
+        ASSERT(a.capacity() == 3);
+
+        a.insert(1, 4);
+        ASSERT(a[1] == 4);
+        ASSERT(a.size() == 4);
+        ASSERT(a.capacity() == 7);
+    }
+
+    // void remove(int index)
+
+    {
+        Array<int> a(1);
+        ASSERT_EXCEPTION(Exception, a.remove(-1));
+        ASSERT_EXCEPTION(Exception, a.remove(1));
+    }
+
+    {
+        Array<int> a(3, ep);
+        a.remove(0);
+        ASSERT(a.front() == 2);
+        ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+    }
+
+    {
+        Array<int> a(3, ep);
+        a.remove(2);
+        ASSERT(a.back() == 2);
+        ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+    }
+
+    {
+        Array<int> a(3, ep);
+        a.remove(1);
+        ASSERT(a[1] == 3);
+        ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+    }
+
+    // void resize(int size, const _Type& value = _Type())
+
+    {
+        Array<int> a;
+        a.resize(1);
+        ASSERT(a[0] == 0);
+        ASSERT(a.size() == 1);
+        ASSERT(a.capacity() == 1);
+    }
+
+    {
+        Array<int> a(3, ep);
+        a.resize(4);
+        ASSERT(a[3] == 0);
+        ASSERT(a.size() == 4);
+        ASSERT(a.capacity() == 4);
+    }
+
+    {
+        Array<int> a(3, ep);
+        a.resize(2);
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
+        ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+    }
+
+    // void clear()
+
+    {
+        Array<int> a;
+        a.clear();
+        ASSERT(a.size() == 0);
+        ASSERT(a.capacity() == 0);
+    }
+
+    {
+        Array<int> a(3, ep);
+        a.clear();
+        ASSERT(a.size() == 0);
+        ASSERT(a.capacity() == 3);
+    }
+    
+    // void reset()
+
+    {
+        Array<int> a;
+        a.reset();
+        ASSERT(a.size() == 0);
+        ASSERT(a.capacity() == 0);
+        ASSERT(a.elements() == nullptr);
+    }
+
+    {
+        Array<int> a(3, ep);
+        a.reset();
+        ASSERT(a.size() == 0);
+        ASSERT(a.capacity() == 0);
+        ASSERT(a.elements() == nullptr);
+    }
+   
+    // Array<_Type> acquire(int size, _Type* elements)
+
+    {
+        int* e = Memory::allocate<int>(3);
+        memcpy(e, elem, sizeof(elem));
+        Array<int> a = Array<int>::acquire(3, e);
+        ASSERT(a.elements() == e);
+        ASSERT(compareArray(a, ep));
+        ASSERT(a.size() == 3);
+        ASSERT(a.capacity() == 3);
+    }
+
+    // _Type* release()
+
+    {
+        Array<int> a(3, ep);
+        int* e = a.release();
+        ASSERT(e[0] == 1 && e[1] == 2 && e[2] == 3);
+        ASSERT(a.size() == 0);
+        ASSERT(a.capacity() == 0);
+        ASSERT(a.elements() == nullptr);
+        Memory::deallocate(e);
+    }
 }
 
 void testFoundation()

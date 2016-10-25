@@ -52,5 +52,5 @@ foundation features:
 * string to binary/hex conversion
 * asserts and unit tests for all classes
 why implementation of string and array is different
-string with capacity constructors
-go back to doubling capacity?
+string with capacity constructors?
+go back to doubling capacity in string?

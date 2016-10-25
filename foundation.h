@@ -529,8 +529,8 @@ inline _Type* create(_Args&&... args)
 template<typename _Type>
 inline void destruct(_Type* ptr)
 {
-    ASSERT(ptr);
-    ptr->~_Type();
+    if (ptr)
+        ptr->~_Type();
 }
 
 template<typename _Type>
@@ -546,18 +546,16 @@ inline void destroy(_Type* ptr)
 template<typename _Type>
 inline void destructArray(int size, _Type* elements)
 {
-    ASSERT(size >= 0);
-    ASSERT(elements);
-
-    while (size-- > 0)
-        elements[size].~_Type();
+    if (elements)
+    {
+        while (size-- > 0)
+            elements[size].~_Type();
+    }
 }
 
 template<typename _Type>
 inline void destroyArray(int size, _Type* elements)
 {
-    ASSERT(size >= 0);
-
     if (elements)
     {
         while (size-- > 0)
@@ -1275,6 +1273,30 @@ public:
         return _elements;
     }
 
+    _Type& front()
+    {
+        ASSERT(_size > 0);
+        return _elements[0];
+    }
+
+    const _Type& front() const
+    {
+        ASSERT(_size > 0);
+        return _elements[0];
+    }
+
+    _Type& back()
+    {
+        ASSERT(_size > 0);
+        return _elements[_size - 1];
+    }
+
+    const _Type& back() const
+    {
+        ASSERT(_size > 0);
+        return _elements[_size - 1];
+    }
+
     void ensureCapacity(int capacity)
     {
         ASSERT(capacity >= 0);
@@ -1319,13 +1341,10 @@ public:
 
     void popBack()
     {
-        if (_size > 0)
-        {
-            Memory::destruct(_elements + _size);
-            --_size;
-        }
-        else
-            throw Exception("array is empty");
+        ASSERT(_size > 0);
+
+        Memory::destruct(_elements + _size);
+        --_size;
     }
     
     void pushBack(const _Type& value)
