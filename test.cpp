@@ -1,6 +1,251 @@
 #include <foundation.h>
 #include <test.h>
 
+void testUniquePtr()
+{
+    // UniquePtr()
+
+    {
+        UniquePtr<Test> p;
+        ASSERT_EXCEPTION(NullPointerException, *p);
+        ASSERT_EXCEPTION(NullPointerException, p->val());
+        ASSERT(!p);
+        ASSERT(p.ptr() == nullptr);
+    }
+
+    // UniquePtr(UniquePtr<_Type>&& other)
+
+    {
+        UniquePtr<Test> p1 = createUnique<Test>();
+        Test* p = p1.ptr();
+        ASSERT(p1);
+
+        UniquePtr<Test> p2 = static_cast<UniquePtr<Test>&&>(p1);
+        ASSERT(!p1);
+        ASSERT(p2 && p2.ptr() == p);
+    } 
+
+    // UniquePtr& operator=(UniquePtr<_Type>&& other)
+
+    {
+        UniquePtr<Test> p1 = createUnique<Test>();
+        Test* p = p1.ptr();
+        ASSERT(p1);
+
+        UniquePtr<Test> p2;
+        p2 = static_cast<UniquePtr<Test>&&>(p1);
+        ASSERT(!p1);
+        ASSERT(p2 && p2.ptr() == p);
+    }
+
+    // _Type& operator*() const
+
+    // _Type* operator->() const
+
+    // operator bool() const
+
+    // _Type* ptr() const
+
+    // void create(_Args&&... args)
+
+    {
+        UniquePtr<Test> p;
+        ASSERT(!p);
+        p.create(1);
+        ASSERT(p && p->val() == 1);
+        p.create(2);
+        ASSERT(p && p->val() == 2);
+    }
+
+    // void reset()
+
+    {
+        UniquePtr<Test> p;
+        ASSERT(!p);
+        p.reset();
+        ASSERT(!p);
+    }
+
+    {
+        UniquePtr<Test> p;
+        ASSERT(!p);
+        p.create();
+        ASSERT(p);
+        p.reset();
+        ASSERT(!p);
+    }
+
+    // UniquePtr<_T> createUnique(_Args&&... args)
+
+    {
+        UniquePtr<Test> p = createUnique<Test>();
+        ASSERT((*p).val() == 0);
+        ASSERT(p->val() == 0);
+        ASSERT(p);
+        ASSERT(p.ptr() != nullptr);
+    }
+
+    // bool operator==(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
+
+    {
+        UniquePtr<Test> p1 = createUnique<Test>();
+        UniquePtr<Test> p2 = static_cast<UniquePtr<Test>&&>(p1);
+        ASSERT(!(p1 == p2));
+    }
+
+    // bool operator!=(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
+
+    {
+        UniquePtr<Test> p1 = createUnique<Test>();
+        UniquePtr<Test> p2 = createUnique<Test>();
+        ASSERT(p1 != p2);
+    }
+}
+
+void testSharedPtr()
+{
+    // SharedPtr()
+
+    {
+        SharedPtr<Test> p;
+        ASSERT_EXCEPTION(NullPointerException, *p);
+        ASSERT_EXCEPTION(NullPointerException, p->val());
+        ASSERT(!p);
+        ASSERT(p.ptr() == nullptr);
+        ASSERT(p.refCount() == 0);
+    }
+
+    // SharedPtr(const SharedPtr<_Type>& other)
+
+    {
+        SharedPtr<Test> p1 = createShared<Test>();
+        Test* p = p1.ptr();
+        ASSERT(p1);
+
+        {
+            SharedPtr<Test> p2 = p1;
+            ASSERT(p1 && p1.ptr() == p);
+            ASSERT(p2 && p2.ptr() == p);
+            ASSERT(p1.refCount() == 2 && p2.refCount() == 2);
+        }
+
+        ASSERT(p1 && p1.ptr() == p);
+        ASSERT(p1.refCount() == 1);
+    } 
+
+    // SharedPtr(SharedPtr<_Type>&& other)
+
+    {
+        SharedPtr<Test> p1 = createShared<Test>();
+        Test* p = p1.ptr();
+        ASSERT(p1);
+
+        SharedPtr<Test> p2 = static_cast<SharedPtr<Test>&&>(p1);
+        ASSERT(!p1);
+        ASSERT(p2 && p2.ptr() == p);
+        ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
+    } 
+
+    // SharedPtr<_Type>& operator=(const SharedPtr<_Type>& other)
+
+    {
+        SharedPtr<Test> p1 = createShared<Test>();
+        Test* p = p1.ptr();
+        ASSERT(p1);
+
+        {
+            SharedPtr<Test> p2;
+            p2 = p1;
+            ASSERT(p1 && p1.ptr() == p);
+            ASSERT(p2 && p2.ptr() == p);
+            ASSERT(p1.refCount() == 2 && p2.refCount() == 2);
+        }
+
+        ASSERT(p1 && p1.ptr() == p);
+        ASSERT(p1.refCount() == 1);
+    } 
+
+    // SharedPtr<_Type>& operator=(SharedPtr<_Type>&& other)
+
+    {
+        SharedPtr<Test> p1 = createShared<Test>();
+        Test* p = p1.ptr();
+        ASSERT(p1);
+
+        SharedPtr<Test> p2;
+        p2 = static_cast<SharedPtr<Test>&&>(p1);
+        ASSERT(!p1);
+        ASSERT(p2 && p2.ptr() == p);
+        ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
+    }
+
+    // _Type& operator*() const
+
+    // _Type* operator->() const
+
+    // operator bool() const
+
+    // _Type* ptr() const
+
+    // int refCount() const
+
+    // void create(_Args&&... args)
+
+    {
+        SharedPtr<Test> p;
+        ASSERT(!p);
+        p.create(1);
+        ASSERT(p && p->val() == 1);
+        p.create(2);
+        ASSERT(p && p->val() == 2);
+    }
+
+    // void reset()
+
+    {
+        SharedPtr<Test> p;
+        ASSERT(!p);
+        p.reset();
+        ASSERT(!p);
+    }
+
+    {
+        SharedPtr<Test> p;
+        ASSERT(!p);
+        p.create();
+        ASSERT(p);
+        p.reset();
+        ASSERT(!p);
+    }
+
+    // SharedPtr<_T> createShared(_Args&&... args)
+
+    {
+        SharedPtr<Test> p = createShared<Test>();
+        ASSERT((*p).val() == 0);
+        ASSERT(p->val() == 0);
+        ASSERT(p);
+        ASSERT(p.ptr() != nullptr);
+        ASSERT(p.refCount() == 1);
+    }
+
+    // bool operator==(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
+
+    {
+        SharedPtr<Test> p1 = createShared<Test>();
+        SharedPtr<Test> p2 = p1;
+        ASSERT(p1 == p2);
+    }
+
+    // bool operator!=(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
+
+    {
+        SharedPtr<Test> p1 = createShared<Test>();
+        SharedPtr<Test> p2 = createShared<Test>();
+        ASSERT(p1 != p2);
+    }
+}
+
 void testString()
 {
     // String()
@@ -1986,10 +2231,30 @@ void testArray()
     }
 }
 
+void testList()
+{
+
+}
+
+void testMap()
+{
+
+}
+
+void testSet()
+{
+
+}
+
 void testFoundation()
 {
+    testUniquePtr();
+    testSharedPtr();
     testString();
     testArray();
+    testList();
+    testMap();
+    testSet();
 }
 
 int MAIN()

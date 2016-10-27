@@ -647,9 +647,9 @@ public:
         Memory::destroy(_ptr);
     }
 
-    UniquePtr& operator=(const UniquePtr<_Type>&) = delete;
+    UniquePtr<_Type>& operator=(const UniquePtr<_Type>&) = delete;
 
-    UniquePtr& operator=(UniquePtr<_Type>&& other)
+    UniquePtr<_Type>& operator=(UniquePtr<_Type>&& other)
     {
         UniquePtr<_Type> tmp(static_cast<UniquePtr<_Type>&&>(other));
         swap(*this, tmp);
@@ -756,6 +756,12 @@ public:
             addRef();
     }
 
+    SharedPtr(SharedPtr<_Type>&& other)
+    {
+        _sharedPtr = other._sharedPtr;
+        other._sharedPtr = nullptr;
+    }
+
     ~SharedPtr()
     {
         if (_sharedPtr)
@@ -765,6 +771,13 @@ public:
     SharedPtr<_Type>& operator=(const SharedPtr<_Type>& other)
     {
         SharedPtr<_Type> tmp(other);
+        swap(*this, tmp);
+        return *this;
+    }
+
+    SharedPtr<_Type>& operator=(SharedPtr<_Type>&& other)
+    {
+        SharedPtr<_Type> tmp(static_cast<SharedPtr<_Type>&&>(other));
         swap(*this, tmp);
         return *this;
     }
@@ -1168,9 +1181,7 @@ public:
 
 public:
     Array() : 
-        _size(0), 
-        _capacity(0),
-        _elements(nullptr)
+        _size(0), _capacity(0), _elements(nullptr)
     {
     }
 
@@ -1490,7 +1501,8 @@ template<typename _Type>
 class ArrayIterator
 {
 public:
-    ArrayIterator(Array<_Type>& array) : _array(array), _index(-1)
+    ArrayIterator(Array<_Type>& array) : 
+        _array(array), _index(-1)
     {
     }
 
@@ -1522,6 +1534,11 @@ public:
         return _index >= 0;
     }
 
+    void reset()
+    {
+        _index = -1;
+    }
+
 private:
     Array<_Type>& _array;
     int _index;
@@ -1533,7 +1550,8 @@ template<typename _Type>
 class ConstArrayIterator
 {
 public:
-    ConstArrayIterator(const Array<_Type>& array) : _array(array), _index(-1)
+    ConstArrayIterator(const Array<_Type>& array) : 
+        _array(array), _index(-1)
     {
     }
 
@@ -1563,6 +1581,11 @@ public:
             --_index;
 
         return _index >= 0;
+    }
+
+    void reset()
+    {
+        _index = -1;
     }
 
 private:
@@ -1887,7 +1910,8 @@ template<typename _Type>
 class ListIterator
 {
 public:
-    ListIterator(List<_Type>& list) : _list(list), _node(nullptr)
+    ListIterator(List<_Type>& list) : 
+        _list(list), _node(nullptr)
     {
     }
 
@@ -1919,6 +1943,11 @@ public:
         return _node != nullptr;
     }
 
+    void reset()
+    {
+        _node = nullptr;
+    }
+
 private:
     List<_Type>& _list;
     ListNode<_Type>* _node;
@@ -1930,7 +1959,8 @@ template<typename _Type>
 class ConstListIterator
 {
 public:
-    ConstListIterator(const List<_Type>& list) : _list(list), _node(nullptr)
+    ConstListIterator(const List<_Type>& list) : 
+        _list(list), _node(nullptr)
     {
     }
 
@@ -1962,6 +1992,11 @@ public:
         return _node != nullptr;
     }
 
+    void reset()
+    {
+        _node = nullptr;
+    }
+
 private:
     const List<_Type>& _list;
     const ListNode<_Type>* _node;
@@ -1991,13 +2026,13 @@ public:
     typedef ConstMapIterator<_Key, _Value> ConstIterator;
 
 public:
-    Map(int numBuckets = 0) : _keyValues(numBuckets), _size(0)
+    Map(int numBuckets = 0) : 
+        _keyValues(numBuckets), _size(0)
     {
     }
 
     Map(const Map<_Key, _Value>& other) :
-        _keyValues(other._keyValues),
-        _size(other._size)
+        _keyValues(other._keyValues), _size(other._size)
     {
     }
 
@@ -2276,7 +2311,8 @@ template<typename _Key, typename _Value>
 class MapIterator
 {
 public:
-    MapIterator(Map<_Key, _Value>& map) : _map(map), _index(0), _node(nullptr)
+    MapIterator(Map<_Key, _Value>& map) : 
+        _map(map), _index(0), _node(nullptr)
     {
     }
 
@@ -2324,6 +2360,12 @@ public:
         return false;
     }
 
+    void reset()
+    {
+        _index = 0;
+        _node = nullptr;
+    }
+
 private:
     Map<_Key, _Value>& _map;
     int _index;
@@ -2336,7 +2378,8 @@ template<typename _Key, typename _Value>
 class ConstMapIterator
 {
 public:
-    ConstMapIterator(const Map<_Key, _Value>& map) : _map(map), _index(0), _node(nullptr)
+    ConstMapIterator(const Map<_Key, _Value>& map) : 
+        _map(map), _index(0), _node(nullptr)
     {
     }
 
@@ -2384,6 +2427,12 @@ public:
         return false;
     }
 
+    void reset()
+    {
+        _index = 0;
+        _node = nullptr;
+    }
+
 private:
     const Map<_Key, _Value>& _map;
     int _index;
@@ -2407,13 +2456,13 @@ public:
     typedef ConstSetIterator<_Type> ConstIterator;
 
 public:
-    Set(int numBuckets = 0) : _values(numBuckets), _size(0)
+    Set(int numBuckets = 0) : 
+        _values(numBuckets), _size(0)
     {
     }
 
     Set(const Set<_Type>& other) :
-        _values(other._values),
-        _size(other._size)
+        _values(other._values), _size(other._size)
     {
     }
 
@@ -2613,7 +2662,8 @@ template<typename _Type>
 class ConstSetIterator
 {
 public:
-    ConstSetIterator(const Set<_Type>& set) : _set(set), _index(0), _node(nullptr)
+    ConstSetIterator(const Set<_Type>& set) : 
+        _set(set), _index(0), _node(nullptr)
     {
     }
 
@@ -2659,6 +2709,12 @@ public:
         _index = 0;
         _node = nullptr;
         return false;
+    }
+
+    void reset()
+    {
+        _index = 0;
+        _node = nullptr;
     }
 
 private:
