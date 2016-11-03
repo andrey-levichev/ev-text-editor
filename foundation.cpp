@@ -184,13 +184,56 @@ String::~String()
 
 String& String::operator=(const String& other)
 {
-    assign(other);
+    if (this != &other)
+    {
+        if (other._length > 0)
+        {
+            int capacity = other._length + 1;
+
+            if (capacity > _capacity)
+            {
+                String tmp(other);
+                swap(*this, tmp);
+            }
+            else
+            {
+                _length = other._length;
+                STRNCPY(_chars, other._chars, _length + 1);
+            }
+        }
+        else
+            clear();
+    }
+
     return *this;
 }
 
 String& String::operator=(const char_t* chars)
 {
-    assign(chars);
+    ASSERT(chars);
+
+    if (_chars != chars)
+    {
+        if (*chars)
+        {
+            int len = STRLEN(chars);
+            int capacity = len + 1;
+
+            if (capacity > _capacity)
+            {
+                String tmp(chars);
+                swap(*this, tmp);
+            }
+            else
+            {
+                _length = len;
+                STRNCPY(_chars, chars, _length + 1);
+            }
+        }
+        else
+            clear();
+    }
+
     return *this;
 }
 
@@ -203,25 +246,189 @@ String& String::operator=(String&& other)
 
 String& String::operator+=(const String& str)
 {
-    append(str);
+    ASSERT(this != &str);
+
+    if (str._length > 0)
+    {
+        ensureCapacity(_length + str._length + 1);
+        STRNCPY(_chars + _length, str._chars, str._length);
+        _length += str._length;
+        _chars[_length] = 0;
+    }
+
     return *this;
 }
 
 String& String::operator+=(const char_t* chars)
 {
-    append(chars);
+    ASSERT(chars);
+    ASSERT(_chars != chars);
+
+    if (*chars)
+    {
+        int len = STRLEN(chars);
+
+        ensureCapacity(_length + len + 1);
+        STRNCPY(_chars + _length, chars, len);
+        _length += len;
+        _chars[_length] = 0;
+    }
+
     return *this;
 }
 
 String& String::operator+=(const char_t ch)
 {
-    append(ch);
+    ensureCapacity(_length + 2);
+    _chars[_length++] = ch;
+    _chars[_length] = 0;
+
     return *this;
 }
 
 String String::substr(int pos, int len) const
 {
     return String(*this, pos, len);
+}
+
+int String::compare(const String& str) const
+{
+    return STRCMP(this->str(), str.str());
+}
+
+int String::compare(const char_t* chars) const
+{
+    ASSERT(chars);
+    return STRCMP(str(), chars);
+}
+
+int String::compareNoCase(const String& str) const
+{
+    return STRICMP(this->str(), str.str());
+}
+
+int String::compareNoCase(const char_t* chars) const
+{
+    ASSERT(chars);
+    return STRICMP(str(), chars);
+}
+
+int String::find(const String& str, int pos) const
+{
+    ASSERT(pos >= 0 && pos <= _length);
+
+    if (str._length > 0)
+    {
+        if (_length > 0)
+        {
+            const char_t* found = STRSTR(_chars + pos, str._chars);
+            if (found)
+                return found - _chars;
+        }
+    }
+
+    return INVALID_POS;
+}
+
+int String::find(const char_t* chars, int pos) const
+{
+    ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(chars);
+
+    if (*chars)
+    {
+        if (_length > 0)
+        {
+            const char_t* found = STRSTR(_chars + pos, chars);
+            if (found)
+                return found - _chars;
+        }
+    }
+
+    return INVALID_POS;
+}
+
+int String::findNoCase(const String& str, int pos) const
+{
+    ASSERT(pos >= 0 && pos <= _length);
+
+    if (str._length > 0)
+    {
+        if (_length > 0)
+        {
+            const char_t* found = STRISTR(_chars + pos, str._chars);
+            if (found)
+                return found - _chars;
+        }
+    }
+
+    return INVALID_POS;
+}
+
+int String::findNoCase(const char_t* chars, int pos) const
+{
+    ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(chars);
+
+    if (*chars)
+    {
+        if (_length > 0)
+        {
+            const char_t* found = STRISTR(_chars + pos, chars);
+            if (found)
+                return found - _chars;
+        }
+    }
+
+    return INVALID_POS;
+}
+
+bool String::startsWith(const String& str) const
+{
+    if (str._length > 0 && _length > 0)
+        return STRNCMP(_chars, str._chars, str._length) == 0;
+    else
+        return false;
+}
+
+bool String::startsWith(const char_t* chars) const
+{
+    ASSERT(chars);
+
+    int len = STRLEN(chars);
+    if (len > 0 && _length > 0)
+        return STRNCMP(_chars, chars, len) == 0;
+    else
+        return false;
+}
+
+bool String::endsWith(const String& str) const
+{
+    if (str._length > 0 && _length > 0 && str._length <= _length)
+        return STRCMP(_chars + _length - str._length, str._chars) == 0;
+    else
+        return false;
+}
+
+bool String::endsWith(const char_t* chars) const
+{
+    ASSERT(chars);
+
+    int len = STRLEN(chars);
+    if (len > 0 && _length > 0 && len <= _length)
+        return STRCMP(_chars + _length - len, chars) == 0;
+    else
+        return false;
+}
+
+bool String::contains(const String& str) const
+{
+    return find(str) != INVALID_POS;
+}
+
+bool String::contains(const char_t* chars) const
+{
+    return find(chars) != INVALID_POS;
 }
 
 void String::ensureCapacity(int capacity)
@@ -258,105 +465,18 @@ void String::shrinkToLength()
         reset();
 }
 
-void String::assign(const String& str)
-{
-    if (this != &str)
-    {
-        if (str._length > 0)
-        {
-            int capacity = str._length + 1;
-
-            if (capacity > _capacity)
-            {
-                String tmp(str);
-                swap(*this, tmp);
-            }
-            else
-            {
-                _length = str._length;
-                STRNCPY(_chars, str._chars, _length + 1);
-            }
-        }
-        else
-            clear();
-    }
-}
-
-void String::assign(const char_t* chars)
-{
-    ASSERT(chars);
-
-    if (_chars != chars)
-    {
-        if (*chars)
-        {
-            int len = STRLEN(chars);
-            int capacity = len + 1;
-
-            if (capacity > _capacity)
-            {
-                String tmp(chars);
-                swap(*this, tmp);
-            }
-            else
-            {
-                _length = len;
-                STRNCPY(_chars, chars, _length + 1);
-            }
-        }
-        else
-            clear();
-    }
-}
-
-void String::append(const String& str)
-{
-    ASSERT(this != &str);
-
-    if (str._length > 0)
-    {
-        ensureCapacity(_length + str._length + 1);
-        STRNCPY(_chars + _length, str._chars, str._length);
-        _length += str._length;
-        _chars[_length] = 0;
-    }
-}
-
-void String::append(const char_t* chars)
-{
-    ASSERT(chars);
-    ASSERT(_chars != chars);
-
-    if (*chars)
-    {
-        int len = STRLEN(chars);
-
-        ensureCapacity(_length + len + 1);
-        STRNCPY(_chars + _length, chars, len);
-        _length += len;
-        _chars[_length] = 0;
-    }
-}
-
-void String::append(const char_t ch)
-{
-    ensureCapacity(_length + 2);
-    _chars[_length++] = ch;
-    _chars[_length] = 0;
-}
-
 void String::appendFormat(const char_t* format, ...)
 {
     va_list args;
 
     va_start(args, format);
-    append(String::format(format, args));
+    *this += String::format(format, args);
     va_end(args);
 }
 
 void String::appendFormat(const char_t* format, va_list args)
 {
-    append(String::format(format, args));
+    *this += String::format(format, args);
 }
     
 void String::insert(int pos, const String& str)
@@ -487,32 +607,6 @@ void String::erase(const char_t* chars)
     }
 }
 
-void String::clear()
-{
-    _length = 0;
-    if (_chars)
-        *_chars = 0;
-}
-
-void String::reset()
-{
-    Memory::deallocate(_chars);
-
-    _length = 0;
-    _capacity = 0;
-    _chars = nullptr;
-}
-
-char_t* String::release()
-{
-    char_t* chars = _chars;
-    _length = 0;
-    _capacity = 0;
-    _chars = nullptr;
-    
-    return chars;
-}
-
 void String::replace(int pos, int len, const String& str)
 {
     ASSERT(pos >= 0 && pos <= _length);
@@ -533,7 +627,7 @@ void String::replace(int pos, int len, const String& str)
             _length = newLen;
         }
         else
-            this->assign(str);
+            *this = str;
     }
     else
         erase(pos, len);
@@ -561,7 +655,7 @@ void String::replace(int pos, int len, const char_t* chars)
             _length = newLen;
         }
         else
-            this->assign(chars);
+            *this = chars;
     }
     else
         erase(pos, len);
@@ -751,144 +845,30 @@ void String::toLower()
         _chars[i] = TOLOWER(_chars[i]);
 }
 
-int String::compare(const String& str) const
+void String::clear()
 {
-    return STRCMP(this->str(), str.str());
+    _length = 0;
+    if (_chars)
+        *_chars = 0;
 }
 
-int String::compare(const char_t* chars) const
+void String::reset()
 {
-    ASSERT(chars);
-    return STRCMP(str(), chars);
+    Memory::deallocate(_chars);
+
+    _length = 0;
+    _capacity = 0;
+    _chars = nullptr;
 }
 
-int String::compareNoCase(const String& str) const
+char_t* String::release()
 {
-    return STRICMP(this->str(), str.str());
-}
-
-int String::compareNoCase(const char_t* chars) const
-{
-    ASSERT(chars);
-    return STRICMP(str(), chars);
-}
-
-int String::find(const String& str, int pos) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-
-    if (str._length > 0)
-    {
-        if (_length > 0)
-        {
-            const char_t* found = STRSTR(_chars + pos, str._chars);
-            if (found)
-                return found - _chars;
-        }
-    }
-
-    return INVALID_POS;
-}
-
-int String::find(const char_t* chars, int pos) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(chars);
-
-    if (*chars)
-    {
-        if (_length > 0)
-        {
-            const char_t* found = STRSTR(_chars + pos, chars);
-            if (found)
-                return found - _chars;
-        }
-    }
-
-    return INVALID_POS;
-}
-
-int String::findNoCase(const String& str, int pos) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-
-    if (str._length > 0)
-    {
-        if (_length > 0)
-        {
-            const char_t* found = STRISTR(_chars + pos, str._chars);
-            if (found)
-                return found - _chars;
-        }
-    }
-
-    return INVALID_POS;
-}
-
-int String::findNoCase(const char_t* chars, int pos) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(chars);
-
-    if (*chars)
-    {
-        if (_length > 0)
-        {
-            const char_t* found = STRISTR(_chars + pos, chars);
-            if (found)
-                return found - _chars;
-        }
-    }
-
-    return INVALID_POS;
-}
-
-bool String::startsWith(const String& str) const
-{
-    if (str._length > 0 && _length > 0)
-        return STRNCMP(_chars, str._chars, str._length) == 0;
-    else
-        return false;
-}
-
-bool String::startsWith(const char_t* chars) const
-{
-    ASSERT(chars);
-
-    int len = STRLEN(chars);
-    if (len > 0 && _length > 0)
-        return STRNCMP(_chars, chars, len) == 0;
-    else
-        return false;
-}
-
-bool String::endsWith(const String& str) const
-{
-    if (str._length > 0 && _length > 0 && str._length <= _length)
-        return STRCMP(_chars + _length - str._length, str._chars) == 0;
-    else
-        return false;
-}
-
-bool String::endsWith(const char_t* chars) const
-{
-    ASSERT(chars);
-
-    int len = STRLEN(chars);
-    if (len > 0 && _length > 0 && len <= _length)
-        return STRCMP(_chars + _length - len, chars) == 0;
-    else
-        return false;
-}
-
-bool String::contains(const String& str) const
-{
-    return find(str) != INVALID_POS;
-}
-
-bool String::contains(const char_t* chars) const
-{
-    return find(chars) != INVALID_POS;
+    char_t* chars = _chars;
+    _length = 0;
+    _capacity = 0;
+    _chars = nullptr;
+    
+    return chars;
 }
 
 // conversion from string
@@ -1230,7 +1210,7 @@ String Console::readLine()
 
     while (!(ch == '\n' || ch == CHAR_EOF))
     {
-        line.append(ch);
+        line += ch;
         ch = GETCHAR();
     }
 

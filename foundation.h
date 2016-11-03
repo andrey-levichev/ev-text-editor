@@ -964,48 +964,6 @@ public:
 
     String substr(int pos, int len) const;
 
-    void ensureCapacity(int capacity);
-    void shrinkToLength();
-
-    void assign(const String& str);
-    void assign(const char_t* chars);
-    
-    void append(const String& str);
-    void append(const char_t* chars);
-    void append(const char_t ch);
-
-    void appendFormat(const char_t* format, ...);
-    void appendFormat(const char_t* format, va_list args);
-
-    void insert(int pos, const String& str);
-    void insert(int pos, const char_t* chars);
-    
-    void erase(int pos, int len);
-    void erase(const String& str);
-    void erase(const char_t* chars);
-    
-    void clear();
-    void reset();
-    
-    static String acquire(char_t* chars)
-    {
-        return String(chars);
-    }
-    
-    char_t* release();
-
-    void replace(int pos, int len, const String& str);
-    void replace(int pos, int len, const char_t* chars);
-    void replace(const String& searchStr, const String& replaceStr);
-    void replace(const char_t* searchChars, const char_t* replaceChars);
-    
-    void trim();
-    void trimRight();
-    void trimLeft();
-    void reverse();
-    void toUpper();
-    void toLower();
-
     int compare(const String& str) const;
     int compare(const char_t* chars) const;
     int compareNoCase(const String& str) const;
@@ -1025,6 +983,41 @@ public:
     bool contains(const String& str) const;
     bool contains(const char_t* chars) const;
     
+    void ensureCapacity(int capacity);
+    void shrinkToLength();
+
+    void appendFormat(const char_t* format, ...);
+    void appendFormat(const char_t* format, va_list args);
+
+    void insert(int pos, const String& str);
+    void insert(int pos, const char_t* chars);
+    
+    void erase(int pos, int len);
+    void erase(const String& str);
+    void erase(const char_t* chars);
+    
+    void replace(int pos, int len, const String& str);
+    void replace(int pos, int len, const char_t* chars);
+    void replace(const String& searchStr, const String& replaceStr);
+    void replace(const char_t* searchChars, const char_t* replaceChars);
+    
+    void trim();
+    void trimRight();
+    void trimLeft();
+    void reverse();
+    void toUpper();
+    void toLower();
+
+    void clear();
+    void reset();
+    
+    static String acquire(char_t* chars)
+    {
+        return String(chars);
+    }
+    
+    char_t* release();
+
     template<typename... _Args>
     static String concat(_Args&&... args)
     {
@@ -1170,6 +1163,9 @@ template<typename _Type>
 class Array
 {
 public:
+    static const int INVALID_POS = -1;
+
+public:
     template<typename>
     friend class ArrayIterator;
 
@@ -1238,7 +1234,25 @@ public:
 
     Array<_Type>& operator=(const Array<_Type>& other)
     {
-        assign(other);
+        if (this != &other)
+        {
+            if (other._size <= _capacity)
+            {
+                clear();
+
+                while (_size < other._size)
+                {
+                    Memory::construct<_Type>(_elements + _size, other[_size]);
+                    ++_size;
+                }
+            }
+            else
+            {
+                Array<_Type> tmp(other);
+                swap(*this, tmp);
+            }
+        }
+
         return *this;
     }
 
@@ -1308,6 +1322,14 @@ public:
         return _elements[_size - 1];
     }
 
+    int find(const _Type& value) const
+    {
+        for (int i = 0; i < _size; ++i)
+            if (_elements[i] == value)
+                return i;
+        return INVALID_POS;
+    }
+
     void ensureCapacity(int capacity)
     {
         ASSERT(capacity >= 0);
@@ -1328,28 +1350,22 @@ public:
         }
     }
 
-    void assign(const Array<_Type>& other)
+    void resize(int size)
     {
-        if (this != &other)
-        {
-            if (other._size <= _capacity)
-            {
-                clear();
+        ensureCapacity(size);
 
-                while (_size < other._size)
-                {
-                    Memory::construct<_Type>(_elements + _size, other[_size]);
-                    ++_size;
-                }
-            }
-            else
-            {
-                Array<_Type> tmp(other);
-                swap(*this, tmp);
-            }
+        if (size > _size)
+        {
+            for (; _size < size; ++_size)
+                Memory::construct(_elements + _size);
+        }
+        else
+        {
+            for (; _size > size; --_size)
+                Memory::destruct(_elements + _size);
         }
     }
-
+    
     void popBack()
     {
         ASSERT(_size > 0);
@@ -1430,22 +1446,6 @@ public:
         Memory::destruct(_elements + _size);
     }
 
-    void resize(int size, const _Type& value = _Type())
-    {
-        ensureCapacity(size);
-
-        if (size > _size)
-        {
-            for (; _size < size; ++_size)
-                Memory::construct(_elements + _size, value);
-        }
-        else
-        {
-            for (; _size > size; --_size)
-                Memory::destruct(_elements + _size);
-        }
-    }
-    
     void clear()
     {
         Memory::destructArray(_size, _elements);
@@ -1640,6 +1640,40 @@ public:
     {
     }
 
+    List(int size) :
+        _front(nullptr), _back(nullptr)
+    {
+        ASSERT(size >= 0);
+
+        try
+        {
+            for (int i = 0; i < size; ++i)
+                pushBack(_Type());
+        }
+        catch (...)
+        {
+            destroyNodes();
+            throw;
+        }
+    }
+
+    List(int size, const _Type* elements) :
+        _front(nullptr), _back(nullptr)
+    {
+        ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
+
+        try
+        {
+            for (int i = 0; i < size; ++i)
+                pushBack(elements[i]);
+        }
+        catch (...)
+        {
+            destroyNodes();
+            throw;
+        }
+    }
+
     List(const List<_Type>& other) :
         _front(nullptr), _back(nullptr)
     {
@@ -1715,6 +1749,22 @@ public:
     const ListNode<_Type>* back() const
     {
         return _back;
+    }
+
+    ListNode<_Type>* find(const _Type& value)
+    {
+        for (auto node = _front; node; node = node->next)
+            if (node->value == value)
+                return node;
+        return nullptr;
+    }
+
+    const ListNode<_Type>* find(const _Type& value) const
+    {
+        for (auto node = _front; node; node = node->next)
+            if (node->value == value)
+                return node;
+        return nullptr;
     }
 
     void popFront()
@@ -1813,8 +1863,10 @@ public:
         }
     }
 
-    void insertBefore(ListNode<_Type>* pos, const _Type& value)
+    ListNode<_Type>* insertBefore(ListNode<_Type>* pos, const _Type& value)
     {
+        ASSERT(pos != nullptr);
+
         auto node = Memory::create<ListNode<_Type>>(value, pos->prev, pos);
 
         if (pos->prev)
@@ -1823,10 +1875,13 @@ public:
             _front = node;
 
         pos->prev = node;
+        return node;
     }
 
-    void insertBefore(ListNode<_Type>* pos, _Type&& value)
+    ListNode<_Type>* insertBefore(ListNode<_Type>* pos, _Type&& value)
     {
+        ASSERT(pos != nullptr);
+
         auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), pos->prev, pos);
 
         if (pos->prev)
@@ -1835,10 +1890,13 @@ public:
             _front = node;
 
         pos->prev = node;
+        return node;
     }
 
-    void insertAfter(ListNode<_Type>* pos, const _Type& value)
+    ListNode<_Type>* insertAfter(ListNode<_Type>* pos, const _Type& value)
     {
+        ASSERT(pos != nullptr);
+
         auto node = Memory::create<ListNode<_Type>>(value, pos, pos->next);
 
         if (pos->next)
@@ -1847,10 +1905,13 @@ public:
             _back = node;
 
         pos->next = node;
+        return node;
     }
 
-    void insertAfter(ListNode<_Type>* pos, _Type&& value)
+    ListNode<_Type>* insertAfter(ListNode<_Type>* pos, _Type&& value)
     {
+        ASSERT(pos != nullptr);
+
         auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), pos, pos->next);
 
         if (pos->next)
@@ -1859,10 +1920,13 @@ public:
             _back = node;
 
         pos->next = node;
+        return node;
     }
 
     void remove(ListNode<_Type>* pos)
     {
+        ASSERT(pos != nullptr);
+
         if (pos->prev)
             pos->prev->next = pos->next;
         else
@@ -2505,19 +2569,6 @@ public:
     float loadFactor() const
     {
         return static_cast<float>(_size) / _values.size();
-    }
-
-    _Type* find(const _Type& value)
-    {
-        List<_Type>& vList = getBucket(value);
-
-        for (auto vNode = vList.front(); vNode; vNode = vNode->next)
-        {
-            if (equalsTo(vNode->value, value))
-                return &vNode->value;
-        }
-
-        return nullptr;
     }
 
     const _Type* find(const _Type& value) const
