@@ -1,6 +1,11 @@
 #include <foundation.h>
 #include <test.h>
 
+bool equalsTo(const UniquePtr<int>& left, const UniquePtr<int>& right)
+{
+    return *left == *right;
+}
+
 template<typename _SeqType, typename _ElemType>
 bool compareSequence(const _SeqType& seq, const _ElemType* elements)
 {
@@ -2262,6 +2267,46 @@ void testArray()
         ASSERT(a.elements() == nullptr);
         Memory::deallocate(e);
     }
+
+    // UniquePtr
+
+    {
+        Array<UniquePtr<int>> a1;
+        Array<UniquePtr<int>> a2(2);
+        Array<UniquePtr<int>> a3(2, 10);
+    }
+
+    {
+        Array<UniquePtr<int>> a;
+        a.pushBack(createUnique<int>(1));
+        a.pushBack(createUnique<int>(2));
+        ASSERT(*a[0] == 1);
+        ASSERT(*a[1] == 2);
+        ASSERT(a.find(createUnique<int>(0)) < 0);
+        ASSERT(a.find(createUnique<int>(2)) == 1);
+    }
+
+    {
+        Array<UniquePtr<int>> a;
+        a.ensureCapacity(2);
+        a.pushBack(createUnique<int>(1));
+        a.shrinkToLength();
+        a.resize(3);
+    }
+
+    {
+        Array<UniquePtr<int>> a;
+        a.insert(0, createUnique<int>(1));
+        a.insert(0, createUnique<int>(2));
+        a.popBack();
+    }
+
+    {
+        Array<UniquePtr<int>> a;
+        a.pushBack(createUnique<int>(1));
+        a.pushBack(createUnique<int>(2));
+        a.clear();
+    }
 }
 
 void testList()
@@ -2675,16 +2720,186 @@ void testList()
         ASSERT(l.size() == 0);
         ASSERT(l.empty());
     }
+
+    // UniquePtr
+
+    {
+        List<UniquePtr<int>> l1;
+        List<UniquePtr<int>> l2(2);
+    }
+
+    {
+         List<UniquePtr<int>> l;
+         l.pushBack(createUnique<int>(1));
+         l.pushBack(createUnique<int>(2));
+         ASSERT(l.find(createUnique<int>(0)) == nullptr);
+         ASSERT(l.find(createUnique<int>(2)) != nullptr);
+    }
+
+    {
+         List<UniquePtr<int>> l;
+         l.pushBack(createUnique<int>(1));
+         l.insertBefore(l.front(), createUnique<int>(2));
+         l.popFront();
+    }
+
+    {
+         List<UniquePtr<int>> l;
+         l.pushFront(createUnique<int>(1));
+         l.insertAfter(l.back(), createUnique<int>(2));
+         l.popBack();
+    }
+
+    {
+         List<UniquePtr<int>> l;
+         l.pushBack(createUnique<int>(1));
+         l.pushBack(createUnique<int>(2));
+         l.remove(l.front());
+    }
+
+    {
+         List<UniquePtr<int>> l;
+         l.pushBack(createUnique<int>(1));
+         l.pushBack(createUnique<int>(2));
+         l.clear();
+    }
 }
 
 void testMap()
 {
+    // Map(int numBuckets = 0)
 
+    ASSERT_EXCEPTION(Exception, Map<int, int>(-1));
+
+    {
+        Map<int, int> m;
+        ASSERT(m.size() == 0);
+        ASSERT(m.numBuckets() == 0);
+        ASSERT(m.empty());
+    }
+
+    {
+        Map<int, int> m(10);
+        ASSERT(m.size() == 0);
+        ASSERT(m.numBuckets() == 10);
+        ASSERT(m.empty());
+    }
+
+    // Map(const Map<_Key, _Value>& other)
+
+    {
+        Map<int, int> m1, m2(m1);
+        ASSERT(m2.size() == 0);
+        ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.empty());
+    }
+
+    {
+        Map<int, int> m1;
+        m1.insert(1, 1);
+        Map<int, int> m2(m1);
+        ASSERT(m1.size() == m2.size());
+        ASSERT(m1.numBuckets() == m2.numBuckets());
+        ASSERT(!m2.empty());
+        ASSERT(m1[1] == m2[1]);
+    }
+
+    // Map(Map<_Key, _Value>&& other)
+   
+    {
+        Map<int, int> m1, m2(static_cast<Map<int, int>&&>(m1));
+
+        ASSERT(m1.size() == 0);
+        ASSERT(m1.numBuckets() == 0);
+        ASSERT(m1.empty());
+
+        ASSERT(m2.size() == 0);
+        ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.empty());
+    }
+
+    {
+        Map<int, int> m1;
+        m1.insert(1, 1);
+
+        Map<int, int> m2(static_cast<Map<int, int>&&>(m1));
+
+        ASSERT(m1.size() == 0);
+        ASSERT(m1.numBuckets() == 0);
+        ASSERT(m1.empty());
+
+        ASSERT(m2.size() == 1);
+        ASSERT(m2.numBuckets() == 1);
+        ASSERT(!m2.empty());
+        ASSERT(m2[1] == 1);
+    }
+
+    // _Value& operator[](const _Key& key)
+
+    {
+        Map<int, int> m;
+        int k1 = 1, k2 = 2;
+        int v1 = 1, v2 = 2, v3 = 3;
+
+        m[k1] = v1;
+        ASSERT(m.size() == 1);
+        ASSERT(m.numBuckets() == 1);
+        ASSERT(!m.empty());
+        ASSERT(m[k1] == v1);
+
+        m[k1] = v2;
+        ASSERT(m.size() == 1);
+        ASSERT(m.numBuckets() == 3);
+        ASSERT(!m.empty());
+        ASSERT(m[k1] == v2);
+
+        m[k2] = v3;
+        ASSERT(m.size() == 2);
+        ASSERT(m.numBuckets() == 3);
+        ASSERT(!m.empty());
+        ASSERT(m[k1] == v2);
+        ASSERT(m[k2] == v3);
+    }
+
+    // _Value& operator[](_Key&& key)
+
+    {
+        Map<int, int> m;
+
+        m[1] = 1;
+        ASSERT(m.size() == 1);
+        ASSERT(m.numBuckets() == 1);
+        ASSERT(!m.empty());
+        ASSERT(m[1] == 1);
+
+        m[1] = 2;
+        ASSERT(m.size() == 1);
+        ASSERT(m.numBuckets() == 3);
+        ASSERT(!m.empty());
+        ASSERT(m[1] == 2);
+
+        m[2] = 3;
+        ASSERT(m.size() == 2);
+        ASSERT(m.numBuckets() == 3);
+        ASSERT(!m.empty());
+        ASSERT(m[1] == 2);
+        ASSERT(m[2] == 3);
+    }
+
+    // const _Value& operator[](const _Key& key) const
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+
+        const Map<int, int>& cm = m;
+        ASSERT(cm[1] == 1);
+        ASSERT_EXCEPTION(Exception, cm[2]);
+    }
 }
 
 void testSet()
 {
-
 }
 
 void testFoundation()

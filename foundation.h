@@ -566,7 +566,7 @@ inline void destroyArray(int size, _Type* elements)
 }
 
 template<typename _Type, typename... _Args>
-inline _Type* createFillArray(int size, int capacity, _Args&&... args)
+inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 {
     ASSERT(size >= 0);
     ASSERT(capacity >= 0 && size <= capacity);
@@ -589,7 +589,7 @@ inline _Type* createFillArray(int size, int capacity, _Args&&... args)
 }
 
 template<typename _Type>
-inline _Type* createCopyArray(int size, int capacity, const _Type* elements)
+inline _Type* createArrayCopy(int size, int capacity, const _Type* elements)
 {
     ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
     ASSERT(capacity >= 0 && size <= capacity);
@@ -601,6 +601,29 @@ inline _Type* createCopyArray(int size, int capacity, const _Type* elements)
     {
         for (; i < size; ++i)
             ::new(ptr + i) _Type(elements[i]);
+    }
+    catch (...)
+    {
+        destroyArray(i, ptr);
+        throw;
+    }
+
+    return ptr;
+}
+
+template<typename _Type>
+inline _Type* createArrayMove(int size, int capacity, _Type* elements)
+{
+    ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
+    ASSERT(capacity >= 0 && size <= capacity);
+
+    _Type* ptr = allocate<_Type>(capacity);
+    int i = 0;
+
+    try
+    {
+        for (; i < size; ++i)
+            ::new(ptr + i) _Type(static_cast<_Type&&>(elements[i]));
     }
     catch (...)
     {
@@ -1192,7 +1215,7 @@ public:
         
         _size = size;
         _capacity = capacity;
-        _elements = Memory::createFillArray<_Type>(size, capacity);
+        _elements = Memory::createArrayFill<_Type>(size, capacity);
     }
     
     Array(int size, const _Type* elements) : Array(size, size, elements)
@@ -1206,14 +1229,14 @@ public:
         
         _size = size;
         _capacity = capacity;
-        _elements = Memory::createCopyArray(size, capacity, elements);
+        _elements = Memory::createArrayCopy(size, capacity, elements);
     }
 
     Array(const Array<_Type>& other)
     {
         _size = other._size;
         _capacity = other._size;
-        _elements = Memory::createCopyArray(other._size, other._size, other._elements);
+        _elements = Memory::createArrayCopy(other._size, other._size, other._elements);
     }
     
     Array(Array<_Type>&& other)
@@ -1325,8 +1348,9 @@ public:
     int find(const _Type& value) const
     {
         for (int i = 0; i < _size; ++i)
-            if (_elements[i] == value)
+            if (equalsTo(_elements[i], value))
                 return i;
+
         return INVALID_POS;
     }
 
@@ -1335,19 +1359,13 @@ public:
         ASSERT(capacity >= 0);
 
         if (capacity > _capacity)
-        {
-            Array<_Type> tmp(_size, capacity, _elements);
-            swap(*this, tmp);
-        }
+            reallocateArray(capacity);
     }
     
     void shrinkToLength()
     {
         if (_capacity > _size)
-        {
-            Array<_Type> tmp(*this);
-            swap(*this, tmp);
-        }
+            reallocateArray(_size);
     }
 
     void resize(int size)
@@ -1370,17 +1388,14 @@ public:
     {
         ASSERT(_size > 0);
 
-        Memory::destruct(_elements + _size);
+        Memory::destruct(_elements + _size - 1);
         --_size;
     }
     
     void pushBack(const _Type& value)
     {
         if (_size >= _capacity)
-        {
-            Array<_Type> tmp(_size, _capacity * 2 + 1, _elements);
-            swap(*this, tmp);
-        }
+            reallocateArray(_capacity * 2 + 1);
 
         Memory::construct(_elements + _size, value);
         ++_size;
@@ -1389,10 +1404,7 @@ public:
     void pushBack(_Type&& value)
     {
         if (_size >= _capacity)
-        {
-            Array<_Type> tmp(_size, _capacity * 2 + 1, _elements);
-            swap(*this, tmp);
-        }
+            reallocateArray(_capacity * 2 + 1);
 
         Memory::construct(_elements + _size, static_cast<_Type&&>(value));
         ++_size;
@@ -1403,10 +1415,7 @@ public:
         ASSERT(index >= 0 && index <= _size);
         
         if (_size >= _capacity)
-        {
-            Array<_Type> tmp(_size, _capacity * 2 + 1, _elements);
-            swap(*this, tmp);
-        }
+            reallocateArray(_capacity * 2 + 1);
 
         Memory::construct(_elements + _size, value);
 
@@ -1421,10 +1430,7 @@ public:
         ASSERT(index >= 0 && index <= _size);
         
         if (_size >= _capacity)
-        {
-            Array<_Type> tmp(_size, _capacity * 2 + 1, _elements);
-            swap(*this, tmp);
-        }
+            reallocateArray(_capacity * 2 + 1);
 
         Memory::construct(_elements + _size, static_cast<_Type&&>(value));
 
@@ -1487,6 +1493,14 @@ private:
     Array(int size, _Type* elements) :
         _size(size), _capacity(size), _elements(elements)
     {
+    }
+
+    void reallocateArray(int capacity)
+    {
+        _Type* elements = Memory::createArrayMove(_size, capacity, _elements);
+        Memory::destroyArray(_size, _elements);
+        _elements = elements;
+        _capacity = capacity;
     }
 
 private:
@@ -1754,16 +1768,18 @@ public:
     ListNode<_Type>* find(const _Type& value)
     {
         for (auto node = _front; node; node = node->next)
-            if (node->value == value)
+            if (equalsTo(node->value, value))
                 return node;
+
         return nullptr;
     }
 
     const ListNode<_Type>* find(const _Type& value) const
     {
         for (auto node = _front; node; node = node->next)
-            if (node->value == value)
+            if (equalsTo(node->value, value))
                 return node;
+
         return nullptr;
     }
 
@@ -2093,6 +2109,7 @@ public:
     Map(int numBuckets = 0) : 
         _keyValues(numBuckets), _size(0)
     {
+        ASSERT(numBuckets >= 0);
     }
 
     Map(const Map<_Key, _Value>& other) :
@@ -2109,9 +2126,7 @@ public:
 
     _Value& operator[](const _Key& key)
     {
-        if (_keyValues.empty())
-            _keyValues.resize(1);
-        else if (loadFactor() > MAX_LOAD_FACTOR)
+        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_keyValues.size() * 2 + 1);
 
         List<KeyValue>& kvList = getBucket(key);
@@ -2130,9 +2145,7 @@ public:
 
     _Value& operator[](_Key&& key)
     {
-        if (_keyValues.empty())
-            _keyValues.resize(1);
-        else if (loadFactor() > MAX_LOAD_FACTOR)
+        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_keyValues.size() * 2 + 1);
 
         List<KeyValue>& kvList = getBucket(key);
@@ -2226,9 +2239,7 @@ public:
 
     void insert(const _Key& key, const _Value& value)
     {
-        if (_keyValues.empty())
-            _keyValues.resize(1);
-        else if (loadFactor() > MAX_LOAD_FACTOR)
+        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_keyValues.size() * 2 + 1);
 
         List<KeyValue>& kvList = getBucket(key);
@@ -2248,9 +2259,7 @@ public:
 
     void insert(_Key&& key, _Value&& value)
     {
-        if (_keyValues.empty())
-            _keyValues.resize(1);
-        else if (loadFactor() > MAX_LOAD_FACTOR)
+        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_keyValues.size() * 2 + 1);
 
         List<KeyValue>& kvList = getBucket(key);
