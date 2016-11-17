@@ -56,4 +56,3 @@ construct container by moving elements?
 why implementation of string and array is different
 string with capacity constructors?
 go back to doubling capacity in string?
-

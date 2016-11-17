@@ -9,6 +9,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <ctype.h>
+#include <math.h>
 
 // 32/64 bit
 
@@ -2307,6 +2308,8 @@ public:
 
     void rehash(int numBuckets)
     {
+        ASSERT(numBuckets >= 0);
+
         Map<_Key, _Value> tmp(numBuckets);
 
         for (int i = 0; i < _keyValues.size(); ++i)
@@ -2367,7 +2370,7 @@ private:
     int getBucketIndex(const _Key& key) const
     {
         int h = hash(key);
-        return (h >> 1) % _keyValues.size();
+        return abs(h) % _keyValues.size();
     }
 
 private:
@@ -2532,6 +2535,7 @@ public:
     Set(int numBuckets = 0) : 
         _values(numBuckets), _size(0)
     {
+        ASSERT(numBuckets >= 0);
     }
 
     Set(const Set<_Type>& other) :
@@ -2595,9 +2599,7 @@ public:
 
     void insert(const _Type& value)
     {
-        if (_values.empty())
-            _values.resize(1);
-        else if (loadFactor() > MAX_LOAD_FACTOR)
+        if (_values.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_values.size() * 2 + 1);
 
         List<_Type>& vList = getBucket(value);
@@ -2614,9 +2616,7 @@ public:
 
     void insert(_Type&& value)
     {
-        if (_values.empty())
-            _values.resize(1);
-        else if (loadFactor() > MAX_LOAD_FACTOR)
+        if (_values.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_values.size() * 2 + 1);
 
         List<_Type>& vList = getBucket(value);
@@ -2631,7 +2631,7 @@ public:
         ++_size;
     }
 
-    _Type&& remove()
+    _Type remove()
     {
         for (int i = 0; i < _values.size(); ++i)
         {
@@ -2639,10 +2639,10 @@ public:
 
             if (!vList.empty())
             {
-                _Type&& value = static_cast<_Type&&>(vList.front()->value);
+                _Type value = static_cast<_Type&&>(vList.front()->value);
                 vList.popFront();
                 --_size;
-                return static_cast<_Type&&>(value);
+                return value;
             }
         }
 
@@ -2674,6 +2674,8 @@ public:
 
     void rehash(int numBuckets)
     {
+        ASSERT(numBuckets >= 0);
+
         Set<_Type> tmp(numBuckets);
 
         for (int i = 0; i < _values.size(); ++i)
@@ -2705,7 +2707,7 @@ private:
     int getBucketIndex(const _Type& value) const
     {
         int h = hash(value);
-        return (h >> 1) % _values.size();
+        return abs(h) % _values.size();
     }
 
 private:

@@ -1,9 +1,27 @@
 #include <foundation.h>
 #include <test.h>
 
+int hash(const UniquePtr<int>& val)
+{
+    return val ? *val : 0;
+}
+
 bool equalsTo(const UniquePtr<int>& left, const UniquePtr<int>& right)
 {
-    return *left == *right;
+    if (left)
+    {
+        if (right)
+            return *left == *right;
+        else
+            return false;
+    }
+    else
+    {
+        if (right)
+            return false;
+        else
+            return true;
+    }
 }
 
 template<typename _SeqType, typename _ElemType>
@@ -2798,10 +2816,10 @@ void testMap()
         Map<int, int> m1;
         m1.insert(1, 1);
         Map<int, int> m2(m1);
-        ASSERT(m1.size() == m2.size());
-        ASSERT(m1.numBuckets() == m2.numBuckets());
+        ASSERT(m1.size() == 1);
+        ASSERT(m1.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m1[1] == m2[1]);
+        ASSERT(m2[1] == 1);
     }
 
     // Map(Map<_Key, _Value>&& other)
@@ -2896,10 +2914,513 @@ void testMap()
         ASSERT(cm[1] == 1);
         ASSERT_EXCEPTION(Exception, cm[2]);
     }
+
+    // Map<_Key, _Value>& operator=(const Map<_Key, _Value>& other)
+
+    {
+        Map<int, int> m1, m2;
+        m2 = m1;
+        ASSERT(m2.size() == 0);
+        ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.empty());
+    }
+
+    {
+        Map<int, int> m1;
+        m1.insert(1, 1);
+        Map<int, int> m2;
+        m2 = m1;
+        ASSERT(m1.size() == 1);
+        ASSERT(m1.numBuckets() == 1);
+        ASSERT(!m2.empty());
+        ASSERT(m2[1] == 1);
+    }
+
+
+    // Map<_Key, _Value>& operator=(Map<_Key, _Value>&& other)
+
+    {
+        Map<int, int> m1, m2;
+        m2 = static_cast<Map<int, int>&&>(m1);
+
+        ASSERT(m1.size() == 0);
+        ASSERT(m1.numBuckets() == 0);
+        ASSERT(m1.empty());
+
+        ASSERT(m2.size() == 0);
+        ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.empty());
+    }
+
+    {
+        Map<int, int> m1;
+        m1.insert(1, 1);
+
+        Map<int, int> m2;
+        m2 = static_cast<Map<int, int>&&>(m1);
+
+        ASSERT(m1.size() == 0);
+        ASSERT(m1.numBuckets() == 0);
+        ASSERT(m1.empty());
+
+        ASSERT(m2.size() == 1);
+        ASSERT(m2.numBuckets() == 1);
+        ASSERT(!m2.empty());
+        ASSERT(m2[1] == 1);
+    }
+
+    // int size() const
+    // int numBuckets() const
+    // bool empty() const
+    // float loadFactor() const
+
+    {
+        Map<int, int> m;
+        ASSERT(m.size() == 0);
+        ASSERT(m.numBuckets() == 0);
+        ASSERT(m.empty());
+        ASSERT(isnan(m.loadFactor()));
+    }
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+
+        ASSERT(m.size() == 1);
+        ASSERT(m.numBuckets() == 1);
+        ASSERT(!m.empty());
+        ASSERT(m.loadFactor() == 1);
+    }
+            
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+        m.insert(2, 2);
+
+        ASSERT(m.size() == 2);
+        ASSERT(m.numBuckets() == 3);
+        ASSERT(!m.empty());
+        ASSERT(m.loadFactor() == 2.0f / 3.0f);
+    }
+
+    // _Value* find(const _Key& key)
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+        ASSERT(*m.find(1) == 1);
+        ASSERT(m.find(2) == nullptr);
+    }
+
+    // const _Value* find(const _Key& key) const
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+
+        const Map<int, int>& cm = m;
+        ASSERT(*cm.find(1) == 1);
+        ASSERT(cm.find(2) == nullptr);
+    }
+
+    // void insert(const _Key& key, const _Value& value)
+
+    {
+        Map<int, int> m;
+        int k = 1, v = 1;
+        m.insert(k, v);
+        ASSERT(m[k] == v);
+    }
+
+    // void insert(_Key&& key, _Value&& value)
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+        ASSERT(m[1] == 1);
+    }
+
+    // bool remove(const _Key& key)
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+        m.remove(1);
+        ASSERT(m.empty());
+    }
+
+    // void clear()
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+        m.insert(2, 2);
+        m.clear();
+        ASSERT(m.empty());
+    }
+
+    // void rehash(int numBuckets)
+
+    {
+        Map<int, int> m;
+        ASSERT_EXCEPTION(Exception, m.rehash(-1));
+    }
+
+    {
+        Map<int, int> m;
+        m.rehash(0);
+        ASSERT(m.size() == 0);
+        ASSERT(m.numBuckets() == 0);
+    }
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+        m.insert(2, 2);
+        ASSERT(m.size() == 2);
+        ASSERT(m.numBuckets() == 3);
+
+        m.rehash(0);
+        ASSERT(m.size() == 2);
+        ASSERT(m.numBuckets() == 3);
+    }
+
+    {
+        Map<int, int> m;
+        m.insert(1, 1);
+        m.insert(2, 2);
+        ASSERT(m.size() == 2);
+        ASSERT(m.numBuckets() == 3);
+
+        m.rehash(10);
+        ASSERT(m.size() == 2);
+        ASSERT(m.numBuckets() == 10);
+    }
+
+    // UniquePtr
+
+    {
+        Map<UniquePtr<int>, UniquePtr<int>> m1(10);
+        m1[createUnique<int>(1)] = createUnique<int>(1);
+        Map<UniquePtr<int>, UniquePtr<int>> m2(
+            static_cast<Map<UniquePtr<int>, UniquePtr<int>>&&>(m1));
+    }
+
+    {
+        Map<UniquePtr<int>, UniquePtr<int>> m;
+        m[createUnique<int>(1)] = createUnique<int>(1);
+        ASSERT(*m.find(createUnique<int>(1)) == 1);
+        const Map<UniquePtr<int>, UniquePtr<int>>& cm = m;
+        ASSERT(*cm[createUnique<int>(1)] == 1);
+        ASSERT(*cm.find(createUnique<int>(1)) == 1);
+    }
+
+    {
+        Map<UniquePtr<int>, UniquePtr<int>> m;
+        m.insert(createUnique<int>(1), createUnique<int>(1));
+        m.insert(createUnique<int>(1), createUnique<int>(2));
+        m.insert(createUnique<int>(2), createUnique<int>(2));
+        ASSERT(m.size() == 2);
+        ASSERT(m.remove(createUnique<int>(1)));
+        ASSERT(!m.remove(createUnique<int>(3)));
+        ASSERT(m.size() == 1);
+    }
+
+    {
+        Map<UniquePtr<int>, UniquePtr<int>> m;
+        m.insert(createUnique<int>(1), createUnique<int>(1));
+        m.insert(createUnique<int>(2), createUnique<int>(2));
+        m.rehash(10);
+        m.clear();
+    }
 }
 
 void testSet()
 {
+    // Set(int numBuckets = 0)
+
+    ASSERT_EXCEPTION(Exception, Set<int>(-1));
+
+    {
+        Set<int> s;
+        ASSERT(s.size() == 0);
+        ASSERT(s.numBuckets() == 0);
+        ASSERT(s.empty());
+    }
+
+    {
+        Set<int> s(10);
+        ASSERT(s.size() == 0);
+        ASSERT(s.numBuckets() == 10);
+        ASSERT(s.empty());
+    }
+
+    // Set(const Set<_Type>& other)
+
+    {
+        Set<int> s1, s2(s1);
+        ASSERT(s2.size() == 0);
+        ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.empty());
+    }
+
+    {
+        Set<int> s1;
+        s1.insert(1);
+        Set<int> s2(s1);
+        ASSERT(s1.size() == 1);
+        ASSERT(s1.numBuckets() == 1);
+        ASSERT(!s2.empty());
+        ASSERT(s2.find(1) != nullptr);
+    }
+
+    // Set(Set<_Type>&& other)
+   
+    {
+        Set<int> s1, s2(static_cast<Set<int>&&>(s1));
+
+        ASSERT(s1.size() == 0);
+        ASSERT(s1.numBuckets() == 0);
+        ASSERT(s1.empty());
+
+        ASSERT(s2.size() == 0);
+        ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.empty());
+    }
+
+    {
+        Set<int> s1;
+        s1.insert(1);
+
+        Set<int> s2(static_cast<Set<int>&&>(s1));
+
+        ASSERT(s1.size() == 0);
+        ASSERT(s1.numBuckets() == 0);
+        ASSERT(s1.empty());
+
+        ASSERT(s2.size() == 1);
+        ASSERT(s2.numBuckets() == 1);
+        ASSERT(!s2.empty());
+        ASSERT(s2.find(1) != nullptr);
+    }
+
+    // Set<_Type>& operator=(const Set<_Type>& other)
+
+    {
+        Set<int> s1, s2;
+        s2 = s1;
+        ASSERT(s2.size() == 0);
+        ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.empty());
+    }
+
+    {
+        Set<int> s1;
+        s1.insert(1);
+        Set<int> s2;
+        s2 = s1;
+        ASSERT(s1.size() == 1);
+        ASSERT(s1.numBuckets() == 1);
+        ASSERT(!s2.empty());
+        ASSERT(s2.find(1) != nullptr);
+    }
+
+
+    // Set<_Type>& operator=(Set<_Type>&& other)
+
+    {
+        Set<int> s1, s2;
+        s2 = static_cast<Set<int>&&>(s1);
+
+        ASSERT(s1.size() == 0);
+        ASSERT(s1.numBuckets() == 0);
+        ASSERT(s1.empty());
+
+        ASSERT(s2.size() == 0);
+        ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.empty());
+    }
+
+    {
+        Set<int> s1;
+        s1.insert(1);
+
+        Set<int> s2;
+        s2 = static_cast<Set<int>&&>(s1);
+
+        ASSERT(s1.size() == 0);
+        ASSERT(s1.numBuckets() == 0);
+        ASSERT(s1.empty());
+
+        ASSERT(s2.size() == 1);
+        ASSERT(s2.numBuckets() == 1);
+        ASSERT(!s2.empty());
+        ASSERT(s2.find(1) != nullptr);
+    }
+
+    // int size() const
+    // int numBuckets() const
+    // bool empty() const
+    // float loadFactor() const
+
+    {
+        Set<int> s;
+        ASSERT(s.size() == 0);
+        ASSERT(s.numBuckets() == 0);
+        ASSERT(s.empty());
+        ASSERT(isnan(s.loadFactor()));
+    }
+
+    {
+        Set<int> s;
+        s.insert(1);
+
+        ASSERT(s.size() == 1);
+        ASSERT(s.numBuckets() == 1);
+        ASSERT(!s.empty());
+        ASSERT(s.loadFactor() == 1);
+    }
+            
+    {
+        Set<int> s;
+        s.insert(1);
+        s.insert(2);
+
+        ASSERT(s.size() == 2);
+        ASSERT(s.numBuckets() == 3);
+        ASSERT(!s.empty());
+        ASSERT(s.loadFactor() == 2.0f / 3.0f);
+    }
+
+    // const _Type* find(const _Type& value) const
+
+    {
+        Set<int> s;
+        s.insert(1);
+
+        const Set<int>& cs = s;
+        ASSERT(*cs.find(1) == 1);
+        ASSERT(cs.find(2) == nullptr);
+    }
+
+    // void insert(const _Type& value)
+
+    {
+        Set<int> s;
+        int v = 1;
+        s.insert(v);
+        ASSERT(s.find(v) != nullptr);
+    }
+
+    // void insert(_Type&& value)
+
+    {
+        Set<int> s;
+        s.insert(1);
+        ASSERT(s.find(1) != nullptr);
+    }
+
+    // _Type&& remove()
+
+    ASSERT_EXCEPTION(Exception, Set<int>().remove());
+
+    {
+        Set<int> s;
+        s.insert(1);
+        ASSERT(s.remove() == 1);
+    }
+
+    // bool remove(const _Type& value)
+
+    {
+        Set<int> s;
+        s.insert(1);
+        s.remove(1);
+        ASSERT(s.empty());
+    }
+
+    // void clear()
+
+    {
+        Set<int> s;
+        s.insert(1);
+        s.insert(2);
+        s.clear();
+        ASSERT(s.empty());
+    }
+
+    // void rehash(int numBuckets)
+
+    {
+        Set<int> s;
+        ASSERT_EXCEPTION(Exception, s.rehash(-1));
+    }
+
+    {
+        Set<int> s;
+        s.rehash(0);
+        ASSERT(s.size() == 0);
+        ASSERT(s.numBuckets() == 0);
+    }
+
+    {
+        Set<int> s;
+        s.insert(1);
+        s.insert(2);
+        ASSERT(s.size() == 2);
+        ASSERT(s.numBuckets() == 3);
+
+        s.rehash(0);
+        ASSERT(s.size() == 2);
+        ASSERT(s.numBuckets() == 3);
+    }
+
+    {
+        Set<int> s;
+        s.insert(1);
+        s.insert(2);
+        ASSERT(s.size() == 2);
+        ASSERT(s.numBuckets() == 3);
+
+        s.rehash(10);
+        ASSERT(s.size() == 2);
+        ASSERT(s.numBuckets() == 10);
+    }
+
+    // UniquePtr
+
+    {
+        Set<UniquePtr<int>> s1(10);
+        s1.insert(createUnique<int>(1));
+        Set<UniquePtr<int>> s2(static_cast<Set<UniquePtr<int>>&&>(s1));
+    }
+
+    {
+        Set<UniquePtr<int>> s;
+        s.insert(createUnique<int>(1));
+        ASSERT(s.find(createUnique<int>(1)) != nullptr);
+    }
+
+    {
+        Set<UniquePtr<int>> s;
+        s.insert(createUnique<int>(1));
+        UniquePtr<int> p = s.remove();
+        ASSERT(*p == 1);
+    }
+
+    {
+        Set<UniquePtr<int>> s;
+        s.insert(createUnique<int>(1));
+        ASSERT(s.remove(createUnique<int>(1)));
+    }
+
+    {
+        Set<UniquePtr<int>> s;
+        s.insert(createUnique<int>(1));
+        s.insert(createUnique<int>(2));
+        s.rehash(10);
+        s.clear();
+    }
 }
 
 void testFoundation()
