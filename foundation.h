@@ -1360,13 +1360,13 @@ public:
         ASSERT(capacity >= 0);
 
         if (capacity > _capacity)
-            reallocateArray(capacity);
+            reallocate(capacity);
     }
     
     void shrinkToLength()
     {
         if (_capacity > _size)
-            reallocateArray(_size);
+            reallocate(_size);
     }
 
     void resize(int size)
@@ -1396,7 +1396,7 @@ public:
     void pushBack(const _Type& value)
     {
         if (_size >= _capacity)
-            reallocateArray(_capacity * 2 + 1);
+            reallocate(_capacity * 2 + 1);
 
         Memory::construct(_elements + _size, value);
         ++_size;
@@ -1405,7 +1405,7 @@ public:
     void pushBack(_Type&& value)
     {
         if (_size >= _capacity)
-            reallocateArray(_capacity * 2 + 1);
+            reallocate(_capacity * 2 + 1);
 
         Memory::construct(_elements + _size, static_cast<_Type&&>(value));
         ++_size;
@@ -1416,7 +1416,7 @@ public:
         ASSERT(index >= 0 && index <= _size);
         
         if (_size >= _capacity)
-            reallocateArray(_capacity * 2 + 1);
+            reallocate(_capacity * 2 + 1);
 
         Memory::construct(_elements + _size, value);
 
@@ -1431,7 +1431,7 @@ public:
         ASSERT(index >= 0 && index <= _size);
         
         if (_size >= _capacity)
-            reallocateArray(_capacity * 2 + 1);
+            reallocate(_capacity * 2 + 1);
 
         Memory::construct(_elements + _size, static_cast<_Type&&>(value));
 
@@ -1496,8 +1496,10 @@ private:
     {
     }
 
-    void reallocateArray(int capacity)
+    void reallocate(int capacity)
     {
+        ASSERT(capacity >= 0);
+
         _Type* elements = Memory::createArrayMove(_size, capacity, _elements);
         Memory::destroyArray(_size, _elements);
         _elements = elements;
@@ -1523,30 +1525,29 @@ public:
 
     _Type& value() const
     {
-        if (_index >= 0)
-            return _array._elements[_index];
-        else
-            throw Exception(STR("no current value"));
+        ASSERT(_index >= 0);
+        return _array._elements[_index];
     }
 
     bool moveNext()
     {
-        if (_index < 0)
-            _index = 0;
-        else
-            ++_index;
+        if (++_index < _array._size)
+            return true;
 
-        return _index < _array._size;
+        _index = -1;
+        return false;
     }
 
     bool movePrev()
     {
         if (_index < 0)
-            _index = _array._size - 1;
-        else
-            --_index;
+            _index = _array._size;
 
-        return _index >= 0;
+        if (--_index >= 0)
+            return true;
+
+        _index = -1;
+        return false;
     }
 
     void reset()
@@ -1572,30 +1573,29 @@ public:
 
     const _Type& value() const
     {
-        if (_index >= 0)
-            return _array._elements[_index];
-        else
-            throw Exception(STR("no current value"));
+        ASSERT(_index >= 0);
+        return _array._elements[_index];
     }
 
     bool moveNext()
     {
-        if (_index < 0)
-            _index = 0;
-        else
-            ++_index;
+        if (++_index < _array._size)
+            return true;
 
-        return _index < _array._size;
+        _index = -1;
+        return false;
     }
 
     bool movePrev()
     {
         if (_index < 0)
-            _index = _array._size - 1;
-        else
-            --_index;
+            _index = _array._size;
 
-        return _index >= 0;
+        if (--_index >= 0)
+            return true;
+
+        _index = -1;
+        return false;
     }
 
     void reset()
@@ -1786,38 +1786,32 @@ public:
 
     void popFront()
     {
+        ASSERT(_front != nullptr);
+
+        auto node = _front;
+        _front = _front->next;
+
         if (_front)
-        {
-            auto node = _front;
-            _front = _front->next;
-
-            if (_front)
-                _front->prev = nullptr;
-            else
-                _back = nullptr;
-
-            Memory::destroy(node);
-        }
+            _front->prev = nullptr;
         else
-            throw Exception(STR("list is empty"));
+            _back = nullptr;
+
+        Memory::destroy(node);
     }
 
     void popBack()
     {
+        ASSERT(_back != nullptr);
+
+        auto node = _back;
+        _back = _back->prev;
+
         if (_back)
-        {
-            auto node = _back;
-            _back = _back->prev;
-
-            if (_back)
-                _back->next = nullptr;
-            else
-                _front = nullptr;
-
-            Memory::destroy(node);
-        }
+            _back->next = nullptr;
         else
-            throw Exception(STR("list is empty"));
+            _front = nullptr;
+
+        Memory::destroy(node);
     }
 
     void pushFront(const _Type& value)
@@ -1998,10 +1992,8 @@ public:
 
     _Type& value() const
     {
-        if (_node)
-            return _node->value;
-        else
-            throw Exception(STR("no current value"));
+        ASSERT(_node != nullptr);
+        return _node->value;
     }
 
     bool moveNext()
@@ -2047,10 +2039,8 @@ public:
 
     const _Type& value() const
     {
-        if (_node)
-            return _node->value;
-        else
-            throw Exception(STR("no current value"));
+        ASSERT(_node != nullptr);
+        return _node->value;
     }
 
     bool moveNext()
@@ -2394,10 +2384,8 @@ public:
 
     typename Map<_Key, _Value>::KeyValue& value() const
     {
-        if (_node)
-            return _node->value;
-        else
-            throw Exception(STR("no current value"));
+        ASSERT(_node != nullptr);
+        return _node->value;
     }
 
     bool moveNext()
@@ -2461,10 +2449,8 @@ public:
 
     const typename Map<_Key, _Value>::KeyValue& value() const
     {
-        if (_node)
-            return _node->value;
-        else
-            throw Exception(STR("no current value"));
+        ASSERT(_node != nullptr);
+        return _node->value;
     }
 
     bool moveNext()
@@ -2731,10 +2717,8 @@ public:
 
     const _Type& value() const
     {
-        if (_node)
-            return _node->value;
-        else
-            throw Exception(STR("no current value"));
+        ASSERT(_node != nullptr);
+        return _node->value;
     }
 
     bool moveNext()

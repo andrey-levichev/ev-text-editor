@@ -44,15 +44,12 @@ foundation features:
 * locales (formatting, string compare/search/case conversion)
 * encoding conversion
 * threads/atomics/async
-* initializer_list support
 * function objects (function/bind)
 * type traits
-* review rval ref usage, insert in place, insert rval ref
-* minimize copying and memory allocation in existing classes
 * string to binary/hex conversion
+* initializer_list support
 * conversion between containers (array to list etc)
-construct container by moving elements?
-* asserts and unit tests for all classes
-why implementation of string and array is different
-string with capacity constructors?
-go back to doubling capacity in string?
+
+foundation improvements:
+* review rval ref usage, insert in place, insert rval ref
+* review string vs array code

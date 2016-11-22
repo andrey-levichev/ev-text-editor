@@ -250,7 +250,10 @@ String& String::operator+=(const String& str)
 
     if (str._length > 0)
     {
-        ensureCapacity(_length + str._length + 1);
+        int capacity = _length + str._length + 1;
+        if (capacity > _capacity)
+            ensureCapacity(capacity * 2);
+
         STRNCPY(_chars + _length, str._chars, str._length);
         _length += str._length;
         _chars[_length] = 0;
@@ -266,9 +269,10 @@ String& String::operator+=(const char_t* chars)
 
     if (*chars)
     {
-        int len = STRLEN(chars);
+        int len = STRLEN(chars), capacity = _length + len + 1;
+        if (capacity > _capacity)
+            ensureCapacity(capacity * 2);
 
-        ensureCapacity(_length + len + 1);
         STRNCPY(_chars + _length, chars, len);
         _length += len;
         _chars[_length] = 0;
@@ -279,7 +283,10 @@ String& String::operator+=(const char_t* chars)
 
 String& String::operator+=(const char_t ch)
 {
-    ensureCapacity(_length + 2);
+    int capacity = _length + 2;
+    if (capacity > _capacity)
+        ensureCapacity(capacity * 2);
+
     _chars[_length++] = ch;
     _chars[_length] = 0;
 
@@ -478,7 +485,7 @@ void String::appendFormat(const char_t* format, va_list args)
 {
     *this += String::format(format, args);
 }
-    
+
 void String::insert(int pos, const String& str)
 {
     ASSERT(pos >= 0 && pos <= _length);
@@ -486,7 +493,9 @@ void String::insert(int pos, const String& str)
 
     if (str._length > 0)
     {
-        ensureCapacity(_length + str._length + 1);
+        int capacity = _length + str._length + 1;
+        if (capacity > _capacity)
+            ensureCapacity(capacity * 2);
 
         char_t* p = _chars + pos;
         STRMOVE(p + str._length, p, _length - pos + 1);
@@ -503,8 +512,9 @@ void String::insert(int pos, const char_t* chars)
 
     if (*chars)
     {
-        int len = STRLEN(chars);
-        ensureCapacity(_length + len + 1);
+        int len = STRLEN(chars), capacity = _length + len + 1;
+        if (capacity > _capacity)
+            ensureCapacity(capacity * 2);
 
         char_t* p = _chars + pos;
         STRMOVE(p + len, p, _length - pos + 1);
