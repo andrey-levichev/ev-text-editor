@@ -334,7 +334,7 @@ int String::find(const String& str, int pos) const
         }
     }
 
-    return INVALID_POS;
+    return INVALID_POSITION;
 }
 
 int String::find(const char_t* chars, int pos) const
@@ -352,7 +352,7 @@ int String::find(const char_t* chars, int pos) const
         }
     }
 
-    return INVALID_POS;
+    return INVALID_POSITION;
 }
 
 int String::findNoCase(const String& str, int pos) const
@@ -369,7 +369,7 @@ int String::findNoCase(const String& str, int pos) const
         }
     }
 
-    return INVALID_POS;
+    return INVALID_POSITION;
 }
 
 int String::findNoCase(const char_t* chars, int pos) const
@@ -387,7 +387,7 @@ int String::findNoCase(const char_t* chars, int pos) const
         }
     }
 
-    return INVALID_POS;
+    return INVALID_POSITION;
 }
 
 bool String::startsWith(const String& str) const
@@ -430,12 +430,12 @@ bool String::endsWith(const char_t* chars) const
 
 bool String::contains(const String& str) const
 {
-    return find(str) != INVALID_POS;
+    return find(str) != INVALID_POSITION;
 }
 
 bool String::contains(const char_t* chars) const
 {
-    return find(chars) != INVALID_POS;
+    return find(chars) != INVALID_POSITION;
 }
 
 void String::ensureCapacity(int capacity)

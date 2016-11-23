@@ -3,10 +3,12 @@
 #include <file.h>
 
 const int TAB_SIZE = 4;
+const char_t* tab = STR("    ");
 
-char_t* screen;
-char_t* window;
-const char_t* filename;
+CharArray screen;
+CharArray window;
+
+String filename;
 
 int top, left;
 int width, height, screenHeight;
@@ -15,11 +17,9 @@ int position;
 int line, column, preferredColumn;
 int selection;
 
-char_t* text;
-int size, capacity;
-
-char_t* buffer;
-char_t* pattern;
+String text;
+String buffer;
+String pattern;
 
 bool isIdent(char_t ch)
 {
@@ -82,31 +82,9 @@ char_t* findLine(char_t* str, int line)
     return str;
 }
 
-void insertChars(const char_t* chars, int pos, int len)
-{
-    int cap = size + len + 1;
-    if (cap > capacity)
-    {
-        capacity = cap * 2;
-        text = Memory::reallocate<char_t>(text, capacity);
-    }
-
-    STRMOVE(text + pos + len, text + pos, size - pos + 1);
-    STRNCPY(text + pos, chars, len);
-    size += len;
-    selection = -1;
-}
-
-void deleteChars(int pos, int len)
-{
-    STRMOVE(text + pos, text + pos + len, size - pos - len + 1);
-    size -= len;
-    selection = -1;
-}
-
 void trimTrailingWhitespace()
 {
-    char_t* p = text;
+    /*char_t* p = oldtext;
     char_t* q = p;
     char_t* r = nullptr;
 
@@ -136,24 +114,14 @@ void trimTrailingWhitespace()
         ++p; ++q;
     }
 
-    size = STRLEN(text);
+    size = STRLEN(oldtext);*/
     selection = -1;
-}
-
-char_t* copyChars(const char_t* start, const char_t* end)
-{
-    int len = end - start;
-    char_t* str = Memory::allocate<char_t>(len + 1);
-    STRNCPY(str, start, len);
-    str[len] = 0;
-
-    return str;
 }
 
 void positionToLineColumn()
 {
-    char_t* p = text;
-    char_t* q = text + position;
+    char_t* p = text.chars();
+    char_t* q = p + position;
     line = 1, column = 1;
 
     while (*p && p < q)
@@ -176,7 +144,7 @@ void positionToLineColumn()
 
 void lineColumnToPosition()
 {
-    char_t* p = text;
+    char_t* p = text.chars();
     int preferredLine = line;
     line = 1; column = 1;
 
@@ -196,7 +164,7 @@ void lineColumnToPosition()
         ++p;
     }
 
-    position = p - text;
+    position = p - text.chars();
 }
 
 void updateScreen()
@@ -211,8 +179,8 @@ void updateScreen()
     else if (column >= left + width)
         left = column - width + 1;
 
-    char_t* p = findLine(text, top);
-    char_t* q = window;
+    char_t* p = findLine(text.chars(), top);
+    char_t* q = window.elements();
     int len = left + width - 1;
 
     for (int j = 1; j <= height; ++j)
@@ -265,7 +233,8 @@ void updateScreen()
         {
             if (!matching)
             {
-                Console::write(i / width + 1, i % width + 1, window + i, j - i);
+                Console::write(i / width + 1, i % width + 1, 
+					window.elements() + i, j - i);
                 i = j;
                 matching = true;
             }
@@ -281,7 +250,8 @@ void updateScreen()
     }
     
     if (!matching)
-        Console::write(i / width + 1, i % width + 1, window + i, j - i);
+        Console::write(i / width + 1, i % width + 1, 
+			window.elements() + i, j - i);
     
     Console::setCursorPosition(line - top + 1, column - left + 1);
     Console::showCursor(true);
@@ -294,21 +264,9 @@ void openFile()
 	File file;
 	
 	if (file.open(filename))
-	{
-		ByteArray bytes = file.readBytes();
-		size = bytes.size() / sizeof(char_t);
-		capacity = size + 1;
-		text = Memory::allocate<char_t>(capacity);
-		STRNCPY(text, reinterpret_cast<const char_t*>(bytes.elements()), size);
-		text[size] = 0;
-	}
+		text = file.readString();
 	else
-    {
-        size = 0;
-        capacity = 1;
-        text = Memory::allocate<char_t>(capacity);
-        *text = 0;
-    }
+		text.clear();
 
     position = 0;
     line = 1; column = 1;
@@ -321,13 +279,11 @@ void saveFile()
     trimTrailingWhitespace();
     lineColumnToPosition();
 
-	ByteArray bytes(size * sizeof(char_t), reinterpret_cast<const uint8_t*>(text));
-	
 	File file(filename, FILE_MODE_CREATE_ALWAYS);
-	file.writeBytes(bytes);
+	file.writeString(text);
 }
 
-char_t* getCommand(const char_t* prompt)
+String getCommand(const char_t* prompt)
 {
     int start = STRLEN(prompt), end = start, cmdLine = screenHeight;
     char_t* cmd = (char_t*)alloca(sizeof(char_t) * width);
@@ -347,11 +303,11 @@ char_t* getCommand(const char_t* prompt)
 
             if (key.code == KEY_ENTER)
             {
-                return copyChars(cmd + start, cmd + end);
+                return String(cmd, start, end - start);
             }
             else if (key.code == KEY_ESC)
             {
-                return nullptr;
+                return String();
             }
             else if (key.code == KEY_BACKSPACE)
             {
@@ -372,10 +328,12 @@ char_t* getCommand(const char_t* prompt)
 
 bool deleteWordForward()
 {
-    int pos = wordForward(text + position) - text;
+    int pos = wordForward(text.chars() + position) - text.chars();
     if (pos > position)
     {
-        deleteChars(position, pos - position);
+        text.erase(position, pos - position);
+		selection = -1;
+		
         return true;
     }
 
@@ -384,12 +342,14 @@ bool deleteWordForward()
 
 bool deleteWordBack()
 {
-    int pos = wordBack(text, text + position) - text;
+    int pos = wordBack(text.chars(), text.chars() + position) - text.chars();
     if (pos < position)
     {
-        deleteChars(pos, position - pos);
+        text.erase(pos, position - pos);
         position = pos;
         positionToLineColumn();
+		selection = -1;
+		
         return true;
     }
 
@@ -403,11 +363,11 @@ bool copyDeleteText(bool copy)
 
     if (selection < 0)
     {
-        p = findCharBack(text, text + position, '\n');
+        p = findCharBack(text.chars(), text.chars() + position, '\n');
         if (*p == '\n')
             ++p;
 
-        q = findChar(text + position, '\n');
+        q = findChar(text.chars() + position, '\n');
         if (*q == '\n')
             ++q;
     }
@@ -415,13 +375,13 @@ bool copyDeleteText(bool copy)
     {
         if (selection < position)
         {
-            p = text + selection;
-            q = text + position;
+            p = text.chars() + selection;
+            q = text.chars() + position;
         }
         else
         {
-            p = text + position;
-            q = text + selection;
+            p = text.chars() + position;
+            q = text.chars() + selection;
         }
 
         selection = -1;
@@ -429,14 +389,15 @@ bool copyDeleteText(bool copy)
 
     if (p < q)
     {
-        Memory::deallocate(buffer);
-        buffer = copyChars(p, q);
+        buffer = text.substr(p - text.chars(), q - text.chars());
 
         if (!copy)
         {
-            position = p - text;
+            position = p - text.chars();
             positionToLineColumn();
-            deleteChars(position, q - p);
+            text.erase(position, q - p);
+			selection = -1;
+			
             return true;
         }
     }
@@ -446,12 +407,13 @@ bool copyDeleteText(bool copy)
 
 bool pasteText()
 {
-    if (buffer)
+    if (!buffer.empty())
     {
-        int len = STRLEN(buffer);
-        insertChars(buffer, position, len);
-        position += len;
+		text.insert(position, buffer);
+        position += buffer.length();
         positionToLineColumn();
+		selection = -1;
+		
         return true;
     }
 
@@ -460,7 +422,7 @@ bool pasteText()
 
 void buildProject()
 {
-    Console::setMode(CONSOLEMODE_CANONICAL);
+    Console::setMode(CONSOLE_MODE_CANONICAL);
     Console::clear();
 
     saveFile();
@@ -474,16 +436,15 @@ void buildProject()
 
 bool findNext()
 {
-    if (pattern)
+    if (!pattern.empty())
     {
-        char_t* p = text + position;
-        char_t* q = STRSTR(p + 1, pattern);
-        if (!q)
-            q = STRSTR(text, pattern);
-
-        if (q && q != p)
-        {
-            position = q - text;
+		int pos = text.find(pattern, position);
+		if (pos == String::INVALID_POSITION)
+			pos = text.find(pattern);
+		
+		if (pos != String::INVALID_POSITION && pos != position)
+		{
+			position = pos;
             positionToLineColumn();
             return true;
         }
@@ -494,19 +455,18 @@ bool findNext()
 
 bool findWordAtCursor()
 {
-    char_t* p = text + position;
-    Memory::deallocate(pattern);
+    char_t* p = text.chars() + position;
 
     if (isIdent(*p))
     {
-        while (p > text)
+        while (p > text.chars())
         {
             if (!isIdent(*(p - 1)))
                 break;
             --p;
         }
 
-        char_t* q = text + position + 1;
+        char_t* q = text.chars() + position + 1;
         while (*q)
         {
             if (!isIdent(*q))
@@ -514,10 +474,10 @@ bool findWordAtCursor()
             ++q;
         }
 
-        pattern = copyChars(p, q);
+        pattern = text.substr(p - text.chars(), q - text.chars());
     }
     else
-        pattern = nullptr;
+        pattern.clear();
 
     return findNext();
 }
@@ -526,7 +486,7 @@ void insertChar(char_t ch)
 {
     if (ch == '\n') // new line
     {
-        char_t* p = findCharBack(text, text + position, '\n');
+        char_t* p = findCharBack(text.chars(), text.chars() + position, '\n');
         if (*p == '\n')
             ++p;
 
@@ -535,27 +495,29 @@ void insertChar(char_t ch)
             ++q;
 
         int len = q - p + 1;
-        char_t* chars = (char_t*)alloca(sizeof(char_t) * len);
+        char_t* chars = (char_t*)alloca(sizeof(char_t) * (len + 1));
 
         chars[0] = '\n';
-        STRNCPY(chars + 1, p, q - p);
+        *STRNCPY(chars + 1, p, q - p) = 0;
 
-        insertChars(chars, position, len);
+        text.insert(position, chars);
         position += len;
     }
     else if (ch == '\t') // tab
     {
-        char_t chars[16];
-        STRSET(chars, ' ', TAB_SIZE);
-        insertChars(chars, position, TAB_SIZE);
+        text.insert(position, tab);
         position += TAB_SIZE;
     }
     else if (ch == 0x14) // real tab
-        insertChars(STR("\t"), position++, 1);
+        text.insert(position++, STR("\t"));
     else
-        insertChars(&ch, position++, 1);
+	{
+		char_t chars[2] = { ch, 0 };
+        text.insert(position++, chars);
+	}
 
     positionToLineColumn();
+	selection = -1;
 }
 
 bool processKey()
@@ -571,13 +533,13 @@ bool processKey()
         {
             if (key.code == KEY_RIGHT)
             {
-                position = wordForward(text + position) - text;
+                position = wordForward(text.chars() + position) - text.chars();
                 positionToLineColumn();
                 update = true;
             }
             else if (key.code == KEY_LEFT)
             {
-                position = wordBack(text, text + position) - text;
+                position = wordBack(text.chars(), text.chars() + position) - text.chars();
                 positionToLineColumn();
                 update = true;
             }
@@ -605,7 +567,7 @@ bool processKey()
             }
             else if (key.code == KEY_END)
             {
-                position = size;
+                position = text.length();
                 positionToLineColumn();
                 update = true;
             }
@@ -661,7 +623,6 @@ bool processKey()
             }
             else if (key.ch == 'f')
             {
-                Memory::deallocate(pattern);
                 pattern = getCommand(STR("find: "));
                 findNext();
                 update = true;
@@ -679,16 +640,19 @@ bool processKey()
         {
             if (position > 0)
             {
-                deleteChars(--position, 1);
+                text.erase(--position, 1);
                 positionToLineColumn();
+				
+				selection = -1;
                 update = true;
             }
         }
         else if (key.code == KEY_DELETE)
         {
-            if (position < size)
+            if (position < text.length())
             {
-                deleteChars(position, 1);
+                text.erase(position, 1);
+				selection = -1;
                 update = true;
             }
         }
@@ -709,7 +673,7 @@ bool processKey()
         }
         else if (key.code == KEY_RIGHT)
         {
-            if (position < size)
+            if (position < text.length())
             {
                 ++position;
                 positionToLineColumn();
@@ -727,17 +691,17 @@ bool processKey()
         }
         else if (key.code == KEY_HOME)
         {
-            char_t* p = findCharBack(text, text + position, '\n');
+            char_t* p = findCharBack(text.chars(), text.chars() + position, '\n');
             if (*p == '\n')
                 ++p;
 
-            position = p - text;
+            position = p - text.chars();
             positionToLineColumn();
             update = true;
         }
         else if (key.code == KEY_END)
         {
-            position = findChar(text + position, '\n') - text;
+            position = findChar(text.chars() + position, '\n') - text.chars();
             positionToLineColumn();
             update = true;
         }
@@ -775,9 +739,9 @@ void editor()
 
     Console::create();
     Console::getSize(width, screenHeight);
-    screen = Memory::allocate<char_t>(width * screenHeight);
-    memset(screen, 0, sizeof(char_t) * width * screenHeight);
-    window = Memory::allocate<char_t>(width * screenHeight);
+	
+    screen.resize(width * screenHeight);
+    window.resize(width * screenHeight);
 
     height = screenHeight - 1;
     top = 1; left = 1;
@@ -787,15 +751,9 @@ void editor()
 
     while (processKey());
 
-    Console::setMode(CONSOLEMODE_CANONICAL);
+    Console::setMode(CONSOLE_MODE_CANONICAL);
     Console::clear();
     Console::destroy();
-
-    Memory::deallocate(screen);
-    Memory::deallocate(window);
-    Memory::deallocate(text);
-    Memory::deallocate(buffer);
-    Memory::deallocate(pattern);
 }
 
 int MAIN(int argc, const char_t** argv)

@@ -35,7 +35,7 @@ void Console::setMode(int mode)
 {
 #ifdef PLATFORM_WINDOWS
 
-    if (mode & CONSOLEMODE_UNICODE)
+    if (mode & CONSOLE_MODE_UNICODE)
         _setmode(_fileno(stdout), _O_U16TEXT);
     else
         _setmode(_fileno(stdout), _O_U8TEXT);

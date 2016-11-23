@@ -935,7 +935,7 @@ inline int hash(const SharedPtr<_Type>& val)
 class String
 {
 public:
-    static const int INVALID_POS = -1;
+    static const int INVALID_POSITION = -1;
 
 public:
     String() :
@@ -1191,7 +1191,7 @@ template<typename _Type>
 class Array
 {
 public:
-    static const int INVALID_POS = -1;
+    static const int INVALID_POSITION = -1;
 
 public:
     template<typename>
@@ -1356,7 +1356,7 @@ public:
             if (equalsTo(_elements[i], value))
                 return i;
 
-        return INVALID_POS;
+        return INVALID_POSITION;
     }
 
     void ensureCapacity(int capacity)

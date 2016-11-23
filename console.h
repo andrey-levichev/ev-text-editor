@@ -51,8 +51,8 @@ struct Key
 
 enum ConsoleMode
 {
-    CONSOLEMODE_UNICODE = 1,
-    CONSOLEMODE_CANONICAL = 2
+    CONSOLE_MODE_UNICODE = 1,
+    CONSOLE_MODE_CANONICAL = 2
 };
 
 // Console
