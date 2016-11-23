@@ -289,79 +289,20 @@ void updateScreen()
     swap(window, screen);
 }
 
-bool readFile(const char_t* fileName)
-{
-#ifdef _WIN32
-    struct _stat st;
-    if (_wstat(fileName, &st) < 0)
-        return false;
-#else
-    struct stat st;
-    if (stat(fileName, &st) < 0)
-        return false;
-#endif
-
-#ifdef _WIN32
-    int file = _wopen(fileName, _O_RDONLY | _O_U16TEXT);
-#else
-    int file = open(fileName, O_RDONLY);
-#endif
-
-    if (file < 0)
-        return false;
-
-    capacity = st.st_size / sizeof(char_t) + 1;
-    text = Memory::allocate<char_t>(capacity);
-    
-#ifdef _WIN32
-    size = _read(file, text, st.st_size) / sizeof(char_t);
-	_close(file);
-#else
-    size = read(file, text, st.st_size) / sizeof(char_t);
-	close(file);
-#endif
-
-    if (size >= 0)
-    {
-        text[size] = 0;
-        return true;
-    }
-    else
-    {
-        Memory::deallocate(text);
-        return false;
-    }
-}
-
-bool writeFile(const char_t* fileName)
-{
-#ifdef _WIN32
-    int file = _wopen(fileName, 
-        _O_WRONLY | _O_CREAT | _O_TRUNC | _O_U16TEXT,
-        _S_IREAD | _S_IWRITE);
-#else
-    int file = open(fileName, 
-        O_WRONLY | O_CREAT | O_TRUNC,
-        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-#endif
-
-    if (file < 0)
-        return false;
-
-#ifdef _WIN32
-    bool success = _write(file, text, sizeof(char_t) * size) >= 0;
-	_close(file);
-#else
-    bool success = write(file, text, sizeof(char_t) * size) >= 0;
-	close(file);
-#endif
-	
-	return success;
-}
-
 void openFile()
 {
-    if (!readFile(filename))
+	File file;
+	
+	if (file.open(filename))
+	{
+		ByteArray bytes = file.readBytes();
+		size = bytes.size() / sizeof(char_t);
+		capacity = size + 1;
+		text = Memory::allocate<char_t>(capacity);
+		STRNCPY(text, reinterpret_cast<const char_t*>(bytes.elements()), size);
+		text[size] = 0;
+	}
+	else
     {
         size = 0;
         capacity = 1;
@@ -380,8 +321,10 @@ void saveFile()
     trimTrailingWhitespace();
     lineColumnToPosition();
 
-    if (!writeFile(filename))
-        throw Exception(STR("failed to save file"));
+	ByteArray bytes(size * sizeof(char_t), reinterpret_cast<const uint8_t*>(text));
+	
+	File file(filename, FILE_MODE_CREATE_ALWAYS);
+	file.writeBytes(bytes);
 }
 
 char_t* getCommand(const char_t* prompt)

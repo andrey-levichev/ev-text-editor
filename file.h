@@ -32,8 +32,8 @@ public:
         
     void close();
     
-    Array<uint8_t> readBytes();
-    void writeBytes(const Array<uint8_t>& bytes);
+    ByteArray readBytes();
+    void writeBytes(const ByteArray& bytes);
     
     String readString();
     void writeString(const String& str);

@@ -1516,6 +1516,9 @@ private:
     _Type* _elements;
 };
 
+typedef Array<uint8_t> ByteArray;
+typedef Array<char_t> CharArray;
+
 // ArrayIterator
 
 template<typename _Type>

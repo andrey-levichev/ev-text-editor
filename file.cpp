@@ -94,19 +94,19 @@ void File::close()
     }        
 }
 
-Array<uint8_t> File::readBytes()
+ByteArray File::readBytes()
 {
     if (_handle == INVALID_HANDLE_VALUE)
         throw Exception(STR("file not opened"));
 
 #ifdef PLATFORM_WINDOWS
     DWORD bytesSize = size(), bytesRead;
-    Array<uint8_t> bytes(bytesSize);
+    ByteArray bytes(bytesSize);
     
     if (ReadFile(_handle, bytes.elements(), bytesSize, &bytesRead, nullptr))
 #else
     ssize_t bytesSize = size(), bytesRead;
-    Array<uint8_t> bytes(bytesSize);
+    ByteArray bytes(bytesSize);
 
     if ((bytesRead = read(_handle, bytes.elements(), bytesSize)) >= 0)
 #endif
@@ -120,7 +120,7 @@ Array<uint8_t> File::readBytes()
     return bytes;
 }
 
-void File::writeBytes(const Array<uint8_t>& bytes)
+void File::writeBytes(const ByteArray& bytes)
 {
     if (_handle == INVALID_HANDLE_VALUE)
         throw Exception(STR("file not opened"));
