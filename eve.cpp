@@ -1,83 +1,8 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#ifdef _WIN32
-
-#include <malloc.h>
-#include <io.h>
-#include <windows.h>
-
-#define STDIN_FILENO 0
-#define STDOUT_FILENO 1
-
-#define open _wopen
-#define close _close
-#define read _read
-#define write _write
-
-#else
-    
-#ifdef __sun
-#include <alloca.h>
-#include <sys/filio.h>
-#endif
-
-#include <unistd.h>
-#include <termios.h>
-#include <sys/ioctl.h>
-
-#endif
-
 #include <foundation.h>
+#include <console.h>
+#include <file.h>
 
 const int TAB_SIZE = 4;
-
-enum KeyCode
-{
-    KEY_NONE,
-    KEY_ESC,
-    KEY_TAB,
-    KEY_BACKSPACE,
-    KEY_ENTER,
-    KEY_UP,
-    KEY_DOWN,
-    KEY_LEFT,
-    KEY_RIGHT,
-    KEY_INSERT,
-    KEY_DELETE,
-    KEY_HOME,
-    KEY_END,
-    KEY_PGUP,
-    KEY_PGDN,
-    KEY_F1,
-    KEY_F2,
-    KEY_F3,
-    KEY_F4,
-    KEY_F5,
-    KEY_F6,
-    KEY_F7,
-    KEY_F8,
-    KEY_F9,
-    KEY_F10,
-    KEY_F11,
-    KEY_F12
-};
-
-struct Key
-{
-    KeyCode code = KEY_NONE;
-    char_t ch = 0;
-    bool ctrl = false;
-    bool alt = false;
-    bool shift = false;
-};
 
 char_t* screen;
 char_t* window;
@@ -95,390 +20,6 @@ int size, capacity;
 
 char_t* buffer;
 char_t* pattern;
-
-int inputSize = 10;
-#ifdef _WIN32
-INPUT_RECORD* input;
-#else
-char_t* input;
-#endif
-
-int keysSize = inputSize;
-Key* keys;
-
-void setCharInputMode(bool charMode)
-{
-#ifndef _WIN32
-    struct termios ta;
-    tcgetattr(STDIN_FILENO, &ta);
-
-    if (charMode)
-    {
-        ta.c_lflag &= ~(ECHO | ICANON);
-        ta.c_cc[VTIME] = 0;
-        ta.c_cc[VMIN] = 1;
-    }
-    else
-        ta.c_lflag |= ECHO | ICANON;
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
-#endif
-}
-
-void getConsoleSize(int& width, int& height)
-{
-#ifdef _WIN32
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-#else
-    struct winsize ws;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
-    width = ws.ws_col;
-    height = ws.ws_row;
-#endif
-}
-
-void showCursor(bool show)
-{
-#ifndef _WIN32
-    write(STDOUT_FILENO, show ? "\x1b[?25h" : "\x1b[?25l", 6);
-#endif
-}
-
-void setCursorPosition(int line, int column)
-{
-#ifdef _WIN32
-    COORD pos;
-    pos.X = column - 1;
-    pos.Y = line - 1;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
-#else
-    char_t cmd[30];
-    sprintf(cmd, "\x1b[%d;%dH", line, column);
-    write(STDOUT_FILENO, cmd, strlen(cmd));
-#endif
-}
-
-void writeToConsole(int line, int column, const char_t* chars, int len)
-{
-#ifdef _WIN32
-    DWORD written;
-    COORD pos;
-    pos.X = column - 1;
-    pos.Y = line - 1;
-    
-    WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),  
-        chars, len, pos, &written);
-#else
-    setCursorPosition(line, column);
-    write(STDOUT_FILENO, chars, len);
-#endif
-}
-
-void clearConsole()
-{
-#ifdef _WIN32
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    
-    COORD pos = { 0, 0 };
-    DWORD size = csbi.dwSize.X * csbi.dwSize.Y, written;
-    
-    FillConsoleOutputCharacter(handle, ' ', size, pos, &written);
-    FillConsoleOutputAttribute(handle, csbi.wAttributes, size, pos, &written);
-    SetConsoleCursorPosition(handle, pos);
-#else
-    write(STDOUT_FILENO, "\x1b[2J", 4);
-    setCursorPosition(1, 1);
-#endif
-}
-
-#ifndef _WIN32
-
-void readRegularKey(const char_t ch, Key& key)
-{
-    key.ch = ch;
-
-    if (ch == '\t')
-        key.code = KEY_TAB;
-    else if (ch == '\n')
-        key.code = KEY_ENTER;
-    else if (ch == 0x7f)
-        key.code = KEY_BACKSPACE;
-    else if (iscntrl(ch))
-        key.ctrl = true;
-    else
-        key.shift = isupper(ch);
-}
-
-const char_t* readSpecialKey(const char_t* p, Key& key)
-{
-    ++p;
-    bool read7e = true;
-
-    if (*p == 0x31)
-    {
-        ++p;
-
-        if (*p == 0x31)
-            key.code = KEY_F1;
-        else if (*p == 0x32)
-            key.code = KEY_F2;
-        else if (*p == 0x33)
-            key.code = KEY_F3;
-        else if (*p == 0x34)
-            key.code = KEY_F4;
-        else if (*p == 0x35)
-            key.code = KEY_F5;
-        else if (*p == 0x37)
-            key.code = KEY_F6;
-        else if (*p == 0x38)
-            key.code = KEY_F7;
-        else if (*p == 0x39)
-            key.code = KEY_F8;
-        else if (*p == 0x7e)
-        {
-            read7e = false;
-            key.code = KEY_HOME;
-        }
-        else
-            return p;
-    }
-    else if (*p == 0x32)
-    {
-        ++p;
-
-        if (*p == 0x30)
-            key.code = KEY_F9;
-        else if (*p == 0x31)
-            key.code = KEY_F10;
-        else if (*p == 0x33)
-            key.code = KEY_F11;
-        else if (*p == 0x34)
-            key.code = KEY_F12;
-        else if (*p == 0x7e)
-        {
-            read7e = false;
-            key.code = KEY_INSERT;
-        }
-        else
-            return p;
-    }
-    else if (*p == 0x33)
-        key.code = KEY_DELETE;
-    else if (*p == 0x34)
-        key.code = KEY_END;
-    else if (*p == 0x35)
-        key.code = KEY_PGUP;
-    else if (*p == 0x36)
-        key.code = KEY_PGDN;
-    else if (*p == 0x41)
-    {
-        read7e = false;
-        key.code = KEY_UP;
-    }
-    else if (*p == 0x42)
-    {
-        read7e = false;
-        key.code = KEY_DOWN;
-    }
-    else if (*p == 0x43)
-    {
-        read7e = false;
-        key.code = KEY_RIGHT;
-    }
-    else if (*p == 0x44)
-    {
-        read7e = false;
-        key.code = KEY_LEFT;
-    }
-    else
-        return p;
-
-    ++p;
-    if (read7e && *p == 0x7e)
-        ++p;
-
-    return p;
-}
-
-#endif
-
-int readKeys()
-{
-    int numKeys = 0;
-
-#ifdef _WIN32
-
-    DWORD numInputRec = 0;
-    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), input, inputSize, &numInputRec);
-
-    for (DWORD i = 0; i < numInputRec; ++i)
-    {
-        INPUT_RECORD& inputRec = input[i];
-
-        if (inputRec.EventType == KEY_EVENT && inputRec.Event.KeyEvent.bKeyDown)
-        {
-            Key key;
-
-            switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
-            {
-            case VK_ESCAPE:
-                key.code = KEY_ESC;
-                break;
-            case VK_TAB:
-                key.code = KEY_TAB;
-                key.ch = '\t';
-                break;
-            case VK_BACK:
-                key.code = KEY_BACKSPACE;
-                break;
-            case VK_RETURN:
-                key.code = KEY_ENTER;
-                key.ch = '\n';
-                break;
-            case VK_UP:
-                key.code = KEY_UP;
-                break;
-            case VK_DOWN:
-                key.code = KEY_DOWN;
-                break;
-            case VK_LEFT:
-                key.code = KEY_LEFT;
-                break;
-            case VK_RIGHT:
-                key.code = KEY_RIGHT;
-                break;
-            case VK_INSERT:
-                key.code = KEY_INSERT;
-                break;
-            case VK_DELETE:
-                key.code = KEY_DELETE;
-                break;
-            case VK_HOME:
-                key.code = KEY_HOME;
-                break;
-            case VK_END:
-                key.code = KEY_END;
-                break;
-            case VK_PRIOR:
-                key.code = KEY_PGUP;
-                break;
-            case VK_NEXT:
-                key.code = KEY_PGDN;
-                break;
-            default:
-                key.code = KEY_NONE;
-                key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
-                break;
-            }
-
-            DWORD controlKeys = inputRec.Event.KeyEvent.dwControlKeyState;
-            key.ctrl = (controlKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-            key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
-            key.shift = (controlKeys & SHIFT_PRESSED) != 0;
-
-            if (numKeys == keysSize)
-            {
-                keysSize *= 2;
-                keys = Memory::reallocate<Key>(keys, keysSize);
-            }
-
-            keys[numKeys++] = key;
-        }
-    }
-
-    return numKeys;
-
-#else
-
-    int len = read(STDIN_FILENO, input, inputSize - 1);
-
-    if (len > 0)
-    {
-        int remaining;
-        ioctl(STDIN_FILENO, FIONREAD, &remaining);
-
-        if (remaining > 0)
-        {
-            if (len + remaining + 1 > inputSize)
-            {
-                inputSize = len + remaining + 1;
-                input = Memory::reallocate<char_t>(input, inputSize);
-            }
-
-            len += read(STDIN_FILENO, input + len, remaining);
-        }
-
-        input[len] = 0;
-        const char_t* p = input;
-
-        while (*p)
-        {
-            Key key;
-
-            if (*p == 0x1b)
-            {
-                ++p;
-
-                if (*p == 0x1b)
-                {
-                    ++p;
-                    key.alt = true;
-
-                    if (*p == 0x5b)
-                    {
-                        p = readSpecialKey(p, key);
-                    }
-                    else if (*p == 0x4f)
-                    {
-                        key.ctrl = true;
-                        p = readSpecialKey(p, key);
-                    }
-                    else
-                        continue;
-                }
-                else if (*p == 0x5b)
-                {
-                    p = readSpecialKey(p, key);
-                }
-                else if (*p == 0x4f)
-                {
-                    key.ctrl = true;
-                    p = readSpecialKey(p, key);
-                }
-                else if (*p)
-                {
-                    key.alt = true;
-                    readRegularKey(*p, key);
-                    ++p;
-                }
-                else
-                    key.code = KEY_ESC;
-            }
-            else
-            {
-                readRegularKey(*p, key);
-                ++p;
-            }
-
-            if (numKeys == keysSize)
-            {
-                keysSize *= 2;
-                keys = Memory::reallocate<Key>(keys, keysSize);
-            }
-
-            keys[numKeys++] = key;
-        }
-    }
-
-#endif
-
-    return numKeys;
-}
 
 bool isIdent(char_t ch)
 {
@@ -716,7 +257,7 @@ void updateScreen()
     bool matching = true;
     int nchars = width * screenHeight;
     
-    showCursor(false);
+    Console::showCursor(false);
     
     for (; j < nchars; ++j)
     {
@@ -724,7 +265,7 @@ void updateScreen()
         {
             if (!matching)
             {
-                writeToConsole(i / width + 1, i % width + 1, window + i, j - i);
+                Console::write(i / width + 1, i % width + 1, window + i, j - i);
                 i = j;
                 matching = true;
             }
@@ -740,10 +281,10 @@ void updateScreen()
     }
     
     if (!matching)
-        writeToConsole(i / width + 1, i % width + 1, window + i, j - i);
+        Console::write(i / width + 1, i % width + 1, window + i, j - i);
     
-    setCursorPosition(line - top + 1, column - left + 1);
-    showCursor(true);
+    Console::setCursorPosition(line - top + 1, column - left + 1);
+    Console::showCursor(true);
     
     swap(window, screen);
 }
@@ -760,11 +301,10 @@ bool readFile(const char_t* fileName)
         return false;
 #endif
 
-    int file = open(fileName, 
 #ifdef _WIN32
-    _O_RDONLY | _O_U16TEXT);
+    int file = _wopen(fileName, _O_RDONLY | _O_U16TEXT);
 #else
-    O_RDONLY);
+    int file = open(fileName, O_RDONLY);
 #endif
 
     if (file < 0)
@@ -773,29 +313,34 @@ bool readFile(const char_t* fileName)
     capacity = st.st_size / sizeof(char_t) + 1;
     text = Memory::allocate<char_t>(capacity);
     
+#ifdef _WIN32
+    size = _read(file, text, st.st_size) / sizeof(char_t);
+	_close(file);
+#else
     size = read(file, text, st.st_size) / sizeof(char_t);
+	close(file);
+#endif
 
     if (size >= 0)
     {
         text[size] = 0;
-        close(file);
         return true;
     }
     else
     {
         Memory::deallocate(text);
-        close(file);
         return false;
     }
 }
 
 bool writeFile(const char_t* fileName)
 {
-    int file = open(fileName, 
 #ifdef _WIN32
+    int file = _wopen(fileName, 
         _O_WRONLY | _O_CREAT | _O_TRUNC | _O_U16TEXT,
         _S_IREAD | _S_IWRITE);
 #else
+    int file = open(fileName, 
         O_WRONLY | O_CREAT | O_TRUNC,
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 #endif
@@ -803,16 +348,15 @@ bool writeFile(const char_t* fileName)
     if (file < 0)
         return false;
 
-    if (write(file, text, sizeof(char_t) * size) >= 0)
-    {
-        close(file);
-        return true;
-    }
-    else
-    {
-        close(file);
-        return false;
-    }
+#ifdef _WIN32
+    bool success = _write(file, text, sizeof(char_t) * size) >= 0;
+	_close(file);
+#else
+    bool success = write(file, text, sizeof(char_t) * size) >= 0;
+	close(file);
+#endif
+	
+	return success;
 }
 
 void openFile()
@@ -847,16 +391,16 @@ char_t* getCommand(const char_t* prompt)
     
     STRSET(cmd, ' ', width);
     STRNCPY(cmd, prompt, start);
-    writeToConsole(cmdLine, 1, cmd, width);
-    setCursorPosition(cmdLine, end + 1);
+    Console::write(cmdLine, 1, cmd, width);
+    Console::setCursorPosition(cmdLine, end + 1);
 
     while (true)
     {
-        int numKeys = readKeys();
+        int numKeys = Console::readKeys();
 
         for (int i = 0; i < numKeys; ++i)
         {
-            Key& key = keys[i];
+            Key key = Console::key(i);
 
             if (key.code == KEY_ENTER)
             {
@@ -877,8 +421,8 @@ char_t* getCommand(const char_t* prompt)
                     cmd[end++] = key.ch;
             }
             
-            writeToConsole(cmdLine, 1, cmd, width);
-            setCursorPosition(cmdLine, end + 1);
+            Console::write(cmdLine, 1, cmd, width);
+            Console::setCursorPosition(cmdLine, end + 1);
         }
     }
 }
@@ -973,8 +517,8 @@ bool pasteText()
 
 void buildProject()
 {
-    setCharInputMode(false);
-    clearConsole();
+    Console::setMode(CONSOLEMODE_CANONICAL);
+    Console::clear();
 
     saveFile();
     system("gmake");
@@ -982,7 +526,7 @@ void buildProject()
     printf("Press ENTER to contiue...");
     getchar();
 
-    setCharInputMode(true);
+    Console::setMode(0);
 }
 
 bool findNext()
@@ -1074,11 +618,11 @@ void insertChar(char_t ch)
 bool processKey()
 {
     bool update = false;
-    int numKeys = readKeys();
+    int numKeys = Console::readKeys();
 
     for (int i = 0; i < numKeys; ++i)
     {
-        Key& key = keys[i];
+        Key key = Console::key(i);
 
         if (key.ctrl)
         {
@@ -1286,7 +830,8 @@ void editor()
 {
     openFile();
 
-    getConsoleSize(width, screenHeight);
+    Console::create();
+    Console::getSize(width, screenHeight);
     screen = Memory::allocate<char_t>(width * screenHeight);
     memset(screen, 0, sizeof(char_t) * width * screenHeight);
     window = Memory::allocate<char_t>(width * screenHeight);
@@ -1295,27 +840,19 @@ void editor()
     top = 1; left = 1;
 
     updateScreen();
-    setCharInputMode(true);
-
-#ifdef _WIN32
-    input = Memory::allocate<INPUT_RECORD>(inputSize);
-#else
-    input = Memory::allocate<char_t>(inputSize);
-#endif
-    keys = Memory::allocate<Key>(keysSize);
+    Console::setMode(0);
 
     while (processKey());
 
-    setCharInputMode(false);
-    clearConsole();
+    Console::setMode(CONSOLEMODE_CANONICAL);
+    Console::clear();
+    Console::destroy();
 
     Memory::deallocate(screen);
     Memory::deallocate(window);
     Memory::deallocate(text);
     Memory::deallocate(buffer);
     Memory::deallocate(pattern);
-    Memory::deallocate(input);
-    Memory::deallocate(keys);
 }
 
 int MAIN(int argc, const char_t** argv)

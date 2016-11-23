@@ -59,7 +59,7 @@
 #define PLATFORM_ANDRIOD
 #endif
 
-#ifdef __unix
+#if defined(__unix) || defined(__unix__)
 #define PLATFORM_UNIX
 #endif
 
@@ -131,6 +131,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#endif
+
+#ifdef PLATFORM_SOLARIS
+#include <sys/filio.h>
 #endif
 
 #if defined(PLATFORM_WINDOWS) && !defined(COMPILER_GCC)
@@ -2767,76 +2771,6 @@ private:
     const Set<_Type>& _set;
     int _index;
     const ListNode<_Type>* _node;
-};
-
-// Console
-
-class Console
-{
-public:
-    static void setConsoleMode(bool unicode, bool canonical);
-
-    static void write(char_t ch);
-    static void write(const String& str);
-    static void write(const char_t* format, ...);
-
-    static void writeLine();
-    static void writeLine(const String& str);
-    static void writeLine(const char_t* format, ...);
-
-    static String readLine();
-
-    static void getSize(int& width, int& height);
-    static void clearScreen();
-
-    static void showCursor();
-    static void hideCursor();
-    static void setCursorPosition(int line, int column);
-};
-
-// File
-
-enum FileMode
-{
-    FILE_MODE_CREATE_ALWAYS, // create or truncate if exists
-    FILE_MODE_CREATE_NEW, // create new or fail if exists
-    FILE_MODE_OPEN_ALWAYS, // open if exists or create 
-    FILE_MODE_OPEN_EXISTING, // open if exists or fail
-    FILE_MODE_TRUNCATE_EXISTING // open existing and truncate or fail
-};
-
-class File
-{
-public:
-    File();
-    File(const String& fileName,
-        FileMode openMode = FILE_MODE_OPEN_EXISTING);
-        
-    File(const File&) = delete;
-    
-    ~File();
-    
-    File& operator=(const File&) = delete;
-    
-    bool open(const String& fileName, 
-        FileMode openMode = FILE_MODE_OPEN_EXISTING);
-        
-    void close();
-    
-    Array<uint8_t> readBytes();
-    void writeBytes(const Array<uint8_t>& bytes);
-    
-    String readString();
-    void writeString(const String& str);
-    
-    int64_t size() const;
-    
-private:
-#ifdef PLATFORM_WINDOWS
-    HANDLE _handle;
-#else
-    int _handle;
-#endif
 };
 
 #endif

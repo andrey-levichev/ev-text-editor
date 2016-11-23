@@ -11,6 +11,7 @@ support unicode input
 using char_t for single char is incorrect
 pos, len must be in chars not in bytes
 * decode/encode text from file to runtime enconding, translate newlines
+* showCursor not implemented on windows
 
 basic features:
 * search/replace
