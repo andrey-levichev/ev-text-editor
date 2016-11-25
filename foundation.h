@@ -744,13 +744,13 @@ public:
     template<typename _T>
     friend int hash(const UniquePtr<_T>& val);
 
-private:
+protected:
     UniquePtr(_Type* ptr)
         : _ptr(ptr)
     {
     }
 
-private:
+protected:
     _Type* _ptr;
 };
 
@@ -883,7 +883,7 @@ public:
     template<typename _T>
     friend int hash(const SharedPtr<_T>& val);
 
-private:
+protected:
     struct RefCountedObject
     {
         _Type object;
@@ -897,7 +897,7 @@ private:
         }
     };
 
-private:
+protected:
     SharedPtr(RefCountedObject* sharedPtr)
         : _sharedPtr(sharedPtr)
     {
@@ -914,7 +914,7 @@ private:
             Memory::destroy(_sharedPtr);
     }
 
-private:
+protected:
     RefCountedObject* _sharedPtr;
 };
 
@@ -1014,6 +1014,13 @@ public:
     void ensureCapacity(int capacity);
     void shrinkToLength();
 
+    void assign(const String& other);
+    void assign(const char_t* chars);
+
+    void append(const String& str);
+    void append(const char_t* chars);
+    void append(const char_t ch);
+
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
 
@@ -1093,7 +1100,7 @@ public:
         return hash(val.str());
     }
 
-private:
+protected:
     explicit String(char_t* chars);
     
     template<typename... _Args>
@@ -1146,7 +1153,7 @@ private:
         }
     }
 
-private:
+protected:
     int _length;
     int _capacity;
     char_t* _chars;
@@ -1494,7 +1501,7 @@ public:
         swap(left._elements, right._elements);
     }
 
-private:
+protected:
     Array(int size, _Type* elements) :
         _size(size), _capacity(size), _elements(elements)
     {
@@ -1510,7 +1517,7 @@ private:
         _capacity = capacity;
     }
 
-private:
+protected:
     int _size;
     int _capacity;
     _Type* _elements;
@@ -1562,7 +1569,7 @@ public:
         _index = -1;
     }
 
-private:
+protected:
     Array<_Type>& _array;
     int _index;
 };
@@ -1610,7 +1617,7 @@ public:
         _index = -1;
     }
 
-private:
+protected:
     const Array<_Type>& _array;
     int _index;
 };
@@ -1970,7 +1977,7 @@ public:
         swap(left._back, right._back);
     }
 
-private:
+protected:
     void destroyNodes()
     {
         for (auto node = _front; node;)
@@ -1981,7 +1988,7 @@ private:
         }
     }
 
-private:
+protected:
     ListNode<_Type>* _front;
     ListNode<_Type>* _back;
 };
@@ -2028,7 +2035,7 @@ public:
         _node = nullptr;
     }
 
-private:
+protected:
     List<_Type>& _list;
     ListNode<_Type>* _node;
 };
@@ -2075,7 +2082,7 @@ public:
         _node = nullptr;
     }
 
-private:
+protected:
     const List<_Type>& _list;
     const ListNode<_Type>* _node;
 };
@@ -2325,7 +2332,7 @@ public:
         swap(left._size, right._size);
     }
 
-private:
+protected:
     struct KeyValue
     {
         _Key key;
@@ -2353,7 +2360,7 @@ private:
         }
     };
 
-private:
+protected:
     List<KeyValue>& getBucket(const _Key& key)
     {
         return _keyValues[getBucketIndex(key)];
@@ -2370,7 +2377,7 @@ private:
         return abs(h) % _keyValues.size();
     }
 
-private:
+protected:
     Array<List<KeyValue>> _keyValues;
     int _size;
 };
@@ -2437,7 +2444,7 @@ public:
         _node = nullptr;
     }
 
-private:
+protected:
     Map<_Key, _Value>& _map;
     int _index;
     ListNode<typename Map<_Key, _Value>::KeyValue>* _node;
@@ -2502,7 +2509,7 @@ public:
         _node = nullptr;
     }
 
-private:
+protected:
     const Map<_Key, _Value>& _map;
     int _index;
     const ListNode<typename Map<_Key, _Value>::KeyValue>* _node;
@@ -2686,7 +2693,7 @@ public:
         swap(left._size, right._size);
     }
 
-private:
+protected:
     List<_Type>& getBucket(const _Type& value)
     {
         return _values[getBucketIndex(value)];
@@ -2703,7 +2710,7 @@ private:
         return abs(h) % _values.size();
     }
 
-private:
+protected:
     Array<List<_Type>> _values;
     int _size;
 };
@@ -2770,7 +2777,7 @@ public:
         _node = nullptr;
     }
 
-private:
+protected:
     const Set<_Type>& _set;
     int _index;
     const ListNode<_Type>* _node;

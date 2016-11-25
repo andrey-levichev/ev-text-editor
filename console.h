@@ -90,13 +90,13 @@ public:
         return _keys[index];
     }
 
-private:
+protected:
 #ifdef PLATFORM_UNIX
     static void readRegularKey(const char_t ch, Key& key);
     static const char_t* readSpecialKey(const char_t* p, Key& key);
 #endif
 
-private:
+protected:
     static int _inputSize;
 #ifdef PLATFORM_WINDOWS
     static INPUT_RECORD* _input;

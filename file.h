@@ -40,7 +40,7 @@ public:
     
     int64_t size() const;
     
-private:
+protected:
 #ifdef PLATFORM_WINDOWS
     HANDLE _handle;
 #else

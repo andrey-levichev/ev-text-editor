@@ -184,56 +184,13 @@ String::~String()
 
 String& String::operator=(const String& other)
 {
-    if (this != &other)
-    {
-        if (other._length > 0)
-        {
-            int capacity = other._length + 1;
-
-            if (capacity > _capacity)
-            {
-                String tmp(other);
-                swap(*this, tmp);
-            }
-            else
-            {
-                _length = other._length;
-                STRNCPY(_chars, other._chars, _length + 1);
-            }
-        }
-        else
-            clear();
-    }
-
+    assign(other);
     return *this;
 }
 
 String& String::operator=(const char_t* chars)
 {
-    ASSERT(chars);
-
-    if (_chars != chars)
-    {
-        if (*chars)
-        {
-            int len = STRLEN(chars);
-            int capacity = len + 1;
-
-            if (capacity > _capacity)
-            {
-                String tmp(chars);
-                swap(*this, tmp);
-            }
-            else
-            {
-                _length = len;
-                STRNCPY(_chars, chars, _length + 1);
-            }
-        }
-        else
-            clear();
-    }
-
+    assign(chars);
     return *this;
 }
 
@@ -246,50 +203,19 @@ String& String::operator=(String&& other)
 
 String& String::operator+=(const String& str)
 {
-    ASSERT(this != &str);
-
-    if (str._length > 0)
-    {
-        int capacity = _length + str._length + 1;
-        if (capacity > _capacity)
-            ensureCapacity(capacity * 2);
-
-        STRNCPY(_chars + _length, str._chars, str._length);
-        _length += str._length;
-        _chars[_length] = 0;
-    }
-
+    append(str);
     return *this;
 }
 
 String& String::operator+=(const char_t* chars)
 {
-    ASSERT(chars);
-    ASSERT(_chars != chars);
-
-    if (*chars)
-    {
-        int len = STRLEN(chars), capacity = _length + len + 1;
-        if (capacity > _capacity)
-            ensureCapacity(capacity * 2);
-
-        STRNCPY(_chars + _length, chars, len);
-        _length += len;
-        _chars[_length] = 0;
-    }
-
+    append(chars);
     return *this;
 }
 
 String& String::operator+=(const char_t ch)
 {
-    int capacity = _length + 2;
-    if (capacity > _capacity)
-        ensureCapacity(capacity * 2);
-
-    _chars[_length++] = ch;
-    _chars[_length] = 0;
-
+    append(ch);
     return *this;
 }
 
@@ -470,6 +396,100 @@ void String::shrinkToLength()
     }
     else
         reset();
+}
+
+void String::assign(const String& other)
+{
+    if (this != &other)
+    {
+        if (other._length > 0)
+        {
+            int capacity = other._length + 1;
+
+            if (capacity > _capacity)
+            {
+                String tmp(other);
+                swap(*this, tmp);
+            }
+            else
+            {
+                _length = other._length;
+                STRNCPY(_chars, other._chars, _length + 1);
+            }
+        }
+        else
+            clear();
+    }
+}
+
+void String::assign(const char_t* chars)
+{
+    ASSERT(chars);
+
+    if (_chars != chars)
+    {
+        if (*chars)
+        {
+            int len = STRLEN(chars);
+            int capacity = len + 1;
+
+            if (capacity > _capacity)
+            {
+                String tmp(chars);
+                swap(*this, tmp);
+            }
+            else
+            {
+                _length = len;
+                STRNCPY(_chars, chars, _length + 1);
+            }
+        }
+        else
+            clear();
+    }
+}
+
+void String::append(const String& str)
+{
+    ASSERT(this != &str);
+
+    if (str._length > 0)
+    {
+        int capacity = _length + str._length + 1;
+        if (capacity > _capacity)
+            ensureCapacity(capacity * 2);
+
+        STRNCPY(_chars + _length, str._chars, str._length);
+        _length += str._length;
+        _chars[_length] = 0;
+    }
+}
+
+void String::append(const char_t* chars)
+{
+    ASSERT(chars);
+    ASSERT(_chars != chars);
+
+    if (*chars)
+    {
+        int len = STRLEN(chars), capacity = _length + len + 1;
+        if (capacity > _capacity)
+            ensureCapacity(capacity * 2);
+
+        STRNCPY(_chars + _length, chars, len);
+        _length += len;
+        _chars[_length] = 0;
+    }
+}
+
+void String::append(const char_t ch)
+{
+    int capacity = _length + 2;
+    if (capacity > _capacity)
+        ensureCapacity(capacity * 2);
+
+    _chars[_length++] = ch;
+    _chars[_length] = 0;
 }
 
 void String::appendFormat(const char_t* format, ...)

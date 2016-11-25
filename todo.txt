@@ -54,3 +54,5 @@ foundation features:
 foundation improvements:
 * review rval ref usage, insert in place, insert rval ref
 * review string vs array code
+* functions for every operator like assign
+

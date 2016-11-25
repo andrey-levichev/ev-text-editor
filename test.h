@@ -83,7 +83,7 @@ public:
         return val._val;
     }
     
-private:
+protected:
     int _val;
 };
 

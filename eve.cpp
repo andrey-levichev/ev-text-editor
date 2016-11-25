@@ -1,91 +1,340 @@
-#include <foundation.h>
-#include <console.h>
-#include <file.h>
+#include <eve.h>
 
 const int TAB_SIZE = 4;
 const char_t* tab = STR("    ");
 
-CharArray screen;
-CharArray window;
-CharArray commandLine;
+// Text
 
-String filename;
-
-int top, left;
-int width, height, screenHeight;
-
-int position;
-int line, column, preferredColumn;
-int selection;
-
-String text;
-String buffer;
-String pattern;
-
-bool isIdent(char_t ch)
+bool Text::charForward()
 {
-    return ISALNUM(ch) || ch == '_';
-}
-
-char_t* findChar(char_t* str, char_t ch)
-{
-    while (*str && *str != ch)
-        ++str;
-
-    return str;
-}
-
-char_t* findCharBack(char_t* start, char_t* str, char_t ch)
-{
-    while (str > start)
-        if (*--str == ch)
-            return str;
-
-    return start;
-}
-
-char_t* wordForward(char_t* str)
-{
-    while (*str)
+    if (_position < _length)
     {
-        if (ISSPACE(*str) && !ISSPACE(*(str + 1)))
-            return str + 1;
-        ++str;
+        ++_position;
+        return true;
     }
 
-    return str;
+    return false;
 }
 
-char_t* wordBack(char_t* start, char_t* str)
+bool Text::charBack()
 {
-    if (str > start)
+    if (_position > 0)
     {
-        --str;
-        while (str > start)
+        --_position;
+        return true;
+    }
+
+    return false;
+}
+
+bool Text::wordForward()
+{
+    char_t* p = _chars + _position;
+
+    while (*p)
+    {
+        ++p;
+
+        if (ISSPACE(*p - 1) && !ISSPACE(*(p)))
         {
-            if (ISSPACE(*(str - 1)) && !ISSPACE(*str))
-                return str;
-            --str;
+            _position = p - _chars;
+            return true;
         }
     }
 
-    return start;
+    return false;
 }
 
-char_t* findLine(char_t* str, int line)
+bool Text::wordBack()
 {
-    while (*str && line > 1)
+    char_t* p = _chars + _position;
+
+    if (p > _chars)
     {
-        if (*str++ == '\n')
+        --p;
+        while (p > _chars)
+        {
+            if (ISSPACE(*(p - 1)) && !ISSPACE(*p))
+            {
+                _position = p - _chars;
+                return true;
+            }
+
+            --p;
+        }
+    }
+
+    return false;
+}
+
+bool Text::toStart()
+{
+    if (_position > 0)
+    {
+        _position = 0;
+        return true;
+    }
+
+    return false;
+}
+
+bool Text::toEnd()
+{
+    if (_position < _length)
+    {
+        _position = _length;
+        return true;
+    }
+
+    return false;
+}
+
+bool Text::toLineStart()
+{
+    char_t* p = Text::findCharBack('\n');
+    if (*p == '\n')
+        ++p;
+
+    int pos = p - _chars;
+    if (pos < _position)
+    {
+        _position = pos;
+        return true;
+    }
+
+    return false;
+}
+
+bool Text::toLineEnd()
+{
+    int pos = findChar('\n') - _chars;
+    if (pos > _position)
+    {
+        _position = pos;
+        return true;
+    }
+
+    return false;
+}
+
+void Text::insertChar(char_t ch)
+{
+    if (ch == '\n') // new line
+    {
+        char_t* p = findCharBack('\n');
+        if (*p == '\n')
+            ++p;
+
+        char_t* q = p;
+        while (*q == ' ' || *q == '\t')
+            ++q;
+
+        int len = q - p + 1;
+        char_t* chars = (char_t*)alloca(sizeof(char_t) * (len + 1));
+
+        chars[0] = '\n';
+        *STRNCPY(chars + 1, p, q - p) = 0;
+
+        insert(_position, chars);
+        _position += len;
+    }
+    else if (ch == '\t') // tab
+    {
+        insert(_position, tab);
+        _position += TAB_SIZE;
+    }
+    else if (ch == 0x14) // real tab
+        insert(_position++, STR("\t"));
+    else
+	{
+		char_t chars[2] = { ch, 0 };
+        insert(_position++, chars);
+	}
+}
+
+bool Text::deleteCharForward()
+{
+    if (_position < _length)
+    {
+        erase(_position, 1);
+        return true;
+    }
+
+    return false;
+}
+
+bool Text::deleteCharBack()
+{
+    if (_position > 0)
+    {
+        erase(--_position, 1);
+        return true;
+    }
+
+    return false;
+}
+
+bool Text::deleteWordForward()
+{
+    int prev = _position;
+
+    if (wordForward())
+    {
+        erase(prev, _position - prev);
+        return true;
+    }
+
+    return false;
+}
+
+bool Text::deleteWordBack()
+{
+    int prev = _position;
+
+    if (wordBack())
+    {
+        erase(_position, prev - _position);
+        return true;
+    }
+
+    return false;
+}
+
+String Text::copyDeleteText(int pos, bool copy)
+{
+    char_t* p;
+    char_t* q;
+
+    if (pos < 0)
+    {
+        p = findCharBack('\n');
+        if (*p == '\n')
+            ++p;
+
+        q = findChar('\n');
+        if (*q == '\n')
+            ++q;
+    }
+    else
+    {
+        if (pos < _position)
+        {
+            p = _chars + pos;
+            q = _chars + _position;
+        }
+        else
+        {
+            p = _chars + _position;
+            q = _chars + pos;
+        }
+    }
+
+    if (p < q)
+    {
+        String text = substr(p - _chars, q - p);
+
+        if (!copy)
+        {
+            _position = p - _chars;
+            erase(_position, q - p);
+            return text;
+        }
+    }
+
+    return String();
+}
+
+void Text::pasteText(const String& text)
+{
+    insert(_position, text);
+    _position += text.length();
+}
+
+char_t* Text::findChar(char_t ch) const
+{
+    char_t* p = _chars + _position;
+
+    while (*p && *p != ch)
+        ++p;
+
+    return p;
+}
+
+char_t* Text::findCharBack(char_t ch) const
+{
+    char_t* p = _chars + _position;
+
+    while (p > _chars)
+        if (*--p == ch)
+            return p;
+
+    return p;
+}
+
+char_t* Text::findLine(int line) const
+{
+    char_t* p = _chars;
+
+    while (*p && line > 1)
+    {
+        if (*p++ == '\n')
             --line;
     }
 
-    return str;
+    return p;
 }
 
-void trimTrailingWhitespace()
+bool Text::findNext(const String& pattern)
 {
-    /*char_t* p = oldtext;
+    if (!pattern.empty())
+    {
+		int pos = find(pattern, _position);
+        if (pos == _position)
+            pos = find(pattern, _position + pattern.length());
+
+		if (pos == String::INVALID_POSITION)
+			pos = find(pattern);
+		
+		if (pos != String::INVALID_POSITION && pos != _position)
+		{
+			_position = pos;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+String Text::currentWord() const
+{
+    char_t* p = _chars + _position;
+
+    if (isIdent(*p))
+    {
+        while (p > _chars)
+        {
+            if (!isIdent(*(p - 1)))
+                break;
+            --p;
+        }
+
+        char_t* q = _chars + _position + 1;
+        while (*q)
+        {
+            if (!isIdent(*q))
+                break;
+            ++q;
+        }
+
+        return substr(p - _chars, q - p);
+    }
+
+    return String();
+}
+
+void Text::trimTrailingWhitespace()
+{
+    char_t* p = _chars;
     char_t* q = p;
     char_t* r = nullptr;
 
@@ -115,76 +364,115 @@ void trimTrailingWhitespace()
         ++p; ++q;
     }
 
-    size = STRLEN(oldtext);*/
-    selection = -1;
+    _length = STRLEN(_chars);
 }
 
-void positionToLineColumn()
+bool Text::isIdent(char_t ch)
 {
-    char_t* p = text.chars();
-    char_t* q = p + position;
-    line = 1, column = 1;
+    return ISALNUM(ch) || ch == '_';
+}
+
+// Editor
+
+Editor::Editor(const char_t* filename) :
+    _filename(filename)
+{
+    Console::create();
+    Console::getSize(_width, _screenHeight);
+    Console::setMode(0);
+
+    _height = _screenHeight - 1;
+    _top = 1; _left = 1;
+    
+    _line = _column = _preferredColumn = 1;
+    _selection = -1;
+
+    _screen.resize(_width * _height);
+    _window.resize(_width * _height);
+    _commandLine.resize(_width);
+}
+
+Editor::~Editor()
+{
+    Console::setMode(CONSOLE_MODE_CANONICAL);
+    Console::clear();
+    Console::destroy();
+}
+
+void Editor::run()
+{
+    openFile();
+    updateScreen();
+
+    while (processKey());
+}
+
+void Editor::positionToLineColumn()
+{
+    char_t* p = _text.chars();
+    char_t* q = p + _text.position();
+    _line = 1, _column = 1;
 
     while (*p && p < q)
     {
         if (*p == '\n')
         {
-            ++line;
-            column = 1;
+            ++_line;
+            _column = 1;
         }
         else if (*p == '\t')
-            column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
         else
-            ++column;
+            ++_column;
 
         ++p;
     }
 
-    preferredColumn = column;
+    _preferredColumn = _column;
 }
 
-void lineColumnToPosition()
+void Editor::lineColumnToPosition()
 {
-    char_t* p = text.chars();
-    int preferredLine = line;
-    line = 1; column = 1;
+    char_t* p = _text.chars();
+    int preferredLine = _line;
+    _line = 1; _column = 1;
 
-    while (*p && line < preferredLine)
+    while (*p && _line < preferredLine)
     {
         if (*p++ == '\n')
-            ++line;
+            ++_line;
     }
 
-    while (*p && *p != '\n' && column < preferredColumn)
+    while (*p && *p != '\n' && _column < _preferredColumn)
     {
         if (*p == '\t')
-            column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
         else
-            ++column;
+            ++_column;
 
         ++p;
     }
 
-    position = p - text.chars();
+    _text.position() = p - _text.chars();
 }
 
-void updateScreen()
+void Editor::updateScreen()
 {
-    if (line < top)
-        top = line;
-    else if (line >= top + height)
-        top = line - height + 1;
+    if (_line < _top)
+        _top = _line;
+    else if (_line >= _top + _height)
+        _top = _line - _height + 1;
 
-    if (column < left)
-        left = column;
-    else if (column >= left + width)
-        left = column - width + 1;
+    if (_column < _left)
+        _left = _column;
+    else if (_column >= _left + _width)
+        _left = _column - _width + 1;
 
-    char_t* p = findLine(text.chars(), top);
-    char_t* q = window.elements();
-    int len = left + width - 1;
+    char_t* p = _text.findLine(_top);
+    char_t* q = _window.elements();
+    int len = _left + _width - 1;
 
-    for (int j = 1; j <= height; ++j)
+    for (int j = 1; j <= _height; ++j)
     {
         for (int i = 1; i <= len; ++i)
         {
@@ -201,7 +489,7 @@ void updateScreen()
             else
                 ch = ' ';
 
-            if (i >= left)
+            if (i >= _left)
                 *q++ = ch;
         }
 
@@ -209,7 +497,9 @@ void updateScreen()
             ++p;
         else
         {
-            p = findChar(p, '\n');
+            while (*p && *p != '\n')
+                ++p;
+
             if (*p == '\n')
                 ++p;
         }
@@ -217,18 +507,18 @@ void updateScreen()
 
     int i = 0, j = 0;
     bool matching = true;
-    int nchars = width * height;
+    int nchars = _width * _height;
     
     Console::showCursor(false);
     
     for (; j < nchars; ++j)
     {
-        if (window[j] == screen[j])
+        if (_window[j] == _screen[j])
         {
             if (!matching)
             {
-                Console::write(i / width + 1, i % width + 1, 
-					window.elements() + i, j - i);
+                Console::write(i / _width + 1, i % _width + 1, 
+					_window.elements() + i, j - i);
                 i = j;
                 matching = true;
             }
@@ -244,290 +534,27 @@ void updateScreen()
     }
     
     if (!matching)
-        Console::write(i / width + 1, i % width + 1, 
-			window.elements() + i, j - i);
+        Console::write(i / _width + 1, i % _width + 1, 
+			_window.elements() + i, j - i);
     
-    STRSET(commandLine.elements(), ' ', width);
+    STRSET(_commandLine.elements(), ' ', _width);
 
     char_t lnCol[30];
-    len = SPRINTF(lnCol, 30, STR("%d, %d"), line, column);
-    if (len > 0 && len <= width)
-        STRNCPY(commandLine.elements() + width - len, lnCol, len);
+    len = SPRINTF(lnCol, 30, STR("%d, %d"), _line, _column);
+    if (len > 0 && len <= _width)
+        STRNCPY(_commandLine.elements() + _width - len, lnCol, len);
 
-    Console::write(screenHeight, 1, commandLine.elements(), width);
+    Console::write(_screenHeight, 1, _commandLine.elements(), _width);
 
-    Console::setCursorPosition(line - top + 1, column - left + 1);
+    Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
     Console::showCursor(true);
     
-    swap(window, screen);
+    swap(_window, _screen);
 }
 
-void openFile()
+bool Editor::processKey()
 {
-	File file;
-	
-	if (file.open(filename))
-		text = file.readString();
-	else
-		text.clear();
-
-    position = 0;
-    line = 1; column = 1;
-    preferredColumn = 1;
-    selection = -1;
-}
-
-void saveFile()
-{
-    trimTrailingWhitespace();
-    lineColumnToPosition();
-
-	File file(filename, FILE_MODE_CREATE_ALWAYS);
-	file.writeString(text);
-}
-
-String getCommand(const char_t* prompt)
-{
-    int start = STRLEN(prompt), end = start;
-    
-    STRSET(commandLine.elements(), ' ', width);
-    STRNCPY(commandLine.elements(), prompt, start);
-    Console::write(screenHeight, 1, commandLine.elements(), width);
-    Console::setCursorPosition(screenHeight, end + 1);
-
-    while (true)
-    {
-        int numKeys = Console::readKeys();
-
-        for (int i = 0; i < numKeys; ++i)
-        {
-            Key key = Console::key(i);
-
-            if (key.code == KEY_ENTER)
-            {
-                return String(commandLine.elements(), start, end - start);
-            }
-            else if (key.code == KEY_ESC)
-            {
-                return String();
-            }
-            else if (key.code == KEY_BACKSPACE)
-            {
-                if (end > start)
-                    commandLine[--end] = ' ';
-            }
-            else
-            {
-                if (end < width)
-                    commandLine[end++] = key.ch;
-            }
-            
-            Console::write(screenHeight, 1, commandLine.elements(), width);
-            Console::setCursorPosition(screenHeight, end + 1);
-        }
-    }
-}
-
-bool deleteWordForward()
-{
-    int pos = wordForward(text.chars() + position) - text.chars();
-    if (pos > position)
-    {
-        text.erase(position, pos - position);
-		selection = -1;
-		
-        return true;
-    }
-
-    return false;
-}
-
-bool deleteWordBack()
-{
-    int pos = wordBack(text.chars(), text.chars() + position) - text.chars();
-    if (pos < position)
-    {
-        text.erase(pos, position - pos);
-        position = pos;
-        positionToLineColumn();
-		selection = -1;
-		
-        return true;
-    }
-
-    return false;
-}
-
-bool copyDeleteText(bool copy)
-{
-    char_t* p;
-    char_t* q;
-
-    if (selection < 0)
-    {
-        p = findCharBack(text.chars(), text.chars() + position, '\n');
-        if (*p == '\n')
-            ++p;
-
-        q = findChar(text.chars() + position, '\n');
-        if (*q == '\n')
-            ++q;
-    }
-    else
-    {
-        if (selection < position)
-        {
-            p = text.chars() + selection;
-            q = text.chars() + position;
-        }
-        else
-        {
-            p = text.chars() + position;
-            q = text.chars() + selection;
-        }
-
-        selection = -1;
-    }
-
-    if (p < q)
-    {
-        buffer = text.substr(p - text.chars(), q - p);
-
-        if (!copy)
-        {
-            position = p - text.chars();
-            positionToLineColumn();
-            text.erase(position, q - p);
-			selection = -1;
-			
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool pasteText()
-{
-    if (!buffer.empty())
-    {
-		text.insert(position, buffer);
-        position += buffer.length();
-        positionToLineColumn();
-		selection = -1;
-		
-        return true;
-    }
-
-    return false;
-}
-
-void buildProject()
-{
-    Console::setMode(CONSOLE_MODE_CANONICAL);
-    Console::clear();
-
-    saveFile();
-    system("gmake");
-
-    printf("Press ENTER to contiue...");
-    getchar();
-
-    Console::setMode(0);
-}
-
-bool findNext()
-{
-    if (!pattern.empty())
-    {
-		int pos = text.find(pattern, position);
-        if (pos == position)
-            pos = text.find(pattern, position + pattern.length());
-
-		if (pos == String::INVALID_POSITION)
-			pos = text.find(pattern);
-		
-		if (pos != String::INVALID_POSITION && pos != position)
-		{
-			position = pos;
-            positionToLineColumn();
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool findWordAtCursor()
-{
-    char_t* p = text.chars() + position;
-
-    if (isIdent(*p))
-    {
-        while (p > text.chars())
-        {
-            if (!isIdent(*(p - 1)))
-                break;
-            --p;
-        }
-
-        char_t* q = text.chars() + position + 1;
-        while (*q)
-        {
-            if (!isIdent(*q))
-                break;
-            ++q;
-        }
-
-        pattern = text.substr(p - text.chars(), q - p);
-    }
-    else
-        pattern.clear();
-
-    return findNext();
-}
-
-void insertChar(char_t ch)
-{
-    if (ch == '\n') // new line
-    {
-        char_t* p = findCharBack(text.chars(), text.chars() + position, '\n');
-        if (*p == '\n')
-            ++p;
-
-        char_t* q = p;
-        while (*q == ' ' || *q == '\t')
-            ++q;
-
-        int len = q - p + 1;
-        char_t* chars = (char_t*)alloca(sizeof(char_t) * (len + 1));
-
-        chars[0] = '\n';
-        *STRNCPY(chars + 1, p, q - p) = 0;
-
-        text.insert(position, chars);
-        position += len;
-    }
-    else if (ch == '\t') // tab
-    {
-        text.insert(position, tab);
-        position += TAB_SIZE;
-    }
-    else if (ch == 0x14) // real tab
-        text.insert(position++, STR("\t"));
-    else
-	{
-		char_t chars[2] = { ch, 0 };
-        text.insert(position++, chars);
-	}
-
-    positionToLineColumn();
-	selection = -1;
-}
-
-bool processKey()
-{
-    bool update = false;
+    bool update = false, modified = false;
     int numKeys = Console::readKeys();
 
     for (int i = 0; i < numKeys; ++i)
@@ -538,19 +565,25 @@ bool processKey()
         {
             if (key.code == KEY_RIGHT)
             {
-                position = wordForward(text.chars() + position) - text.chars();
-                positionToLineColumn();
-                update = true;
+                if (_text.wordForward())
+                {
+                    positionToLineColumn();
+                    update = true;
+                }
             }
             else if (key.code == KEY_LEFT)
             {
-                position = wordBack(text.chars(), text.chars() + position) - text.chars();
-                positionToLineColumn();
-                update = true;
+                if (_text.wordBack())
+                {
+                    positionToLineColumn();
+                    update = true;
+                }
             }
             else if (key.code == KEY_TAB || key.ch == 0x14)
             {
-                insertChar(0x14);
+                _text.insertChar(0x14);
+                positionToLineColumn();
+                modified = true;
                 update = true;
             }
         }
@@ -558,36 +591,50 @@ bool processKey()
         {
             if (key.code == KEY_DELETE)
             {
-                update = deleteWordForward();
+                if (_text.deleteWordForward())
+                {
+                    positionToLineColumn();
+                    modified = true;
+                    update = true;
+                }
             }
             else if (key.code == KEY_BACKSPACE)
             {
-                update = deleteWordBack();
+                if (_text.deleteWordBack())
+                {
+                    positionToLineColumn();
+                    modified = true;
+                    update = true;
+                }
             }
             else if (key.code == KEY_HOME)
             {
-                position = 0;
-                positionToLineColumn();
-                update = true;
+                if (_text.toStart())
+                {
+                    positionToLineColumn();
+                    update = true;
+                }
             }
             else if (key.code == KEY_END)
             {
-                position = text.length();
-                positionToLineColumn();
-                update = true;
+                if (_text.toEnd())
+                {
+                    positionToLineColumn();
+                    update = true;
+                }
             }
             else if (key.code == KEY_PGUP)
             {
-                line -= height / 2;
-                if (line < 1)
-                    line = 1;
+                _line -= _height / 2;
+                if (_line < 1)
+                    _line = 1;
 
                 lineColumnToPosition();
                 update = true;
             }
             else if (key.code == KEY_PGDN)
             {
-                line += height / 2;
+                _line += _height / 2;
                 lineColumnToPosition();
                 update = true;
             }
@@ -607,15 +654,28 @@ bool processKey()
             }
             else if (key.ch == 'd')
             {
-                update = copyDeleteText(false);
+                _buffer = _text.copyDeleteText(_selection, false);
+
+                if (!_buffer.empty())
+                {
+                    positionToLineColumn();
+                    modified = true;
+                    update = true;
+                }
             }
             else if (key.ch == 'c')
             {
-                update = copyDeleteText(true);
+                _buffer = _text.copyDeleteText(_selection, true);
             }
             else if (key.ch == 'p')
             {
-                update = pasteText();
+                if (!_buffer.empty())
+                {
+                    _text.pasteText(_buffer);
+                    positionToLineColumn();
+                    modified = true;
+                    update = true;
+                }
             }
             else if (key.ch == 'b')
             {
@@ -624,113 +684,127 @@ bool processKey()
             }
             else if (key.ch == 'm')
             {
-                selection = position;
+                _selection = _text.position();
             }
             else if (key.ch == 'f')
             {
-                pattern = getCommand(STR("find: "));
-                findNext();
-                update = true;
+                _pattern = getCommand(STR("find: "));
+
+                if (_text.findNext(_pattern))
+                {
+                    positionToLineColumn();
+                    update = true;
+                }
             }
             else if (key.ch == 'o')
             {
-                update = findWordAtCursor();
+                _pattern = _text.currentWord();
+
+                if (_text.findNext(_pattern))
+                {
+                    positionToLineColumn();
+                    update = true;
+                }
             }
             else if (key.ch == 'n')
             {
-                update = findNext();
+                if (_text.findNext(_pattern))
+                {
+                    positionToLineColumn();
+                    update = true;
+                }
             }
         }
         else if (key.code == KEY_BACKSPACE)
         {
-            if (position > 0)
+            if (_text.deleteCharBack())
             {
-                text.erase(--position, 1);
                 positionToLineColumn();
-				
-				selection = -1;
+                modified = true;
                 update = true;
             }
         }
         else if (key.code == KEY_DELETE)
         {
-            if (position < text.length())
+            if (_text.deleteCharForward())
             {
-                text.erase(position, 1);
-				selection = -1;
+                positionToLineColumn();
+                modified = true;
                 update = true;
             }
         }
         else if (key.code == KEY_UP)
         {
-            if (line > 1)
+            if (_line > 1)
             {
-                --line;
+                --_line;
                 lineColumnToPosition();
                 update = true;
             }
         }
         else if (key.code == KEY_DOWN)
         {
-            ++line;
+            ++_line;
             lineColumnToPosition();
             update = true;
         }
         else if (key.code == KEY_RIGHT)
         {
-            if (position < text.length())
+            if (_text.charForward())
             {
-                ++position;
                 positionToLineColumn();
                 update = true;
             }
         }
         else if (key.code == KEY_LEFT)
         {
-            if (position > 0)
+            if (_text.charBack())
             {
-                --position;
                 positionToLineColumn();
                 update = true;
             }
         }
         else if (key.code == KEY_HOME)
         {
-            char_t* p = findCharBack(text.chars(), text.chars() + position, '\n');
-            if (*p == '\n')
-                ++p;
-
-            position = p - text.chars();
-            positionToLineColumn();
-            update = true;
+            if (_text.toLineStart())
+            {
+                positionToLineColumn();
+                update = true;
+            }
         }
         else if (key.code == KEY_END)
         {
-            position = findChar(text.chars() + position, '\n') - text.chars();
-            positionToLineColumn();
-            update = true;
+            if (_text.toLineEnd())
+            {
+                positionToLineColumn();
+                update = true;
+            }
         }
         else if (key.code == KEY_PGUP)
         {
-            line -= height - 1;
-            if (line < 1)
-                line = 1;
+            _line -= _height - 1;
+            if (_line < 1)
+                _line = 1;
 
             lineColumnToPosition();
             update = true;
         }
         else if (key.code == KEY_PGDN)
         {
-            line += height - 1;
+            _line += _height - 1;
             lineColumnToPosition();
             update = true;
         }
         else if (key.ch == '\n' || key.ch == '\t' || ISPRINT(key.ch))
         {
-            insertChar(key.ch);
+            _text.insertChar(key.ch);
+            modified = true;
             update = true;
         }
     }
+    
+    if (modified)
+        _selection = -1;
 
     if (update)
         updateScreen();
@@ -738,35 +812,91 @@ bool processKey()
     return true;
 }
 
-void editor()
+void Editor::openFile()
 {
-    openFile();
-
-    Console::create();
-    Console::getSize(width, screenHeight);
+	File file;
 	
-    height = screenHeight - 1;
-    top = 1; left = 1;
+	if (file.open(_filename))
+		_text.assign(file.readString());
+	else
+		_text.clear();
 
-    screen.resize(width * height);
-    window.resize(width * height);
-    commandLine.resize(width);
+    _line = 1; _column = 1;
+    _preferredColumn = 1;
+    _selection = -1;
+}
 
-    updateScreen();
-    Console::setMode(0);
+void Editor::saveFile()
+{
+    _text.trimTrailingWhitespace();
+    lineColumnToPosition();
+    _selection = -1;
 
-    while (processKey());
+	File file(_filename, FILE_MODE_CREATE_ALWAYS);
+	file.writeString(_text);
+}
 
+String Editor::getCommand(const char_t* prompt)
+{
+    int start = STRLEN(prompt), end = start;
+    
+    STRSET(_commandLine.elements(), ' ', _width);
+    STRNCPY(_commandLine.elements(), prompt, start);
+    Console::write(_screenHeight, 1, _commandLine.elements(), _width);
+    Console::setCursorPosition(_screenHeight, end + 1);
+
+    while (true)
+    {
+        int numKeys = Console::readKeys();
+
+        for (int i = 0; i < numKeys; ++i)
+        {
+            Key key = Console::key(i);
+
+            if (key.code == KEY_ENTER)
+            {
+                return String(_commandLine.elements(), start, end - start);
+            }
+            else if (key.code == KEY_ESC)
+            {
+                return String();
+            }
+            else if (key.code == KEY_BACKSPACE)
+            {
+                if (end > start)
+                    _commandLine[--end] = ' ';
+            }
+            else
+            {
+                if (end < _width)
+                    _commandLine[end++] = key.ch;
+            }
+            
+            Console::write(_screenHeight, 1, _commandLine.elements(), _width);
+            Console::setCursorPosition(_screenHeight, end + 1);
+        }
+    }
+}
+
+void Editor::buildProject()
+{
     Console::setMode(CONSOLE_MODE_CANONICAL);
     Console::clear();
-    Console::destroy();
+
+    saveFile();
+    system("gmake");
+
+    Console::writeLine(STR("Press ENTER to contiue..."));
+    getchar();
+
+    Console::setMode(0);
 }
 
 int MAIN(int argc, const char_t** argv)
 {
     if (argc != 2)
     {
-        printf("usage: eve filename\n\n"
+        Console::writeLine(STR("usage: eve filename\n\n"
             "keys:\n"
             "arrows - move cursor\n"
             "ctrl+left/right - word back/forward\n"
@@ -788,15 +918,15 @@ int MAIN(int argc, const char_t** argv)
             "alt+B - build with make\n"
             "alt+S - save\n"
             "alt+X - quit and save\n"
-            "alt+Q - quit without saving\n\n");
+            "alt+Q - quit without saving\n\n"));
 
         return 1;
     }
 
     try
     {
-        filename = argv[1];
-        editor();
+        Editor editor(argv[1]);
+        editor.run();
     }
     catch (Exception& ex)
     {
