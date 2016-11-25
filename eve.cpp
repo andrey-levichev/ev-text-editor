@@ -7,6 +7,7 @@ const char_t* tab = STR("    ");
 
 CharArray screen;
 CharArray window;
+CharArray commandLine;
 
 String filename;
 
@@ -214,16 +215,9 @@ void updateScreen()
         }
     }
 
-    STRSET(q, ' ', width);
-
-    char_t lnCol[30];
-    len = SPRINTF(lnCol, 30, STR("%d, %d"), line, column);
-    if (len > 0 && len <= width)
-        STRNCPY(q + width - len, lnCol, len);
-
     int i = 0, j = 0;
     bool matching = true;
-    int nchars = width * screenHeight;
+    int nchars = width * height;
     
     Console::showCursor(false);
     
@@ -253,6 +247,15 @@ void updateScreen()
         Console::write(i / width + 1, i % width + 1, 
 			window.elements() + i, j - i);
     
+    STRSET(commandLine.elements(), ' ', width);
+
+    char_t lnCol[30];
+    len = SPRINTF(lnCol, 30, STR("%d, %d"), line, column);
+    if (len > 0 && len <= width)
+        STRNCPY(commandLine.elements() + width - len, lnCol, len);
+
+    Console::write(screenHeight, 1, commandLine.elements(), width);
+
     Console::setCursorPosition(line - top + 1, column - left + 1);
     Console::showCursor(true);
     
@@ -285,13 +288,12 @@ void saveFile()
 
 String getCommand(const char_t* prompt)
 {
-    int start = STRLEN(prompt), end = start, cmdLine = screenHeight;
-    char_t* cmd = (char_t*)alloca(sizeof(char_t) * width);
+    int start = STRLEN(prompt), end = start;
     
-    STRSET(cmd, ' ', width);
-    STRNCPY(cmd, prompt, start);
-    Console::write(cmdLine, 1, cmd, width);
-    Console::setCursorPosition(cmdLine, end + 1);
+    STRSET(commandLine.elements(), ' ', width);
+    STRNCPY(commandLine.elements(), prompt, start);
+    Console::write(screenHeight, 1, commandLine.elements(), width);
+    Console::setCursorPosition(screenHeight, end + 1);
 
     while (true)
     {
@@ -303,7 +305,7 @@ String getCommand(const char_t* prompt)
 
             if (key.code == KEY_ENTER)
             {
-                return String(cmd, start, end - start);
+                return String(commandLine.elements(), start, end - start);
             }
             else if (key.code == KEY_ESC)
             {
@@ -312,16 +314,16 @@ String getCommand(const char_t* prompt)
             else if (key.code == KEY_BACKSPACE)
             {
                 if (end > start)
-                    cmd[--end] = ' ';
+                    commandLine[--end] = ' ';
             }
             else
             {
                 if (end < width)
-                    cmd[end++] = key.ch;
+                    commandLine[end++] = key.ch;
             }
             
-            Console::write(cmdLine, 1, cmd, width);
-            Console::setCursorPosition(cmdLine, end + 1);
+            Console::write(screenHeight, 1, commandLine.elements(), width);
+            Console::setCursorPosition(screenHeight, end + 1);
         }
     }
 }
@@ -389,7 +391,7 @@ bool copyDeleteText(bool copy)
 
     if (p < q)
     {
-        buffer = text.substr(p - text.chars(), q - text.chars());
+        buffer = text.substr(p - text.chars(), q - p);
 
         if (!copy)
         {
@@ -439,6 +441,9 @@ bool findNext()
     if (!pattern.empty())
     {
 		int pos = text.find(pattern, position);
+        if (pos == position)
+            pos = text.find(pattern, position + pattern.length());
+
 		if (pos == String::INVALID_POSITION)
 			pos = text.find(pattern);
 		
@@ -474,7 +479,7 @@ bool findWordAtCursor()
             ++q;
         }
 
-        pattern = text.substr(p - text.chars(), q - text.chars());
+        pattern = text.substr(p - text.chars(), q - p);
     }
     else
         pattern.clear();
@@ -740,11 +745,12 @@ void editor()
     Console::create();
     Console::getSize(width, screenHeight);
 	
-    screen.resize(width * screenHeight);
-    window.resize(width * screenHeight);
-
     height = screenHeight - 1;
     top = 1; left = 1;
+
+    screen.resize(width * height);
+    window.resize(width * height);
+    commandLine.resize(width);
 
     updateScreen();
     Console::setMode(0);

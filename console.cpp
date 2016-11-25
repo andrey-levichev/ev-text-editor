@@ -42,7 +42,7 @@ void Console::setMode(int mode)
 
 #else
 
-    if (mode & CONSOLEMODE_CANONICAL)
+    if (mode & CONSOLE_MODE_CANONICAL)
     {
         termios ta;
         tcgetattr(STDIN_FILENO, &ta);
