@@ -46,21 +46,34 @@
 // platform
 
 #if defined(_WIN32)
-#define PLATFORM_WINDOWS
-#elif defined(__linux__)
-#define PLATFORM_LINUX
-#elif defined(__APPLE__)
-#define PLATFORM_APPLE
-#elif defined(__sun)
-#define PLATFORM_SOLARIS
-#elif defined(_AIX)
-#define PLATFORM_AIX
-#elif defined(__ANDROID__)
-#define PLATFORM_ANDRIOD
-#endif
 
-#if defined(__unix) || defined(__unix__)
+#define PLATFORM_WINDOWS
+
+#elif defined(__linux__)
+
+#define PLATFORM_LINUX
 #define PLATFORM_UNIX
+
+#elif defined(__APPLE__)
+
+#define PLATFORM_APPLE
+#define PLATFORM_UNIX
+
+#elif defined(__sun)
+
+#define PLATFORM_SOLARIS
+#define PLATFORM_UNIX
+
+#elif defined(_AIX)
+
+#define PLATFORM_AIX
+#define PLATFORM_UNIX
+
+#elif defined(__ANDROID__)
+
+#define PLATFORM_ANDRIOD
+#define PLATFORM_UNIX
+
 #endif
 
 // compiler and version

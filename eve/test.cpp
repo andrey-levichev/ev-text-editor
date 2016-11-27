@@ -1,4 +1,5 @@
 #include <foundation.h>
+#include <console.h>
 #include <test.h>
 
 int hash(const UniquePtr<int>& val)
@@ -3666,24 +3667,4 @@ void testFoundation()
     testMapIterator();
     testSet();
     testSetIterator();
-}
-
-int MAIN()
-{
-    try
-    {
-        testFoundation();
-    }
-    catch (Exception& ex)
-    {
-        Console::writeLine(ex.message());
-        return 1;
-    }
-    catch (...)
-    {
-        Console::writeLine(STR("unknown error"));
-        return 1;
-    }
-
-    return 0;
 }
