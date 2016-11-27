@@ -1,5 +1,3 @@
-#include <foundation.h>
-#include <console.h>
 #include <test.h>
 
 int hash(const UniquePtr<int>& val)

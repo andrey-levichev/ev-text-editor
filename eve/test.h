@@ -2,6 +2,7 @@
 #define TEST_INCLUDED
 
 #include <foundation.h>
+#include <console.h>
 
 // Test
 
