@@ -15,3 +15,5 @@ Release
 eve.VC.db
 .DS_Store
 .suo
+cmake-build-*
+
