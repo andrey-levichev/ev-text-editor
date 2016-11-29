@@ -78,7 +78,7 @@ protected:
     void positionToLineColumn();
     void lineColumnToPosition();
 
-    void updateScreen();
+    void updateScreen(bool redrawAll = false);
     bool processKey();
 
     void openFile();

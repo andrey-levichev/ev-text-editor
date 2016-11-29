@@ -29,24 +29,24 @@ bool Text::charBack()
 
 bool Text::wordForward()
 {
+    int prev = _position;
     char_t* p = _chars + _position;
 
     while (*p)
     {
         ++p;
 
-        if (ISSPACE(*p - 1) && !ISSPACE(*(p)))
-        {
-            _position = p - _chars;
-            return true;
-        }
+        if (ISSPACE(*(p - 1)) && !ISSPACE(*p))
+            break;
     }
 
-    return false;
+    _position = p - _chars;
+    return _position > prev;
 }
 
 bool Text::wordBack()
 {
+    int prev = _position;
     char_t* p = _chars + _position;
 
     if (p > _chars)
@@ -55,16 +55,14 @@ bool Text::wordBack()
         while (p > _chars)
         {
             if (ISSPACE(*(p - 1)) && !ISSPACE(*p))
-            {
-                _position = p - _chars;
-                return true;
-            }
+                break;
 
             --p;
         }
     }
 
-    return false;
+    _position = p - _chars;
+    return _position < prev;
 }
 
 bool Text::toStart()
@@ -181,6 +179,7 @@ bool Text::deleteWordForward()
     if (wordForward())
     {
         erase(prev, _position - prev);
+        _position = prev;
         return true;
     }
 
@@ -208,7 +207,7 @@ String Text::copyDeleteText(int pos, bool copy)
     if (pos < 0)
     {
         p = findCharBack('\n');
-        if (*p == '\n')
+        if (*p == '\n' && p > _chars)
             ++p;
 
         q = findChar('\n');
@@ -237,8 +236,9 @@ String Text::copyDeleteText(int pos, bool copy)
         {
             _position = p - _chars;
             erase(_position, q - p);
-            return text;
         }
+
+        return text;
     }
 
     return String();
@@ -379,7 +379,7 @@ Editor::Editor(const char_t* filename) :
 {
     Console::create();
     Console::getSize(_width, _screenHeight);
-    Console::setMode(0);
+    Console::setMode(CONSOLE_MODE_DEFAULT);
 
     _height = _screenHeight - 1;
     _top = 1; _left = 1;
@@ -390,6 +390,8 @@ Editor::Editor(const char_t* filename) :
     _screen.resize(_width * _height);
     _window.resize(_width * _height);
     _commandLine.resize(_width);
+
+    _text.ensureCapacity(1);
 }
 
 Editor::~Editor()
@@ -456,7 +458,7 @@ void Editor::lineColumnToPosition()
     _text.position() = p - _text.chars();
 }
 
-void Editor::updateScreen()
+void Editor::updateScreen(bool redrawAll)
 {
     if (_line < _top)
         _top = _line;
@@ -511,31 +513,38 @@ void Editor::updateScreen()
     
     Console::showCursor(false);
     
-    for (; j < nchars; ++j)
+    if (redrawAll)
     {
-        if (_window[j] == _screen[j])
-        {
-            if (!matching)
-            {
-                Console::write(i / _width + 1, i % _width + 1, 
-					_window.elements() + i, j - i);
-                i = j;
-                matching = true;
-            }
-        }
-        else
-        {
-            if (matching)
-            {
-                i = j;
-                matching = false;
-            }
-        }
+        Console::write(1, 1, _window.elements(), _width * _height);
     }
-    
-    if (!matching)
-        Console::write(i / _width + 1, i % _width + 1, 
-			_window.elements() + i, j - i);
+    else
+    {
+        for (; j < nchars; ++j)
+        {
+            if (_window[j] == _screen[j])
+            {
+                if (!matching)
+                {
+                    Console::write(i / _width + 1, i % _width + 1, 
+                        _window.elements() + i, j - i);
+                    i = j;
+                    matching = true;
+                }
+            }
+            else
+            {
+                if (matching)
+                {
+                    i = j;
+                    matching = false;
+                }
+            }
+        }
+
+        if (!matching)
+            Console::write(i / _width + 1, i % _width + 1, 
+                _window.elements() + i, j - i);
+    }
     
     STRSET(_commandLine.elements(), ' ', _width);
 
@@ -680,7 +689,7 @@ bool Editor::processKey()
             else if (key.ch == 'b')
             {
                 buildProject();
-                update = true;
+                return true;
             }
             else if (key.ch == 'm')
             {
@@ -798,6 +807,7 @@ bool Editor::processKey()
         else if (key.ch == '\n' || key.ch == '\t' || ISPRINT(key.ch))
         {
             _text.insertChar(key.ch);
+            positionToLineColumn();
             modified = true;
             update = true;
         }
@@ -889,7 +899,8 @@ void Editor::buildProject()
     Console::writeLine(STR("Press ENTER to contiue..."));
     getchar();
 
-    Console::setMode(0);
+    Console::setMode(CONSOLE_MODE_DEFAULT);
+    updateScreen(true);
 }
 
 int MAIN(int argc, const char_t** argv)
