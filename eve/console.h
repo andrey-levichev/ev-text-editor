@@ -53,7 +53,7 @@ enum ConsoleMode
 {
     CONSOLE_MODE_DEFAULT = 0,
     CONSOLE_MODE_UNICODE = 1,
-    CONSOLE_MODE_CANONICAL = 2
+    CONSOLE_MODE_LINE_INPUT = 2
 };
 
 // Console
@@ -61,9 +61,6 @@ enum ConsoleMode
 class Console
 {
 public:
-    static void create();
-    static void destroy();
-
     static void setMode(int mode);
 
     static void write(char_t ch);
@@ -84,12 +81,7 @@ public:
     static void showCursor(bool show);
     static void setCursorPosition(int line, int column);
 
-    static int readKeys();
-	
-    static Key key(int index)
-    {
-        return _keys[index];
-    }
+    static const Array<Key>& readKeys();
 
 protected:
 #ifdef PLATFORM_UNIX
@@ -98,15 +90,13 @@ protected:
 #endif
 
 protected:
-    static int _inputSize;
 #ifdef PLATFORM_WINDOWS
-    static INPUT_RECORD* _input;
+    static Array<INPUT_RECORD> _input;
 #else
-    static char_t* _input;
+    static CharArray _input;
 #endif
 
-    static int _keysSize;
-    static Key* _keys;
+    static Array<Key> _keys;
 };
 
 #endif

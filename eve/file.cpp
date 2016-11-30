@@ -3,7 +3,7 @@
 // File
 
 #ifndef PLATFORM_WINDOWS
-#define INVALID_HANDLE_VALUE -1
+const int INVALID_HANDLE_VALUE = -1;
 #endif
 
 File::File() :

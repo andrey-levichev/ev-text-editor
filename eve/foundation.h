@@ -1282,25 +1282,7 @@ public:
 
     Array<_Type>& operator=(const Array<_Type>& other)
     {
-        if (this != &other)
-        {
-            if (other._size <= _capacity)
-            {
-                clear();
-
-                while (_size < other._size)
-                {
-                    Memory::construct<_Type>(_elements + _size, other[_size]);
-                    ++_size;
-                }
-            }
-            else
-            {
-                Array<_Type> tmp(other);
-                swap(*this, tmp);
-            }
-        }
-
+        assign(other);
         return *this;
     }
 
@@ -1317,6 +1299,16 @@ public:
     }
 
     const _Type& operator[](int index) const
+    {
+        return _elements[index];
+    }
+
+    _Type& value(int index)
+    {
+        return _elements[index];
+    }
+
+    const _Type& value(int index) const
     {
         return _elements[index];
     }
@@ -1406,6 +1398,28 @@ public:
         {
             for (; _size > size; --_size)
                 Memory::destruct(_elements + _size);
+        }
+    }
+
+    void assign(const Array<_Type>& other)
+    {
+        if (this != &other)
+        {
+            if (other._size <= _capacity)
+            {
+                clear();
+
+                while (_size < other._size)
+                {
+                    Memory::construct<_Type>(_elements + _size, other[_size]);
+                    ++_size;
+                }
+            }
+            else
+            {
+                Array<_Type> tmp(other);
+                swap(*this, tmp);
+            }
         }
     }
     
@@ -1746,8 +1760,7 @@ public:
 
     List<_Type>& operator=(const List<_Type>& other)
     {
-        List<_Type> tmp(other);
-        swap(*this, tmp);
+        assign(other);
         return *this;
     }
 
@@ -1809,6 +1822,12 @@ public:
                 return node;
 
         return nullptr;
+    }
+
+    void assign(const List<_Type>& other)
+    {
+        List<_Type> tmp(other);
+        swap(*this, tmp);
     }
 
     void popFront()
@@ -2144,55 +2163,22 @@ public:
 
     _Value& operator[](const _Key& key)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
-
-        List<KeyValue>& kvList = getBucket(key);
-
-        for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
-        {
-            if (equalsTo(kvNode->value.key, key))
-                return kvNode->value.value;
-        }
-
-        kvList.pushBack(KeyValue(key));
-        ++_size;
-
-        return kvList.back()->value.value;
+        return value(key);
     }
 
     _Value& operator[](_Key&& key)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
-
-        List<KeyValue>& kvList = getBucket(key);
-
-        for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
-        {
-            if (equalsTo(kvNode->value.key, key))
-                return kvNode->value.value;
-        }
-
-        kvList.pushBack(KeyValue(static_cast<_Key&&>(key)));
-        ++_size;
-
-        return kvList.back()->value.value;
+        return value(static_cast<_Key&&>(key));
     }
 
     const _Value& operator[](const _Key& key) const
     {
-        const _Value* value = find(key);
-        if (value)
-            return *value;
-        else
-            throw Exception(STR("not found"));
+        return value(key);
     }
 
     Map<_Key, _Value>& operator=(const Map<_Key, _Value>& other)
     {
-        Map<_Key, _Value> tmp(other);
-        swap(*this, tmp);
+        assign(other);
         return *this;
     }
 
@@ -2221,6 +2207,53 @@ public:
     float loadFactor() const
     {
         return static_cast<float>(_size) / _keyValues.size();
+    }
+
+    _Value& value(const _Key& key)
+    {
+        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
+            rehash(_keyValues.size() * 2 + 1);
+
+        List<KeyValue>& kvList = getBucket(key);
+
+        for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+        {
+            if (equalsTo(kvNode->value.key, key))
+                return kvNode->value.value;
+        }
+
+        kvList.pushBack(KeyValue(key));
+        ++_size;
+
+        return kvList.back()->value.value;
+    }
+
+    _Value& value(_Key&& key)
+    {
+        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
+            rehash(_keyValues.size() * 2 + 1);
+
+        List<KeyValue>& kvList = getBucket(key);
+
+        for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+        {
+            if (equalsTo(kvNode->value.key, key))
+                return kvNode->value.value;
+        }
+
+        kvList.pushBack(KeyValue(static_cast<_Key&&>(key)));
+        ++_size;
+
+        return kvList.back()->value.value;
+    }
+
+    const _Value& value(const _Key& key) const
+    {
+        const _Value* value = find(key);
+        if (value)
+            return *value;
+        else
+            throw Exception(STR("not found"));
     }
 
     _Value* find(const _Key& key)
@@ -2253,6 +2286,12 @@ public:
         }
 
         return nullptr;
+    }
+
+    void assign(const Map<_Key, _Value>& other)
+    {
+        Map<_Key, _Value> tmp(other);
+        swap(*this, tmp);
     }
 
     void insert(const _Key& key, const _Value& value)
@@ -2565,8 +2604,7 @@ public:
 
     Set<_Type>& operator=(const Set<_Type>& other)
     {
-        Set<_Type> tmp(other);
-        swap(*this, tmp);
+        assign(other);
         return *this;
     }
 
@@ -2608,6 +2646,12 @@ public:
         }
 
         return nullptr;
+    }
+
+    void assign(const Set<_Type>& other)
+    {
+        Set<_Type> tmp(other);
+        swap(*this, tmp);
     }
 
     void insert(const _Type& value)

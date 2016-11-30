@@ -11,7 +11,6 @@ support unicode input
 using char_t for single char is incorrect
 pos, len must be in chars not in bytes
 * decode/encode text from file to runtime enconding, translate newlines
-* showCursor not implemented on windows
 
 basic features:
 * search/replace
@@ -37,6 +36,10 @@ offer completion after second letter
 offer recently used, located nearby first
 complete on tab or punctuation
 
+foundation improvements:
+* review rval ref usage, insert in place, insert rval ref
+* memory mapped file
+
 foundation features:
 * convert any object to string
 * simple parsing a la scanf
@@ -50,9 +53,4 @@ foundation features:
 * string to binary/hex conversion
 * initializer_list support
 * conversion between containers (array to list etc)
-
-foundation improvements:
-* review rval ref usage, insert in place, insert rval ref
-* review string vs array code
-* functions for every operator like assign
 

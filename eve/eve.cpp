@@ -377,7 +377,6 @@ bool Text::isIdent(char_t ch)
 Editor::Editor(const char_t* filename) :
     _filename(filename)
 {
-    Console::create();
     Console::getSize(_width, _screenHeight);
     Console::setMode(CONSOLE_MODE_DEFAULT);
 
@@ -396,9 +395,8 @@ Editor::Editor(const char_t* filename) :
 
 Editor::~Editor()
 {
-    Console::setMode(CONSOLE_MODE_CANONICAL);
+    Console::setMode(CONSOLE_MODE_LINE_INPUT);
     Console::clear();
-    Console::destroy();
 }
 
 void Editor::run()
@@ -510,9 +508,11 @@ void Editor::updateScreen(bool redrawAll)
     int i = 0, j = 0;
     bool matching = true;
     int nchars = _width * _height;
-    
+ 
+#ifndef PLATFORM_WINDOWS 
     Console::showCursor(false);
-    
+#endif
+
     if (redrawAll)
     {
         Console::write(1, 1, _window.elements(), _width * _height);
@@ -556,7 +556,9 @@ void Editor::updateScreen(bool redrawAll)
     Console::write(_screenHeight, 1, _commandLine.elements(), _width);
 
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
+#ifndef PLATFORM_WINDOWS 
     Console::showCursor(true);
+#endif
     
     swap(_window, _screen);
 }
@@ -564,11 +566,11 @@ void Editor::updateScreen(bool redrawAll)
 bool Editor::processKey()
 {
     bool update = false, modified = false;
-    int numKeys = Console::readKeys();
+    const Array<Key>& keys = Console::readKeys();
 
-    for (int i = 0; i < numKeys; ++i)
+    for (int i = 0; i < keys.size(); ++i)
     {
-        Key key = Console::key(i);
+        Key key = keys[i];
 
         if (key.ctrl)
         {
@@ -857,11 +859,11 @@ String Editor::getCommand(const char_t* prompt)
 
     while (true)
     {
-        int numKeys = Console::readKeys();
+        const Array<Key>& keys = Console::readKeys();
 
-        for (int i = 0; i < numKeys; ++i)
+        for (int i = 0; i < keys.size(); ++i)
         {
-            Key key = Console::key(i);
+            Key key = keys[i];
 
             if (key.code == KEY_ENTER)
             {
@@ -890,7 +892,7 @@ String Editor::getCommand(const char_t* prompt)
 
 void Editor::buildProject()
 {
-    Console::setMode(CONSOLE_MODE_CANONICAL);
+    Console::setMode(CONSOLE_MODE_LINE_INPUT);
     Console::clear();
 
     saveFile();

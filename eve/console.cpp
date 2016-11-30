@@ -2,34 +2,13 @@
 
 // Console
 
-int Console::_inputSize = 10;
 #ifdef PLATFORM_WINDOWS
-INPUT_RECORD* Console::_input;
+Array<INPUT_RECORD> Console::_input(10);
 #else
-char_t* Console::_input;
+CharArray Console::_input(10);
 #endif
 
-int Console::_keysSize = 10;
-Key* Console::_keys;
-
-void Console::create()
-{
-    _inputSize = 10;
-#ifdef PLATFORM_WINDOWS
-    _input = Memory::allocate<INPUT_RECORD>(_inputSize);
-#else
-    _input = Memory::allocate<char_t>(_inputSize);
-#endif
-
-    _keysSize = 10;
-    _keys = Memory::allocate<Key>(_keysSize);
-}
-
-void Console::destroy()
-{
-    Memory::deallocate(_input);
-    Memory::deallocate(_keys);
-}
+Array<Key> Console::_keys;
 
 void Console::setMode(int mode)
 {
@@ -42,7 +21,7 @@ void Console::setMode(int mode)
 
 #else
 
-    if (mode & CONSOLE_MODE_CANONICAL)
+    if (mode & CONSOLE_MODE_LINE_INPUT)
     {
         termios ta;
         tcgetattr(STDIN_FILENO, &ta);
@@ -157,6 +136,12 @@ void Console::clear()
 
 void Console::showCursor(bool show)
 {
+    CONSOLE_CURSOR_INFO cci;
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    GetConsoleCursorInfo(handle, &cci);
+    cci.bVisible = show;
+    SetConsoleCursorInfo(handle, &cci);
 }
 
 void Console::setCursorPosition(int line, int column)
@@ -308,14 +293,15 @@ const char_t* Console::readSpecialKey(const char_t* p, Key& key)
 
 #endif
 
-int Console::readKeys()
+const Array<Key>& Console::readKeys()
 {
-    int numKeys = 0;
+    _keys.clear();
 
 #ifdef PLATFORM_WINDOWS
 
     DWORD numInputRec = 0;
-    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), _input, _inputSize, &numInputRec);
+    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), 
+        _input.elements(), _input.size(), &numInputRec);
 
     for (DWORD i = 0; i < numInputRec; ++i)
     {
@@ -382,21 +368,15 @@ int Console::readKeys()
             key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
             key.shift = (controlKeys & SHIFT_PRESSED) != 0;
 
-            if (numKeys == _keysSize)
-            {
-                _keysSize *= 2;
-                _keys = Memory::reallocate<Key>(_keys, _keysSize);
-            }
-
-            _keys[numKeys++] = key;
+            _keys.pushBack(key);
         }
     }
 
-    return numKeys;
+    return _keys;
 
 #else
 
-    int len = read(STDIN_FILENO, _input, _inputSize - 1);
+    int len = read(STDIN_FILENO, _input.elements(), _input.size() - 1);
 
     if (len > 0)
     {
@@ -405,17 +385,15 @@ int Console::readKeys()
 
         if (remaining > 0)
         {
-            if (len + remaining + 1 > _inputSize)
-            {
-                _inputSize = len + remaining + 1;
-                _input = Memory::reallocate<char_t>(_input, _inputSize);
-            }
+            int total = len + remaining + 1;
+            if (total > _input.size())
+                _input.resize(total);
 
-            len += read(STDIN_FILENO, _input + len, remaining);
+            len += read(STDIN_FILENO, _input.elements() + len, remaining);
         }
 
         _input[len] = 0;
-        const char_t* p = _input;
+        const char_t* p = _input.elements();
 
         while (*p)
         {
@@ -466,17 +444,11 @@ int Console::readKeys()
                 ++p;
             }
 
-            if (numKeys == _keysSize)
-            {
-                _keysSize *= 2;
-                _keys = Memory::reallocate<Key>(_keys, _keysSize);
-            }
-
-            _keys[numKeys++] = key;
+            _keys.pushBack(key);
         }
     }
 
 #endif
 
-    return numKeys;
+    return _keys;
 }

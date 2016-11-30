@@ -7,11 +7,11 @@
 
 enum FileMode
 {
-    FILE_MODE_CREATE_ALWAYS, // create or truncate if exists
-    FILE_MODE_CREATE_NEW, // create new or fail if exists
-    FILE_MODE_OPEN_ALWAYS, // open if exists or create 
-    FILE_MODE_OPEN_EXISTING, // open if exists or fail
-    FILE_MODE_TRUNCATE_EXISTING // open existing and truncate or fail
+    FILE_MODE_CREATE_ALWAYS,
+    FILE_MODE_CREATE_NEW,
+    FILE_MODE_OPEN_ALWAYS,
+    FILE_MODE_OPEN_EXISTING,
+    FILE_MODE_TRUNCATE_EXISTING
 };
 
 class File
