@@ -10,7 +10,7 @@ $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 		/D_CRT_SECURE_NO_WARNINGS /link /out:$@
 
 $(TARGET).gcc: $(HEADERS) $(SOURCES)
-	g++ -std=gnu++11 -g $(SOURCES) -o $@ -I.
+	g++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I.
 
 $(TARGET).mingw.exe: $(HEADERS) $(SOURCES)
 	g++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I. \

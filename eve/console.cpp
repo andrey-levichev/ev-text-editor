@@ -301,7 +301,7 @@ const Array<Key>& Console::readKeys()
 
     DWORD numInputRec = 0;
     ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), 
-        _input.elements(), _input.size(), &numInputRec);
+        _input.values(), _input.size(), &numInputRec);
 
     for (DWORD i = 0; i < numInputRec; ++i)
     {
@@ -376,7 +376,7 @@ const Array<Key>& Console::readKeys()
 
 #else
 
-    int len = read(STDIN_FILENO, _input.elements(), _input.size() - 1);
+    int len = read(STDIN_FILENO, _input.values(), _input.size() - 1);
 
     if (len > 0)
     {
@@ -389,11 +389,11 @@ const Array<Key>& Console::readKeys()
             if (total > _input.size())
                 _input.resize(total);
 
-            len += read(STDIN_FILENO, _input.elements() + len, remaining);
+            len += read(STDIN_FILENO, _input.values() + len, remaining);
         }
 
         _input[len] = 0;
-        const char_t* p = _input.elements();
+        const char_t* p = _input.values();
 
         while (*p)
         {

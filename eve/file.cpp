@@ -103,12 +103,12 @@ ByteArray File::readBytes()
     DWORD bytesSize = size(), bytesRead;
     ByteArray bytes(bytesSize);
     
-    if (ReadFile(_handle, bytes.elements(), bytesSize, &bytesRead, nullptr))
+    if (ReadFile(_handle, bytes.values(), bytesSize, &bytesRead, nullptr))
 #else
     ssize_t bytesSize = size(), bytesRead;
     ByteArray bytes(bytesSize);
 
-    if ((bytesRead = read(_handle, bytes.elements(), bytesSize)) >= 0)
+    if ((bytesRead = read(_handle, bytes.values(), bytesSize)) >= 0)
 #endif
     {
         if (bytesSize != bytesRead)
@@ -128,11 +128,11 @@ void File::writeBytes(const ByteArray& bytes)
 #ifdef PLATFORM_WINDOWS
     DWORD bytesSize = bytes.size(), bytesWritten;
     
-    if (WriteFile(_handle, bytes.elements(), bytesSize, &bytesWritten, nullptr))
+    if (WriteFile(_handle, bytes.values(), bytesSize, &bytesWritten, nullptr))
 #else
     ssize_t bytesSize = bytes.size(), bytesWritten;
 
-    if ((bytesWritten = write(_handle, bytes.elements(), bytesSize)) >= 0)
+    if ((bytesWritten = write(_handle, bytes.values(), bytesSize)) >= 0)
 #endif
     {
         if (bytesSize != bytesWritten)
@@ -152,13 +152,13 @@ String File::readString()
     DWORD bytesSize = charsSize * sizeof(char_t), bytesRead;
     Array<char_t> chars(charsSize + 1);
     
-    if (ReadFile(_handle, chars.elements(), bytesSize, &bytesRead, nullptr))
+    if (ReadFile(_handle, chars.values(), bytesSize, &bytesRead, nullptr))
 #else
     ssize_t charsSize = size() / sizeof(char_t);
     ssize_t bytesSize = charsSize * sizeof(char_t), bytesRead;
     Array<char_t> chars(charsSize + 1);
     
-    if ((bytesRead = read(_handle, chars.elements(), bytesSize)) >= 0)
+    if ((bytesRead = read(_handle, chars.values(), bytesSize)) >= 0)
 #endif
     {
         if (bytesSize != bytesRead)

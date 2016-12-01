@@ -1,16 +1,16 @@
 bugs & misc:
+* console width/height on linux/macos are 0
 * keyboard input improvements
 some keys don't work in xterm (pgup/pgdn, cursor keys)
 copying text from screen doesn't have newlines
-support unicode input
+* support unicode input and newline differences
+don't know how much memory to allocate for utf-8
+using char_t for single char may be incorrect
+pos, len must be in chars not in bytes?
+decode/encode text from file to runtime enconding, translate newlines
 * using size vs zero terminator for text
-* paste lines at any column
-* extra indent when adding new line
-* set selection to empty after every text editing operation
-* don't know how much memory to allocate for utf-8
-using char_t for single char is incorrect
-pos, len must be in chars not in bytes
-* decode/encode text from file to runtime enconding, translate newlines
+* get rid of alloca?
+* arbitrary length command line
 
 basic features:
 * search/replace
@@ -39,6 +39,8 @@ complete on tab or punctuation
 foundation improvements:
 * review rval ref usage, insert in place, insert rval ref
 * memory mapped file
+* review/update tests
+* no asserts in release builds
 
 foundation features:
 * convert any object to string

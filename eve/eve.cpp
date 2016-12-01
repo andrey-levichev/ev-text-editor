@@ -89,14 +89,13 @@ bool Text::toEnd()
 
 bool Text::toLineStart()
 {
-    char_t* p = Text::findCharBack('\n');
-    if (*p == '\n')
-        ++p;
-
-    int pos = p - _chars;
-    if (pos < _position)
+    if (_position > 0)
     {
-        _position = pos;
+        char_t* p = Text::findCharBack('\n');
+        if (*p == '\n')
+            ++p;
+
+        _position = p - _chars;
         return true;
     }
 
@@ -105,10 +104,9 @@ bool Text::toLineStart()
 
 bool Text::toLineEnd()
 {
-    int pos = findChar('\n') - _chars;
-    if (pos > _position)
+    if (_position < _length)
     {
-        _position = pos;
+        _position = findChar('\n') - _chars;
         return true;
     }
 
@@ -120,7 +118,7 @@ void Text::insertChar(char_t ch)
     if (ch == '\n') // new line
     {
         char_t* p = findCharBack('\n');
-        if (*p == '\n')
+        if (*p == '\n' && _position > 0)
             ++p;
 
         char_t* q = p;
@@ -128,7 +126,7 @@ void Text::insertChar(char_t ch)
             ++q;
 
         int len = q - p + 1;
-        char_t* chars = (char_t*)alloca(sizeof(char_t) * (len + 1));
+        char_t* chars = reinterpret_cast<char_t*>(alloca(sizeof(char_t) * (len + 1)));
 
         chars[0] = '\n';
         *STRNCPY(chars + 1, p, q - p) = 0;
@@ -142,12 +140,9 @@ void Text::insertChar(char_t ch)
         _position += TAB_SIZE;
     }
     else if (ch == 0x14) // real tab
-        insert(_position++, STR("\t"));
+        insert(_position++, '\t');
     else
-	{
-		char_t chars[2] = { ch, 0 };
-        insert(_position++, chars);
-	}
+        insert(_position++, ch);
 }
 
 bool Text::deleteCharForward()
@@ -207,7 +202,7 @@ String Text::copyDeleteText(int pos, bool copy)
     if (pos < 0)
     {
         p = findCharBack('\n');
-        if (*p == '\n' && p > _chars)
+        if (*p == '\n' && _position > 0)
             ++p;
 
         q = findChar('\n');
@@ -244,9 +239,19 @@ String Text::copyDeleteText(int pos, bool copy)
     return String();
 }
 
-void Text::pasteText(const String& text)
+void Text::pasteText(const String& text, bool lineSelection)
 {
-    insert(_position, text);
+    if (lineSelection)
+    {
+        char_t* p = findCharBack('\n');
+        if (*p == '\n' && _position > 0)
+            ++p;
+
+        insert(p - _chars, text);
+    }
+    else
+        insert(_position, text);
+
     _position += text.length();
 }
 
@@ -288,11 +293,15 @@ bool Text::findNext(const String& pattern)
 {
     if (!pattern.empty())
     {
-		int pos = find(pattern, _position);
-        if (pos == _position)
-            pos = find(pattern, _position + pattern.length());
+        int pos;
 
-		if (pos == String::INVALID_POSITION)
+        if (_position < _length)
+        {
+            pos = find(pattern, _position + 1);
+            if (pos == String::INVALID_POSITION)
+                pos = find(pattern);
+        }
+        else
 			pos = find(pattern);
 		
 		if (pos != String::INVALID_POSITION && pos != _position)
@@ -375,16 +384,17 @@ bool Text::isIdent(char_t ch)
 // Editor
 
 Editor::Editor(const char_t* filename) :
-    _filename(filename)
-{
-    Console::getSize(_width, _screenHeight);
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    _filename(filename),
+    _top(1), _left(1),
+    _line(1), _column(1),
+    _preferredColumn(1),
+    _selection(-1),
+    _lineSelection(false)
 
+{
+    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
-    _top = 1; _left = 1;
-    
-    _line = _column = _preferredColumn = 1;
-    _selection = -1;
 
     _screen.resize(_width * _height);
     _window.resize(_width * _height);
@@ -469,7 +479,7 @@ void Editor::updateScreen(bool redrawAll)
         _left = _column - _width + 1;
 
     char_t* p = _text.findLine(_top);
-    char_t* q = _window.elements();
+    char_t* q = _window.values();
     int len = _left + _width - 1;
 
     for (int j = 1; j <= _height; ++j)
@@ -515,7 +525,7 @@ void Editor::updateScreen(bool redrawAll)
 
     if (redrawAll)
     {
-        Console::write(1, 1, _window.elements(), _width * _height);
+        Console::write(1, 1, _window.values(), nchars);
     }
     else
     {
@@ -526,7 +536,7 @@ void Editor::updateScreen(bool redrawAll)
                 if (!matching)
                 {
                     Console::write(i / _width + 1, i % _width + 1, 
-                        _window.elements() + i, j - i);
+                        _window.values() + i, j - i);
                     i = j;
                     matching = true;
                 }
@@ -543,17 +553,17 @@ void Editor::updateScreen(bool redrawAll)
 
         if (!matching)
             Console::write(i / _width + 1, i % _width + 1, 
-                _window.elements() + i, j - i);
+                _window.values() + i, j - i);
     }
     
-    STRSET(_commandLine.elements(), ' ', _width);
+    STRSET(_commandLine.values(), ' ', _width);
 
     char_t lnCol[30];
     len = SPRINTF(lnCol, 30, STR("%d, %d"), _line, _column);
     if (len > 0 && len <= _width)
-        STRNCPY(_commandLine.elements() + _width - len, lnCol, len);
+        STRNCPY(_commandLine.values() + _width - len, lnCol, len);
 
-    Console::write(_screenHeight, 1, _commandLine.elements(), _width);
+    Console::write(_screenHeight, 1, _commandLine.values(), _width);
 
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
 #ifndef PLATFORM_WINDOWS 
@@ -666,6 +676,7 @@ bool Editor::processKey()
             else if (key.ch == 'd')
             {
                 _buffer = _text.copyDeleteText(_selection, false);
+                _lineSelection = _selection < 0;
 
                 if (!_buffer.empty())
                 {
@@ -677,12 +688,13 @@ bool Editor::processKey()
             else if (key.ch == 'c')
             {
                 _buffer = _text.copyDeleteText(_selection, true);
+                _lineSelection = _selection < 0;
             }
             else if (key.ch == 'p')
             {
                 if (!_buffer.empty())
                 {
-                    _text.pasteText(_buffer);
+                    _text.pasteText(_buffer, _lineSelection);
                     positionToLineColumn();
                     modified = true;
                     update = true;
@@ -702,10 +714,8 @@ bool Editor::processKey()
                 _pattern = getCommand(STR("find: "));
 
                 if (_text.findNext(_pattern))
-                {
                     positionToLineColumn();
-                    update = true;
-                }
+                update = true;
             }
             else if (key.ch == 'o')
             {
@@ -852,9 +862,9 @@ String Editor::getCommand(const char_t* prompt)
 {
     int start = STRLEN(prompt), end = start;
     
-    STRSET(_commandLine.elements(), ' ', _width);
-    STRNCPY(_commandLine.elements(), prompt, start);
-    Console::write(_screenHeight, 1, _commandLine.elements(), _width);
+    STRSET(_commandLine.values(), ' ', _width);
+    STRNCPY(_commandLine.values(), prompt, start);
+    Console::write(_screenHeight, 1, _commandLine.values(), _width);
     Console::setCursorPosition(_screenHeight, end + 1);
 
     while (true)
@@ -867,7 +877,7 @@ String Editor::getCommand(const char_t* prompt)
 
             if (key.code == KEY_ENTER)
             {
-                return String(_commandLine.elements(), start, end - start);
+                return String(_commandLine.values(), start, end - start);
             }
             else if (key.code == KEY_ESC)
             {
@@ -884,7 +894,7 @@ String Editor::getCommand(const char_t* prompt)
                     _commandLine[end++] = key.ch;
             }
             
-            Console::write(_screenHeight, 1, _commandLine.elements(), _width);
+            Console::write(_screenHeight, 1, _commandLine.values(), _width);
             Console::setCursorPosition(_screenHeight, end + 1);
         }
     }
@@ -898,10 +908,10 @@ void Editor::buildProject()
     saveFile();
     system("gmake");
 
-    Console::writeLine(STR("Press ENTER to contiue..."));
-    getchar();
-
+    Console::writeLine(STR("Press any key to contiue..."));
     Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::readKeys();
+
     updateScreen(true);
 }
 

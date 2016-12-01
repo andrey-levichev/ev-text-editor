@@ -46,7 +46,7 @@ public:
     bool deleteWordBack();
 
     String copyDeleteText(int pos, bool copy);
-    void pasteText(const String& text);
+    void pasteText(const String& text, bool lineSelection);
 
     char_t* findChar(char_t ch) const;
     char_t* findCharBack(char_t ch) const;
@@ -103,6 +103,7 @@ protected:
 
     int _line, _column, _preferredColumn;
     int _selection;
+    bool _lineSelection;
 };
 
 #endif

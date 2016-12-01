@@ -543,6 +543,20 @@ void String::insert(int pos, const char_t* chars)
     }
 }
 
+void String::insert(int pos, char_t ch)
+{
+    ASSERT(pos >= 0 && pos <= _length);
+
+    int capacity = _length + 2;
+    if (capacity > _capacity)
+        ensureCapacity(capacity * 2);
+
+    char_t* p = _chars + pos;
+    STRMOVE(p + 1, p, _length - pos + 1);
+    *p = ch;
+    ++_length;
+}
+
 void String::erase(int pos, int len)
 {
     ASSERT(pos >= 0 && pos <= _length);

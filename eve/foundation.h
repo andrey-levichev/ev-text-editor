@@ -562,24 +562,24 @@ inline void destroy(_Type* ptr)
 }
 
 template<typename _Type>
-inline void destructArray(int size, _Type* elements)
+inline void destructArray(int size, _Type* values)
 {
-    if (elements)
+    if (values)
     {
         while (size-- > 0)
-            elements[size].~_Type();
+            values[size].~_Type();
     }
 }
 
 template<typename _Type>
-inline void destroyArray(int size, _Type* elements)
+inline void destroyArray(int size, _Type* values)
 {
-    if (elements)
+    if (values)
     {
         while (size-- > 0)
-            elements[size].~_Type();
+            values[size].~_Type();
 
-        deallocate(elements);
+        deallocate(values);
     }
 }
 
@@ -607,9 +607,9 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 }
 
 template<typename _Type>
-inline _Type* createArrayCopy(int size, int capacity, const _Type* elements)
+inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 {
-    ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
+    ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -618,7 +618,7 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* elements)
     try
     {
         for (; i < size; ++i)
-            ::new(ptr + i) _Type(elements[i]);
+            ::new(ptr + i) _Type(values[i]);
     }
     catch (...)
     {
@@ -630,9 +630,9 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* elements)
 }
 
 template<typename _Type>
-inline _Type* createArrayMove(int size, int capacity, _Type* elements)
+inline _Type* createArrayMove(int size, int capacity, _Type* values)
 {
-    ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
+    ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -641,7 +641,7 @@ inline _Type* createArrayMove(int size, int capacity, _Type* elements)
     try
     {
         for (; i < size; ++i)
-            ::new(ptr + i) _Type(static_cast<_Type&&>(elements[i]));
+            ::new(ptr + i) _Type(static_cast<_Type&&>(values[i]));
     }
     catch (...)
     {
@@ -1039,6 +1039,7 @@ public:
 
     void insert(int pos, const String& str);
     void insert(int pos, const char_t* chars);
+    void insert(int pos, char_t ch);
     
     void erase(int pos, int len);
     void erase(const String& str);
@@ -1225,7 +1226,7 @@ public:
 
 public:
     Array() : 
-        _size(0), _capacity(0), _elements(nullptr)
+        _size(0), _capacity(0), _values(nullptr)
     {
     }
 
@@ -1240,44 +1241,44 @@ public:
         
         _size = size;
         _capacity = capacity;
-        _elements = Memory::createArrayFill<_Type>(size, capacity);
+        _values = Memory::createArrayFill<_Type>(size, capacity);
     }
     
-    Array(int size, const _Type* elements) : Array(size, size, elements)
+    Array(int size, const _Type* values) : Array(size, size, values)
     {
     }
 
-    Array(int size, int capacity, const _Type* elements)
+    Array(int size, int capacity, const _Type* values)
     {
-        ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
+        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
         ASSERT(capacity >= 0 && size <= capacity);
         
         _size = size;
         _capacity = capacity;
-        _elements = Memory::createArrayCopy(size, capacity, elements);
+        _values = Memory::createArrayCopy(size, capacity, values);
     }
 
     Array(const Array<_Type>& other)
     {
         _size = other._size;
         _capacity = other._size;
-        _elements = Memory::createArrayCopy(other._size, other._size, other._elements);
+        _values = Memory::createArrayCopy(other._size, other._size, other._values);
     }
     
     Array(Array<_Type>&& other)
     {
         _size = other._size;
         _capacity = other._capacity;
-        _elements = other._elements;
+        _values = other._values;
         
         other._size = 0;
         other._capacity = 0;
-        other._elements = nullptr;
+        other._values = nullptr;
     }
 
     ~Array()
     {
-        Memory::destroyArray(_size, _elements);
+        Memory::destroyArray(_size, _values);
     }
 
     Array<_Type>& operator=(const Array<_Type>& other)
@@ -1295,22 +1296,22 @@ public:
 
     _Type& operator[](int index)
     {
-        return _elements[index];
+        return _values[index];
     }
 
     const _Type& operator[](int index) const
     {
-        return _elements[index];
+        return _values[index];
     }
 
     _Type& value(int index)
     {
-        return _elements[index];
+        return _values[index];
     }
 
     const _Type& value(int index) const
     {
-        return _elements[index];
+        return _values[index];
     }
 
     int size() const
@@ -1328,44 +1329,44 @@ public:
         return _size == 0;
     }
     
-    _Type* elements()
+    _Type* values()
     {
-        return _elements;
+        return _values;
     }
 
-    const _Type* elements() const
+    const _Type* values() const
     {
-        return _elements;
+        return _values;
     }
 
     _Type& front()
     {
         ASSERT(_size > 0);
-        return _elements[0];
+        return _values[0];
     }
 
     const _Type& front() const
     {
         ASSERT(_size > 0);
-        return _elements[0];
+        return _values[0];
     }
 
     _Type& back()
     {
         ASSERT(_size > 0);
-        return _elements[_size - 1];
+        return _values[_size - 1];
     }
 
     const _Type& back() const
     {
         ASSERT(_size > 0);
-        return _elements[_size - 1];
+        return _values[_size - 1];
     }
 
     int find(const _Type& value) const
     {
         for (int i = 0; i < _size; ++i)
-            if (equalsTo(_elements[i], value))
+            if (equalsTo(_values[i], value))
                 return i;
 
         return INVALID_POSITION;
@@ -1392,12 +1393,12 @@ public:
         if (size > _size)
         {
             for (; _size < size; ++_size)
-                Memory::construct(_elements + _size);
+                Memory::construct(_values + _size);
         }
         else
         {
             for (; _size > size; --_size)
-                Memory::destruct(_elements + _size);
+                Memory::destruct(_values + _size);
         }
     }
 
@@ -1411,7 +1412,7 @@ public:
 
                 while (_size < other._size)
                 {
-                    Memory::construct<_Type>(_elements + _size, other[_size]);
+                    Memory::construct<_Type>(_values + _size, other[_size]);
                     ++_size;
                 }
             }
@@ -1427,7 +1428,7 @@ public:
     {
         ASSERT(_size > 0);
 
-        Memory::destruct(_elements + _size - 1);
+        Memory::destruct(_values + _size - 1);
         --_size;
     }
     
@@ -1436,7 +1437,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_elements + _size, value);
+        Memory::construct(_values + _size, value);
         ++_size;
     }
     
@@ -1445,7 +1446,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_elements + _size, static_cast<_Type&&>(value));
+        Memory::construct(_values + _size, static_cast<_Type&&>(value));
         ++_size;
     }
     
@@ -1456,10 +1457,10 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_elements + _size, value);
+        Memory::construct(_values + _size, value);
 
         for (int i = _size; i > index; --i)
-            swap(_elements[i], _elements[i - 1]);
+            swap(_values[i], _values[i - 1]);
 
         ++_size;
     }
@@ -1471,10 +1472,10 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_elements + _size, static_cast<_Type&&>(value));
+        Memory::construct(_values + _size, static_cast<_Type&&>(value));
 
         for (int i = _size; i > index; --i)
-            swap(_elements[i], _elements[i - 1]);
+            swap(_values[i], _values[i - 1]);
 
         ++_size;
     }
@@ -1486,51 +1487,51 @@ public:
         --_size;
 
         for (int i = index; i < _size; ++i)
-            swap(_elements[i], _elements[i + 1]);
+            swap(_values[i], _values[i + 1]);
 
-        Memory::destruct(_elements + _size);
+        Memory::destruct(_values + _size);
     }
 
     void clear()
     {
-        Memory::destructArray(_size, _elements);
+        Memory::destructArray(_size, _values);
         _size = 0;
     }
     
     void reset()
     {
-        Memory::destroyArray(_size, _elements);
+        Memory::destroyArray(_size, _values);
 
         _size = 0;
         _capacity = 0;
-        _elements = nullptr;
+        _values = nullptr;
     }
     
-    static Array<_Type> acquire(int size, _Type* elements)
+    static Array<_Type> acquire(int size, _Type* values)
     {
-        return Array<_Type>(size, elements);
+        return Array<_Type>(size, values);
     }
     
     _Type* release()
     {
-        _Type* elements = _elements;
+        _Type* values = _values;
         _size = 0;
         _capacity = 0;
-        _elements = nullptr;
+        _values = nullptr;
         
-        return elements;
+        return values;
     }
 
     friend void swap(Array<_Type>& left, Array<_Type>& right)
     {
         swap(left._size, right._size);
         swap(left._capacity, right._capacity);
-        swap(left._elements, right._elements);
+        swap(left._values, right._values);
     }
 
 protected:
-    Array(int size, _Type* elements) :
-        _size(size), _capacity(size), _elements(elements)
+    Array(int size, _Type* values) :
+        _size(size), _capacity(size), _values(values)
     {
     }
 
@@ -1538,16 +1539,16 @@ protected:
     {
         ASSERT(capacity >= 0);
 
-        _Type* elements = Memory::createArrayMove(_size, capacity, _elements);
-        Memory::destroyArray(_size, _elements);
-        _elements = elements;
+        _Type* values = Memory::createArrayMove(_size, capacity, _values);
+        Memory::destroyArray(_size, _values);
+        _values = values;
         _capacity = capacity;
     }
 
 protected:
     int _size;
     int _capacity;
-    _Type* _elements;
+    _Type* _values;
 };
 
 typedef Array<uint8_t> ByteArray;
@@ -1567,7 +1568,7 @@ public:
     _Type& value() const
     {
         ASSERT(_index >= 0);
-        return _array._elements[_index];
+        return _array._values[_index];
     }
 
     bool moveNext()
@@ -1615,7 +1616,7 @@ public:
     const _Type& value() const
     {
         ASSERT(_index >= 0);
-        return _array._elements[_index];
+        return _array._values[_index];
     }
 
     bool moveNext()
@@ -1713,15 +1714,15 @@ public:
         }
     }
 
-    List(int size, const _Type* elements) :
+    List(int size, const _Type* values) :
         _front(nullptr), _back(nullptr)
     {
-        ASSERT((size == 0 && elements == nullptr) || (size > 0 && elements != nullptr));
+        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
 
         try
         {
             for (int i = 0; i < size; ++i)
-                pushBack(elements[i]);
+                pushBack(values[i]);
         }
         catch (...)
         {
