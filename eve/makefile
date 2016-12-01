@@ -2,7 +2,7 @@ TARGET=eve
 HEADERS=foundation.h console.h file.h
 SOURCES=eve.cpp foundation.cpp console.cpp file.cpp
 
-all: $(TARGET).vcpp.exe
+all: $(TARGET).gcc
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \

@@ -41,6 +41,7 @@ foundation improvements:
 * memory mapped file
 * review/update tests
 * no asserts in release builds
+* typed raw memory buffer
 
 foundation features:
 * convert any object to string

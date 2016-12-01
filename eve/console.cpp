@@ -299,116 +299,134 @@ const Array<Key>& Console::readKeys()
 
 #ifdef PLATFORM_WINDOWS
 
-    DWORD numInputRec = 0;
-    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), 
-        _input.values(), _input.size(), &numInputRec);
-
-    for (DWORD i = 0; i < numInputRec; ++i)
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    
+    if (WaitForSingleObject(handle, INFINITE) == WAIT_OBJECT_0)
     {
-        INPUT_RECORD& inputRec = _input[i];
+        DWORD numInputRec = 0;
+        GetNumberOfConsoleInputEvents(handle, &numInputRec);
+        
+        _input.resize(numInputRec);
+        ReadConsoleInput(handle, _input.values(), numInputRec, &numInputRec);
 
-        if (inputRec.EventType == KEY_EVENT && inputRec.Event.KeyEvent.bKeyDown)
+        for (DWORD i = 0; i < numInputRec; ++i)
         {
-            Key key;
+            INPUT_RECORD& inputRec = _input[i];
 
-            switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
+            if (inputRec.EventType == KEY_EVENT && inputRec.Event.KeyEvent.bKeyDown)
             {
-            case VK_ESCAPE:
-                key.code = KEY_ESC;
-                break;
-            case VK_TAB:
-                key.code = KEY_TAB;
-                key.ch = '\t';
-                break;
-            case VK_BACK:
-                key.code = KEY_BACKSPACE;
-                break;
-            case VK_RETURN:
-                key.code = KEY_ENTER;
-                key.ch = '\n';
-                break;
-            case VK_UP:
-                key.code = KEY_UP;
-                break;
-            case VK_DOWN:
-                key.code = KEY_DOWN;
-                break;
-            case VK_LEFT:
-                key.code = KEY_LEFT;
-                break;
-            case VK_RIGHT:
-                key.code = KEY_RIGHT;
-                break;
-            case VK_INSERT:
-                key.code = KEY_INSERT;
-                break;
-            case VK_DELETE:
-                key.code = KEY_DELETE;
-                break;
-            case VK_HOME:
-                key.code = KEY_HOME;
-                break;
-            case VK_END:
-                key.code = KEY_END;
-                break;
-            case VK_PRIOR:
-                key.code = KEY_PGUP;
-                break;
-            case VK_NEXT:
-                key.code = KEY_PGDN;
-                break;
-            default:
-                key.code = KEY_NONE;
-                key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
-                break;
+                Key key;
+
+                switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
+                {
+                case VK_ESCAPE:
+                    key.code = KEY_ESC;
+                    break;
+                case VK_TAB:
+                    key.code = KEY_TAB;
+                    key.ch = '\t';
+                    break;
+                case VK_BACK:
+                    key.code = KEY_BACKSPACE;
+                    break;
+                case VK_RETURN:
+                    key.code = KEY_ENTER;
+                    key.ch = '\n';
+                    break;
+                case VK_UP:
+                    key.code = KEY_UP;
+                    break;
+                case VK_DOWN:
+                    key.code = KEY_DOWN;
+                    break;
+                case VK_LEFT:
+                    key.code = KEY_LEFT;
+                    break;
+                case VK_RIGHT:
+                    key.code = KEY_RIGHT;
+                    break;
+                case VK_INSERT:
+                    key.code = KEY_INSERT;
+                    break;
+                case VK_DELETE:
+                    key.code = KEY_DELETE;
+                    break;
+                case VK_HOME:
+                    key.code = KEY_HOME;
+                    break;
+                case VK_END:
+                    key.code = KEY_END;
+                    break;
+                case VK_PRIOR:
+                    key.code = KEY_PGUP;
+                    break;
+                case VK_NEXT:
+                    key.code = KEY_PGDN;
+                    break;
+                default:
+                    key.code = KEY_NONE;
+                    key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
+                    break;
+                }
+
+                DWORD controlKeys = inputRec.Event.KeyEvent.dwControlKeyState;
+                key.ctrl = (controlKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+                key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+                key.shift = (controlKeys & SHIFT_PRESSED) != 0;
+
+                _keys.pushBack(key);
             }
-
-            DWORD controlKeys = inputRec.Event.KeyEvent.dwControlKeyState;
-            key.ctrl = (controlKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-            key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
-            key.shift = (controlKeys & SHIFT_PRESSED) != 0;
-
-            _keys.pushBack(key);
         }
     }
-
+    
     return _keys;
 
 #else
 
-    int len = read(STDIN_FILENO, _input.values(), _input.size() - 1);
+    pollfd pfd;
+    pfd.fd = STDIN_FILENO;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
 
-    if (len > 0)
+    if (poll(&pfd, 1, -1) > 0)
     {
-        int remaining;
-        ioctl(STDIN_FILENO, FIONREAD, &remaining);
+        int len;
+        ioctl(STDIN_FILENO, FIONREAD, &len);
 
-        if (remaining > 0)
+        _input.resize(len + 1);
+        len = read(STDIN_FILENO, _input.values(), len);
+
+        if (len > 0)
         {
-            int total = len + remaining + 1;
-            if (total > _input.size())
-                _input.resize(total);
+            _input[len] = 0;
+            const char_t* p = _input.values();
 
-            len += read(STDIN_FILENO, _input.values() + len, remaining);
-        }
-
-        _input[len] = 0;
-        const char_t* p = _input.values();
-
-        while (*p)
-        {
-            Key key;
-
-            if (*p == 0x1b)
+            while (*p)
             {
-                ++p;
+                Key key;
 
                 if (*p == 0x1b)
                 {
                     ++p;
-                    key.alt = true;
 
-                    if (*p == 0x5b)
+                    if (*p == 0x1b)
+                    {
+                        ++p;
+                        key.alt = true;
+
+                        if (*p == 0x5b)
+                        {
+                            p = readSpecialKey(p, key);
+                        }
+                        else if (*p == 0x4f)
+                        {
+                            key.ctrl = true;
+                            p = readSpecialKey(p, key);
+                        }
+                        else
+                            continue;
+                    }
+                    else if (*p == 0x5b)
                     {
                         p = readSpecialKey(p, key);
                     }
@@ -417,34 +435,23 @@ const Array<Key>& Console::readKeys()
                         key.ctrl = true;
                         p = readSpecialKey(p, key);
                     }
+                    else if (*p)
+                    {
+                        key.alt = true;
+                        readRegularKey(*p, key);
+                        ++p;
+                    }
                     else
-                        continue;
+                        key.code = KEY_ESC;
                 }
-                else if (*p == 0x5b)
+                else
                 {
-                    p = readSpecialKey(p, key);
-                }
-                else if (*p == 0x4f)
-                {
-                    key.ctrl = true;
-                    p = readSpecialKey(p, key);
-                }
-                else if (*p)
-                {
-                    key.alt = true;
                     readRegularKey(*p, key);
                     ++p;
                 }
-                else
-                    key.code = KEY_ESC;
-            }
-            else
-            {
-                readRegularKey(*p, key);
-                ++p;
-            }
 
-            _keys.pushBack(key);
+                _keys.pushBack(key);
+            }
         }
     }
 
