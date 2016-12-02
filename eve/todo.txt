@@ -1,5 +1,4 @@
 bugs & misc:
-* console width/height on linux/macos are 0
 * keyboard input improvements
 some keys don't work in xterm (pgup/pgdn, cursor keys)
 copying text from screen doesn't have newlines
@@ -11,6 +10,7 @@ decode/encode text from file to runtime enconding, translate newlines
 * using size vs zero terminator for text
 * get rid of alloca?
 * arbitrary length command line
+* handle SIGWINCH to detect terminal size changes
 
 basic features:
 * search/replace
@@ -38,10 +38,11 @@ complete on tab or punctuation
 
 foundation improvements:
 * review rval ref usage, insert in place, insert rval ref
-* memory mapped file
+* memory mapped file?
 * review/update tests
 * no asserts in release builds
 * typed raw memory buffer
+* fill() for array
 
 foundation features:
 * convert any object to string

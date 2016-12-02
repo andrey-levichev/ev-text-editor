@@ -665,6 +665,57 @@ void swap(_Type& left, _Type& right)
     right = static_cast<_Type&&>(tmp);
 }
 
+// MemoryBuffer
+
+template<typename _Type>
+class MemoryBuffer
+{
+public:
+    MemoryBuffer()
+        : _ptr(nullptr)
+    {
+    }
+
+    MemoryBuffer(int size)
+    {
+        _ptr = Memory::allocate<_Type>(size);
+    }
+
+    ~MemoryBuffer()
+    {
+        Memory::deallocate(_ptr);
+    }
+
+    operator bool() const
+    {
+        return _ptr != nullptr;
+    }
+
+    _Type* ptr() const
+    {
+        return _ptr;
+    }
+
+    void allocate(int size)
+    {
+        _ptr = Memory::reallocate(_ptr, size);
+    }
+
+    void reset()
+    {
+        Memory::deallocate(_ptr);
+        _ptr = nullptr;
+    }
+
+    friend void swap(MemoryBuffer<_Type>& left, MemoryBuffer<_Type>& right)
+    {
+        swap(left._ptr, right._ptr);
+    }
+
+protected:
+    _Type* _ptr;
+};
+
 // UniquePtr
 
 template<typename _Type>
