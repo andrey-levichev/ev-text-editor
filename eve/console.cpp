@@ -497,9 +497,6 @@ const Array<Key>& Console::readKeys()
 
             while (*p)
             {
-                /*printf("%x", (unsigned char)*p);
-                p++;*/
-
                 Key key;
 
                 if (*p == 0x1b)
@@ -549,8 +546,6 @@ const Array<Key>& Console::readKeys()
 
                 _keys.pushBack(key);
             }
-
-            //printf("\n");
         }
     }
 

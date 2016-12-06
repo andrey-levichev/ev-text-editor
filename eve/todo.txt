@@ -1,7 +1,7 @@
 bugs & misc:
-* keyboard input improvements
-some keys don't work in xterm (pgup/pgdn, cursor keys)
-copying text from screen doesn't have newlines
+* rework keyboard input to support different terminals
+allow customizable key mappings and reading partial keys
+* minimal screen update for colored text
 * support unicode input and newline differences
 don't know how much memory to allocate for utf-8
 using char_t for single char may be incorrect
