@@ -93,7 +93,7 @@ protected:
     String _pattern;
 
     String _screen;
-    CharArray _commandLine;
+    CharBuffer _commandLine;
 
     String _filename;
 

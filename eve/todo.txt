@@ -3,12 +3,9 @@ bugs & misc:
 allow customizable key mappings and reading partial keys
 * minimal screen update for colored text
 * support unicode input and newline differences
-don't know how much memory to allocate for utf-8
-using char_t for single char may be incorrect
-pos, len must be in chars not in bytes?
 decode/encode text from file to runtime enconding, translate newlines
 * using size vs zero terminator for text
-* get rid of alloca?
+* replace alloca with StackBuffer?
 * arbitrary length command line
 * handle SIGWINCH to detect terminal size changes
 
@@ -42,7 +39,10 @@ foundation improvements:
 * review/update tests
 * no asserts in release builds
 * typed raw memory buffer
-* fill() for array
+why not smart pointers for memory blocks?
+* fill, findchar for string
+* uchar_t four byte unicode char
+* unicode char iterator
 
 foundation features:
 * convert any object to string

@@ -91,9 +91,9 @@ protected:
 
 protected:
 #ifdef PLATFORM_WINDOWS
-    static Array<INPUT_RECORD> _input;
+    static Buffer<INPUT_RECORD> _input;
 #else
-    static CharArray _input;
+    static Buffer<char> _input;
 #endif
 
     static Array<Key> _keys;

@@ -3,9 +3,9 @@
 // Console
 
 #ifdef PLATFORM_WINDOWS
-Array<INPUT_RECORD> Console::_input(10);
+Buffer<INPUT_RECORD> Console::_input(10);
 #else
-CharArray Console::_input(10);
+Buffer<char> Console::_input(10);
 #endif
 
 Array<Key> Console::_keys;
