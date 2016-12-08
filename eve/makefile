@@ -6,29 +6,30 @@ all: $(TARGET).gcc
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
-		/I. /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
+		/I. /DDEBUG /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
 		/D_CRT_SECURE_NO_WARNINGS /link /out:$@
 
 $(TARGET).gcc: $(HEADERS) $(SOURCES)
-	g++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I.
+	g++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I. -DDEBUG
 
 $(TARGET).mingw.exe: $(HEADERS) $(SOURCES)
 	g++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I. \
-		-D_WIN32_WINNT=_WIN32_WINNT_WIN7
+		-DDEBUG -D_WIN32_WINNT=_WIN32_WINNT_WIN7
 
 $(TARGET).clang: $(HEADERS) $(SOURCES)
-	clang++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I.
+	clang++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ -I. -DDEBUG
 
 $(TARGET).clang.exe: $(HEADERS) $(SOURCES)
 	clang++ -std=gnu++11 -g -Wall $(SOURCES) -o $@ \
 		-fno-color-diagnostics -fms-compatibility-version=19 -fexceptions \
-		-I. -D_UNICODE -DUNICODE -D_WIN32_WINNT=_WIN32_WINNT_WIN7 -D_CRT_SECURE_NO_WARNINGS
+		-I. -DDEBUG -D_UNICODE -DUNICODE \
+		-D_WIN32_WINNT=_WIN32_WINNT_WIN7 -D_CRT_SECURE_NO_WARNINGS
 
 $(TARGET).solstudio: $(HEADERS) $(SOURCES)
-	CC -std=c++11 -g $(SOURCES) -o $@ -I.
+	CC -std=c++11 -g $(SOURCES) -o $@ -I. -DDEBUG
 
 $(TARGET).xlc: $(HEADERS) $(SOURCES)
-	xlC_r -qlanglvl=extended0x -g $(SOURCES) -o $@ -I.
+	xlC_r -qlanglvl=extended0x -g $(SOURCES) -o $@ -I. -DDEBUG
 
 clean:
 ifeq ($(OS),Windows_NT)

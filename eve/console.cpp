@@ -3,9 +3,9 @@
 // Console
 
 #ifdef PLATFORM_WINDOWS
-Buffer<INPUT_RECORD> Console::_input(10);
+Array<INPUT_RECORD> Console::_input(10);
 #else
-Buffer<char> Console::_input(10);
+Array<char> Console::_input(10);
 #endif
 
 Array<Key> Console::_keys;
@@ -184,7 +184,7 @@ void Console::setCursorPosition(int line, int column)
 
 #ifdef PLATFORM_UNIX
 
-void Console::readRegularKey(const char_t ch, Key& key)
+void Console::readRegularKey(char_t ch, Key& key)
 {
     key.ch = ch;
 

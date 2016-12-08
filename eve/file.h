@@ -32,8 +32,8 @@ public:
         
     void close();
     
-    ByteBuffer readBytes();
-    void writeBytes(const ByteBuffer& bytes);
+    ByteArray readBytes();
+    void writeBytes(const ByteArray& bytes);
     
     String readString();
     void writeString(const String& str);

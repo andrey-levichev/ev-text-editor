@@ -39,26 +39,6 @@ int asprintf(char_t** str, const char_t* format, ...)
 
 // String
 
-String::String(int count, char_t ch)
-{
-    ASSERT(count >= 0);
-
-    if (count > 0)
-    {
-        _length = count;
-        _capacity = _length + 1;
-        _chars = Memory::allocate<char_t>(_capacity);
-        STRSET(_chars, ch, _length);
-        _chars[_length] = 0;
-    }
-    else
-    {
-        _length = 0;
-        _capacity = 0;
-        _chars = nullptr;
-    }
-}
-
 String::String(const String& other)
 {
     if (other._length > 0)
@@ -128,6 +108,26 @@ String::String(const char_t* chars, int pos, int len)
         _capacity = _length + 1;
         _chars = Memory::allocate<char_t>(_capacity);
         STRNCPY(_chars, chars + pos, _length);
+        _chars[_length] = 0;
+    }
+    else
+    {
+        _length = 0;
+        _capacity = 0;
+        _chars = nullptr;
+    }
+}
+
+String::String(int len, char_t ch)
+{
+    ASSERT(len >= 0);
+
+    if (len > 0)
+    {
+        _length = len;
+        _capacity = _length + 1;
+        _chars = Memory::allocate<char_t>(_capacity);
+        STRSET(_chars, ch, _length);
         _chars[_length] = 0;
     }
     else
@@ -213,7 +213,7 @@ String& String::operator+=(const char_t* chars)
     return *this;
 }
 
-String& String::operator+=(const char_t ch)
+String& String::operator+=(char_t ch)
 {
     append(ch);
     return *this;
@@ -281,6 +281,25 @@ int String::find(const char_t* chars, int pos) const
     return INVALID_POSITION;
 }
 
+int String::find(char_t ch, int pos) const
+{
+    ASSERT(pos >= 0 && pos <= _length);
+
+    if (_length > 0)
+    {
+        char_t* p = _chars + pos;
+
+        while (*p)
+        {
+            if (*p == ch)
+                return p - _chars;
+            ++p;
+        }
+    }
+
+    return INVALID_POSITION;
+}
+
 int String::findNoCase(const String& str, int pos) const
 {
     ASSERT(pos >= 0 && pos <= _length);
@@ -310,6 +329,26 @@ int String::findNoCase(const char_t* chars, int pos) const
             const char_t* found = STRISTR(_chars + pos, chars);
             if (found)
                 return found - _chars;
+        }
+    }
+
+    return INVALID_POSITION;
+}
+
+int String::findNoCase(char_t ch, int pos) const
+{
+    ASSERT(pos >= 0 && pos <= _length);
+
+    if (_length > 0)
+    {
+        char_t* p = _chars + pos;
+        ch = TOLOWER(ch);
+
+        while (*p)
+        {
+            if (TOLOWER(*p) == ch)
+                return p - _chars;
+            ++p;
         }
     }
 
@@ -449,6 +488,25 @@ void String::assign(const char_t* chars)
     }
 }
 
+void String::assign(int len, char_t ch)
+{
+    ASSERT(len >= 0);
+
+    int capacity = len + 1;
+
+    if (capacity > _capacity)
+    {
+        String tmp(len, ch);
+        swap(*this, tmp);
+    }
+    else
+    {
+        _length = len;
+        STRSET(_chars, ch, _length);
+        _chars[_length] = 0;
+    }
+}
+
 void String::append(const String& str)
 {
     ASSERT(this != &str);
@@ -482,7 +540,7 @@ void String::append(const char_t* chars)
     }
 }
 
-void String::append(const char_t ch)
+void String::append(char_t ch)
 {
     int capacity = _length + 2;
     if (capacity > _capacity)
@@ -798,6 +856,21 @@ void String::replace(const char_t* searchChars, const char_t* replaceChars)
     }
 }
 
+void String::reverse()
+{
+    if (_length > 0)
+    {
+        char_t* p = _chars;
+        char_t* q = _chars + _length - 1;
+
+        while (p < q)
+        {
+            char_t ch = *p; *p = *q; *q = ch;
+            ++p; --q;
+        }
+    }
+}
+
 void String::trim()
 {
     if (_length > 0)
@@ -859,21 +932,6 @@ void String::trimLeft()
         }
         else
             clear();
-    }
-}
-
-void String::reverse()
-{
-    if (_length > 0)
-    {
-        char_t* p = _chars;
-        char_t* q = _chars + _length - 1;
-
-        while (p < q)
-        {
-            char_t ch = *p; *p = *q; *q = ch;
-            ++p; --q;
-        }
     }
 }
 

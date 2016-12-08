@@ -225,11 +225,15 @@ typedef char char_t;
 
 #endif
 
+typedef char32_t uchar_t;
+
 // assert macros
 
 #define TO_STR(arg) #arg
 #define STR_MACRO(arg) STR(arg)
 #define NUM_MACRO(arg) STR_MACRO(TO_STR(arg))
+
+#ifdef DEBUG
 
 #ifdef ABORT_ON_ASSERT_FAILURE
 
@@ -291,6 +295,17 @@ typedef char char_t;
             ASSERT_FAIL(STR("expected ") STR(#exception)); \
         } \
     } while(false)
+
+#else
+
+#define ASSERT_MSG(condition, message)
+#define ASSERT(...)
+#define ASSERT_FAIL(message)
+#define ASSERT_EXCEPTION(exception, ...)
+#define ASSERT_NO_EXCEPTION(...)
+#define ASSERT_EXCEPTION_MSG(exception, msg, ...)
+
+#endif
 
 // string helper functions
 
@@ -944,189 +959,6 @@ inline int hash(const SharedPtr<_Type>& val)
     return hash(*reinterpret_cast<const intptr_t*>(&val._sharedPtr));
 }
 
-// Buffer
-
-template<typename _Type>
-class Buffer
-{
-public:
-    Buffer() :
-        _size(0), _values(nullptr)
-    {
-    }
-
-    Buffer(int size)
-    {
-        ASSERT(size >= 0);
-        _size = size;
-        _values = Memory::allocate<_Type>(size);
-    }
-
-    Buffer(int size, const _Type& value)
-    {
-        ASSERT(size >= 0);
-        _size = size;
-        _values = Memory::allocate<_Type>(size);
-        fill(value);
-    }
-
-    Buffer(int size, const _Type* values)
-    {
-        ASSERT(size >= 0);
-        ASSERT(values != nullptr);
-
-        _size = size;
-        _values = Memory::allocate<_Type>(size);
-        memcpy(_values, values, size * sizeof(_Type));
-    }
-
-    Buffer(const Buffer<_Type>& other)
-    {
-        _size = other._size;
-        _values = Memory::allocate<_Type>(_size);
-        memcpy(_values, other._values, _size * sizeof(_Type));
-    }
-
-    Buffer(Buffer<_Type>&& other)
-    {
-        _size = other._size;
-        _values = other._values;
-        other._size = 0;
-        other._values = nullptr;
-    }
-
-    ~Buffer()
-    {
-        Memory::deallocate(_values);
-    }
-
-    Buffer<_Type>& operator=(const Buffer<_Type>& other)
-    {
-        assign(other);
-        return *this;
-    }
-
-    Buffer<_Type>& operator=(Buffer<_Type>&& other)
-    {
-        Buffer<_Type> tmp(static_cast<Buffer<_Type>&&>(other));
-        swap(*this, tmp);
-        return *this;
-    }
-
-    _Type& operator[](int index)
-    {
-        return value(index);
-    }
-
-    const _Type& operator[](int index) const
-    {
-        return value(index);
-    }
-
-    _Type& value(int index)
-    {
-        ASSERT(index >= 0 && index < _size);
-        return _values[index];
-    }
-
-    const _Type& value(int index) const
-    {
-        ASSERT(index >= 0 && index < _size);
-        return _values[index];
-    }
-
-    int size() const
-    {
-        return _size;
-    }
-    
-    bool empty() const
-    {
-        return _size == 0;
-    }
-    
-    _Type* values()
-    {
-        return _values;
-    }
-
-    const _Type* values() const
-    {
-        return _values;
-    }
-
-    void resize(int size)
-    {
-        ASSERT(size >= 0);
-        _size = size;
-        _values = Memory::reallocate(_values, size);
-    }
-
-    void assign(int size, const _Type* values)
-    {
-        ASSERT(size >= 0);
-        ASSERT(values != nullptr);
-
-        _size = size;
-        _values = Memory::reallocate(_values, size);
-        memcpy(_values, values, size * sizeof(_Type));
-    }
-
-    void assign(const Buffer<_Type>& other)
-    {
-        _size = size;
-        _values = Memory::reallocate(_values, _size);
-        memcpy(_values, other._values, _size * sizeof(_Type));
-    }
-    
-    void fill(const _Type& value)
-    {
-        for (int i = 0; i < _size; ++i)
-            _values[i] = value;
-    }
-
-    void reset()
-    {
-        Memory::deallocate(_values);
-        _size = 0;
-        _values = nullptr;
-    }
-
-    static Buffer<_Type> acquire(int size, _Type* values)
-    {
-        return Buffer<_Type>(size, values);
-    }
-    
-    _Type* release()
-    {
-        _Type* values = _values;
-        _size = 0;
-        _values = nullptr;
-        return values;
-    }
-
-    friend void swap(Buffer<_Type>& left, Buffer<_Type>& right)
-    {
-        swap(left._size, right._size);
-        swap(left._values, right._values);
-    }
-
-protected:
-    Buffer(int size, _Type* values) : 
-        _size(size), _values(values)
-    {
-        ASSERT(size >= 0);
-        ASSERT(values != nullptr);
-    }
-
-protected:
-    int _size;
-    _Type* _values;
-};
-
-typedef Buffer<uint8_t> ByteBuffer;
-typedef Buffer<char_t> CharBuffer;
-
 // String
 
 class String
@@ -1142,11 +974,11 @@ public:
     {
     }
 
-    String(int count, char_t ch);
     String(const String& other);
     String(const String& other, int pos, int len);
     String(const char_t* chars);
     String(const char_t* chars, int pos, int len);
+    String(int len, char_t ch);
 
     explicit String(int capacity);
 
@@ -1160,7 +992,7 @@ public:
     
     String& operator+=(const String& str);
     String& operator+=(const char_t* chars);
-    String& operator+=(const char_t ch);
+    String& operator+=(char_t ch);
 
     int length() const
     {
@@ -1196,8 +1028,10 @@ public:
 
     int find(const String& str, int pos = 0) const;
     int find(const char_t* chars, int pos = 0) const;
+    int find(char_t ch, int pos = 0) const;
     int findNoCase(const String& str, int pos = 0) const;
     int findNoCase(const char_t* chars, int pos = 0) const;
+    int findNoCase(char_t ch, int pos = 0) const;
     
     bool startsWith(const String& str) const;
     bool startsWith(const char_t* chars) const;
@@ -1213,10 +1047,11 @@ public:
 
     void assign(const String& other);
     void assign(const char_t* chars);
+    void assign(int len, char_t ch);
 
     void append(const String& str);
     void append(const char_t* chars);
-    void append(const char_t ch);
+    void append(char_t ch);
 
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
@@ -1233,11 +1068,11 @@ public:
     void replace(int pos, int len, const char_t* chars);
     void replace(const String& searchStr, const String& replaceStr);
     void replace(const char_t* searchChars, const char_t* replaceChars);
-    
+   
+    void reverse();
     void trim();
     void trimRight();
     void trimLeft();
-    void reverse();
     void toUpper();
     void toLower();
 
@@ -1414,18 +1249,18 @@ public:
     {
     }
 
-    Array(int size) : Array(size, size)
+    Array(int size, const _Type& value = _Type()) : Array(size, size, value)
     {
     }
 
-    Array(int size, int capacity)
+    Array(int size, int capacity, const _Type& value = _Type())
     {
         ASSERT(size >= 0);
         ASSERT(capacity >= 0 && size <= capacity);
         
         _size = size;
         _capacity = capacity;
-        _values = Memory::createArrayFill<_Type>(size, capacity);
+        _values = Memory::createArrayFill<_Type>(size, capacity, value);
     }
     
     Array(int size, const _Type* values) : Array(size, size, values)
@@ -1588,6 +1423,25 @@ public:
         }
     }
 
+    void assign(int size, const _Type& value)
+    {
+        if (size <= _capacity)
+        {
+            clear();
+
+            while (_size < size)
+            {
+                Memory::construct<_Type>(_values + _size, value);
+                ++_size;
+            }
+        }
+        else
+        {
+            Array<_Type> tmp(size, value);
+            swap(*this, tmp);
+        }
+    }
+
     void assign(int size, const _Type* values)
     {
         if (_values != values)
@@ -1700,12 +1554,6 @@ public:
         Memory::destruct(_values + _size);
     }
 
-    void fill(const _Type& value = _Type())
-    {
-        for (int i = 0; i < _size; ++i)
-            _values[i] = value;
-    }
-
     void clear()
     {
         Memory::destructArray(_size, _values);
@@ -1764,6 +1612,9 @@ protected:
     int _capacity;
     _Type* _values;
 };
+
+typedef Array<uint8_t> ByteArray;
+typedef Array<char_t> CharArray;
 
 // ArrayIterator
 
