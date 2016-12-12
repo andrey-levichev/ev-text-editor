@@ -734,6 +734,11 @@ public:
         return _ptr != nullptr;
     }
 
+    bool empty() const
+    {
+        return _ptr == nullptr;
+    }
+
     _Type* ptr() const
     {
         return _ptr;
@@ -858,6 +863,11 @@ public:
     operator bool() const
     {
         return _sharedPtr != nullptr;
+    }
+
+    bool empty() const
+    {
+        return _sharedPtr == nullptr;
     }
 
     _Type* ptr() const
@@ -1249,11 +1259,21 @@ public:
     {
     }
 
-    Array(int size, const _Type& value = _Type()) : Array(size, size, value)
+    Array(int size) : Array(size, size)
     {
     }
 
-    Array(int size, int capacity, const _Type& value = _Type())
+    Array(int size, int capacity)
+    {
+        ASSERT(size >= 0);
+        ASSERT(capacity >= 0 && size <= capacity);
+        
+        _size = size;
+        _capacity = capacity;
+        _values = Memory::createArrayFill<_Type>(size, capacity);
+    }
+    
+    Array(int size, int capacity, const _Type& value)
     {
         ASSERT(size >= 0);
         ASSERT(capacity >= 0 && size <= capacity);
@@ -1409,12 +1429,32 @@ public:
 
     void resize(int size)
     {
+        ASSERT(size >= 0);
+
         ensureCapacity(size);
 
         if (size > _size)
         {
             for (; _size < size; ++_size)
-                Memory::construct(_values + _size);
+                Memory::construct<_Type>(_values + _size);
+        }
+        else
+        {
+            for (; _size > size; --_size)
+                Memory::destruct(_values + _size);
+        }
+    }
+
+    void resize(int size, const _Type& value)
+    {
+        ASSERT(size >= 0);
+
+        ensureCapacity(size);
+
+        if (size > _size)
+        {
+            for (; _size < size; ++_size)
+                Memory::construct<_Type>(_values + _size, value);
         }
         else
         {
@@ -1425,6 +1465,8 @@ public:
 
     void assign(int size, const _Type& value)
     {
+        ASSERT(size >= 0);
+
         if (size <= _capacity)
         {
             clear();
@@ -1437,13 +1479,15 @@ public:
         }
         else
         {
-            Array<_Type> tmp(size, value);
+            Array<_Type> tmp(size, size, value);
             swap(*this, tmp);
         }
     }
 
     void assign(int size, const _Type* values)
     {
+        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+
         if (_values != values)
         {
             if (size <= _capacity)
@@ -1499,7 +1543,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_values + _size, value);
+        Memory::construct<_Type>(_values + _size, value);
         ++_size;
     }
     
@@ -1508,7 +1552,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_values + _size, static_cast<_Type&&>(value));
+        Memory::construct<_Type>(_values + _size, static_cast<_Type&&>(value));
         ++_size;
     }
     
@@ -1519,7 +1563,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_values + _size, value);
+        Memory::construct<_Type>(_values + _size, value);
 
         for (int i = _size; i > index; --i)
             swap(_values[i], _values[i - 1]);
@@ -1534,7 +1578,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_values + _size, static_cast<_Type&&>(value));
+        Memory::construct<_Type>(_values + _size, static_cast<_Type&&>(value));
 
         for (int i = _size; i > index; --i)
             swap(_values[i], _values[i - 1]);
@@ -1571,7 +1615,7 @@ public:
     
     static Array<_Type> acquire(int size, _Type* values)
     {
-        return Array<_Type>(size, values);
+        return Array<_Type>(size, size, values);
     }
     
     _Type* release()
@@ -1592,8 +1636,8 @@ public:
     }
 
 protected:
-    Array(int size, _Type* values) :
-        _size(size), _capacity(size), _values(values)
+    Array(int size, int capacity, _Type* values) :
+        _size(size), _capacity(capacity), _values(values)
     {
     }
 
@@ -1885,6 +1929,12 @@ public:
                 return node;
 
         return nullptr;
+    }
+
+    void assign(int size, const _Type* values)
+    {
+        List<_Type> tmp(size, values);
+        swap(*this, tmp);
     }
 
     void assign(const List<_Type>& other)

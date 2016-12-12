@@ -492,19 +492,24 @@ void String::assign(int len, char_t ch)
 {
     ASSERT(len >= 0);
 
-    int capacity = len + 1;
-
-    if (capacity > _capacity)
+    if (len > 0)
     {
-        String tmp(len, ch);
-        swap(*this, tmp);
+        int capacity = len + 1;
+
+        if (capacity > _capacity)
+        {
+            String tmp(len, ch);
+            swap(*this, tmp);
+        }
+        else
+        {
+            _length = len;
+            STRSET(_chars, ch, _length);
+            _chars[_length] = 0;
+        }
     }
     else
-    {
-        _length = len;
-        STRSET(_chars, ch, _length);
-        _chars[_length] = 0;
-    }
+        clear();
 }
 
 void String::append(const String& str)

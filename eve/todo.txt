@@ -36,8 +36,7 @@ complete on tab or punctuation
 foundation improvements:
 * review rval ref usage, insert in place, insert rval ref
 * review/update tests
-* make array capacity more like string?
-* unicode char support
+test for 0 char in string
 
 foundation features:
 * convert any object to string
