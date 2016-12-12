@@ -990,8 +990,6 @@ public:
     String(const char_t* chars, int pos, int len);
     String(int len, char_t ch);
 
-    explicit String(int capacity);
-
     String(String&& other);
 
     ~String();
@@ -1259,42 +1257,31 @@ public:
     {
     }
 
-    Array(int size) : Array(size, size)
-    {
-    }
-
-    Array(int size, int capacity)
+    Array(int size)
     {
         ASSERT(size >= 0);
-        ASSERT(capacity >= 0 && size <= capacity);
         
         _size = size;
-        _capacity = capacity;
-        _values = Memory::createArrayFill<_Type>(size, capacity);
+        _capacity = size;
+        _values = Memory::createArrayFill<_Type>(size, size);
     }
     
-    Array(int size, int capacity, const _Type& value)
+    Array(int size, const _Type& value)
     {
         ASSERT(size >= 0);
-        ASSERT(capacity >= 0 && size <= capacity);
         
         _size = size;
-        _capacity = capacity;
-        _values = Memory::createArrayFill<_Type>(size, capacity, value);
+        _capacity = size;
+        _values = Memory::createArrayFill<_Type>(size, size, value);
     }
     
-    Array(int size, const _Type* values) : Array(size, size, values)
-    {
-    }
-
-    Array(int size, int capacity, const _Type* values)
+    Array(int size, const _Type* values)
     {
         ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
-        ASSERT(capacity >= 0 && size <= capacity);
         
         _size = size;
-        _capacity = capacity;
-        _values = Memory::createArrayCopy(size, capacity, values);
+        _capacity = size;
+        _values = Memory::createArrayCopy(size, size, values);
     }
 
     Array(const Array<_Type>& other)
@@ -1479,7 +1466,7 @@ public:
         }
         else
         {
-            Array<_Type> tmp(size, size, value);
+            Array<_Type> tmp(size, value);
             swap(*this, tmp);
         }
     }

@@ -147,25 +147,6 @@ String::String(char_t* chars)
     _chars = chars;
 }
 
-String::String(int capacity)
-{
-    ASSERT(capacity >= 0);
-
-    if (capacity > 0)
-    {
-        _length = 0;
-        _capacity = capacity;
-        _chars = Memory::allocate<char_t>(_capacity);
-        *_chars = 0;
-    }
-    else
-    {
-        _length = 0;
-        _capacity = 0;
-        _chars = nullptr;
-    }
-}
-
 String::String(String&& other)
 {
     _length = other._length;

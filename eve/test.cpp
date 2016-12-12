@@ -336,13 +336,6 @@ void testString()
     }
 
     {
-        String s1(1), s2(s1);
-        ASSERT(s2.chars() == nullptr);
-        ASSERT(s2.length() == 0);
-        ASSERT(s2.capacity() == 0);
-    }
-
-    {
         String s1(STR("a")), s2(s1);
         ASSERT(s2 == STR("a"));
         ASSERT(s2.length() == 1);
@@ -361,13 +354,6 @@ void testString()
 
     {
         String s1, s2(s1, 0, 0);
-        ASSERT(s2.chars() == nullptr);
-        ASSERT(s2.length() == 0);
-        ASSERT(s2.capacity() == 0);
-    }
-
-    {
-        String s1(1), s2(s1, 0, 0);
         ASSERT(s2.chars() == nullptr);
         ASSERT(s2.length() == 0);
         ASSERT(s2.capacity() == 0);
@@ -444,7 +430,7 @@ void testString()
 
     // String(int count, char_t ch)
 
-    ASSERT_EXCEPTION(Exception, String(-1));
+    ASSERT_EXCEPTION(Exception, String(-1, 'a'));
 
     {
         String s(0, 'a');
@@ -457,31 +443,6 @@ void testString()
         String s(1, 'a');
         ASSERT(s == STR("a"));
         ASSERT(s.length() == 1);
-        ASSERT(s.capacity() == 2);
-    }
-
-    // String(int capacity)
-
-    ASSERT_EXCEPTION(Exception, String(-1));
-
-    {
-        String s(0);
-        ASSERT(s.chars() == nullptr);
-        ASSERT(s.length() == 0);
-        ASSERT(s.capacity() == 0);
-    }
-
-    {
-        String s(1);
-        ASSERT(s == STR(""));
-        ASSERT(s.length() == 0);
-        ASSERT(s.capacity() == 1);
-    }
-
-    {
-        String s(2);
-        ASSERT(s == STR(""));
-        ASSERT(s.length() == 0);
         ASSERT(s.capacity() == 2);
     }
 
@@ -567,7 +528,8 @@ void testString()
     }
 
     {
-        String s(10);
+        String s;
+        s.ensureCapacity(10);
         s = STR("a");
         ASSERT(s == STR("a"));
         ASSERT(s.chars() != nullptr);
@@ -830,7 +792,8 @@ void testString()
     }
 
     {
-        String s(10);
+        String s;
+        s.ensureCapacity(10);
         s.shrinkToLength();
         ASSERT(s.chars() == nullptr);
         ASSERT(s.length() == 0);
@@ -838,7 +801,8 @@ void testString()
     }
 
     {
-        String s(10);
+        String s;
+        s.ensureCapacity(10);
         s = STR("a");
         s.shrinkToLength();
         ASSERT(s == STR("a"));
@@ -874,7 +838,8 @@ void testString()
     }
 
     {
-        String s1(10), s2(STR("a"));
+        String s1, s2(STR("a"));
+        s1.ensureCapacity(10);
         s1.assign(s2);
         ASSERT(s1 == STR("a"));
         ASSERT(s1.capacity() == 10);
@@ -905,7 +870,8 @@ void testString()
     }
 
     {
-        String s(10);
+        String s;
+        s.ensureCapacity(10);
         s.assign(STR("a"));
         ASSERT(s == STR("a"));
         ASSERT(s.capacity() == 10);
@@ -937,7 +903,8 @@ void testString()
     }
 
     {
-        String s(10);
+        String s;
+        s.ensureCapacity(10);
         s.assign(1, 'a');
         ASSERT(s == STR("a"));
         ASSERT(s.capacity() == 10);
@@ -972,7 +939,8 @@ void testString()
     }
 
     {
-        String s1(10), s2(STR("b"));
+        String s1, s2(STR("b"));
+        s1.ensureCapacity(10);
         s1.append(s2);
         ASSERT(s1 == STR("b"));
         ASSERT(s1.capacity() == 10);
@@ -1009,7 +977,8 @@ void testString()
     }
 
     {
-        String s(10);
+        String s;
+        s.ensureCapacity(10);
         s.append(STR("b"));
         ASSERT(s == STR("b"));
         ASSERT(s.capacity() == 10);
@@ -1082,7 +1051,8 @@ void testString()
     }
 
     {
-        String s1(10), s2(STR("c"));
+        String s1, s2(STR("c"));
+        s1.ensureCapacity(10);
         s1 = STR("ab");
         s1.insert(1, s2);
         ASSERT(s1 == STR("acb"));
@@ -1136,7 +1106,8 @@ void testString()
     }
 
     {
-        String s(10);
+        String s;
+        s.ensureCapacity(10);
         s = STR("ab");
         s.insert(1, STR("c"));
         ASSERT(s == STR("acb"));
@@ -1177,7 +1148,8 @@ void testString()
     }
 
     {
-        String s(10);
+        String s;
+        s.ensureCapacity(10);
         s = STR("ab");
         s.insert(1, 'c');
         ASSERT(s == STR("acb"));
@@ -1917,56 +1889,19 @@ void testArray()
         ASSERT(a[0] == 0);
     }
 
-    // Array(int size, int capacity)
+    // Array(int size, const _Type& value)
 
-    ASSERT_EXCEPTION(Exception, Array<int> a(-1, 0));
-    ASSERT_EXCEPTION(Exception, Array<int> a(0, -1));
-    ASSERT_EXCEPTION(Exception, Array<int> a(1, 0));
+    ASSERT_EXCEPTION(Exception, Array<int> a(-1, 123));
 
     {
-        Array<int> a(0, 0);
+        Array<int> a(0, 123);
         ASSERT(a.size() == 0);
         ASSERT(a.capacity() == 0);
         ASSERT(a.values() == nullptr);
     }
 
     {
-        Array<int> a(0, 1);
-        ASSERT(a.size() == 0);
-        ASSERT(a.capacity() == 1);
-        ASSERT(a.values() != nullptr);
-    }
-
-    {
-        Array<int> a(1, 1);
-        ASSERT(a.size() == 1);
-        ASSERT(a.capacity() == 1);
-        ASSERT(a.values() != nullptr);
-        ASSERT(a[0] == 0);
-    }
-
-    // Array(int size, int capacity, const _Type& value)
-
-    ASSERT_EXCEPTION(Exception, Array<int> a(-1, 0, 123));
-    ASSERT_EXCEPTION(Exception, Array<int> a(0, -1, 123));
-    ASSERT_EXCEPTION(Exception, Array<int> a(1, 0, 123));
-
-    {
-        Array<int> a(0, 0, 123);
-        ASSERT(a.size() == 0);
-        ASSERT(a.capacity() == 0);
-        ASSERT(a.values() == nullptr);
-    }
-
-    {
-        Array<int> a(0, 1, 123);
-        ASSERT(a.size() == 0);
-        ASSERT(a.capacity() == 1);
-        ASSERT(a.values() != nullptr);
-    }
-
-    {
-        Array<int> a(1, 1, 123);
+        Array<int> a(1, 123);
         ASSERT(a.size() == 1);
         ASSERT(a.capacity() == 1);
         ASSERT(a.values() != nullptr);
@@ -1991,31 +1926,6 @@ void testArray()
             Array<int> a(1, ep);
             ASSERT(a.size() == 1);
             ASSERT(a.capacity() == 1);
-            ASSERT(a.values() != ep);
-            ASSERT(a[0] == *ep);
-        }
-    }
-
-    // Array(int size, int capacity, const _Type* values)
-
-    {
-        ASSERT_EXCEPTION(Exception, Array<int>(-1, 0, np));
-        ASSERT_EXCEPTION(Exception, Array<int>(0, -1, np));
-        ASSERT_EXCEPTION(Exception, Array<int>(1, 0, np));
-        ASSERT_EXCEPTION(Exception, Array<int>(0, 0, ep));
-        ASSERT_EXCEPTION(Exception, Array<int>(1, 1, np));
-    
-        {
-            Array<int> a(0, 0, np);
-            ASSERT(a.size() == 0);
-            ASSERT(a.capacity() == 0);
-            ASSERT(a.values() == nullptr);
-        }
-
-        {
-            Array<int> a(1, 2, ep);
-            ASSERT(a.size() == 1);
-            ASSERT(a.capacity() == 2);
             ASSERT(a.values() != ep);
             ASSERT(a[0] == *ep);
         }
@@ -2134,10 +2044,10 @@ void testArray()
     }
 
     {
-        Array<int> a(3, 5, ep);
+        Array<int> a(3, ep);
 
         ASSERT(a.size() == 3);
-        ASSERT(a.capacity() == 5);
+        ASSERT(a.capacity() == 3);
         ASSERT(!a.empty());
         ASSERT(a.values() != nullptr);
         ASSERT(*a.values() == 1);
@@ -2218,8 +2128,9 @@ void testArray()
     }
 
     {
-        Array<int> a(3, 5, ep);
-        ASSERT(a.capacity() == 5);
+        Array<int> a(3, ep);
+        a.ensureCapacity(10);
+        ASSERT(a.capacity() == 10);
         a.shrinkToLength();
         ASSERT(a.capacity() == 3);
         ASSERT(compareSequence(a, ep));
@@ -2608,7 +2519,6 @@ void testArray()
     {
         Array<UniquePtr<int>> a1;
         Array<UniquePtr<int>> a2(2);
-        Array<UniquePtr<int>> a3(2, 10);
     }
 
     {
