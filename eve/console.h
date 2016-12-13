@@ -85,7 +85,7 @@ public:
 
 protected:
 #ifdef PLATFORM_UNIX
-    static void readRegularKey(const char_t ch, Key& key);
+    static void readRegularKey(char_t ch, Key& key);
     static const char_t* readSpecialKey(const char_t* p, Key& key);
 #endif
 
@@ -93,7 +93,7 @@ protected:
 #ifdef PLATFORM_WINDOWS
     static Array<INPUT_RECORD> _input;
 #else
-    static CharArray _input;
+    static Array<char> _input;
 #endif
 
     static Array<Key> _keys;

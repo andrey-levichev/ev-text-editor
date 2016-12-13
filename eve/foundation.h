@@ -225,11 +225,15 @@ typedef char char_t;
 
 #endif
 
+typedef char32_t uchar_t;
+
 // assert macros
 
 #define TO_STR(arg) #arg
 #define STR_MACRO(arg) STR(arg)
 #define NUM_MACRO(arg) STR_MACRO(TO_STR(arg))
+
+#ifdef DEBUG
 
 #ifdef ABORT_ON_ASSERT_FAILURE
 
@@ -291,6 +295,17 @@ typedef char char_t;
             ASSERT_FAIL(STR("expected ") STR(#exception)); \
         } \
     } while(false)
+
+#else
+
+#define ASSERT_MSG(condition, message)
+#define ASSERT(...)
+#define ASSERT_FAIL(message)
+#define ASSERT_EXCEPTION(exception, ...)
+#define ASSERT_NO_EXCEPTION(...)
+#define ASSERT_EXCEPTION_MSG(exception, msg, ...)
+
+#endif
 
 // string helper functions
 
@@ -665,65 +680,14 @@ void swap(_Type& left, _Type& right)
     right = static_cast<_Type&&>(tmp);
 }
 
-// MemoryBuffer
-
-template<typename _Type>
-class MemoryBuffer
-{
-public:
-    MemoryBuffer()
-        : _ptr(nullptr)
-    {
-    }
-
-    MemoryBuffer(int size)
-    {
-        _ptr = Memory::allocate<_Type>(size);
-    }
-
-    ~MemoryBuffer()
-    {
-        Memory::deallocate(_ptr);
-    }
-
-    operator bool() const
-    {
-        return _ptr != nullptr;
-    }
-
-    _Type* ptr() const
-    {
-        return _ptr;
-    }
-
-    void allocate(int size)
-    {
-        _ptr = Memory::reallocate(_ptr, size);
-    }
-
-    void reset()
-    {
-        Memory::deallocate(_ptr);
-        _ptr = nullptr;
-    }
-
-    friend void swap(MemoryBuffer<_Type>& left, MemoryBuffer<_Type>& right)
-    {
-        swap(left._ptr, right._ptr);
-    }
-
-protected:
-    _Type* _ptr;
-};
-
 // UniquePtr
 
 template<typename _Type>
 class UniquePtr
 {
 public:
-    UniquePtr()
-        : _ptr(nullptr)
+    UniquePtr() :
+        _ptr(nullptr)
     {
     }
 
@@ -768,6 +732,11 @@ public:
     operator bool() const
     {
         return _ptr != nullptr;
+    }
+
+    bool empty() const
+    {
+        return _ptr == nullptr;
     }
 
     _Type* ptr() const
@@ -896,6 +865,11 @@ public:
         return _sharedPtr != nullptr;
     }
 
+    bool empty() const
+    {
+        return _sharedPtr == nullptr;
+    }
+
     _Type* ptr() const
     {
         if (_sharedPtr)
@@ -1010,13 +984,11 @@ public:
     {
     }
 
-    String(int count, char_t ch);
     String(const String& other);
     String(const String& other, int pos, int len);
     String(const char_t* chars);
     String(const char_t* chars, int pos, int len);
-
-    explicit String(int capacity);
+    String(int len, char_t ch);
 
     String(String&& other);
 
@@ -1028,7 +1000,7 @@ public:
     
     String& operator+=(const String& str);
     String& operator+=(const char_t* chars);
-    String& operator+=(const char_t ch);
+    String& operator+=(char_t ch);
 
     int length() const
     {
@@ -1064,8 +1036,10 @@ public:
 
     int find(const String& str, int pos = 0) const;
     int find(const char_t* chars, int pos = 0) const;
+    int find(char_t ch, int pos = 0) const;
     int findNoCase(const String& str, int pos = 0) const;
     int findNoCase(const char_t* chars, int pos = 0) const;
+    int findNoCase(char_t ch, int pos = 0) const;
     
     bool startsWith(const String& str) const;
     bool startsWith(const char_t* chars) const;
@@ -1081,10 +1055,11 @@ public:
 
     void assign(const String& other);
     void assign(const char_t* chars);
+    void assign(int len, char_t ch);
 
     void append(const String& str);
     void append(const char_t* chars);
-    void append(const char_t ch);
+    void append(char_t ch);
 
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
@@ -1101,11 +1076,11 @@ public:
     void replace(int pos, int len, const char_t* chars);
     void replace(const String& searchStr, const String& replaceStr);
     void replace(const char_t* searchChars, const char_t* replaceChars);
-    
+   
+    void reverse();
     void trim();
     void trimRight();
     void trimLeft();
-    void reverse();
     void toUpper();
     void toLower();
 
@@ -1282,32 +1257,31 @@ public:
     {
     }
 
-    Array(int size) : Array(size, size)
-    {
-    }
-
-    Array(int size, int capacity)
+    Array(int size)
     {
         ASSERT(size >= 0);
-        ASSERT(capacity >= 0 && size <= capacity);
         
         _size = size;
-        _capacity = capacity;
-        _values = Memory::createArrayFill<_Type>(size, capacity);
+        _capacity = size;
+        _values = Memory::createArrayFill<_Type>(size, size);
     }
     
-    Array(int size, const _Type* values) : Array(size, size, values)
+    Array(int size, const _Type& value)
     {
-    }
-
-    Array(int size, int capacity, const _Type* values)
-    {
-        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
-        ASSERT(capacity >= 0 && size <= capacity);
+        ASSERT(size >= 0);
         
         _size = size;
-        _capacity = capacity;
-        _values = Memory::createArrayCopy(size, capacity, values);
+        _capacity = size;
+        _values = Memory::createArrayFill<_Type>(size, size, value);
+    }
+    
+    Array(int size, const _Type* values)
+    {
+        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        
+        _size = size;
+        _capacity = size;
+        _values = Memory::createArrayCopy(size, size, values);
     }
 
     Array(const Array<_Type>& other)
@@ -1348,21 +1322,23 @@ public:
 
     _Type& operator[](int index)
     {
-        return _values[index];
+        return value(index);
     }
 
     const _Type& operator[](int index) const
     {
-        return _values[index];
+        return value(index);
     }
 
     _Type& value(int index)
     {
+        ASSERT(index >= 0 && index < _size);
         return _values[index];
     }
 
     const _Type& value(int index) const
     {
+        ASSERT(index >= 0 && index < _size);
         return _values[index];
     }
 
@@ -1440,17 +1416,82 @@ public:
 
     void resize(int size)
     {
+        ASSERT(size >= 0);
+
         ensureCapacity(size);
 
         if (size > _size)
         {
             for (; _size < size; ++_size)
-                Memory::construct(_values + _size);
+                Memory::construct<_Type>(_values + _size);
         }
         else
         {
             for (; _size > size; --_size)
                 Memory::destruct(_values + _size);
+        }
+    }
+
+    void resize(int size, const _Type& value)
+    {
+        ASSERT(size >= 0);
+
+        ensureCapacity(size);
+
+        if (size > _size)
+        {
+            for (; _size < size; ++_size)
+                Memory::construct<_Type>(_values + _size, value);
+        }
+        else
+        {
+            for (; _size > size; --_size)
+                Memory::destruct(_values + _size);
+        }
+    }
+
+    void assign(int size, const _Type& value)
+    {
+        ASSERT(size >= 0);
+
+        if (size <= _capacity)
+        {
+            clear();
+
+            while (_size < size)
+            {
+                Memory::construct<_Type>(_values + _size, value);
+                ++_size;
+            }
+        }
+        else
+        {
+            Array<_Type> tmp(size, value);
+            swap(*this, tmp);
+        }
+    }
+
+    void assign(int size, const _Type* values)
+    {
+        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+
+        if (_values != values)
+        {
+            if (size <= _capacity)
+            {
+                clear();
+
+                while (_size < size)
+                {
+                    Memory::construct<_Type>(_values + _size, values[_size]);
+                    ++_size;
+                }
+            }
+            else
+            {
+                Array<_Type> tmp(size, values);
+                swap(*this, tmp);
+            }
         }
     }
 
@@ -1489,7 +1530,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_values + _size, value);
+        Memory::construct<_Type>(_values + _size, value);
         ++_size;
     }
     
@@ -1498,7 +1539,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_values + _size, static_cast<_Type&&>(value));
+        Memory::construct<_Type>(_values + _size, static_cast<_Type&&>(value));
         ++_size;
     }
     
@@ -1509,7 +1550,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_values + _size, value);
+        Memory::construct<_Type>(_values + _size, value);
 
         for (int i = _size; i > index; --i)
             swap(_values[i], _values[i - 1]);
@@ -1524,7 +1565,7 @@ public:
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
-        Memory::construct(_values + _size, static_cast<_Type&&>(value));
+        Memory::construct<_Type>(_values + _size, static_cast<_Type&&>(value));
 
         for (int i = _size; i > index; --i)
             swap(_values[i], _values[i - 1]);
@@ -1561,7 +1602,7 @@ public:
     
     static Array<_Type> acquire(int size, _Type* values)
     {
-        return Array<_Type>(size, values);
+        return Array<_Type>(size, size, values);
     }
     
     _Type* release()
@@ -1582,8 +1623,8 @@ public:
     }
 
 protected:
-    Array(int size, _Type* values) :
-        _size(size), _capacity(size), _values(values)
+    Array(int size, int capacity, _Type* values) :
+        _size(size), _capacity(capacity), _values(values)
     {
     }
 
@@ -1875,6 +1916,12 @@ public:
                 return node;
 
         return nullptr;
+    }
+
+    void assign(int size, const _Type* values)
+    {
+        List<_Type> tmp(size, values);
+        swap(*this, tmp);
     }
 
     void assign(const List<_Type>& other)

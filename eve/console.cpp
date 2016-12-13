@@ -5,7 +5,7 @@
 #ifdef PLATFORM_WINDOWS
 Array<INPUT_RECORD> Console::_input(10);
 #else
-CharArray Console::_input(10);
+Array<char> Console::_input(10);
 #endif
 
 Array<Key> Console::_keys;
@@ -184,7 +184,7 @@ void Console::setCursorPosition(int line, int column)
 
 #ifdef PLATFORM_UNIX
 
-void Console::readRegularKey(const char_t ch, Key& key)
+void Console::readRegularKey(char_t ch, Key& key)
 {
     key.ch = ch;
 
@@ -225,6 +225,48 @@ const char_t* Console::readSpecialKey(const char_t* p, Key& key)
             key.code = KEY_F7;
         else if (*p == 0x39)
             key.code = KEY_F8;
+        else if (*p == 0x3b)
+        {
+            ++p;
+            read7e = false;
+
+            if (*p == 0x33)
+            {
+                ++p;
+
+                if (*p == 0x46)
+                {
+                    key.alt = true;
+                    key.code = KEY_END;
+                }
+                else if (*p == 0x48)
+                {
+                    key.alt = true;
+                    key.code = KEY_HOME;
+                }
+                else
+                    return p;
+            }
+            else if (*p == 0x35)
+            {
+                ++p;
+
+                if (*p == 0x43)
+                {
+                    key.ctrl = true;
+                    key.code = KEY_RIGHT;
+                }
+                else if (*p == 0x44)
+                {
+                    key.ctrl = true;
+                    key.code = KEY_LEFT;
+                }
+                else
+                    return p;
+            }
+            else
+                return p;
+        }
         else if (*p == 0x7e)
         {
             read7e = false;
@@ -254,13 +296,55 @@ const char_t* Console::readSpecialKey(const char_t* p, Key& key)
             return p;
     }
     else if (*p == 0x33)
-        key.code = KEY_DELETE;
+    {
+        if (*(p + 1) == 0x3b)
+        {
+            p += 2;
+            if (*p == 0x33)
+            {
+                key.alt = true;
+                key.code = KEY_DELETE;
+            }
+            else
+                return p;
+        }
+        else
+            key.code = KEY_DELETE;
+    }
     else if (*p == 0x34)
         key.code = KEY_END;
     else if (*p == 0x35)
-        key.code = KEY_PGUP;
+    {
+        if (*(p + 1) == 0x3b)
+        {
+            p += 2;
+            if (*p == 0x33)
+            {
+                key.alt = true;
+                key.code = KEY_PGUP;
+            }
+            else
+                return p;
+        }
+        else
+            key.code = KEY_PGUP;
+    }
     else if (*p == 0x36)
-        key.code = KEY_PGDN;
+    {
+        if (*(p + 1) == 0x3b)
+        {
+            p += 2;
+            if (*p == 0x33)
+            {
+                key.alt = true;
+                key.code = KEY_PGDN;
+            }
+            else
+                return p;
+        }
+        else
+            key.code = KEY_PGDN;
+    }
     else if (*p == 0x41)
     {
         read7e = false;
@@ -280,6 +364,16 @@ const char_t* Console::readSpecialKey(const char_t* p, Key& key)
     {
         read7e = false;
         key.code = KEY_LEFT;
+    }
+    else if (*p == 0x46)
+    {
+        read7e = false;
+        key.code = KEY_END;
+    }
+    else if (*p == 0x48)
+    {
+        read7e = false;
+        key.code = KEY_HOME;
     }
     else
         return p;

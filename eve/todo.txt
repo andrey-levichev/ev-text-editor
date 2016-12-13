@@ -1,14 +1,11 @@
 bugs & misc:
-* keyboard input improvements
-some keys don't work in xterm (pgup/pgdn, cursor keys)
-copying text from screen doesn't have newlines
+* rework keyboard input to support different terminals
+allow customizable key mappings and reading partial keys
+* minimal screen update for colored text
 * support unicode input and newline differences
-don't know how much memory to allocate for utf-8
-using char_t for single char may be incorrect
-pos, len must be in chars not in bytes?
 decode/encode text from file to runtime enconding, translate newlines
 * using size vs zero terminator for text
-* get rid of alloca?
+* replace alloca with StackBuffer?
 * arbitrary length command line
 * handle SIGWINCH to detect terminal size changes
 
@@ -37,12 +34,12 @@ offer recently used, located nearby first
 complete on tab or punctuation
 
 foundation improvements:
-* review rval ref usage, insert in place, insert rval ref
-* memory mapped file?
+* sequence operations in list like array
+* list constructor/assign fill with element?
+* create element in place for containers
 * review/update tests
-* no asserts in release builds
-* typed raw memory buffer
-* fill() for array
+test for 0 char in string
+assign/op=
 
 foundation features:
 * convert any object to string

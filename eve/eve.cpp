@@ -396,8 +396,6 @@ Editor::Editor(const char_t* filename) :
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
 
-    _screen.resize(_width * _height);
-    _window.resize(_width * _height);
     _commandLine.resize(_width);
 
     _text.ensureCapacity(1);
@@ -466,8 +464,10 @@ void Editor::lineColumnToPosition()
     _text.position() = p - _text.chars();
 }
 
-void Editor::updateScreen(bool redrawAll)
+void Editor::updateScreen()
 {
+    _screen.clear();
+
     if (_line < _top)
         _top = _line;
     else if (_line >= _top + _height)
@@ -479,11 +479,17 @@ void Editor::updateScreen(bool redrawAll)
         _left = _column - _width + 1;
 
     char_t* p = _text.findLine(_top);
-    char_t* q = _window.values();
     int len = _left + _width - 1;
+
+#ifndef PLATFORM_WINDOWS    
+    bool clearedScreen = false;
+#endif
 
     for (int j = 1; j <= _height; ++j)
     {
+#ifndef PLATFORM_WINDOWS        
+        bool clearedLine = false;
+#endif
         for (int i = 1; i <= len; ++i)
         {
             char_t ch;
@@ -494,13 +500,47 @@ void Editor::updateScreen(bool redrawAll)
                 if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
                     ++p;
             }
-            else if (*p && *p != '\n')
+            else if (*p == '\n')
+                ch = *p;
+            else if (*p)
                 ch = *p++;
             else
-                ch = ' ';
+                ch = 0;
 
             if (i >= _left)
-                *q++ = ch;
+            {
+                if (ch == '\n')
+                {
+#ifdef PLATFORM_WINDOWS
+                    _screen += ' ';
+#else
+                    if (!clearedLine)
+                    {
+                        _screen += '\x1b';
+                        _screen += '[';
+                        _screen += 'K';
+                        _screen += '\n';
+                        clearedLine = true;
+                    }
+#endif
+                }
+                else if (ch == 0)
+                {
+#ifdef PLATFORM_WINDOWS
+                    _screen += ' ';
+#else
+                    if (!clearedScreen)
+                    {
+                        _screen += '\x1b';
+                        _screen += '[';
+                        _screen += 'J';
+                        clearedScreen = true;
+                    }
+#endif                    
+                }
+                else
+                    _screen += ch;
+            }
         }
 
         if (*p == '\n')
@@ -515,46 +555,10 @@ void Editor::updateScreen(bool redrawAll)
         }
     }
 
-    int i = 0, j = 0;
-    bool matching = true;
-    int nchars = _width * _height;
- 
 #ifndef PLATFORM_WINDOWS 
     Console::showCursor(false);
-#endif
-
-    if (redrawAll)
-    {
-        Console::write(1, 1, _window.values(), nchars);
-    }
-    else
-    {
-        for (; j < nchars; ++j)
-        {
-            if (_window[j] == _screen[j])
-            {
-                if (!matching)
-                {
-                    Console::write(i / _width + 1, i % _width + 1, 
-                        _window.values() + i, j - i);
-                    i = j;
-                    matching = true;
-                }
-            }
-            else
-            {
-                if (matching)
-                {
-                    i = j;
-                    matching = false;
-                }
-            }
-        }
-
-        if (!matching)
-            Console::write(i / _width + 1, i % _width + 1, 
-                _window.values() + i, j - i);
-    }
+#endif    
+    Console::write(1, 1, _screen.chars(), _screen.length());
     
     STRSET(_commandLine.values(), ' ', _width);
 
@@ -569,8 +573,6 @@ void Editor::updateScreen(bool redrawAll)
 #ifndef PLATFORM_WINDOWS 
     Console::showCursor(true);
 #endif
-    
-    swap(_window, _screen);
 }
 
 bool Editor::processKey()
@@ -912,8 +914,48 @@ void Editor::buildProject()
     Console::setMode(CONSOLE_MODE_DEFAULT);
     Console::readKeys();
 
-    updateScreen(true);
+    updateScreen();
 }
+
+#ifndef PLATFORM_WINDOWS
+
+void testKeys()
+{
+    char chars[10];
+
+    pollfd pfd;
+    pfd.fd = STDIN_FILENO;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+
+    Console::setMode(CONSOLE_MODE_DEFAULT);
+
+    while (true)
+    {
+        if (poll(&pfd, 1, -1) > 0)
+        {
+            int len;
+            ioctl(STDIN_FILENO, FIONREAD, &len);
+
+            read(STDIN_FILENO, chars, len);
+
+            for (int i = 0; i < len; ++i)
+                printf("%x ", (unsigned)chars[i]);
+
+            for (int i = 0; i < len; ++i)
+                if (isprint(chars[i]))
+                    putchar(chars[i]);
+                else
+                    printf("\\x%x", (unsigned)chars[i]);
+
+            printf("\n");
+        }
+    }
+
+    Console::setMode(CONSOLE_MODE_LINE_INPUT);
+}
+
+#endif
 
 int MAIN(int argc, const char_t** argv)
 {
