@@ -33,14 +33,6 @@ offer completion after second letter
 offer recently used, located nearby first
 complete on tab or punctuation
 
-foundation improvements:
-* sequence operations in list like array
-* list constructor/assign fill with element?
-* create element in place for containers
-* review/update tests
-test for 0 char in string
-assign/op=
-
 foundation features:
 * convert any object to string
 * simple parsing a la scanf
@@ -54,4 +46,5 @@ foundation features:
 * string to binary/hex conversion
 * initializer_list support
 * conversion between containers (array to list etc)
+* create element in place for containers
 

@@ -121,6 +121,7 @@ String::String(const char_t* chars, int pos, int len)
 String::String(int len, char_t ch)
 {
     ASSERT(len >= 0);
+    ASSERT(ch != 0);
 
     if (len > 0)
     {
@@ -264,6 +265,7 @@ int String::find(const char_t* chars, int pos) const
 
 int String::find(char_t ch, int pos) const
 {
+    ASSERT(ch != 0);
     ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
@@ -318,6 +320,7 @@ int String::findNoCase(const char_t* chars, int pos) const
 
 int String::findNoCase(char_t ch, int pos) const
 {
+    ASSERT(ch != 0);
     ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
@@ -472,6 +475,7 @@ void String::assign(const char_t* chars)
 void String::assign(int len, char_t ch)
 {
     ASSERT(len >= 0);
+    ASSERT(ch != 0);
 
     if (len > 0)
     {
@@ -528,6 +532,8 @@ void String::append(const char_t* chars)
 
 void String::append(char_t ch)
 {
+    ASSERT(ch != 0);
+
     int capacity = _length + 2;
     if (capacity > _capacity)
         ensureCapacity(capacity * 2);
@@ -590,6 +596,7 @@ void String::insert(int pos, const char_t* chars)
 void String::insert(int pos, char_t ch)
 {
     ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(ch != 0);
 
     int capacity = _length + 2;
     if (capacity > _capacity)

@@ -1807,6 +1807,23 @@ public:
         }
     }
 
+    List(int size, const _Type& value) :
+        _front(nullptr), _back(nullptr)
+    {
+        ASSERT(size >= 0);
+
+        try
+        {
+            for (int i = 0; i < size; ++i)
+                pushBack(value);
+        }
+        catch (...)
+        {
+            destroyNodes();
+            throw;
+        }
+    }
+
     List(int size, const _Type* values) :
         _front(nullptr), _back(nullptr)
     {
