@@ -2659,6 +2659,27 @@ void testList()
         ASSERT(l.front()->value == 0);
     }
 
+    // List(int size, const _Type& value)
+
+    ASSERT_EXCEPTION(Exception, List<int>(-1, 123));
+
+    {
+        List<int> l(0, 123);
+        ASSERT(l.front() == nullptr);
+        ASSERT(l.back() == nullptr);
+        ASSERT(l.size() == 0);
+        ASSERT(l.empty());
+    }
+
+    {
+        List<int> l(1, 123);
+        ASSERT(l.front() != nullptr);
+        ASSERT(l.back() != nullptr);
+        ASSERT(l.size() == 1);
+        ASSERT(!l.empty());
+        ASSERT(l.front()->value == 123);
+    }
+
     // List(int size, const _Type* values)
 
     ASSERT_EXCEPTION(Exception, List<int>(-1, ep));
@@ -3303,15 +3324,6 @@ void testMap()
     }
 
     // Map<_Key, _Value>& operator=(const Map<_Key, _Value>& other)
-    // void assign(const Map<_Key, _Value>& other)
-
-    {
-        Map<int, int> m1, m2;
-        m2 = m1;
-        ASSERT(m2.size() == 0);
-        ASSERT(m2.numBuckets() == 0);
-        ASSERT(m2.empty());
-    }
 
     {
         Map<int, int> m1;
@@ -3408,6 +3420,27 @@ void testMap()
         const Map<int, int>& cm = m;
         ASSERT(*cm.find(1) == 1);
         ASSERT(cm.find(2) == nullptr);
+    }
+
+    // void assign(const Map<_Key, _Value>& other)
+
+    {
+        Map<int, int> m1, m2;
+        m2.assign(m1);
+        ASSERT(m2.size() == 0);
+        ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.empty());
+    }
+
+    {
+        Map<int, int> m1;
+        m1.insert(1, 1);
+        Map<int, int> m2;
+        m2.assign(m1);
+        ASSERT(m1.size() == 1);
+        ASSERT(m1.numBuckets() == 1);
+        ASSERT(!m2.empty());
+        ASSERT(m2[1] == 1);
     }
 
     // void insert(const _Key& key, const _Value& value)
@@ -3639,15 +3672,6 @@ void testSet()
     }
 
     // Set<_Type>& operator=(const Set<_Type>& other)
-    // void assign(const Set<_Type>& other)
-
-    {
-        Set<int> s1, s2;
-        s2 = s1;
-        ASSERT(s2.size() == 0);
-        ASSERT(s2.numBuckets() == 0);
-        ASSERT(s2.empty());
-    }
 
     {
         Set<int> s1;
@@ -3659,7 +3683,6 @@ void testSet()
         ASSERT(!s2.empty());
         ASSERT(s2.find(1) != nullptr);
     }
-
 
     // Set<_Type>& operator=(Set<_Type>&& other)
 
@@ -3736,6 +3759,27 @@ void testSet()
         const Set<int>& cs = s;
         ASSERT(*cs.find(1) == 1);
         ASSERT(cs.find(2) == nullptr);
+    }
+
+    // void assign(const Set<_Type>& other)
+
+    {
+        Set<int> s1, s2;
+        s2.assign(s1);
+        ASSERT(s2.size() == 0);
+        ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.empty());
+    }
+
+    {
+        Set<int> s1;
+        s1.insert(1);
+        Set<int> s2;
+        s2.assign(s1);
+        ASSERT(s1.size() == 1);
+        ASSERT(s1.numBuckets() == 1);
+        ASSERT(!s2.empty());
+        ASSERT(s2.find(1) != nullptr);
     }
 
     // void insert(const _Type& value)
