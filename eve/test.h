@@ -12,37 +12,37 @@ public:
     Test() : 
         _val(0)
     {
-        Console::writeLine(STR("%p: Test::Test(): %d"), this, _val);
+        Console::writeLineFormatted(STR("%p: Test::Test(): %d"), this, _val);
     }
 
     Test(int val) : 
         _val(val)
     {
-        Console::writeLine(STR("%p: Test::Test(int): %d"), this, _val);
+        Console::writeLineFormatted(STR("%p: Test::Test(int): %d"), this, _val);
     }
 
     Test(const Test& other) : 
         _val(other._val)
     {
-        Console::writeLine(STR("%p: Test::Test(const Test&): %d"), this, _val);
+        Console::writeLineFormatted(STR("%p: Test::Test(const Test&): %d"), this, _val);
     }
 
     Test(Test&& other) :
         _val(other._val)
     {
         other._val = 0;
-        Console::writeLine(STR("%p: Test::Test(Test&&): %d"), this, _val);
+        Console::writeLineFormatted(STR("%p: Test::Test(Test&&): %d"), this, _val);
     }
 
     ~Test()
     {
-        Console::writeLine(STR("%p: Test::~Test(): %d"), this, _val);
+        Console::writeLineFormatted(STR("%p: Test::~Test(): %d"), this, _val);
     }
 
     Test& operator=(const Test& other)
     {
         _val = other._val;
-        Console::writeLine(STR("%p: Test::operator=(const Test&): %d"), this, _val);
+        Console::writeLineFormatted(STR("%p: Test::operator=(const Test&): %d"), this, _val);
         return *this;
     }
 
@@ -50,7 +50,7 @@ public:
     {
         _val = other._val;
         other._val = 0;
-        Console::writeLine(STR("%p: Test::operator=(Test&&): %d"), this, _val);
+        Console::writeLineFormatted(STR("%p: Test::operator=(Test&&): %d"), this, _val);
         return *this;
     }
     

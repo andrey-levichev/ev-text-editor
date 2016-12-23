@@ -136,7 +136,6 @@
 
 #else
 
-#include <alloca.h>
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -515,6 +514,13 @@ inline _Type* allocate(int size)
     }
     else
         return nullptr;
+}
+
+template<typename _Type>
+inline _Type* allocateStack(int size)
+{
+    ASSERT(size >= 0);
+    return static_cast<_Type*>(alloca(sizeof(_Type) * size));
 }
 
 template<typename _Type>
@@ -988,7 +994,7 @@ public:
     String(const String& other, int pos, int len);
     String(const char_t* chars);
     String(const char_t* chars, int pos, int len);
-    String(int len, char_t ch);
+    String(char_t ch, int len = 1);
 
     String(String&& other);
 
@@ -1055,11 +1061,11 @@ public:
 
     void assign(const String& other);
     void assign(const char_t* chars);
-    void assign(int len, char_t ch);
+    void assign(char_t ch, int len = 1);
 
     void append(const String& str);
     void append(const char_t* chars);
-    void append(char_t ch);
+    void append(char_t ch, int len = 1);
 
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);

@@ -27,6 +27,7 @@ void Console::setMode(int mode)
         tcgetattr(STDIN_FILENO, &ta);
         ta.c_lflag |= ECHO | ICANON;
         tcsetattr(STDIN_FILENO, TCSANOW, &ta);    
+        setvbuf(stdout, nullptr, _IOFBF, BUFSIZ);
     }
     else
     {
@@ -36,52 +37,85 @@ void Console::setMode(int mode)
         ta.c_cc[VTIME] = 0;
         ta.c_cc[VMIN] = 1;
         tcsetattr(STDIN_FILENO, TCSANOW, &ta);    
+        setvbuf(stdout, nullptr, _IONBF, 0);
     }
 
 #endif
 }
 
-void Console::write(char_t ch)
-{
-    PUTCHAR(ch);
-}
-
 void Console::write(const String& str)
 {
-    FPUTS(str.str(), stdout);
+    write(str.str(), str.length());
 }
 
-void Console::write(const char_t* format, ...)
+void Console::write(const char_t* chars, int len)
 {
-    va_list args;
+    ASSERT(chars != nullptr);
+    ASSERT(len == -1 || len > 0);
 
-    va_start(args, format);
-    VPRINTF(format, args);
-    va_end(args);
+    if (len < 0)
+        len = STRLEN(chars);
+
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+    WriteConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE),
+        chars, len, &written, NULL);
+#else
+    ::write(STDOUT_FILENO, chars, len);
+#endif
 }
 
-void Console::writeLine()
+void Console::write(char_t ch, int len)
 {
-    PUTCHAR('\n');
+    ASSERT(len > 0);
+
+    char_t* chars = Memory::allocateStack<char_t>(len);
+    STRSET(chars, ch, len);
+    write(chars, len);
 }
 
 void Console::writeLine(const String& str)
 {
-    PUTS(str.str());
+    write(str);
+    writeLine();
 }
 
-void Console::writeLine(const char_t* format, ...)
+void Console::writeLine(const char_t* chars, int len)
 {
-    va_list args;
+    write(chars, len);
+    writeLine();
+}
 
-    va_start(args, format);
-    VPRINTF(format, args);
-    va_end(args);
-    PUTCHAR('\n');
+void Console::writeLine(char_t ch, int len)
+{
+    write(ch, len);
+    writeLine();
+}
+
+void Console::writeLine()
+{
+#ifdef PLATFORM_WINDOWS
+    write(STR("\r\n"), 2);
+#else
+    write(STR("\n"), 1);
+#endif
+}
+
+void Console::write(int line, int column, const String& str)
+{
+    write(line, column, str.str(), str.length());
 }
 
 void Console::write(int line, int column, const char_t* chars, int len)
 {
+    ASSERT(line > 0);
+    ASSERT(column > 0);
+    ASSERT(chars != nullptr);
+    ASSERT(len == -1 || len > 0);
+
+    if (len < 0)
+        len = STRLEN(chars);
+
 #ifdef PLATFORM_WINDOWS
     DWORD written;
     COORD pos;
@@ -94,6 +128,49 @@ void Console::write(int line, int column, const char_t* chars, int len)
     setCursorPosition(line, column);
     ::write(STDOUT_FILENO, chars, len);
 #endif
+}
+
+void Console::write(int line, int column, char_t ch, int len)
+{
+    ASSERT(len > 0);
+
+    char_t* chars = Memory::allocateStack<char_t>(len);
+    STRSET(chars, ch, len);
+    write(line, column, chars, len);
+}
+
+void Console::writeFormatted(const char_t* format, ...)
+{
+    ASSERT(format != nullptr);
+
+    va_list args;
+    va_start(args, format);
+    VPRINTF(format, args);
+    va_end(args);
+}
+
+void Console::writeFormatted(const char_t* format, va_list args)
+{
+    ASSERT(format != nullptr);
+    VPRINTF(format, args);
+}
+
+void Console::writeLineFormatted(const char_t* format, ...)
+{
+    ASSERT(format != nullptr);
+
+    va_list args;
+    va_start(args, format);
+    VPRINTF(format, args);
+    va_end(args);
+    writeLine();
+}
+
+void Console::writeLineFormatted(const char_t* format, va_list args)
+{
+    ASSERT(format != nullptr);
+    VPRINTF(format, args);
+    writeLine();
 }
 
 String Console::readLine()
@@ -146,6 +223,9 @@ void Console::showCursor(bool show)
 
 void Console::setCursorPosition(int line, int column)
 {
+    ASSERT(line > 0);
+    ASSERT(column > 0);
+
     COORD pos;
     pos.X = column - 1;
     pos.Y = line - 1;
@@ -175,6 +255,9 @@ void Console::showCursor(bool show)
 
 void Console::setCursorPosition(int line, int column)
 {
+    ASSERT(line > 0);
+    ASSERT(column > 0);
+
     char_t cmd[30];
     sprintf(cmd, "\x1b[%d;%dH", line, column);
     ::write(STDOUT_FILENO, cmd, strlen(cmd));
@@ -202,6 +285,8 @@ void Console::readRegularKey(char_t ch, Key& key)
 
 const char_t* Console::readSpecialKey(const char_t* p, Key& key)
 {
+    ASSERT(p != nullptr);
+
     ++p;
     bool read7e = true;
 

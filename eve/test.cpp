@@ -3964,11 +3964,59 @@ void testFoundation()
     testSetIterator();
 }
 
+void writeFormatted(const char_t* format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    Console::writeFormatted(format, args);
+    va_end(args);
+}
+
+void writeLineFormatted(const char_t* format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    Console::writeLineFormatted(format, args);
+    va_end(args);
+}
+
+void testConsole()
+{
+    Console::setMode(CONSOLE_MODE_DEFAULT);
+
+    Console::write(String(STR("111")));
+    Console::write(STR("222"));
+    Console::write(STR("333"), 3);
+    Console::write('4', 3);
+
+    Console::writeLine(String(STR("111")));
+    Console::writeLine(STR("222"));
+    Console::writeLine(STR("333"), 3);
+    Console::writeLine('4', 3);
+    Console::writeLine();
+
+    Console::write(10, 10, String(STR("111")));
+    Console::write(11, 10, STR("222"));
+    Console::write(12, 10, STR("333"), 3);
+    Console::write(13, 10, '4', 3);
+
+    Console::writeFormatted(STR("%d"), 111);
+    writeFormatted(STR("%d"), 222);
+
+    Console::writeLineFormatted(STR("%d"), 333);
+    writeLineFormatted(STR("%d"), 444);
+
+    Console::setMode(CONSOLE_MODE_LINE_INPUT);
+}
+
 int main()
 {
     try
     {
-        testFoundation();
+//        testFoundation();
+        testConsole();
     }
     catch (Exception& ex)
     {
