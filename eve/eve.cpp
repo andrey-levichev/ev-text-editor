@@ -118,23 +118,21 @@ void Text::insertChar(char_t ch)
     if (ch == '\n') // new line
     {
         char_t* p = findCharBack('\n');
+        if (*p == '\n' && _position > 0)
+            ++p;
+
         char_t* q = p;
-
-        if (*p == '\n')
-            ++q;
-        else
-            insert(_position++, '\n');
-
         while (*q == ' ' || *q == '\t')
             ++q;
 
-        int len = q - p;
-        if (len > 0)
-        {
-            String chars(*this, p - _chars, len);
-            insert(_position, chars);
-            _position += len;
-        }
+        int len = q - p + 1;
+        char_t* chars = ALLOCATE_STACK(char_t, len + 1);
+
+        chars[0] = '\n';
+        *STRNCPY(chars + 1, p, q - p) = 0;
+
+        insert(_position, chars);
+        _position += len;
     }
     else if (ch == '\t') // tab
     {
@@ -198,7 +196,7 @@ bool Text::deleteWordBack()
 
 String Text::copyDeleteText(int pos, bool copy)
 {
-    ASSERT(pos > 0 && pos <= _size);
+    ASSERT(pos > 0 && pos <= _length);
 
     char_t* p;
     char_t* q;
@@ -397,7 +395,7 @@ Editor::Editor(const char_t* filename) :
     _lineSelection(false)
 
 {
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::setMode(CONSOLE_MODE_DIRECT);
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
     _text.ensureCapacity(1);
@@ -405,7 +403,7 @@ Editor::Editor(const char_t* filename) :
 
 Editor::~Editor()
 {
-    Console::setMode(CONSOLE_MODE_LINE_INPUT);
+    Console::setMode(CONSOLE_MODE_LINE);
     Console::clear();
 }
 
@@ -545,7 +543,9 @@ void Editor::updateScreen()
         }
     }
 
-#ifndef PLATFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS
+    _screen.append(' ', _width);
+#else
     _screen += '\x1b';
     _screen += '[';
     _screen += 'J';
@@ -555,18 +555,20 @@ void Editor::updateScreen()
 
     Console::write(1, 1, _screen);
 
-    String lineCol = String::format(STR("%d, %d"), _line, _column);
+    char_t lineCol[30];
+    int lineColLen = SPRINTF(lineCol, STR("%d, %d"), _line, _column);
+
     len = _width;
 
-    if (len >= lineCol.length())
+    if (lineColLen <= len)
     {
-        Console::write(_screenHeight, _width - lineCol.length() + 1, lineCol);
-        len -= lineCol.length();
+        Console::write(_screenHeight, _width - lineColLen + 1, lineCol, lineColLen);
+        len -= lineColLen;
         if (len > 0)
             --len;
     }
 
-    if (len >= _filename.length())
+    if (_filename.length() <= len)
         Console::write(_screenHeight, 1, _filename);
 
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
@@ -865,14 +867,40 @@ String Editor::getCommand(const char_t* prompt)
 {
     ASSERT(prompt != nullptr);
 
-    String commandLine;
-    int promptLen = STRLEN(prompt);
-
-    Console::write(_screenHeight, 1, prompt, promptLen);
-    Console::write(_screenHeight, promptLen + 1, "\x1b[K");
+    String command;
+    String cmdLine;
+    
+    int width = _width - STRLEN(prompt);
+    if (width < 2)
+        throw Exception(STR("window is too narrow"));
 
     while (true)
     {
+        cmdLine.clear();
+        cmdLine += prompt;
+
+        int pos;
+        if (command.length() < width)
+        {
+            cmdLine += command;
+            pos = cmdLine.length() + 1;
+
+#ifdef PLATFORM_WINDOWS
+            cmdLine.append(' ', width - command.length());
+#else
+            cmdLine += STR("\x1b[K");
+#endif
+        }
+        else
+        {
+            cmdLine += command.chars() + command.length() - width + 1;
+            cmdLine += ' ';
+            pos = _width;
+        }
+
+        Console::write(_screenHeight, 1, cmdLine);
+        Console::setCursorPosition(_screenHeight, pos);
+
         const Array<Key>& keys = Console::readKeys();
 
         for (int i = 0; i < keys.size(); ++i)
@@ -881,7 +909,7 @@ String Editor::getCommand(const char_t* prompt)
 
             if (key.code == KEY_ENTER)
             {
-                return commandLine;
+                return command;
             }
             else if (key.code == KEY_ESC)
             {
@@ -889,32 +917,27 @@ String Editor::getCommand(const char_t* prompt)
             }
             else if (key.code == KEY_BACKSPACE)
             {
-                if (commandLine.length() > 0)
-                    commandLine.erase(commandLine.length() - 1, 1);
+                if (command.length() > 0)
+                    command.erase(command.length() - 1, 1);
             }
             else if (ISPRINT(key.ch))
             {
-                commandLine += key.ch;
+                command += key.ch;
             }
-
-            int pos = promptLen + 1;
-            Console::write(_screenHeight, pos, commandLine);
-            pos += commandLine.length();
-            Console::write(_screenHeight, pos, "\x1b[K");
         }
     }
 }
 
 void Editor::buildProject()
 {
-    Console::setMode(CONSOLE_MODE_LINE_INPUT);
+    Console::setMode(CONSOLE_MODE_LINE);
     Console::clear();
 
     saveFile();
     system("gmake");
 
     Console::writeLine(STR("Press any key to continue..."));
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::setMode(CONSOLE_MODE_DIRECT);
     Console::readKeys();
 
     updateScreen();
@@ -931,7 +954,7 @@ void testKeys()
     pfd.events = POLLIN;
     pfd.revents = 0;
 
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::setMode(CONSOLE_MODE_DIRECT);
 
     while (true)
     {
@@ -955,7 +978,7 @@ void testKeys()
         }
     }
 
-    Console::setMode(CONSOLE_MODE_LINE_INPUT);
+    Console::setMode(CONSOLE_MODE_LINE);
 }
 
 #endif

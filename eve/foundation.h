@@ -216,7 +216,7 @@ typedef char char_t;
 #define FPUTS fputs
 #define PUTS puts
 #define PRINTF printf
-#define SPRINTF snprintf
+#define SPRINTF sprintf
 #define VPRINTF vprintf
 #define PUTCHAR putchar
 #define GETCHAR getchar
@@ -484,6 +484,8 @@ public:
 
 // Memory
 
+#define ALLOCATE_STACK(type, size) reinterpret_cast<type*>(alloca(sizeof(type) * (size)))
+
 namespace Memory
 {
 
@@ -514,13 +516,6 @@ inline _Type* allocate(int size)
     }
     else
         return nullptr;
-}
-
-template<typename _Type>
-inline _Type* allocateStack(int size)
-{
-    ASSERT(size >= 0);
-    return static_cast<_Type*>(alloca(sizeof(_Type) * size));
 }
 
 template<typename _Type>
@@ -1072,7 +1067,7 @@ public:
 
     void insert(int pos, const String& str);
     void insert(int pos, const char_t* chars);
-    void insert(int pos, char_t ch);
+    void insert(int pos, char_t ch, int len = 1);
     
     void erase(int pos, int len);
     void erase(const String& str);
@@ -1632,6 +1627,8 @@ protected:
     Array(int size, int capacity, _Type* values) :
         _size(size), _capacity(capacity), _values(values)
     {
+        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        ASSERT(capacity >= 0 && size <= capacity);
     }
 
     void reallocate(int capacity)

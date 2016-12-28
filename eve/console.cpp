@@ -21,7 +21,7 @@ void Console::setMode(int mode)
 
 #else
 
-    if (mode & CONSOLE_MODE_LINE_INPUT)
+    if (mode & CONSOLE_MODE_LINE)
     {
         termios ta;
         tcgetattr(STDIN_FILENO, &ta);
@@ -51,14 +51,14 @@ void Console::write(const String& str)
 void Console::write(const char_t* chars, int len)
 {
     ASSERT(chars != nullptr);
-    ASSERT(len == -1 || len > 0);
+    ASSERT(len >= -1);
 
     if (len < 0)
         len = STRLEN(chars);
 
 #ifdef PLATFORM_WINDOWS
     DWORD written;
-    WriteConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE),
+    WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE),
         chars, len, &written, NULL);
 #else
     ::write(STDOUT_FILENO, chars, len);
@@ -67,9 +67,9 @@ void Console::write(const char_t* chars, int len)
 
 void Console::write(char_t ch, int len)
 {
-    ASSERT(len > 0);
+    ASSERT(len >= 0);
 
-    char_t* chars = Memory::allocateStack<char_t>(len);
+    char_t* chars = ALLOCATE_STACK(char_t, len);
     STRSET(chars, ch, len);
     write(chars, len);
 }
@@ -111,7 +111,7 @@ void Console::write(int line, int column, const char_t* chars, int len)
     ASSERT(line > 0);
     ASSERT(column > 0);
     ASSERT(chars != nullptr);
-    ASSERT(len == -1 || len > 0);
+    ASSERT(len >= -1);
 
     if (len < 0)
         len = STRLEN(chars);
@@ -132,9 +132,9 @@ void Console::write(int line, int column, const char_t* chars, int len)
 
 void Console::write(int line, int column, char_t ch, int len)
 {
-    ASSERT(len > 0);
+    ASSERT(len >= 0);
 
-    char_t* chars = Memory::allocateStack<char_t>(len);
+    char_t* chars = ALLOCATE_STACK(char_t, len);
     STRSET(chars, ch, len);
     write(line, column, chars, len);
 }

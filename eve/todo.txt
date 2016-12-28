@@ -1,18 +1,18 @@
 bugs & misc:
-* aix version of eve with old compiler
-* review pointer vs index usage
 * rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
 * minimal screen update for colored text
+screen update code must not differ between platforms
 * support unicode input and newline differences
 decode/encode text from file to runtime enconding, translate newlines
-* arbitrary length command line
-buffer console output?
+* review pointer vs index usage
 * handle SIGWINCH to detect terminal size changes
 * assert for every call with return code
-* review unneeded memory allocation
 * provide optional length in char_t* overloads to avoid strlen
 * tests for classes outside foundation
+* map remove for non copy constructable types
+* checking pointer param and length is inconsistent between string and array
+* aix version of eve with old compiler
 
 basic features:
 * search/replace

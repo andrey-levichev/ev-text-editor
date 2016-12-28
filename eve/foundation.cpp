@@ -79,7 +79,7 @@ String::String(const String& other, int pos, int len)
 
 String::String(const char_t* chars)
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
 
     if (*chars)
     {
@@ -98,7 +98,7 @@ String::String(const char_t* chars)
 
 String::String(const char_t* chars, int pos, int len)
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
     ASSERT(pos >= 0);
     ASSERT(len >= 0);
 
@@ -141,7 +141,7 @@ String::String(char_t ch, int len)
 
 String::String(char_t* chars)
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
 
     _length = STRLEN(chars);
     _capacity = _length + 1;
@@ -213,7 +213,7 @@ int String::compare(const String& str) const
 
 int String::compare(const char_t* chars) const
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
     return STRCMP(str(), chars);
 }
 
@@ -224,7 +224,7 @@ int String::compareNoCase(const String& str) const
 
 int String::compareNoCase(const char_t* chars) const
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
     return STRICMP(str(), chars);
 }
 
@@ -247,8 +247,8 @@ int String::find(const String& str, int pos) const
 
 int String::find(const char_t* chars, int pos) const
 {
+    ASSERT(chars != nullptr);
     ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(chars);
 
     if (*chars)
     {
@@ -302,8 +302,8 @@ int String::findNoCase(const String& str, int pos) const
 
 int String::findNoCase(const char_t* chars, int pos) const
 {
+    ASSERT(chars != nullptr);
     ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(chars);
 
     if (*chars)
     {
@@ -349,7 +349,7 @@ bool String::startsWith(const String& str) const
 
 bool String::startsWith(const char_t* chars) const
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
 
     int len = STRLEN(chars);
     if (len > 0 && _length > 0)
@@ -368,7 +368,7 @@ bool String::endsWith(const String& str) const
 
 bool String::endsWith(const char_t* chars) const
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
 
     int len = STRLEN(chars);
     if (len > 0 && _length > 0 && len <= _length)
@@ -447,7 +447,7 @@ void String::assign(const String& other)
 
 void String::assign(const char_t* chars)
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
 
     if (_chars != chars)
     {
@@ -483,7 +483,7 @@ void String::assign(char_t ch, int len)
 
         if (capacity > _capacity)
         {
-            String tmp(len, ch);
+            String tmp(ch, len);
             swap(*this, tmp);
         }
         else
@@ -515,7 +515,7 @@ void String::append(const String& str)
 
 void String::append(const char_t* chars)
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
     ASSERT(_chars != chars);
 
     if (*chars)
@@ -539,9 +539,8 @@ void String::append(char_t ch, int len)
     if (capacity > _capacity)
         ensureCapacity(capacity * 2);
 
-    while (len--)
-        _chars[_length++] = ch;
-
+    STRSET(_chars + _length, ch, len);
+    _length += len;
     _chars[_length] = 0;
 }
 
@@ -580,7 +579,7 @@ void String::insert(int pos, const String& str)
 void String::insert(int pos, const char_t* chars)
 {
     ASSERT(pos >= 0 && pos <= _length);
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
     ASSERT(_chars != chars);
 
     if (*chars)
@@ -596,19 +595,20 @@ void String::insert(int pos, const char_t* chars)
     }
 }
 
-void String::insert(int pos, char_t ch)
+void String::insert(int pos, char_t ch, int len)
 {
     ASSERT(pos >= 0 && pos <= _length);
     ASSERT(ch != 0);
+    ASSERT(len >= 0);
 
-    int capacity = _length + 2;
+    int capacity = _length + len + 1;
     if (capacity > _capacity)
         ensureCapacity(capacity * 2);
 
     char_t* p = _chars + pos;
-    STRMOVE(p + 1, p, _length - pos + 1);
-    *p = ch;
-    ++_length;
+    STRMOVE(p + len, p, _length - pos + 1);
+    STRSET(p, ch, len);
+    _length += len;
 }
 
 void String::erase(int pos, int len)
@@ -666,7 +666,7 @@ void String::erase(const String& str)
 
 void String::erase(const char_t* chars)
 {
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
     ASSERT(_chars != chars);
 
     if (*chars)
@@ -735,7 +735,7 @@ void String::replace(int pos, int len, const char_t* chars)
 {
     ASSERT(pos >= 0 && pos <= _length);
     ASSERT(len >= 0 && pos + len <= _length);
-    ASSERT(chars);
+    ASSERT(chars != nullptr);
     ASSERT(_chars != chars);
 
     if (*chars)
@@ -805,9 +805,9 @@ void String::replace(const String& searchStr, const String& replaceStr)
 
 void String::replace(const char_t* searchChars, const char_t* replaceChars)
 {
-    ASSERT(searchChars);
+    ASSERT(searchChars != nullptr);
     ASSERT(_chars != searchChars);
-    ASSERT(replaceChars);
+    ASSERT(replaceChars != nullptr);
     ASSERT(_chars != replaceChars);
 
     if (*searchChars)
@@ -1102,7 +1102,7 @@ String String::from(double value, int precision)
 
 String String::format(const char_t* format, ...)
 {
-    ASSERT(format);
+    ASSERT(format != nullptr);
 
     char_t* chars;
     va_list args;
@@ -1119,7 +1119,7 @@ String String::format(const char_t* format, ...)
 
 String String::format(const char_t* format, va_list args)
 {
-    ASSERT(format);
+    ASSERT(format != nullptr);
 
     char_t* chars;
 

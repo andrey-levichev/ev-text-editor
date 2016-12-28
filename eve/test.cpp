@@ -428,19 +428,20 @@ void testString()
         ASSERT(s.capacity() == 2);
     }
 
-    // String(int count, char_t ch)
+    // String(char_t ch, int len)
 
-    ASSERT_EXCEPTION(Exception, String(-1, 'a'));
+    ASSERT_EXCEPTION(Exception, String('a', -1));
+    ASSERT_EXCEPTION(Exception, String(0, 1));
 
     {
-        String s(0, 'a');
+        String s('a', 0);
         ASSERT(s.chars() == nullptr);
         ASSERT(s.length() == 0);
         ASSERT(s.capacity() == 0);
     }
 
     {
-        String s(1, 'a');
+        String s('a', 1);
         ASSERT(s == STR("a"));
         ASSERT(s.length() == 1);
         ASSERT(s.capacity() == 2);
@@ -877,27 +878,28 @@ void testString()
         ASSERT(s.capacity() == 10);
     }
 
-    // void assign(int len, char_t ch)
+    // void assign(char_t ch, int len)
 
-    ASSERT_EXCEPTION(Exception, String().assign(-1, 'a'));
+    ASSERT_EXCEPTION(Exception, String().assign('a', -1));
+    ASSERT_EXCEPTION(Exception, String().assign(0, 1));
 
     {
         String s;
-        s.assign(1, 'a');
+        s.assign('a', 1);
         ASSERT(s == STR("a"));
         ASSERT(s.capacity() == 2);
     }
 
     {
         String s(STR("a"));
-        s.assign(2, 'b');
+        s.assign('b', 2);
         ASSERT(s == STR("bb"));
         ASSERT(s.capacity() == 3);
     }
 
     {
         String s(STR("a"));
-        s.assign(0, 'b');
+        s.assign('b', 0);
         ASSERT(s == STR(""));
         ASSERT(s.capacity() == 2);
     }
@@ -905,7 +907,7 @@ void testString()
     {
         String s;
         s.ensureCapacity(10);
-        s.assign(1, 'a');
+        s.assign('a', 1);
         ASSERT(s == STR("a"));
         ASSERT(s.capacity() == 10);
     }
@@ -984,15 +986,18 @@ void testString()
         ASSERT(s.capacity() == 10);
     }
 
-    // void append(char_t ch)
+    // void append(char_t ch, int len)
+
+    ASSERT_EXCEPTION(Exception, String().append('a', -1));
+    ASSERT_EXCEPTION(Exception, String().append(0, 1));
 
     {
         String s;
-        s.append('a');
+        s.append('a', 1);
         ASSERT(s == STR("a"));
         ASSERT(s.capacity() == 4);
-        s.append('b');
-        ASSERT(s == STR("ab"));
+        s.append('b', 2);
+        ASSERT(s == STR("abb"));
         ASSERT(s.capacity() == 4);
     }
 
@@ -3984,23 +3989,24 @@ void writeLineFormatted(const char_t* format, ...)
 
 void testConsole()
 {
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::setMode(CONSOLE_MODE_DIRECT);
+    Console::clear();
 
-    Console::write(String(STR("111")));
-    Console::write(STR("222"));
-    Console::write(STR("333"), 3);
-    Console::write('4', 3);
+    Console::write(String(STR("aaa")));
+    Console::write(STR("bbb"));
+    Console::write(STR("ccc"), 3);
+    Console::write('d', 3);
 
-    Console::writeLine(String(STR("111")));
-    Console::writeLine(STR("222"));
-    Console::writeLine(STR("333"), 3);
-    Console::writeLine('4', 3);
     Console::writeLine();
+    Console::writeLine(String(STR("eee")));
+    Console::writeLine(STR("fff"));
+    Console::writeLine(STR("ggg"), 3);
+    Console::writeLine('i', 3);
 
-    Console::write(10, 10, String(STR("111")));
-    Console::write(11, 10, STR("222"));
-    Console::write(12, 10, STR("333"), 3);
-    Console::write(13, 10, '4', 3);
+    Console::write(10, 10, String(STR("jjj")));
+    Console::write(11, 10, STR("kkk"));
+    Console::write(12, 10, STR("lll"), 3);
+    Console::write(13, 10, 'm', 3);
 
     Console::writeFormatted(STR("%d"), 111);
     writeFormatted(STR("%d"), 222);
@@ -4008,14 +4014,14 @@ void testConsole()
     Console::writeLineFormatted(STR("%d"), 333);
     writeLineFormatted(STR("%d"), 444);
 
-    Console::setMode(CONSOLE_MODE_LINE_INPUT);
+    Console::setMode(CONSOLE_MODE_LINE);
 }
 
 int main()
 {
     try
     {
-//        testFoundation();
+        testFoundation();
         testConsole();
     }
     catch (Exception& ex)

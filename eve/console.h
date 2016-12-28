@@ -51,9 +51,9 @@ struct Key
 
 enum ConsoleMode
 {
-    CONSOLE_MODE_DEFAULT = 0,
-    CONSOLE_MODE_UNICODE = 1,
-    CONSOLE_MODE_LINE_INPUT = 2
+    CONSOLE_MODE_DIRECT = 0,
+    CONSOLE_MODE_LINE = 1,
+    CONSOLE_MODE_UNICODE = 2
 };
 
 // Console
