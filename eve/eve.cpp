@@ -118,21 +118,23 @@ void Text::insertChar(char_t ch)
     if (ch == '\n') // new line
     {
         char_t* p = findCharBack('\n');
-        if (*p == '\n' && _position > 0)
-            ++p;
-
         char_t* q = p;
+
+        if (*p == '\n')
+            ++q;
+        else
+            insert(_position++, '\n');
+
         while (*q == ' ' || *q == '\t')
             ++q;
 
-        int len = q - p + 1;
-        char_t* chars = reinterpret_cast<char_t*>(alloca(sizeof(char_t) * (len + 1)));
-
-        chars[0] = '\n';
-        *STRNCPY(chars + 1, p, q - p) = 0;
-
-        insert(_position, chars);
-        _position += len;
+        int len = q - p;
+        if (len > 0)
+        {
+            String chars(*this, p - _chars, len);
+            insert(_position, chars);
+            _position += len;
+        }
     }
     else if (ch == '\t') // tab
     {
@@ -196,6 +198,8 @@ bool Text::deleteWordBack()
 
 String Text::copyDeleteText(int pos, bool copy)
 {
+    ASSERT(pos > 0 && pos <= _size);
+
     char_t* p;
     char_t* q;
 
@@ -278,6 +282,7 @@ char_t* Text::findCharBack(char_t ch) const
 
 char_t* Text::findLine(int line) const
 {
+    ASSERT(line > 0);
     char_t* p = _chars;
 
     while (*p && line > 1)
@@ -303,7 +308,7 @@ bool Text::findNext(const String& pattern)
         }
         else
 			pos = find(pattern);
-		
+
 		if (pos != String::INVALID_POSITION && pos != _position)
 		{
 			_position = pos;
@@ -395,9 +400,6 @@ Editor::Editor(const char_t* filename) :
     Console::setMode(CONSOLE_MODE_DEFAULT);
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
-
-    _commandLine.resize(_width);
-
     _text.ensureCapacity(1);
 }
 
@@ -481,13 +483,9 @@ void Editor::updateScreen()
     char_t* p = _text.findLine(_top);
     int len = _left + _width - 1;
 
-#ifndef PLATFORM_WINDOWS    
-    bool clearedScreen = false;
-#endif
-
     for (int j = 1; j <= _height; ++j)
     {
-#ifndef PLATFORM_WINDOWS        
+#ifndef PLATFORM_WINDOWS
         bool clearedLine = false;
 #endif
         for (int i = 1; i <= len; ++i)
@@ -528,15 +526,7 @@ void Editor::updateScreen()
                 {
 #ifdef PLATFORM_WINDOWS
                     _screen += ' ';
-#else
-                    if (!clearedScreen)
-                    {
-                        _screen += '\x1b';
-                        _screen += '[';
-                        _screen += 'J';
-                        clearedScreen = true;
-                    }
-#endif                    
+#endif
                 }
                 else
                     _screen += ch;
@@ -555,22 +545,33 @@ void Editor::updateScreen()
         }
     }
 
-#ifndef PLATFORM_WINDOWS 
+#ifndef PLATFORM_WINDOWS
+    _screen += '\x1b';
+    _screen += '[';
+    _screen += 'J';
+
     Console::showCursor(false);
-#endif    
-    Console::write(1, 1, _screen.chars(), _screen.length());
-    
-    STRSET(_commandLine.values(), ' ', _width);
+#endif
 
-    char_t lnCol[30];
-    len = SPRINTF(lnCol, 30, STR("%d, %d"), _line, _column);
-    if (len > 0 && len <= _width)
-        STRNCPY(_commandLine.values() + _width - len, lnCol, len);
+    Console::write(1, 1, _screen);
 
-    Console::write(_screenHeight, 1, _commandLine.values(), _width);
+    String lineCol = String::format(STR("%d, %d"), _line, _column);
+    len = _width;
+
+    if (len >= lineCol.length())
+    {
+        Console::write(_screenHeight, _width - lineCol.length() + 1, lineCol);
+        len -= lineCol.length();
+        if (len > 0)
+            --len;
+    }
+
+    if (len >= _filename.length())
+        Console::write(_screenHeight, 1, _filename);
 
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
-#ifndef PLATFORM_WINDOWS 
+
+#ifndef PLATFORM_WINDOWS
     Console::showCursor(true);
 #endif
 }
@@ -826,7 +827,7 @@ bool Editor::processKey()
             update = true;
         }
     }
-    
+
     if (modified)
         _selection = -1;
 
@@ -839,7 +840,7 @@ bool Editor::processKey()
 void Editor::openFile()
 {
 	File file;
-	
+
 	if (file.open(_filename))
 		_text.assign(file.readString());
 	else
@@ -862,12 +863,13 @@ void Editor::saveFile()
 
 String Editor::getCommand(const char_t* prompt)
 {
-    int start = STRLEN(prompt), end = start;
-    
-    STRSET(_commandLine.values(), ' ', _width);
-    STRNCPY(_commandLine.values(), prompt, start);
-    Console::write(_screenHeight, 1, _commandLine.values(), _width);
-    Console::setCursorPosition(_screenHeight, end + 1);
+    ASSERT(prompt != nullptr);
+
+    String commandLine;
+    int promptLen = STRLEN(prompt);
+
+    Console::write(_screenHeight, 1, prompt, promptLen);
+    Console::write(_screenHeight, promptLen + 1, "\x1b[K");
 
     while (true)
     {
@@ -879,7 +881,7 @@ String Editor::getCommand(const char_t* prompt)
 
             if (key.code == KEY_ENTER)
             {
-                return String(_commandLine.values(), start, end - start);
+                return commandLine;
             }
             else if (key.code == KEY_ESC)
             {
@@ -887,17 +889,18 @@ String Editor::getCommand(const char_t* prompt)
             }
             else if (key.code == KEY_BACKSPACE)
             {
-                if (end > start)
-                    _commandLine[--end] = ' ';
+                if (commandLine.length() > 0)
+                    commandLine.erase(commandLine.length() - 1, 1);
             }
-            else
+            else if (ISPRINT(key.ch))
             {
-                if (end < _width)
-                    _commandLine[end++] = key.ch;
+                commandLine += key.ch;
             }
-            
-            Console::write(_screenHeight, 1, _commandLine.values(), _width);
-            Console::setCursorPosition(_screenHeight, end + 1);
+
+            int pos = promptLen + 1;
+            Console::write(_screenHeight, pos, commandLine);
+            pos += commandLine.length();
+            Console::write(_screenHeight, pos, "\x1b[K");
         }
     }
 }
@@ -910,7 +913,7 @@ void Editor::buildProject()
     saveFile();
     system("gmake");
 
-    Console::writeLine(STR("Press any key to contiue..."));
+    Console::writeLine(STR("Press any key to continue..."));
     Console::setMode(CONSOLE_MODE_DEFAULT);
     Console::readKeys();
 

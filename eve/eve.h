@@ -93,8 +93,6 @@ protected:
     String _pattern;
 
     String _screen;
-    CharArray _commandLine;
-
     String _filename;
 
     int _width, _height, _screenHeight;

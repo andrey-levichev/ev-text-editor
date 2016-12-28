@@ -118,10 +118,10 @@ String::String(const char_t* chars, int pos, int len)
     }
 }
 
-String::String(int len, char_t ch)
+String::String(char_t ch, int len)
 {
-    ASSERT(len >= 0);
     ASSERT(ch != 0);
+    ASSERT(len >= 0);
 
     if (len > 0)
     {
@@ -472,10 +472,10 @@ void String::assign(const char_t* chars)
     }
 }
 
-void String::assign(int len, char_t ch)
+void String::assign(char_t ch, int len)
 {
-    ASSERT(len >= 0);
     ASSERT(ch != 0);
+    ASSERT(len >= 0);
 
     if (len > 0)
     {
@@ -530,15 +530,18 @@ void String::append(const char_t* chars)
     }
 }
 
-void String::append(char_t ch)
+void String::append(char_t ch, int len)
 {
     ASSERT(ch != 0);
+    ASSERT(len >= 0);
 
-    int capacity = _length + 2;
+    int capacity = _length + len + 1;
     if (capacity > _capacity)
         ensureCapacity(capacity * 2);
 
-    _chars[_length++] = ch;
+    while (len--)
+        _chars[_length++] = ch;
+
     _chars[_length] = 0;
 }
 

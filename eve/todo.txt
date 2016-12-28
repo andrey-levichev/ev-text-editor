@@ -1,13 +1,18 @@
 bugs & misc:
+* aix version of eve with old compiler
+* review pointer vs index usage
 * rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
 * minimal screen update for colored text
 * support unicode input and newline differences
 decode/encode text from file to runtime enconding, translate newlines
-* using size vs zero terminator for text
-* replace alloca with StackBuffer?
 * arbitrary length command line
+buffer console output?
 * handle SIGWINCH to detect terminal size changes
+* assert for every call with return code
+* review unneeded memory allocation
+* provide optional length in char_t* overloads to avoid strlen
+* tests for classes outside foundation
 
 basic features:
 * search/replace
@@ -47,4 +52,3 @@ foundation features:
 * initializer_list support
 * conversion between containers (array to list etc)
 * create element in place for containers
-
