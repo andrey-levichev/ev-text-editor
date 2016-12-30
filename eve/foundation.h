@@ -148,6 +148,7 @@
 
 #ifdef PLATFORM_SOLARIS
 #include <sys/filio.h>
+#include <alloca.h>
 #endif
 
 #if defined(PLATFORM_WINDOWS) && !defined(COMPILER_GCC)
@@ -224,7 +225,7 @@ typedef char char_t;
 
 #endif
 
-typedef char32_t uchar_t;
+typedef char32_t unichar_t;
 
 // assert macros
 
@@ -337,6 +338,7 @@ inline const char* strcasestr(const char* str, const char* searchStr)
     for (; *str; ++str)
         if (!strcasecmp(str, searchStr))
             return str;
+
     return nullptr;
 }
 

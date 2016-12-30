@@ -3,7 +3,7 @@ HEADERS=foundation.h console.h file.h eve.h
 SOURCES=foundation.cpp console.cpp file.cpp eve.cpp
 RM=$(if $(OS),del,rm)
 
-all: $(TARGET).vcpp.exe
+all: $(TARGET).gcc
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
@@ -26,7 +26,7 @@ $(TARGET).clang.exe: $(HEADERS) $(SOURCES)
 		-I. -DDEBUG -D_UNICODE -DUNICODE \
 		-D_WIN32_WINNT=_WIN32_WINNT_WIN7 -D_CRT_SECURE_NO_WARNINGS
 
-$(TARGET).solstudio: $(HEADERS) $(SOURCES)
+$(TARGET).sol: $(HEADERS) $(SOURCES)
 	CC -std=c++11 -g $(SOURCES) -o $@ -I. -DDEBUG
 
 $(TARGET).xlc: $(HEADERS) $(SOURCES)
@@ -34,4 +34,4 @@ $(TARGET).xlc: $(HEADERS) $(SOURCES)
 
 clean:
 	-$(RM) $(TARGET).vcpp.exe $(TARGET).mingw.exe $(TARGET).clang.exe *.obj *.ilk *.pdb \
-		$(TARGET).gcc $(TARGET).clang $(TARGET).solstudio $(TARGET).xlc *.o
+		$(TARGET).gcc $(TARGET).clang $(TARGET).sol $(TARGET).xlc *.o
