@@ -3,7 +3,7 @@ HEADERS=foundation.h console.h file.h eve.h
 SOURCES=foundation.cpp console.cpp file.cpp eve.cpp
 RM=$(if $(OS),del,rm)
 
-all: $(TARGET).gcc
+all: $(TARGET).vcpp.exe
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \

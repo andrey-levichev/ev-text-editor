@@ -86,9 +86,9 @@ void File::close()
     if (_handle != INVALID_HANDLE_VALUE)
     {
 #ifdef PLATFORM_WINDOWS
-        CloseHandle(_handle);
+        ASSERT_NO_EXCEPTION(CloseHandle(_handle));
 #else
-        ::close(_handle);
+        ASSERT(::close(_handle) == 0);
 #endif
         _handle = INVALID_HANDLE_VALUE;
     }        
@@ -200,14 +200,11 @@ int64_t File::size() const
 
 #ifdef PLATFORM_WINDOWS
     int64_t sz;
-    
-    if (!GetFileSizeEx(_handle, reinterpret_cast<LARGE_INTEGER*>(&sz)))
-        throw Exception(STR("failed to get file size"));
-    
+    ASSERT(GetFileSizeEx(_handle, reinterpret_cast<LARGE_INTEGER*>(&sz)));
     return sz;
 #else
     struct stat64 st;
-    fstat64(_handle, &st);
+    ASSERT(fstat64(_handle, &st) == 0);
     return st.st_size;
 #endif
 }

@@ -33,7 +33,6 @@ offer recently used, located nearby first
 complete on tab or punctuation
 
 foundation bugs:
-* assert for every call with return code
 * provide optional length in char_t* overloads to avoid strlen
 * tests for classes outside foundation
 * map remove for non copy constructable types
