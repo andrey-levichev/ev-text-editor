@@ -395,7 +395,7 @@ Editor::Editor(const char_t* filename) :
     _lineSelection(false)
 
 {
-    Console::setMode(CONSOLE_MODE_DIRECT);
+    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
     _text.ensureCapacity(1);
@@ -403,7 +403,7 @@ Editor::Editor(const char_t* filename) :
 
 Editor::~Editor()
 {
-    Console::setMode(CONSOLE_MODE_LINE);
+    Console::setMode(CONSOLE_MODE_DEFAULT);
     Console::clear();
 }
 
@@ -930,14 +930,14 @@ String Editor::getCommand(const char_t* prompt)
 
 void Editor::buildProject()
 {
-    Console::setMode(CONSOLE_MODE_LINE);
+    Console::setMode(CONSOLE_MODE_DEFAULT);
     Console::clear();
 
     saveFile();
     system("gmake");
 
     Console::writeLine(STR("Press any key to continue..."));
-    Console::setMode(CONSOLE_MODE_DIRECT);
+    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
     Console::readKeys();
 
     updateScreen();
@@ -954,7 +954,7 @@ void testKeys()
     pfd.events = POLLIN;
     pfd.revents = 0;
 
-    Console::setMode(CONSOLE_MODE_DIRECT);
+    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
 
     while (true)
     {
@@ -978,7 +978,7 @@ void testKeys()
         }
     }
 
-    Console::setMode(CONSOLE_MODE_LINE);
+    Console::setMode(CONSOLE_MODE_DEFAULT);
 }
 
 #endif

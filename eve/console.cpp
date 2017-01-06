@@ -12,22 +12,19 @@ Array<Key> Console::_keys;
 
 void Console::setMode(int mode)
 {
+    if (mode & CONSOLE_MODE_NOTBUFFERED)
+        ASSERT(setvbuf(stdout, nullptr, _IONBF, 0) == 0);
+    else
+        ASSERT(setvbuf(stdout, nullptr, _IOFBF, BUFSIZ) == 0);
+
 #ifdef PLATFORM_WINDOWS
 
     ASSERT(_setmode(_fileno(stdout), 
-            mode & CONSOLE_MODE_UNICODE ? _O_U16TEXT : _O_U8TEXT) >= 0);
+            mode & CONSOLE_MODE_UNICODE ? _O_U16TEXT : _O_TEXT) >= 0);
 
 #else
 
-    if (mode & CONSOLE_MODE_LINE)
-    {
-        termios ta;
-        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
-        ta.c_lflag |= ECHO | ICANON;
-        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
-        ASSERT(setvbuf(stdout, nullptr, _IOFBF, BUFSIZ) == 0);
-    }
-    else
+    if (mode & CONSOLE_MODE_NONCANONICAL)
     {
         termios ta;
         ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
@@ -35,7 +32,13 @@ void Console::setMode(int mode)
         ta.c_cc[VTIME] = 0;
         ta.c_cc[VMIN] = 1;
         ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
-        ASSERT(setvbuf(stdout, nullptr, _IONBF, 0) == 0);
+    }
+    else
+    {
+        termios ta;
+        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
+        ta.c_lflag |= ECHO | ICANON;
+        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
     }
 
 #endif
@@ -95,11 +98,7 @@ void Console::writeLine(char_t ch, int len)
 
 void Console::writeLine()
 {
-#ifdef PLATFORM_WINDOWS
-    write(STR("\r\n"), 2);
-#else
     write(STR("\n"), 1);
-#endif
 }
 
 void Console::write(int line, int column, const String& str)

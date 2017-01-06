@@ -527,10 +527,10 @@ inline _Type* reallocate(_Type* ptr, int size)
 
     ptr = static_cast<_Type*>(realloc(ptr, sizeof(_Type) * size));
 
-    if (ptr)
-        return ptr;
-    else
+    if (size > 0 && !ptr)
         throw OutOfMemoryException();
+    else
+        return ptr;
 }
 
 inline void deallocate(void* ptr)
@@ -583,6 +583,8 @@ inline void destroy(_Type* ptr)
 template<typename _Type>
 inline void destructArray(int size, _Type* values)
 {
+    ASSERT(size >= 0);
+
     if (values)
     {
         while (size-- > 0)
@@ -593,6 +595,8 @@ inline void destructArray(int size, _Type* values)
 template<typename _Type>
 inline void destroyArray(int size, _Type* values)
 {
+    ASSERT(size >= 0);
+
     if (values)
     {
         while (size-- > 0)

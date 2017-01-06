@@ -3989,7 +3989,6 @@ void writeLineFormatted(const char_t* format, ...)
 
 void testConsole()
 {
-    Console::setMode(CONSOLE_MODE_DIRECT);
     Console::clear();
 
     Console::write(String(STR("aaa")));
@@ -4013,16 +4012,18 @@ void testConsole()
 
     Console::writeLineFormatted(STR("%d"), 333);
     writeLineFormatted(STR("%d"), 444);
-
-    Console::setMode(CONSOLE_MODE_LINE);
 }
 
-int main()
+int MAIN(int argc, const char_t** argv)
 {
     try
     {
+        Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
+
         testFoundation();
         testConsole();
+        
+        Console::setMode(CONSOLE_MODE_DEFAULT);
     }
     catch (Exception& ex)
     {

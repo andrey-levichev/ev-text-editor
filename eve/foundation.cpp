@@ -1072,7 +1072,7 @@ String String::from(unsigned long long value)
 {
     char_t* chars;
 
-    if (asprintf(&chars, STR("%lld"), value) < 0)
+    if (asprintf(&chars, STR("%llu"), value) < 0)
         throw Exception(STR("failed to convert to string"));
 
     return String(chars);

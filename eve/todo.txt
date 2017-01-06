@@ -38,6 +38,8 @@ foundation bugs:
 * map remove for non copy constructable types
 * checking pointer param and length is inconsistent between string and array
 * string to int must throw exception if can't convert
+* get rid of == nullptr
+* console write at position doesn't move cursor on windows
 
 foundation features:
 * convert any object to string
@@ -53,3 +55,4 @@ foundation features:
 * initializer_list support
 * conversion between containers (array to list etc)
 * create element in place for containers
+
