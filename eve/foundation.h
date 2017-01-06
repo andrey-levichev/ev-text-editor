@@ -288,7 +288,7 @@ typedef char32_t unichar_t;
         } \
         catch (exception& ex) \
         { \
-            ASSERT_MSG(STRSTR(ex.message(), msg) != nullptr, \
+            ASSERT_MSG(STRSTR(ex.message(), msg), \
                 STR(#exception) STR(" doesn't contain expected message")); \
         } \
         catch (...) { \
@@ -632,7 +632,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 template<typename _Type>
 inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 {
-    ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+    ASSERT((size == 0 && !values) || (size > 0 && values));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -655,7 +655,7 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 template<typename _Type>
 inline _Type* createArrayMove(int size, int capacity, _Type* values)
 {
-    ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+    ASSERT((size == 0 && !values) || (size > 0 && values));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -1284,7 +1284,7 @@ public:
     
     Array(int size, const _Type* values)
     {
-        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        ASSERT((size == 0 && !values) || (size > 0 && values));
         
         _size = size;
         _capacity = size;
@@ -1480,7 +1480,7 @@ public:
 
     void assign(int size, const _Type* values)
     {
-        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        ASSERT((size == 0 && !values) || (size > 0 && values));
 
         if (_values != values)
         {
@@ -1633,7 +1633,7 @@ protected:
     Array(int size, int capacity, _Type* values) :
         _size(size), _capacity(capacity), _values(values)
     {
-        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        ASSERT((size == 0 && !values) || (size > 0 && values));
         ASSERT(capacity >= 0 && size <= capacity);
     }
 
@@ -1836,7 +1836,7 @@ public:
     List(int size, const _Type* values) :
         _front(nullptr), _back(nullptr)
     {
-        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        ASSERT((size == 0 && !values) || (size > 0 && values));
 
         try
         {
@@ -1903,7 +1903,7 @@ public:
 
     bool empty() const
     {
-        return _front == nullptr;
+        return !_front;
     }
 
     ListNode<_Type>* front()
@@ -1958,7 +1958,7 @@ public:
 
     void popFront()
     {
-        ASSERT(_front != nullptr);
+        ASSERT(_front);
 
         auto node = _front;
         _front = _front->next;
@@ -1973,7 +1973,7 @@ public:
 
     void popBack()
     {
-        ASSERT(_back != nullptr);
+        ASSERT(_back);
 
         auto node = _back;
         _back = _back->prev;
@@ -2048,7 +2048,7 @@ public:
 
     ListNode<_Type>* insertBefore(ListNode<_Type>* pos, const _Type& value)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         auto node = Memory::create<ListNode<_Type>>(value, pos->prev, pos);
 
@@ -2063,7 +2063,7 @@ public:
 
     ListNode<_Type>* insertBefore(ListNode<_Type>* pos, _Type&& value)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), pos->prev, pos);
 
@@ -2078,7 +2078,7 @@ public:
 
     ListNode<_Type>* insertAfter(ListNode<_Type>* pos, const _Type& value)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         auto node = Memory::create<ListNode<_Type>>(value, pos, pos->next);
 
@@ -2093,7 +2093,7 @@ public:
 
     ListNode<_Type>* insertAfter(ListNode<_Type>* pos, _Type&& value)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), pos, pos->next);
 
@@ -2108,7 +2108,7 @@ public:
 
     void remove(ListNode<_Type>* pos)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         if (pos->prev)
             pos->prev->next = pos->next;
@@ -2164,7 +2164,7 @@ public:
 
     _Type& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 
@@ -2211,7 +2211,7 @@ public:
 
     const _Type& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 
@@ -2576,7 +2576,7 @@ public:
 
     typename Map<_Key, _Value>::KeyValue& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 
@@ -2641,7 +2641,7 @@ public:
 
     const typename Map<_Key, _Value>::KeyValue& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 
@@ -2914,7 +2914,7 @@ public:
 
     const _Type& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 

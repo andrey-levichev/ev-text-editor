@@ -865,7 +865,7 @@ void Editor::saveFile()
 
 String Editor::getCommand(const char_t* prompt)
 {
-    ASSERT(prompt != nullptr);
+    ASSERT(prompt);
 
     String command;
     String cmdLine;

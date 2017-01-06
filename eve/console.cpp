@@ -51,7 +51,7 @@ void Console::write(const String& str)
 
 void Console::write(const char_t* chars, int len)
 {
-    ASSERT(chars != nullptr);
+    ASSERT(chars);
     ASSERT(len >= -1);
 
     if (len < 0)
@@ -61,7 +61,7 @@ void Console::write(const char_t* chars, int len)
     DWORD written;
 
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle != nullptr);
+    ASSERT(handle);
 
     ASSERT(WriteConsole(handle, chars, len, &written, nullptr));
 #else
@@ -110,7 +110,7 @@ void Console::write(int line, int column, const char_t* chars, int len)
 {
     ASSERT(line > 0);
     ASSERT(column > 0);
-    ASSERT(chars != nullptr);
+    ASSERT(chars);
     ASSERT(len >= -1);
 
     if (len < 0)
@@ -123,7 +123,7 @@ void Console::write(int line, int column, const char_t* chars, int len)
     pos.Y = line - 1;
     
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle != nullptr);
+    ASSERT(handle);
 
     ASSERT(WriteConsoleOutputCharacter(handle, chars, len, pos, &written));
 #else
@@ -143,7 +143,7 @@ void Console::write(int line, int column, char_t ch, int len)
 
 void Console::writeFormatted(const char_t* format, ...)
 {
-    ASSERT(format != nullptr);
+    ASSERT(format);
 
     va_list args;
     va_start(args, format);
@@ -153,13 +153,13 @@ void Console::writeFormatted(const char_t* format, ...)
 
 void Console::writeFormatted(const char_t* format, va_list args)
 {
-    ASSERT(format != nullptr);
+    ASSERT(format);
     ASSERT(VPRINTF(format, args) >= 0);
 }
 
 void Console::writeLineFormatted(const char_t* format, ...)
 {
-    ASSERT(format != nullptr);
+    ASSERT(format);
 
     va_list args;
     va_start(args, format);
@@ -170,7 +170,7 @@ void Console::writeLineFormatted(const char_t* format, ...)
 
 void Console::writeLineFormatted(const char_t* format, va_list args)
 {
-    ASSERT(format != nullptr);
+    ASSERT(format);
     ASSERT(VPRINTF(format, args) >= 0);
     writeLine();
 }
@@ -196,7 +196,7 @@ void Console::getSize(int& width, int& height)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
 
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle != nullptr);
+    ASSERT(handle);
 
     ASSERT(GetConsoleScreenBufferInfo(handle, &csbi));
 
@@ -209,7 +209,7 @@ void Console::clear()
     CONSOLE_SCREEN_BUFFER_INFO csbi;
 
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle != nullptr);
+    ASSERT(handle);
 
     ASSERT(GetConsoleScreenBufferInfo(handle, &csbi));
     
@@ -226,7 +226,7 @@ void Console::showCursor(bool show)
     CONSOLE_CURSOR_INFO cci;
 
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle != nullptr);
+    ASSERT(handle);
 
     ASSERT(GetConsoleCursorInfo(handle, &cci));
     cci.bVisible = show;
@@ -243,7 +243,7 @@ void Console::setCursorPosition(int line, int column)
     pos.Y = line - 1;
 
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle != nullptr);
+    ASSERT(handle);
 
     ASSERT(SetConsoleCursorPosition(handle, pos));
 }
@@ -301,7 +301,7 @@ void Console::readRegularKey(char_t ch, Key& key)
 
 const char_t* Console::readSpecialKey(const char_t* p, Key& key)
 {
-    ASSERT(p != nullptr);
+    ASSERT(p);
 
     ++p;
     bool read7e = true;
@@ -495,7 +495,7 @@ const Array<Key>& Console::readKeys()
 #ifdef PLATFORM_WINDOWS
 
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    ASSERT(handle != nullptr);
+    ASSERT(handle);
     
     if (WaitForSingleObject(handle, INFINITE) == WAIT_OBJECT_0)
     {
