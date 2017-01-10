@@ -17,3 +17,4 @@ eve.VC.db
 .suo
 cmake-build-*
 
+eve/test.dat

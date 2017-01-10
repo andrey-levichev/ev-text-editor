@@ -33,12 +33,9 @@ offer recently used, located nearby first
 complete on tab or punctuation
 
 foundation bugs:
-* provide optional length in char_t* overloads to avoid strlen
-* tests for classes outside foundation
 * map remove for non copy constructable types
 * checking pointer param and length is inconsistent between string and array
 * string to int must throw exception if can't convert
-* console write at position doesn't move cursor on windows
 
 foundation features:
 * convert any object to string

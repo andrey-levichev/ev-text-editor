@@ -562,7 +562,7 @@ void Editor::updateScreen()
 
     if (lineColLen <= len)
     {
-        Console::write(_screenHeight, _width - lineColLen + 1, lineCol, lineColLen);
+        Console::write(_screenHeight, _width - lineColLen + 1, lineCol);
         len -= lineColLen;
         if (len > 0)
             --len;
@@ -942,46 +942,6 @@ void Editor::buildProject()
 
     updateScreen();
 }
-
-#ifndef PLATFORM_WINDOWS
-
-void testKeys()
-{
-    char chars[10];
-
-    pollfd pfd;
-    pfd.fd = STDIN_FILENO;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-
-    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
-
-    while (true)
-    {
-        if (poll(&pfd, 1, -1) > 0)
-        {
-            int len;
-            ioctl(STDIN_FILENO, FIONREAD, &len);
-
-            read(STDIN_FILENO, chars, len);
-
-            for (int i = 0; i < len; ++i)
-                printf("%x ", (unsigned)chars[i]);
-
-            for (int i = 0; i < len; ++i)
-                if (isprint(chars[i]))
-                    putchar(chars[i]);
-                else
-                    printf("\\x%x", (unsigned)chars[i]);
-
-            printf("\n");
-        }
-    }
-
-    Console::setMode(CONSOLE_MODE_DEFAULT);
-}
-
-#endif
 
 int MAIN(int argc, const char_t** argv)
 {

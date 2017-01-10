@@ -23,6 +23,11 @@ File::~File()
     close();
 }
 
+bool File::isOpen() const
+{
+    return _handle != INVALID_HANDLE_VALUE;
+}
+
 bool File::open(const String& fileName, FileMode openMode)
 {
     if (_handle != INVALID_HANDLE_VALUE)
@@ -86,7 +91,7 @@ void File::close()
     if (_handle != INVALID_HANDLE_VALUE)
     {
 #ifdef PLATFORM_WINDOWS
-        ASSERT_NO_EXCEPTION(CloseHandle(_handle));
+        ASSERT(CloseHandle(_handle));
 #else
         ASSERT(::close(_handle) == 0);
 #endif

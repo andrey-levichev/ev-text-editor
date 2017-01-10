@@ -186,6 +186,7 @@ typedef wchar_t char_t;
 #define PUTCHAR putwchar
 #define GETCHAR getwchar
 #define CHAR_EOF WEOF
+typedef wint_t getchar_t;
 
 #else
 
@@ -222,6 +223,7 @@ typedef char char_t;
 #define PUTCHAR putchar
 #define GETCHAR getchar
 #define CHAR_EOF EOF
+typedef int getchar_t;
 
 #endif
 
