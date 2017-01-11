@@ -1839,6 +1839,15 @@ void testString()
     ASSERT(String(STR("123")).toUInt64() == 123);
     ASSERT(String(STR("123.45")).toFloat() == 123.45f);
     ASSERT(String(STR("123.45")).toDouble() == 123.45);
+    
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toBool());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt32());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toUInt32());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt64());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toUInt64());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toFloat());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toDouble());
 
     // conversion to string
 
@@ -4256,13 +4265,13 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        // testFoundation();
+        testFoundation();
         // testFile();
         // testConsole();
         // testConsoleWrite();
         // testConsoleReadChar();
         // testConsoleReadLine();
-        testConsoleReadKeys();
+        // testConsoleReadKeys();
     }
     catch (Exception& ex)
     {

@@ -973,42 +973,89 @@ char_t* String::release()
 
 bool String::toBool() const
 {
-    return compareNoCase(STR("true")) == 0;
+    if (compareNoCase(STR("true")) == 0)
+        return true;
+    else if (compareNoCase(STR("false")) == 0)
+        return false;
+    else
+        throw Exception(STR("invalid boolean value"));
 }
 
 int String::toInt() const
 {
-    return STRTOL(str(), nullptr, 10);
+    return toInt32();
 }
 
 int32_t String::toInt32() const
 {
-    return STRTOL(str(), nullptr, 10);
+    const char_t* s = str();
+    char_t* e;
+    
+    int32_t val = STRTOL(s, &e, 10);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 uint32_t String::toUInt32() const
 {
-    return STRTOUL(str(), nullptr, 10);
+    const char_t* s = str();
+    char_t* e;
+    
+    uint32_t val = STRTOUL(s, &e, 10);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 int64_t String::toInt64() const
 {
-    return STRTOLL(str(), nullptr, 10);
+    const char_t* s = str();
+    char_t* e;
+    
+    int64_t val = STRTOLL(s, &e, 10);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 uint64_t String::toUInt64() const
 {
-    return STRTOULL(str(), nullptr, 10);
+    const char_t* s = str();
+    char_t* e;
+    
+    uint64_t val = STRTOULL(s, &e, 10);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 float String::toFloat() const
 {
-    return STRTOF(str(), nullptr);
+    const char_t* s = str();
+    char_t* e;
+    
+    float val = STRTOF(s, &e);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 double String::toDouble() const
 {
-    return STRTOD(str(), nullptr);
+    const char_t* s = str();
+    char_t* e;
+    
+    double val = STRTOD(s, &e);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 // conversion to string

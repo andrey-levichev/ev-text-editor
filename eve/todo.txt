@@ -5,7 +5,6 @@ allow customizable key mappings and reading partial keys
 screen update code must not differ between platforms
 * support unicode input and newline differences
 decode/encode text from file to runtime enconding, translate newlines
-* review pointer vs index usage
 * handle SIGWINCH to detect terminal size changes
 
 basic features:
@@ -31,11 +30,6 @@ cache results in a file
 offer completion after second letter
 offer recently used, located nearby first
 complete on tab or punctuation
-
-foundation bugs:
-* map remove for non copy constructable types
-* checking pointer param and length is inconsistent between string and array
-* string to int must throw exception if can't convert
 
 foundation features:
 * convert any object to string
