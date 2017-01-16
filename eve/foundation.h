@@ -148,6 +148,7 @@
 
 #ifdef PLATFORM_SOLARIS
 #include <sys/filio.h>
+#include <alloca.h>
 #endif
 
 #if defined(PLATFORM_WINDOWS) && !defined(COMPILER_GCC)
@@ -185,6 +186,7 @@ typedef wchar_t char_t;
 #define PUTCHAR putwchar
 #define GETCHAR getwchar
 #define CHAR_EOF WEOF
+typedef wint_t getchar_t;
 
 #else
 
@@ -216,15 +218,16 @@ typedef char char_t;
 #define FPUTS fputs
 #define PUTS puts
 #define PRINTF printf
-#define SPRINTF snprintf
+#define SPRINTF sprintf
 #define VPRINTF vprintf
 #define PUTCHAR putchar
 #define GETCHAR getchar
 #define CHAR_EOF EOF
+typedef int getchar_t;
 
 #endif
 
-typedef char32_t uchar_t;
+typedef char32_t unichar_t;
 
 // assert macros
 
@@ -287,7 +290,7 @@ typedef char32_t uchar_t;
         } \
         catch (exception& ex) \
         { \
-            ASSERT_MSG(STRSTR(ex.message(), msg) != nullptr, \
+            ASSERT_MSG(STRSTR(ex.message(), msg), \
                 STR(#exception) STR(" doesn't contain expected message")); \
         } \
         catch (...) { \
@@ -337,6 +340,7 @@ inline const char* strcasestr(const char* str, const char* searchStr)
     for (; *str; ++str)
         if (!strcasecmp(str, searchStr))
             return str;
+
     return nullptr;
 }
 
@@ -484,6 +488,8 @@ public:
 
 // Memory
 
+#define ALLOCATE_STACK(type, size) reinterpret_cast<type*>(alloca(sizeof(type) * (size)))
+
 namespace Memory
 {
 
@@ -517,23 +523,16 @@ inline _Type* allocate(int size)
 }
 
 template<typename _Type>
-inline _Type* allocateStack(int size)
-{
-    ASSERT(size >= 0);
-    return static_cast<_Type*>(alloca(sizeof(_Type) * size));
-}
-
-template<typename _Type>
 inline _Type* reallocate(_Type* ptr, int size)
 {
     ASSERT(size >= 0);
 
     ptr = static_cast<_Type*>(realloc(ptr, sizeof(_Type) * size));
 
-    if (ptr)
-        return ptr;
-    else
+    if (size > 0 && !ptr)
         throw OutOfMemoryException();
+    else
+        return ptr;
 }
 
 inline void deallocate(void* ptr)
@@ -586,6 +585,8 @@ inline void destroy(_Type* ptr)
 template<typename _Type>
 inline void destructArray(int size, _Type* values)
 {
+    ASSERT(size >= 0);
+
     if (values)
     {
         while (size-- > 0)
@@ -596,6 +597,8 @@ inline void destructArray(int size, _Type* values)
 template<typename _Type>
 inline void destroyArray(int size, _Type* values)
 {
+    ASSERT(size >= 0);
+
     if (values)
     {
         while (size-- > 0)
@@ -631,7 +634,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 template<typename _Type>
 inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 {
-    ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+    ASSERT((size == 0 && !values) || (size > 0 && values));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -654,7 +657,7 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 template<typename _Type>
 inline _Type* createArrayMove(int size, int capacity, _Type* values)
 {
-    ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+    ASSERT((size == 0 && !values) || (size > 0 && values));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -1072,7 +1075,7 @@ public:
 
     void insert(int pos, const String& str);
     void insert(int pos, const char_t* chars);
-    void insert(int pos, char_t ch);
+    void insert(int pos, char_t ch, int len = 1);
     
     void erase(int pos, int len);
     void erase(const String& str);
@@ -1283,7 +1286,7 @@ public:
     
     Array(int size, const _Type* values)
     {
-        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        ASSERT((size == 0 && !values) || (size > 0 && values));
         
         _size = size;
         _capacity = size;
@@ -1479,7 +1482,7 @@ public:
 
     void assign(int size, const _Type* values)
     {
-        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        ASSERT((size == 0 && !values) || (size > 0 && values));
 
         if (_values != values)
         {
@@ -1632,6 +1635,8 @@ protected:
     Array(int size, int capacity, _Type* values) :
         _size(size), _capacity(capacity), _values(values)
     {
+        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(capacity >= 0 && size <= capacity);
     }
 
     void reallocate(int capacity)
@@ -1833,7 +1838,7 @@ public:
     List(int size, const _Type* values) :
         _front(nullptr), _back(nullptr)
     {
-        ASSERT((size == 0 && values == nullptr) || (size > 0 && values != nullptr));
+        ASSERT((size == 0 && !values) || (size > 0 && values));
 
         try
         {
@@ -1900,7 +1905,7 @@ public:
 
     bool empty() const
     {
-        return _front == nullptr;
+        return !_front;
     }
 
     ListNode<_Type>* front()
@@ -1955,7 +1960,7 @@ public:
 
     void popFront()
     {
-        ASSERT(_front != nullptr);
+        ASSERT(_front);
 
         auto node = _front;
         _front = _front->next;
@@ -1970,7 +1975,7 @@ public:
 
     void popBack()
     {
-        ASSERT(_back != nullptr);
+        ASSERT(_back);
 
         auto node = _back;
         _back = _back->prev;
@@ -2045,7 +2050,7 @@ public:
 
     ListNode<_Type>* insertBefore(ListNode<_Type>* pos, const _Type& value)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         auto node = Memory::create<ListNode<_Type>>(value, pos->prev, pos);
 
@@ -2060,7 +2065,7 @@ public:
 
     ListNode<_Type>* insertBefore(ListNode<_Type>* pos, _Type&& value)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), pos->prev, pos);
 
@@ -2075,7 +2080,7 @@ public:
 
     ListNode<_Type>* insertAfter(ListNode<_Type>* pos, const _Type& value)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         auto node = Memory::create<ListNode<_Type>>(value, pos, pos->next);
 
@@ -2090,7 +2095,7 @@ public:
 
     ListNode<_Type>* insertAfter(ListNode<_Type>* pos, _Type&& value)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), pos, pos->next);
 
@@ -2105,7 +2110,7 @@ public:
 
     void remove(ListNode<_Type>* pos)
     {
-        ASSERT(pos != nullptr);
+        ASSERT(pos);
 
         if (pos->prev)
             pos->prev->next = pos->next;
@@ -2161,7 +2166,7 @@ public:
 
     _Type& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 
@@ -2208,7 +2213,7 @@ public:
 
     const _Type& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 
@@ -2573,7 +2578,7 @@ public:
 
     typename Map<_Key, _Value>::KeyValue& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 
@@ -2638,7 +2643,7 @@ public:
 
     const typename Map<_Key, _Value>::KeyValue& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 
@@ -2911,7 +2916,7 @@ public:
 
     const _Type& value() const
     {
-        ASSERT(_node != nullptr);
+        ASSERT(_node);
         return _node->value;
     }
 

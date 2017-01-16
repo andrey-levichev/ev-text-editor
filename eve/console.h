@@ -52,8 +52,9 @@ struct Key
 enum ConsoleMode
 {
     CONSOLE_MODE_DEFAULT = 0,
-    CONSOLE_MODE_UNICODE = 1,
-    CONSOLE_MODE_LINE_INPUT = 2
+    CONSOLE_MODE_NONCANONICAL = 1,
+    CONSOLE_MODE_NOTBUFFERED = 2,
+    CONSOLE_MODE_UNICODE = 4
 };
 
 // Console
@@ -64,16 +65,16 @@ public:
     static void setMode(int mode);
 
     static void write(const String& str);
-    static void write(const char_t* chars, int len = -1);
+    static void write(const char_t* chars);
     static void write(char_t ch, int len = 1);
 
     static void writeLine(const String& str);
-    static void writeLine(const char_t* chars, int len = -1);
+    static void writeLine(const char_t* chars);
     static void writeLine(char_t ch, int len = 1);
     static void writeLine();
 
     static void write(int line, int column, const String& str);
-    static void write(int line, int column, const char_t* chars, int len = -1);
+    static void write(int line, int column, const char_t* chars);
     static void write(int line, int column, char_t ch, int len = 1);
 
     static void writeFormatted(const char_t* format, ...);
@@ -82,6 +83,7 @@ public:
     static void writeLineFormatted(const char_t* format, ...);
     static void writeLineFormatted(const char_t* format, va_list args);
 
+    static char_t readChar();
     static String readLine();
 
     static void getSize(int& width, int& height);
@@ -93,6 +95,9 @@ public:
     static const Array<Key>& readKeys();
 
 protected:
+    static void write(const char_t* chars, int len);
+    static void write(int line, int column, const char_t* chars, int len);
+
 #ifdef PLATFORM_UNIX
     static void readRegularKey(char_t ch, Key& key);
     static const char_t* readSpecialKey(const char_t* p, Key& key);

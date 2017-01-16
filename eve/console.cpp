@@ -12,32 +12,33 @@ Array<Key> Console::_keys;
 
 void Console::setMode(int mode)
 {
+    if (mode & CONSOLE_MODE_NOTBUFFERED)
+        ASSERT(setvbuf(stdout, nullptr, _IONBF, 0) == 0);
+    else
+        ASSERT(setvbuf(stdout, nullptr, _IOFBF, BUFSIZ) == 0);
+
 #ifdef PLATFORM_WINDOWS
 
-    if (mode & CONSOLE_MODE_UNICODE)
-        _setmode(_fileno(stdout), _O_U16TEXT);
-    else
-        _setmode(_fileno(stdout), _O_U8TEXT);
+    ASSERT(_setmode(_fileno(stdout), 
+            mode & CONSOLE_MODE_UNICODE ? _O_U16TEXT : _O_TEXT) >= 0);
 
 #else
 
-    if (mode & CONSOLE_MODE_LINE_INPUT)
+    if (mode & CONSOLE_MODE_NONCANONICAL)
     {
         termios ta;
-        tcgetattr(STDIN_FILENO, &ta);
-        ta.c_lflag |= ECHO | ICANON;
-        tcsetattr(STDIN_FILENO, TCSANOW, &ta);    
-        setvbuf(stdout, nullptr, _IOFBF, BUFSIZ);
+        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
+        ta.c_lflag &= ~(ECHO | ICANON);
+        ta.c_cc[VTIME] = 0;
+        ta.c_cc[VMIN] = 1;
+        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
     }
     else
     {
         termios ta;
-        tcgetattr(STDIN_FILENO, &ta);
-        ta.c_lflag &= ~(ECHO | ICANON);
-        ta.c_cc[VTIME] = 0;
-        ta.c_cc[VMIN] = 1;
-        tcsetattr(STDIN_FILENO, TCSANOW, &ta);    
-        setvbuf(stdout, nullptr, _IONBF, 0);
+        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
+        ta.c_lflag |= ECHO | ICANON;
+        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
     }
 
 #endif
@@ -48,28 +49,16 @@ void Console::write(const String& str)
     write(str.str(), str.length());
 }
 
-void Console::write(const char_t* chars, int len)
+void Console::write(const char_t* chars)
 {
-    ASSERT(chars != nullptr);
-    ASSERT(len == -1 || len > 0);
-
-    if (len < 0)
-        len = STRLEN(chars);
-
-#ifdef PLATFORM_WINDOWS
-    DWORD written;
-    WriteConsoleOutput(GetStdHandle(STD_OUTPUT_HANDLE),
-        chars, len, &written, NULL);
-#else
-    ::write(STDOUT_FILENO, chars, len);
-#endif
+    ASSERT(chars);
+    write(chars, STRLEN(chars));
 }
 
 void Console::write(char_t ch, int len)
 {
-    ASSERT(len > 0);
-
-    char_t* chars = Memory::allocateStack<char_t>(len);
+    ASSERT(len >= 0);
+    char_t* chars = ALLOCATE_STACK(char_t, len);
     STRSET(chars, ch, len);
     write(chars, len);
 }
@@ -80,25 +69,23 @@ void Console::writeLine(const String& str)
     writeLine();
 }
 
-void Console::writeLine(const char_t* chars, int len)
+void Console::writeLine(const char_t* chars)
 {
-    write(chars, len);
+    ASSERT(chars);
+    write(chars, STRLEN(chars));
     writeLine();
 }
 
 void Console::writeLine(char_t ch, int len)
 {
+    ASSERT(len >= 0);
     write(ch, len);
     writeLine();
 }
 
 void Console::writeLine()
 {
-#ifdef PLATFORM_WINDOWS
-    write(STR("\r\n"), 2);
-#else
     write(STR("\n"), 1);
-#endif
 }
 
 void Console::write(int line, int column, const String& str)
@@ -106,77 +93,64 @@ void Console::write(int line, int column, const String& str)
     write(line, column, str.str(), str.length());
 }
 
-void Console::write(int line, int column, const char_t* chars, int len)
+void Console::write(int line, int column, const char_t* chars)
 {
-    ASSERT(line > 0);
-    ASSERT(column > 0);
-    ASSERT(chars != nullptr);
-    ASSERT(len == -1 || len > 0);
-
-    if (len < 0)
-        len = STRLEN(chars);
-
-#ifdef PLATFORM_WINDOWS
-    DWORD written;
-    COORD pos;
-    pos.X = column - 1;
-    pos.Y = line - 1;
-    
-    WriteConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE),  
-        chars, len, pos, &written);
-#else
-    setCursorPosition(line, column);
-    ::write(STDOUT_FILENO, chars, len);
-#endif
+    ASSERT(chars);
+    write(line, column, chars, STRLEN(chars));
 }
 
 void Console::write(int line, int column, char_t ch, int len)
 {
-    ASSERT(len > 0);
-
-    char_t* chars = Memory::allocateStack<char_t>(len);
+    ASSERT(len >= 0);
+    char_t* chars = ALLOCATE_STACK(char_t, len);
     STRSET(chars, ch, len);
     write(line, column, chars, len);
 }
 
 void Console::writeFormatted(const char_t* format, ...)
 {
-    ASSERT(format != nullptr);
+    ASSERT(format);
 
     va_list args;
     va_start(args, format);
-    VPRINTF(format, args);
+    ASSERT(VPRINTF(format, args) >= 0);
     va_end(args);
 }
 
 void Console::writeFormatted(const char_t* format, va_list args)
 {
-    ASSERT(format != nullptr);
-    VPRINTF(format, args);
+    ASSERT(format);
+    ASSERT(VPRINTF(format, args) >= 0);
 }
 
 void Console::writeLineFormatted(const char_t* format, ...)
 {
-    ASSERT(format != nullptr);
+    ASSERT(format);
 
     va_list args;
     va_start(args, format);
-    VPRINTF(format, args);
+    ASSERT(VPRINTF(format, args) >= 0);
     va_end(args);
-    writeLine();
+    putchar('\n');
 }
 
 void Console::writeLineFormatted(const char_t* format, va_list args)
 {
-    ASSERT(format != nullptr);
-    VPRINTF(format, args);
-    writeLine();
+    ASSERT(format);
+    ASSERT(VPRINTF(format, args) >= 0);
+    putchar('\n');
+}
+
+char_t Console::readChar()
+{
+    getchar_t ch = GETCHAR();
+    return ch == CHAR_EOF ? 0 : ch;
 }
 
 String Console::readLine()
 {
     String line;
-    int ch = GETCHAR();
+    getchar_t ch = GETCHAR();
 
     while (!(ch == '\n' || ch == CHAR_EOF))
     {
@@ -192,33 +166,43 @@ String Console::readLine()
 void Console::getSize(int& width, int& height)
 {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(GetConsoleScreenBufferInfo(handle, &csbi));
+
     width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 }
 
 void Console::clear()
 {
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(GetConsoleScreenBufferInfo(handle, &csbi));
     
     COORD pos = { 0, 0 };
     DWORD size = csbi.dwSize.X * csbi.dwSize.Y, written;
     
-    FillConsoleOutputCharacter(handle, ' ', size, pos, &written);
-    FillConsoleOutputAttribute(handle, csbi.wAttributes, size, pos, &written);
-    SetConsoleCursorPosition(handle, pos);
+    ASSERT(FillConsoleOutputCharacter(handle, ' ', size, pos, &written));
+    ASSERT(FillConsoleOutputAttribute(handle, csbi.wAttributes, size, pos, &written));
+    ASSERT(SetConsoleCursorPosition(handle, pos));
 }
 
 void Console::showCursor(bool show)
 {
     CONSOLE_CURSOR_INFO cci;
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
-    GetConsoleCursorInfo(handle, &cci);
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(GetConsoleCursorInfo(handle, &cci));
     cci.bVisible = show;
-    SetConsoleCursorInfo(handle, &cci);
+    ASSERT(SetConsoleCursorInfo(handle, &cci));
 }
 
 void Console::setCursorPosition(int line, int column)
@@ -229,7 +213,11 @@ void Console::setCursorPosition(int line, int column)
     COORD pos;
     pos.X = column - 1;
     pos.Y = line - 1;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), pos);
+
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(SetConsoleCursorPosition(handle, pos));
 }
 
 #else
@@ -237,20 +225,20 @@ void Console::setCursorPosition(int line, int column)
 void Console::getSize(int& width, int& height)
 {
     struct winsize ws;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
+    ASSERT(ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) >= 0);
     width = ws.ws_col;
     height = ws.ws_row;
 }
 
 void Console::clear()
 {
-    ::write(STDOUT_FILENO, "\x1b[2J", 4);
+    ASSERT(::write(STDOUT_FILENO, "\x1b[2J", 4) >= 0);
     setCursorPosition(1, 1);
 }
 
 void Console::showCursor(bool show)
 {
-    ::write(STDOUT_FILENO, show ? "\x1b[?25h" : "\x1b[?25l", 6);
+    ASSERT(::write(STDOUT_FILENO, show ? "\x1b[?25h" : "\x1b[?25l", 6) >= 0);
 }
 
 void Console::setCursorPosition(int line, int column)
@@ -259,11 +247,256 @@ void Console::setCursorPosition(int line, int column)
     ASSERT(column > 0);
 
     char_t cmd[30];
-    sprintf(cmd, "\x1b[%d;%dH", line, column);
-    ::write(STDOUT_FILENO, cmd, strlen(cmd));
+    ASSERT(sprintf(cmd, "\x1b[%d;%dH", line, column) >= 0);
+    ASSERT(::write(STDOUT_FILENO, cmd, strlen(cmd)) >= 0);
 }
 
 #endif
+
+const Array<Key>& Console::readKeys()
+{
+    _keys.clear();
+
+#ifdef PLATFORM_WINDOWS
+
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    ASSERT(handle);
+    
+    if (WaitForSingleObject(handle, INFINITE) == WAIT_OBJECT_0)
+    {
+        DWORD numInputRec = 0;
+        ASSERT(GetNumberOfConsoleInputEvents(handle, &numInputRec));
+        
+        _input.resize(numInputRec);
+        ASSERT(ReadConsoleInput(handle, _input.values(), numInputRec, &numInputRec));
+
+        for (DWORD i = 0; i < numInputRec; ++i)
+        {
+            INPUT_RECORD& inputRec = _input[i];
+
+            if (inputRec.EventType == KEY_EVENT && inputRec.Event.KeyEvent.bKeyDown)
+            {
+                Key key;
+
+                switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
+                {
+                case VK_ESCAPE:
+                    key.code = KEY_ESC;
+                    break;
+                case VK_TAB:
+                    key.code = KEY_TAB;
+                    key.ch = '\t';
+                    break;
+                case VK_BACK:
+                    key.code = KEY_BACKSPACE;
+                    break;
+                case VK_RETURN:
+                    key.code = KEY_ENTER;
+                    key.ch = '\n';
+                    break;
+                case VK_UP:
+                    key.code = KEY_UP;
+                    break;
+                case VK_DOWN:
+                    key.code = KEY_DOWN;
+                    break;
+                case VK_LEFT:
+                    key.code = KEY_LEFT;
+                    break;
+                case VK_RIGHT:
+                    key.code = KEY_RIGHT;
+                    break;
+                case VK_INSERT:
+                    key.code = KEY_INSERT;
+                    break;
+                case VK_DELETE:
+                    key.code = KEY_DELETE;
+                    break;
+                case VK_HOME:
+                    key.code = KEY_HOME;
+                    break;
+                case VK_END:
+                    key.code = KEY_END;
+                    break;
+                case VK_PRIOR:
+                    key.code = KEY_PGUP;
+                    break;
+                case VK_NEXT:
+                    key.code = KEY_PGDN;
+                    break;
+                case VK_F1:
+                    key.code = KEY_F1;
+                    break;
+                case VK_F2:
+                    key.code = KEY_F2;
+                    break;
+                case VK_F3:
+                    key.code = KEY_F3;
+                    break;
+                case VK_F4:
+                    key.code = KEY_F4;
+                    break;
+                case VK_F5:
+                    key.code = KEY_F5;
+                    break;
+                case VK_F6:
+                    key.code = KEY_F6;
+                    break;
+                case VK_F7:
+                    key.code = KEY_F7;
+                    break;
+                case VK_F8:
+                    key.code = KEY_F8;
+                    break;
+                case VK_F9:
+                    key.code = KEY_F9;
+                    break;
+                case VK_F10:
+                    key.code = KEY_F10;
+                    break;
+                case VK_F11:
+                    key.code = KEY_F11;
+                    break;
+                case VK_F12:
+                    key.code = KEY_F12;
+                    break;
+                default:
+                    key.code = KEY_NONE;
+                    key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
+                    break;
+                }
+
+                DWORD controlKeys = inputRec.Event.KeyEvent.dwControlKeyState;
+                key.ctrl = (controlKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+                key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+                key.shift = (controlKeys & SHIFT_PRESSED) != 0;
+
+                if (!(key.code == KEY_NONE && key.ch == 0))
+                    _keys.pushBack(key);
+            }
+        }
+    }
+    
+    return _keys;
+
+#else
+
+    pollfd pfd;
+    pfd.fd = STDIN_FILENO;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+
+    if (poll(&pfd, 1, -1) > 0)
+    {
+        int len;
+        ASSERT(ioctl(STDIN_FILENO, FIONREAD, &len) >= 0);
+
+        _input.resize(len + 1);
+        len = read(STDIN_FILENO, _input.values(), len);
+
+        if (len > 0)
+        {
+            _input[len] = 0;
+            const char_t* p = _input.values();
+
+            while (*p)
+            {
+                Key key;
+
+                if (*p == 0x1b)
+                {
+                    ++p;
+
+                    if (*p == 0x1b)
+                    {
+                        ++p;
+                        key.alt = true;
+
+                        if (*p == 0x5b)
+                        {
+                            p = readSpecialKey(p, key);
+                        }
+                        else if (*p == 0x4f)
+                        {
+                            key.ctrl = true;
+                            p = readSpecialKey(p, key);
+                        }
+                        else
+                            continue;
+                    }
+                    else if (*p == 0x5b)
+                    {
+                        p = readSpecialKey(p, key);
+                    }
+                    else if (*p == 0x4f)
+                    {
+                        key.ctrl = true;
+                        p = readSpecialKey(p, key);
+                    }
+                    else if (*p)
+                    {
+                        key.alt = true;
+                        readRegularKey(*p, key);
+                        ++p;
+                    }
+                    else
+                        key.code = KEY_ESC;
+                }
+                else
+                {
+                    readRegularKey(*p, key);
+                    ++p;
+                }
+
+                _keys.pushBack(key);
+            }
+        }
+    }
+
+#endif
+
+    return _keys;
+}
+
+void Console::write(const char_t* chars, int len)
+{
+    ASSERT(chars);
+    ASSERT(len >= 0);
+
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(WriteConsole(handle, chars, len, &written, nullptr));
+#else
+    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
+#endif
+}
+
+void Console::write(int line, int column, const char_t* chars, int len)
+{
+    ASSERT(line > 0);
+    ASSERT(column > 0);
+    ASSERT(chars);
+    ASSERT(len >= 0);
+
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+    COORD pos;
+    pos.X = column - 1;
+    pos.Y = line - 1;
+    
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(WriteConsoleOutputCharacter(handle, chars, len, pos, &written));
+#else
+    setCursorPosition(line, column);
+    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
+#endif
+}
 
 #ifdef PLATFORM_UNIX
 
@@ -285,7 +518,7 @@ void Console::readRegularKey(char_t ch, Key& key)
 
 const char_t* Console::readSpecialKey(const char_t* p, Key& key)
 {
-    ASSERT(p != nullptr);
+    ASSERT(p);
 
     ++p;
     bool read7e = true;
@@ -472,169 +705,3 @@ const char_t* Console::readSpecialKey(const char_t* p, Key& key)
 
 #endif
 
-const Array<Key>& Console::readKeys()
-{
-    _keys.clear();
-
-#ifdef PLATFORM_WINDOWS
-
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    
-    if (WaitForSingleObject(handle, INFINITE) == WAIT_OBJECT_0)
-    {
-        DWORD numInputRec = 0;
-        GetNumberOfConsoleInputEvents(handle, &numInputRec);
-        
-        _input.resize(numInputRec);
-        ReadConsoleInput(handle, _input.values(), numInputRec, &numInputRec);
-
-        for (DWORD i = 0; i < numInputRec; ++i)
-        {
-            INPUT_RECORD& inputRec = _input[i];
-
-            if (inputRec.EventType == KEY_EVENT && inputRec.Event.KeyEvent.bKeyDown)
-            {
-                Key key;
-
-                switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
-                {
-                case VK_ESCAPE:
-                    key.code = KEY_ESC;
-                    break;
-                case VK_TAB:
-                    key.code = KEY_TAB;
-                    key.ch = '\t';
-                    break;
-                case VK_BACK:
-                    key.code = KEY_BACKSPACE;
-                    break;
-                case VK_RETURN:
-                    key.code = KEY_ENTER;
-                    key.ch = '\n';
-                    break;
-                case VK_UP:
-                    key.code = KEY_UP;
-                    break;
-                case VK_DOWN:
-                    key.code = KEY_DOWN;
-                    break;
-                case VK_LEFT:
-                    key.code = KEY_LEFT;
-                    break;
-                case VK_RIGHT:
-                    key.code = KEY_RIGHT;
-                    break;
-                case VK_INSERT:
-                    key.code = KEY_INSERT;
-                    break;
-                case VK_DELETE:
-                    key.code = KEY_DELETE;
-                    break;
-                case VK_HOME:
-                    key.code = KEY_HOME;
-                    break;
-                case VK_END:
-                    key.code = KEY_END;
-                    break;
-                case VK_PRIOR:
-                    key.code = KEY_PGUP;
-                    break;
-                case VK_NEXT:
-                    key.code = KEY_PGDN;
-                    break;
-                default:
-                    key.code = KEY_NONE;
-                    key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
-                    break;
-                }
-
-                DWORD controlKeys = inputRec.Event.KeyEvent.dwControlKeyState;
-                key.ctrl = (controlKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-                key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
-                key.shift = (controlKeys & SHIFT_PRESSED) != 0;
-
-                _keys.pushBack(key);
-            }
-        }
-    }
-    
-    return _keys;
-
-#else
-
-    pollfd pfd;
-    pfd.fd = STDIN_FILENO;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
-
-    if (poll(&pfd, 1, -1) > 0)
-    {
-        int len;
-        ioctl(STDIN_FILENO, FIONREAD, &len);
-
-        _input.resize(len + 1);
-        len = read(STDIN_FILENO, _input.values(), len);
-
-        if (len > 0)
-        {
-            _input[len] = 0;
-            const char_t* p = _input.values();
-
-            while (*p)
-            {
-                Key key;
-
-                if (*p == 0x1b)
-                {
-                    ++p;
-
-                    if (*p == 0x1b)
-                    {
-                        ++p;
-                        key.alt = true;
-
-                        if (*p == 0x5b)
-                        {
-                            p = readSpecialKey(p, key);
-                        }
-                        else if (*p == 0x4f)
-                        {
-                            key.ctrl = true;
-                            p = readSpecialKey(p, key);
-                        }
-                        else
-                            continue;
-                    }
-                    else if (*p == 0x5b)
-                    {
-                        p = readSpecialKey(p, key);
-                    }
-                    else if (*p == 0x4f)
-                    {
-                        key.ctrl = true;
-                        p = readSpecialKey(p, key);
-                    }
-                    else if (*p)
-                    {
-                        key.alt = true;
-                        readRegularKey(*p, key);
-                        ++p;
-                    }
-                    else
-                        key.code = KEY_ESC;
-                }
-                else
-                {
-                    readRegularKey(*p, key);
-                    ++p;
-                }
-
-                _keys.pushBack(key);
-            }
-        }
-    }
-
-#endif
-
-    return _keys;
-}

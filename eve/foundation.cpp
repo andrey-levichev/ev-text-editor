@@ -247,8 +247,8 @@ int String::find(const String& str, int pos) const
 
 int String::find(const char_t* chars, int pos) const
 {
-    ASSERT(pos >= 0 && pos <= _length);
     ASSERT(chars);
+    ASSERT(pos >= 0 && pos <= _length);
 
     if (*chars)
     {
@@ -302,8 +302,8 @@ int String::findNoCase(const String& str, int pos) const
 
 int String::findNoCase(const char_t* chars, int pos) const
 {
-    ASSERT(pos >= 0 && pos <= _length);
     ASSERT(chars);
+    ASSERT(pos >= 0 && pos <= _length);
 
     if (*chars)
     {
@@ -483,7 +483,7 @@ void String::assign(char_t ch, int len)
 
         if (capacity > _capacity)
         {
-            String tmp(len, ch);
+            String tmp(ch, len);
             swap(*this, tmp);
         }
         else
@@ -539,9 +539,8 @@ void String::append(char_t ch, int len)
     if (capacity > _capacity)
         ensureCapacity(capacity * 2);
 
-    while (len--)
-        _chars[_length++] = ch;
-
+    STRSET(_chars + _length, ch, len);
+    _length += len;
     _chars[_length] = 0;
 }
 
@@ -596,19 +595,20 @@ void String::insert(int pos, const char_t* chars)
     }
 }
 
-void String::insert(int pos, char_t ch)
+void String::insert(int pos, char_t ch, int len)
 {
     ASSERT(pos >= 0 && pos <= _length);
     ASSERT(ch != 0);
+    ASSERT(len >= 0);
 
-    int capacity = _length + 2;
+    int capacity = _length + len + 1;
     if (capacity > _capacity)
         ensureCapacity(capacity * 2);
 
     char_t* p = _chars + pos;
-    STRMOVE(p + 1, p, _length - pos + 1);
-    *p = ch;
-    ++_length;
+    STRMOVE(p + len, p, _length - pos + 1);
+    STRSET(p, ch, len);
+    _length += len;
 }
 
 void String::erase(int pos, int len)
@@ -973,42 +973,89 @@ char_t* String::release()
 
 bool String::toBool() const
 {
-    return compareNoCase(STR("true")) == 0;
+    if (compareNoCase(STR("true")) == 0)
+        return true;
+    else if (compareNoCase(STR("false")) == 0)
+        return false;
+    else
+        throw Exception(STR("invalid boolean value"));
 }
 
 int String::toInt() const
 {
-    return STRTOL(str(), nullptr, 10);
+    return toInt32();
 }
 
 int32_t String::toInt32() const
 {
-    return STRTOL(str(), nullptr, 10);
+    const char_t* s = str();
+    char_t* e;
+    
+    int32_t val = STRTOL(s, &e, 10);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 uint32_t String::toUInt32() const
 {
-    return STRTOUL(str(), nullptr, 10);
+    const char_t* s = str();
+    char_t* e;
+    
+    uint32_t val = STRTOUL(s, &e, 10);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 int64_t String::toInt64() const
 {
-    return STRTOLL(str(), nullptr, 10);
+    const char_t* s = str();
+    char_t* e;
+    
+    int64_t val = STRTOLL(s, &e, 10);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 uint64_t String::toUInt64() const
 {
-    return STRTOULL(str(), nullptr, 10);
+    const char_t* s = str();
+    char_t* e;
+    
+    uint64_t val = STRTOULL(s, &e, 10);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 float String::toFloat() const
 {
-    return STRTOF(str(), nullptr);
+    const char_t* s = str();
+    char_t* e;
+    
+    float val = STRTOF(s, &e);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 double String::toDouble() const
 {
-    return STRTOD(str(), nullptr);
+    const char_t* s = str();
+    char_t* e;
+    
+    double val = STRTOD(s, &e);
+    if (s < e && *e == '\0')
+        return val;
+    else
+        throw Exception(STR("invalid number"));
 }
 
 // conversion to string
@@ -1072,7 +1119,7 @@ String String::from(unsigned long long value)
 {
     char_t* chars;
 
-    if (asprintf(&chars, STR("%lld"), value) < 0)
+    if (asprintf(&chars, STR("%llu"), value) < 0)
         throw Exception(STR("failed to convert to string"));
 
     return String(chars);

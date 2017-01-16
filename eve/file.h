@@ -26,6 +26,8 @@ public:
     ~File();
     
     File& operator=(const File&) = delete;
+
+    bool isOpen() const;
     
     bool open(const String& fileName, 
         FileMode openMode = FILE_MODE_OPEN_EXISTING);
