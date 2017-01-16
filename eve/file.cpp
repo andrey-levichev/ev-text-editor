@@ -208,8 +208,8 @@ int64_t File::size() const
     ASSERT(GetFileSizeEx(_handle, reinterpret_cast<LARGE_INTEGER*>(&sz)));
     return sz;
 #else
-    struct stat64 st;
-    ASSERT(fstat64(_handle, &st) == 0);
+    struct stat st;
+    ASSERT(fstat(_handle, &st) == 0);
     return st.st_size;
 #endif
 }

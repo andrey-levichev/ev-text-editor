@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		97785FA91DEB6EC3002A31FB /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FA71DEB6EC3002A31FB /* test.cpp */; };
 		97785FAA1DEB6EC3002A31FB /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = 97785FA81DEB6EC3002A31FB /* makefile */; };
 		97785FB31DEB6ECD002A31FB /* foundation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FAC1DEB6ECD002A31FB /* foundation.cpp */; };
 		97785FB41DEB6ECD002A31FB /* file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FAE1DEB6ECD002A31FB /* file.cpp */; };
@@ -115,7 +114,7 @@
 		97785F931DEB6E0F002A31FB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0810;
+				LastUpgradeCheck = 0820;
 				ORGANIZATIONNAME = "Andrey Levichev";
 				TargetAttributes = {
 					97785F9A1DEB6E0F002A31FB = {
@@ -148,7 +147,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				97785FB51DEB6ECD002A31FB /* eve.cpp in Sources */,
-				97785FA91DEB6EC3002A31FB /* test.cpp in Sources */,
 				97785FB31DEB6ECD002A31FB /* foundation.cpp in Sources */,
 				97785FB41DEB6ECD002A31FB /* file.cpp in Sources */,
 				97785FB61DEB6ECD002A31FB /* console.cpp in Sources */,
@@ -177,6 +175,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -225,6 +224,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
