@@ -4,7 +4,11 @@ allow customizable key mappings and reading partial keys
 * minimal screen update for colored text
 screen update code must not differ between platforms
 * support unicode input and newline differences
+support unicode input etc
 decode/encode text from file to runtime enconding, translate newlines
+support utf-8 on windows and utf-16 on linux?
+asserts in string support functions
+safe vs unsafe calls?
 * handle SIGWINCH to detect terminal size changes
 
 basic features:

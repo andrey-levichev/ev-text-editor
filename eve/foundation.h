@@ -13,7 +13,7 @@
 
 // 32/64 bit
 
-#if defined(__x86_64) || defined(_M_X64) || defined(__sparcv9) || defined(_ARCH_PPC64)
+#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || defined(_M_ARM64) || defined(__sparcv9) || defined(_ARCH_PPC64)
 #define ARCH_64BIT
 #else
 #define ARCH_32BIT
@@ -21,7 +21,17 @@
 
 // processor architecture
 
-#if defined(__sparc) || defined(__sparcv9)
+#if defined(__i386) || defined(__x86_64) || defined(_M_IX86) || defined(_M_X64)
+
+#define ARCH_INTEL
+#define ARCH_LITTLE_ENDIAN
+
+#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+
+#define ARCH_ARM
+#define ARCH_LITTLE_ENDIAN
+
+#elif defined(__sparc) || defined(__sparcv9)
 
 #define ARCH_SPARC
 #define ARCH_BIG_ENDIAN
@@ -30,16 +40,6 @@
 
 #define ARCH_POWER
 #define ARCH_BIG_ENDIAN
-
-#elif defined(__i386) || defined(__x86_64) || defined(_M_IX86) ||defined(_M_X64)
-
-#define ARCH_INTEL
-#define ARCH_LITTLE_ENDIAN
-
-#elif defined(__arm__) || defined(_M_ARM)
-
-#define ARCH_ARM
-#define ARCH_LITTLE_ENDIAN
 
 #endif
 
@@ -151,41 +151,17 @@
 #include <alloca.h>
 #endif
 
-#if defined(PLATFORM_WINDOWS) && !defined(COMPILER_GCC)
+// string support
+
+typedef char32_t unichar_t;
+
+#ifdef PLATFORM_WINDOWS
 
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
-#define STR(arg) L##arg
-typedef wchar_t char_t;
-
-#define STRLEN wcslen
-#define STRCPY wcscpy
-#define STRSET wmemset
-#define STRCMP wcscmp
-#define STRNCMP wcsncmp
-#define STRICMP _wcsicmp
-#define STRNICMP _wcsnicmp
-#define STRSTR wcsstr
-#define STRISTR wcscasestr
-#define STRTOL wcstol
-#define STRTOUL wcstoul
-#define STRTOLL wcstoll
-#define STRTOULL wcstoull
-#define STRTOF wcstof
-#define STRTOD wcstod
-#define ISSPACE iswspace
-#define ISPRINT iswprint
-#define ISALNUM iswalnum
-#define TOLOWER towlower
-#define TOUPPER towupper
-#define FPUTS fputws
-#define PUTS _putws
-#define PRINTF wprintf
-#define SPRINTF swprintf
-#define VPRINTF vwprintf
-#define PUTCHAR putwchar
-#define GETCHAR getwchar
+#define STR(arg) u##arg
 #define CHAR_EOF WEOF
+typedef char16_t char_t;
 typedef wint_t getchar_t;
 
 #else
@@ -193,41 +169,99 @@ typedef wint_t getchar_t;
 #define CHAR_ENCODING_UTF8
 #define MAIN main
 #define STR(arg) arg
-typedef char char_t;
-
-#define STRLEN strlen
-#define STRCPY strcpy
-#define STRSET memset
-#define STRCMP strcmp
-#define STRNCMP strncmp
-#define STRICMP strcasecmp
-#define STRNICMP strncasecmp
-#define STRSTR strstr
-#define STRISTR strcasestr
-#define STRTOL strtol
-#define STRTOUL strtoul
-#define STRTOLL strtoll
-#define STRTOULL strtoull
-#define STRTOF strtof
-#define STRTOD strtod
-#define ISSPACE isspace
-#define ISPRINT isprint
-#define ISALNUM isalnum
-#define TOLOWER tolower
-#define TOUPPER toupper
-#define FPUTS fputs
-#define PUTS puts
-#define PRINTF printf
-#define SPRINTF sprintf
-#define VPRINTF vprintf
-#define PUTCHAR putchar
-#define GETCHAR getchar
 #define CHAR_EOF EOF
+typedef char char_t;
 typedef int getchar_t;
 
 #endif
 
-typedef char32_t unichar_t;
+int strLen(const char_t* str);
+char_t* strSet(char_t* str, unichar_t ch, int len);
+char_t* strCopy(char_t* destStr, const char_t* srcStr);
+char_t* strCopyLen(char_t* destStr, const char_t* srcStr, int len);
+char_t* strMove(char_t* destStr, const char_t* srcStr, int len);
+
+int strCompare(const char_t* left, const char_t* right);
+int strCompareLen(const char_t* left, const char_t* right, int len);
+int strCompareNoCase(const char_t* left, const char_t* right);
+int strCompareLenNoCase(const char_t* left, const char_t* right, int len);
+
+char_t* strFind(const char_t* str, const char_t* searchStr);
+char_t* strFindNoCase(const char_t* str, const char_t* searchStr);
+
+long strToLong(const char_t* str, char_t** end, int base);
+unsigned long strToULong(const char_t* str, char_t** end, int base);
+long long strToLLong(const char_t* str, char_t** end, int base);
+unsigned long long strToULLong(const char_t* str, char_t** end, int base);
+float strToFloat(const char_t* str, char_t** end);
+double strToDouble(const char_t* str, char_t** end);
+
+bool charIsSpace(unichar_t ch);
+bool charIsPrint(unichar_t ch);
+bool charIsAlphaNum(unichar_t ch);
+unichar_t charToLower(unichar_t ch);
+unichar_t charToUpper(unichar_t ch);
+
+void print(const char_t* str);
+void printFormatted(const char_t* format, ...);
+void printString(char_t* str, const char_t* format, ...);
+void printArgs(const char_t* format, va_list args);
+void printArgsAlloc(char_t** str, const char_t* format, va_list args);
+void printAlloc(char_t** str, const char_t* format, ...);
+
+void putChar(unichar_t ch);
+unichar_t getChar();
+
+// Unicode support
+
+int utf8CharToUtf32(const char* in, char32_t* out);
+void utf8StringToUtf32(const char* in, char32_t* out);
+
+int utf32CharToUtf8(const char32_t* in, char* out);
+void utf32StringToUtf8(const char32_t* in, char* out);
+
+int utf16CharToUtf32(const char16_t* in, char32_t* out);
+void utf16StringToUtf32(const char16_t* in, char32_t* out);
+
+int utf32CharToUtf16(const char32_t* in, char16_t* out);
+void utf32StringToUtf16(const char32_t* in, char16_t* out);
+
+void utf8StringToUtf16(const char* in, char16_t* out);
+void utf16StringToUtf8(const char16_t* in, char* out);
+
+char32_t utf8CharAt(const char* pos);
+const char* utf8CharForward(const char* pos, int n = 1);
+const char* utf8CharBack(const char* pos, int n = 1);
+int utf8CharLength(char32_t ch);
+int utf8StringLength(const char* str);
+
+char32_t utf16CharAt(const char16_t* pos);
+const char16_t* utf16CharForward(const char16_t* pos, int n = 1);
+const char16_t* utf16CharBack(const char16_t* pos, int n = 1);
+int utf16CharLength(char32_t ch);
+int utf16StringLength(const char16_t* str);
+
+#ifdef PLATFORM_WINDOWS
+
+#define UTF_CHAR_TO_UNICODE utf16CharToUtf32
+#define UNICODE_CHAR_TO_UTF utf32CharToUtf16 
+#define UTF_CHAR_AT utf16CharAt
+#define UTF_CHAR_FORWARD utf16CharForward
+#define UTF_CHAR_BACK utf16CharBack
+#define UTF_CHAR_LENGTH utf16CharLength
+#define UTF_STRING_LENGTH utf16StringLength
+
+#else
+
+#define UTF_CHAR_TO_UNICODE utf8CharToUtf32
+#define UNICODE_CHAR_TO_UTF utf32CharToUtf8 
+#define UTF_CHAR_AT utf8CharAt
+#define UTF_CHAR_FORWARD utf8CharForward
+#define UTF_CHAR_BACK utf8CharBack
+#define UTF_CHAR_LENGTH utf8CharLength
+#define UTF_STRING_LENGTH utf8StringLength
+
+#endif
 
 // assert macros
 
@@ -242,7 +276,7 @@ typedef char32_t unichar_t;
 #define ASSERT_MSG(condition, message) \
     do { \
         if (!(condition)) { \
-            PUTS(STR("assertion failed in ") \
+            print(STR("assertion failed in ") \
                 STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message); \
             abort(); \
         } \
@@ -290,7 +324,7 @@ typedef char32_t unichar_t;
         } \
         catch (exception& ex) \
         { \
-            ASSERT_MSG(STRSTR(ex.message(), msg), \
+            ASSERT_MSG(strFind(ex.message(), msg), \
                 STR(#exception) STR(" doesn't contain expected message")); \
         } \
         catch (...) { \
@@ -306,43 +340,6 @@ typedef char32_t unichar_t;
 #define ASSERT_EXCEPTION(exception, ...)
 #define ASSERT_NO_EXCEPTION(...)
 #define ASSERT_EXCEPTION_MSG(exception, msg, ...)
-
-#endif
-
-// string helper functions
-
-inline char_t* STRNCPY(char_t* destStr, const char_t* srcStr, int len)
-{
-    memcpy(destStr, srcStr, len * sizeof(char_t));
-    return destStr + len;
-}
-
-inline char_t* STRMOVE(char_t* destStr, const char_t* srcStr, int len)
-{
-    memmove(destStr, srcStr, len * sizeof(char_t));
-    return destStr + len;
-}
-
-#if defined(PLATFORM_WINDOWS) && !defined(COMPILER_GCC)
-
-inline const wchar_t* wcscasestr(const wchar_t* str, const wchar_t* searchStr)
-{
-    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, FIND_FROMSTART | LINGUISTIC_IGNORECASE, 
-        str, -1, searchStr, -1, nullptr, nullptr, nullptr, 0);
-
-    return index >= 0 ? str + index : nullptr;
-}
-
-#elif defined(PLATFORM_AIX) || (defined(PLATFORM_WINDOWS) && defined(COMPILER_GCC))
-
-inline const char* strcasestr(const char* str, const char* searchStr)
-{
-    for (; *str; ++str)
-        if (!strcasecmp(str, searchStr))
-            return str;
-
-    return nullptr;
-}
 
 #endif
 
@@ -997,7 +994,7 @@ public:
     String(const String& other, int pos, int len);
     String(const char_t* chars);
     String(const char_t* chars, int pos, int len);
-    String(char_t ch, int len = 1);
+    String(unichar_t ch, int len = 1);
 
     String(String&& other);
 
@@ -1009,12 +1006,14 @@ public:
     
     String& operator+=(const String& str);
     String& operator+=(const char_t* chars);
-    String& operator+=(char_t ch);
+    String& operator+=(unichar_t ch);
 
     int length() const
     {
         return _length;
     }
+
+    int charLength() const;
 
     int capacity() const
     {
@@ -1045,10 +1044,10 @@ public:
 
     int find(const String& str, int pos = 0) const;
     int find(const char_t* chars, int pos = 0) const;
-    int find(char_t ch, int pos = 0) const;
+    int find(unichar_t ch, int pos = 0) const;
     int findNoCase(const String& str, int pos = 0) const;
     int findNoCase(const char_t* chars, int pos = 0) const;
-    int findNoCase(char_t ch, int pos = 0) const;
+    int findNoCase(unichar_t ch, int pos = 0) const;
     
     bool startsWith(const String& str) const;
     bool startsWith(const char_t* chars) const;
@@ -1064,18 +1063,18 @@ public:
 
     void assign(const String& other);
     void assign(const char_t* chars);
-    void assign(char_t ch, int len = 1);
+    void assign(unichar_t ch, int len = 1);
 
     void append(const String& str);
     void append(const char_t* chars);
-    void append(char_t ch, int len = 1);
+    void append(unichar_t ch, int len = 1);
 
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
 
     void insert(int pos, const String& str);
     void insert(int pos, const char_t* chars);
-    void insert(int pos, char_t ch, int len = 1);
+    void insert(int pos, unichar_t ch, int len = 1);
     
     void erase(int pos, int len);
     void erase(const String& str);
@@ -1156,18 +1155,18 @@ protected:
     template<typename... _Args>
     static char_t* concatInternal(int totalLen, const char_t* chars, _Args&&... args)
     {
-        int len = STRLEN(chars);
+        int len = strLen(chars);
         char_t* destChars = concatInternal(totalLen + len, args...);
-        STRNCPY(destChars + totalLen, chars, len);
+        strCopyLen(destChars + totalLen, chars, len);
         return destChars;
     }
     
     static char_t* concatInternal(int totalLen, const char_t* chars)
     {
-        int len = STRLEN(chars);
+        int len = strLen(chars);
         char_t* destChars = Memory::allocate<char_t>(totalLen + len + 1);
         destChars[totalLen + len] = 0;        
-        STRNCPY(destChars + totalLen, chars, len);
+        strCopyLen(destChars + totalLen, chars, len);
         return destChars;
     }
     
@@ -1176,9 +1175,9 @@ protected:
     {
         if (str._chars)
         {
-            int len = STRLEN(str._chars);
+            int len = strLen(str._chars);
             char_t* destChars = concatInternal(totalLen + len, args...);
-            STRNCPY(destChars + totalLen, str._chars, len);
+            strCopyLen(destChars + totalLen, str._chars, len);
             return destChars;
         }
         else
@@ -1189,10 +1188,10 @@ protected:
     {
         if (str._chars)
         {
-            int len = STRLEN(str._chars);
+            int len = strLen(str._chars);
             char_t* destChars = Memory::allocate<char_t>(totalLen + len + 1);
             destChars[totalLen + len] = 0;        
-            STRNCPY(destChars + totalLen, str._chars, len);
+            strCopyLen(destChars + totalLen, str._chars, len);
             return destChars;
         }
         else
@@ -1235,6 +1234,30 @@ bool operator>(const char_t* left, const String& right);
 bool operator>(const String& left, const char_t* right);
 bool operator>=(const char_t* left, const String& right);
 bool operator>=(const String& left, const char_t* right);
+
+// ConstStringIterator
+
+class ConstStringIterator
+{
+public:
+    ConstStringIterator(const String& str) :
+        _str(str), _pos(nullptr)
+    {
+    }
+
+    unichar_t value() const;
+    bool moveNext();
+    bool movePrev();
+
+    void reset()
+    {
+        _pos = nullptr;
+    }
+
+private:
+    const String& _str;
+    const char_t* _pos;
+};
 
 // Array
 

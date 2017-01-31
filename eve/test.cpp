@@ -1789,7 +1789,7 @@ void testString()
 
     {
         char_t* p = Memory::allocate<char_t>(1);
-        STRCPY(p, STR(""));
+        strCopy(p, STR(""));
         String s = String::acquire(p);
         ASSERT(s.chars() == p);
         ASSERT(s == STR(""));
@@ -1799,7 +1799,7 @@ void testString()
 
     {
         char_t* p = Memory::allocate<char_t>(2);
-        STRCPY(p, STR("a"));
+        strCopy(p, STR("a"));
         String s = String::acquire(p);
         ASSERT(s.chars() == p);
         ASSERT(s == STR("a"));
@@ -1812,7 +1812,7 @@ void testString()
     {
         String s(STR("a"));
         char_t* p = s.release();
-        ASSERT(STRCMP(p, STR("a")) == 0);
+        ASSERT(strCompare(p, STR("a")) == 0);
         ASSERT(!s.chars());
         ASSERT(s.length() == 0);
         ASSERT(s.capacity() == 0);
@@ -4210,7 +4210,7 @@ void testConsoleReadKeys()
                 Console::writeLine(STR("KEY_F12"));
                 break;
             default:
-                if (ISPRINT(key.ch))
+                if (charIsPrint(key.ch))
                     Console::writeLine(key.ch);
                 else
                     Console::writeLineFormatted(STR("\\x%02x"), 

@@ -1,9 +1,9 @@
 TARGET=eve
-HEADERS=foundation.h console.h file.h eve.h
-SOURCES=foundation.cpp console.cpp file.cpp eve.cpp
+HEADERS=foundation.h console.h file.h test.h
+SOURCES=foundation.cpp console.cpp file.cpp test.cpp
 RM=$(if $(OS),del,rm)
 
-all: $(TARGET).clang
+all: $(TARGET).vcpp.exe
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \

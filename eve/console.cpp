@@ -52,14 +52,14 @@ void Console::write(const String& str)
 void Console::write(const char_t* chars)
 {
     ASSERT(chars);
-    write(chars, STRLEN(chars));
+    write(chars, strLen(chars));
 }
 
 void Console::write(char_t ch, int len)
 {
     ASSERT(len >= 0);
     char_t* chars = ALLOCATE_STACK(char_t, len);
-    STRSET(chars, ch, len);
+    strSet(chars, ch, len);
     write(chars, len);
 }
 
@@ -72,7 +72,7 @@ void Console::writeLine(const String& str)
 void Console::writeLine(const char_t* chars)
 {
     ASSERT(chars);
-    write(chars, STRLEN(chars));
+    write(chars, strLen(chars));
     writeLine();
 }
 
@@ -96,14 +96,14 @@ void Console::write(int line, int column, const String& str)
 void Console::write(int line, int column, const char_t* chars)
 {
     ASSERT(chars);
-    write(line, column, chars, STRLEN(chars));
+    write(line, column, chars, strLen(chars));
 }
 
 void Console::write(int line, int column, char_t ch, int len)
 {
     ASSERT(len >= 0);
     char_t* chars = ALLOCATE_STACK(char_t, len);
-    STRSET(chars, ch, len);
+    strSet(chars, ch, len);
     write(line, column, chars, len);
 }
 
@@ -113,14 +113,14 @@ void Console::writeFormatted(const char_t* format, ...)
 
     va_list args;
     va_start(args, format);
-    ASSERT(VPRINTF(format, args) >= 0);
+    printArgs(format, args);
     va_end(args);
 }
 
 void Console::writeFormatted(const char_t* format, va_list args)
 {
     ASSERT(format);
-    ASSERT(VPRINTF(format, args) >= 0);
+    printArgs(format, args);
 }
 
 void Console::writeLineFormatted(const char_t* format, ...)
@@ -129,33 +129,33 @@ void Console::writeLineFormatted(const char_t* format, ...)
 
     va_list args;
     va_start(args, format);
-    ASSERT(VPRINTF(format, args) >= 0);
+    printArgs(format, args);
     va_end(args);
-    putchar('\n');
+    putChar('\n');
 }
 
 void Console::writeLineFormatted(const char_t* format, va_list args)
 {
     ASSERT(format);
-    ASSERT(VPRINTF(format, args) >= 0);
-    putchar('\n');
+    printArgs(format, args);
+    putChar('\n');
 }
 
 char_t Console::readChar()
 {
-    getchar_t ch = GETCHAR();
+    getchar_t ch = getChar();
     return ch == CHAR_EOF ? 0 : ch;
 }
 
 String Console::readLine()
 {
     String line;
-    getchar_t ch = GETCHAR();
+    getchar_t ch = getChar();
 
     while (!(ch == '\n' || ch == CHAR_EOF))
     {
         line += ch;
-        ch = GETCHAR();
+        ch = getChar();
     }
 
     return line;
@@ -491,7 +491,8 @@ void Console::write(int line, int column, const char_t* chars, int len)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(WriteConsoleOutputCharacter(handle, chars, len, pos, &written));
+    ASSERT(WriteConsoleOutputCharacter(handle, 
+        reinterpret_cast<const wchar_t*>(chars), len, pos, &written));
 #else
     setCursorPosition(line, column);
     ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);

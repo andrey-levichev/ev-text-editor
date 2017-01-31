@@ -36,7 +36,7 @@ bool Text::wordForward()
     {
         ++p;
 
-        if (ISSPACE(*(p - 1)) && !ISSPACE(*p))
+        if (charIsSpace(*(p - 1)) && !charIsSpace(*p))
             break;
     }
 
@@ -54,7 +54,7 @@ bool Text::wordBack()
         --p;
         while (p > _chars)
         {
-            if (ISSPACE(*(p - 1)) && !ISSPACE(*p))
+            if (charIsSpace(*(p - 1)) && !charIsSpace(*p))
                 break;
 
             --p;
@@ -129,7 +129,7 @@ void Text::insertChar(char_t ch)
         char_t* chars = ALLOCATE_STACK(char_t, len + 1);
 
         chars[0] = '\n';
-        *STRNCPY(chars + 1, p, q - p) = 0;
+        *strCopyLen(chars + 1, p, q - p) = 0;
 
         insert(_position, chars);
         _position += len;
@@ -376,12 +376,12 @@ void Text::trimTrailingWhitespace()
         ++p; ++q;
     }
 
-    _length = STRLEN(_chars);
+    _length = strLen(_chars);
 }
 
 bool Text::isIdent(char_t ch)
 {
-    return ISALNUM(ch) || ch == '_';
+    return charIsAlphaNum(ch) || ch == '_';
 }
 
 // Editor
@@ -556,7 +556,7 @@ void Editor::updateScreen()
     Console::write(1, 1, _screen);
 
     char_t lineCol[30];
-    int lineColLen = SPRINTF(lineCol, STR("%d, %d"), _line, _column);
+    int lineColLen = printString(lineCol, STR("%d, %d"), _line, _column);
 
     len = _width;
 
@@ -821,7 +821,7 @@ bool Editor::processKey()
             lineColumnToPosition();
             update = true;
         }
-        else if (key.ch == '\n' || key.ch == '\t' || ISPRINT(key.ch))
+        else if (key.ch == '\n' || key.ch == '\t' || charIsPrint(key.ch))
         {
             _text.insertChar(key.ch);
             positionToLineColumn();
@@ -870,7 +870,7 @@ String Editor::getCommand(const char_t* prompt)
     String command;
     String cmdLine;
     
-    int width = _width - STRLEN(prompt);
+    int width = _width - strLen(prompt);
     if (width < 2)
         throw Exception(STR("window is too narrow"));
 
@@ -920,7 +920,7 @@ String Editor::getCommand(const char_t* prompt)
                 if (command.length() > 0)
                     command.erase(command.length() - 1, 1);
             }
-            else if (ISPRINT(key.ch))
+            else if (charIsPrint(key.ch))
             {
                 command += key.ch;
             }

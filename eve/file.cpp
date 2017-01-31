@@ -56,8 +56,9 @@ bool File::open(const String& fileName, FileMode openMode)
         break;
     }
     
-    _handle = CreateFile(fileName.str(), GENERIC_READ | GENERIC_WRITE,
-        0, nullptr, mode, FILE_ATTRIBUTE_NORMAL, nullptr);
+    _handle = CreateFile(reinterpret_cast<const wchar_t*>(fileName.str()), 
+        GENERIC_READ | GENERIC_WRITE, 0, nullptr, 
+        mode, FILE_ATTRIBUTE_NORMAL, nullptr);
 #else
     switch (openMode)
     {
