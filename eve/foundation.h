@@ -214,30 +214,30 @@ unichar_t getChar();
 
 // Unicode support
 
-int utf8CharToUtf32(const char* in, char32_t* out);
+int utf8CharToUtf32(const char* in, char32_t& ch);
 void utf8StringToUtf32(const char* in, char32_t* out);
 
-int utf32CharToUtf8(const char32_t* in, char* out);
+int utf32CharToUtf8(char32_t ch, char* out);
 void utf32StringToUtf8(const char32_t* in, char* out);
 
-int utf16CharToUtf32(const char16_t* in, char32_t* out);
+int utf16CharToUtf32(const char16_t* in, char32_t& ch);
 void utf16StringToUtf32(const char16_t* in, char32_t* out);
 
-int utf32CharToUtf16(const char32_t* in, char16_t* out);
+int utf32CharToUtf16(char32_t ch, char16_t* out);
 void utf32StringToUtf16(const char32_t* in, char16_t* out);
 
 void utf8StringToUtf16(const char* in, char16_t* out);
 void utf16StringToUtf8(const char16_t* in, char* out);
 
 char32_t utf8CharAt(const char* pos);
-const char* utf8CharForward(const char* pos, int n = 1);
-const char* utf8CharBack(const char* pos, int n = 1);
+char* utf8CharForward(const char* pos, int n = 1);
+char* utf8CharBack(const char* pos, const char* start, int n = 1);
 int utf8CharLength(char32_t ch);
 int utf8StringLength(const char* str);
 
 char32_t utf16CharAt(const char16_t* pos);
-const char16_t* utf16CharForward(const char16_t* pos, int n = 1);
-const char16_t* utf16CharBack(const char16_t* pos, int n = 1);
+char16_t* utf16CharForward(const char16_t* pos, int n = 1);
+char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n = 1);
 int utf16CharLength(char32_t ch);
 int utf16StringLength(const char16_t* str);
 
@@ -980,9 +980,6 @@ inline int hash(const SharedPtr<_Type>& val)
 class String
 {
 public:
-    static const int INVALID_POSITION = -1;
-
-public:
     String() :
         _length(0),
         _capacity(0),
@@ -991,29 +988,62 @@ public:
     }
 
     String(const String& other);
-    String(const String& other, int pos, int len);
-    String(const char_t* chars);
-    String(const char_t* chars, int pos, int len);
+    String(const char_t* pos, int len = -1);
     String(unichar_t ch, int len = 1);
 
     String(String&& other);
 
-    ~String();
+    ~String()
+    {
+        Memory::deallocate(_chars);
+    }
 
-    String& operator=(const String& other);
-    String& operator=(const char_t* chars);
-    String& operator=(String&& other);
+    String& operator=(const String& other)
+    {
+        assign(other);
+        return *this;
+    }
+
+    String& operator=(const char_t* chars)
+    {
+        assign(chars);
+        return *this;
+    }
+
+    String& operator=(String&& other)
+    {
+        String tmp(static_cast<String&&>(other));
+        swap(*this, tmp);
+        return *this;
+    }
     
-    String& operator+=(const String& str);
-    String& operator+=(const char_t* chars);
-    String& operator+=(unichar_t ch);
+    String& operator+=(const String& str)
+    {
+        append(str);
+        return *this;
+    }
+
+    String& operator+=(const char_t* chars)
+    {
+        append(chars);
+        return *this;
+    }
+
+    String& operator+=(unichar_t ch)
+    {
+        append(ch);
+        return *this;
+    }
 
     int length() const
     {
         return _length;
     }
 
-    int charLength() const;
+    int charLength() const
+    {
+        return UTF_STRING_LENGTH(_chars);
+    }
 
     int capacity() const
     {
@@ -1035,19 +1065,59 @@ public:
         return _length == 0;
     }
 
-    String substr(int pos, int len) const;
+    unichar_t charAt(const char_t* pos)
+    {
+        ASSERT(pos >= _chars && pos <= _chars + _length);
+        return UTF_CHAR_AT(pos);
+    }
 
-    int compare(const String& str) const;
-    int compare(const char_t* chars) const;
-    int compareNoCase(const String& str) const;
-    int compareNoCase(const char_t* chars) const;
+    const char_t* charForward(const char_t* pos, int n)
+    {
+        ASSERT(pos >= _chars && pos <= _chars + _length);
+        ASSERT(n >= 0);
+        return UTF_CHAR_FORWARD(pos, n);
+    }
 
-    int find(const String& str, int pos = 0) const;
-    int find(const char_t* chars, int pos = 0) const;
-    int find(unichar_t ch, int pos = 0) const;
-    int findNoCase(const String& str, int pos = 0) const;
-    int findNoCase(const char_t* chars, int pos = 0) const;
-    int findNoCase(unichar_t ch, int pos = 0) const;
+    const char_t* charBack(const char_t* pos, int n)
+    {
+        ASSERT(pos >= _chars && pos <= _chars + _length);
+        ASSERT(n >= 0);
+        return UTF_CHAR_BACK(pos, _chars, n);
+    }
+
+    String substr(const char_t* pos, int len = -1) const
+    {
+        return String(pos, len);
+    }
+
+    int compare(const String& str) const
+    {
+        return strCompare(this->str(), str.str());
+    }
+
+    int compare(const char_t* chars) const
+    {
+        ASSERT(chars);
+        return strCompare(str(), chars);
+    }
+
+    int compareNoCase(const String& str) const
+    {
+        return strCompareNoCase(this->str(), str.str());
+    }
+
+    int compareNoCase(const char_t* chars) const
+    {
+        ASSERT(chars);
+        return strCompareNoCase(str(), chars);
+    }
+
+    const char_t* find(const String& str, const char_t* pos = nullptr) const;
+    const char_t* find(const char_t* chars, const char_t* pos = nullptr) const;
+    const char_t* find(unichar_t ch, const char_t* pos = nullptr) const;
+    const char_t* findNoCase(const String& str, const char_t* pos = nullptr) const;
+    const char_t* findNoCase(const char_t* chars, const char_t* pos = nullptr) const;
+    const char_t* findNoCase(unichar_t ch, const char_t* pos = nullptr) const;
     
     bool startsWith(const String& str) const;
     bool startsWith(const char_t* chars) const;
@@ -1072,20 +1142,19 @@ public:
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
 
-    void insert(int pos, const String& str);
-    void insert(int pos, const char_t* chars);
-    void insert(int pos, unichar_t ch, int len = 1);
+    void insert(char_t* pos, const String& str);
+    void insert(char_t* pos, const char_t* chars);
+    void insert(char_t* pos, unichar_t ch, int len = 1);
     
-    void erase(int pos, int len);
+    void erase(char_t* pos, int len = -1);
     void erase(const String& str);
     void erase(const char_t* chars);
     
-    void replace(int pos, int len, const String& str);
-    void replace(int pos, int len, const char_t* chars);
+    void replace(char_t* pos, const String& str, int len = -1);
+    void replace(char_t* pos, const char_t* chars, int len = -1);
     void replace(const String& searchStr, const String& replaceStr);
     void replace(const char_t* searchChars, const char_t* replaceChars);
    
-    void reverse();
     void trim();
     void trimRight();
     void trimLeft();
@@ -1210,30 +1279,112 @@ protected:
 
 // string concatenation
 
-String operator+(const String& left, const String& right);
-String operator+(const String& left, const char_t* right);
-String operator+(const char_t* left, const String& right);
+inline String operator+(const String& left, const String& right)
+{
+    return String::concat(left, right);
+}
+
+inline String operator+(const String& left, const char_t* right)
+{
+    return String::concat(left, right);
+}
+
+inline String operator+(const char_t* left, const String& right)
+{
+    return String::concat(left, right);
+}
 
 // string compare
 
-bool operator==(const String& left, const String& right);
-bool operator!=(const String& left, const String& right);
-bool operator<(const String& left, const String& right);
-bool operator<=(const String& left, const String& right);
-bool operator>(const String& left, const String& right);
-bool operator>=(const String& left, const String& right);
-bool operator==(const char_t* left, const String& right);
-bool operator==(const String& left, const char_t* right);
-bool operator!=(const char_t* left, const String& right);
-bool operator!=(const String& left, const char_t* right);
-bool operator<(const char_t* left, const String& right);
-bool operator<(const String& left, const char_t* right);
-bool operator<=(const char_t* left, const String& right);
-bool operator<=(const String& left, const char_t* right);
-bool operator>(const char_t* left, const String& right);
-bool operator>(const String& left, const char_t* right);
-bool operator>=(const char_t* left, const String& right);
-bool operator>=(const String& left, const char_t* right);
+inline bool operator==(const String& left, const String& right)
+{
+    return strCompare(left.str(), right.str()) == 0;
+}
+
+inline bool operator!=(const String& left, const String& right)
+{
+    return strCompare(left.str(), right.str()) != 0;
+}
+
+inline bool operator<(const String& left, const String& right)
+{
+    return strCompare(left.str(), right.str()) < 0;
+}
+
+inline bool operator<=(const String& left, const String& right)
+{
+    return strCompare(left.str(), right.str()) <= 0;
+}
+
+inline bool operator>(const String& left, const String& right)
+{
+    return strCompare(left.str(), right.str()) > 0;
+}
+
+inline bool operator>=(const String& left, const String& right)
+{
+    return strCompare(left.str(), right.str()) >= 0;
+}
+
+inline bool operator==(const char_t* left, const String& right)
+{
+    return strCompare(left, right.str()) == 0;
+}
+
+inline bool operator==(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) == 0;
+}
+
+inline bool operator!=(const char_t* left, const String& right)
+{
+    return strCompare(left, right.str()) != 0;
+}
+
+inline bool operator!=(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) != 0;
+}
+
+inline bool operator<(const char_t* left, const String& right)
+{
+    return strCompare(left, right.str()) < 0;
+}
+
+inline bool operator<(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) < 0;
+}
+
+inline bool operator<=(const char_t* left, const String& right)
+{
+    return strCompare(left, right.str()) <= 0;
+}
+
+inline bool operator<=(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) <= 0;
+}
+
+inline bool operator>(const char_t* left, const String& right)
+{
+    return strCompare(left, right.str()) > 0;
+}
+
+inline bool operator>(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) > 0;
+}
+
+inline bool operator>=(const char_t* left, const String& right)
+{
+    return strCompare(left, right.str()) >= 0;
+}
+
+inline bool operator>=(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) >= 0;
+}
 
 // ConstStringIterator
 
