@@ -186,8 +186,10 @@ int strCompareLen(const char_t* left, const char_t* right, int len);
 int strCompareNoCase(const char_t* left, const char_t* right);
 int strCompareLenNoCase(const char_t* left, const char_t* right, int len);
 
-char_t* strFind(const char_t* str, const char_t* searchStr);
-char_t* strFindNoCase(const char_t* str, const char_t* searchStr);
+char_t* strFind(char_t* str, const char_t* searchStr);
+const char_t* strFind(const char_t* str, const char_t* searchStr);
+char_t* strFindNoCase(char_t* str, const char_t* searchStr);
+const char_t* strFindNoCase(const char_t* str, const char_t* searchStr);
 
 long strToLong(const char_t* str, char_t** end, int base);
 unsigned long strToULong(const char_t* str, char_t** end, int base);
@@ -215,29 +217,30 @@ unichar_t getChar();
 // Unicode support
 
 int utf8CharToUtf32(const char* in, char32_t& ch);
-void utf8StringToUtf32(const char* in, char32_t* out);
-
 int utf32CharToUtf8(char32_t ch, char* out);
-void utf32StringToUtf8(const char32_t* in, char* out);
-
 int utf16CharToUtf32(const char16_t* in, char32_t& ch);
-void utf16StringToUtf32(const char16_t* in, char32_t* out);
-
 int utf32CharToUtf16(char32_t ch, char16_t* out);
-void utf32StringToUtf16(const char32_t* in, char16_t* out);
 
+void utf8StringToUtf32(const char* in, char32_t* out);
+void utf32StringToUtf8(const char32_t* in, char* out);
+void utf16StringToUtf32(const char16_t* in, char32_t* out);
+void utf32StringToUtf16(const char32_t* in, char16_t* out);
 void utf8StringToUtf16(const char* in, char16_t* out);
 void utf16StringToUtf8(const char16_t* in, char* out);
 
 char32_t utf8CharAt(const char* pos);
-char* utf8CharForward(const char* pos, int n = 1);
-char* utf8CharBack(const char* pos, const char* start, int n = 1);
+char* utf8CharForward(char* pos, int n = 1);
+const char* utf8CharForward(const char* pos, int n = 1);
+char* utf8CharBack(char* pos, char* start, int n = 1);
+const char* utf8CharBack(const char* pos, const char* start, int n = 1);
 int utf8CharLength(char32_t ch);
 int utf8StringLength(const char* str);
 
 char32_t utf16CharAt(const char16_t* pos);
-char16_t* utf16CharForward(const char16_t* pos, int n = 1);
-char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n = 1);
+char16_t* utf16CharForward(char16_t* pos, int n = 1);
+const char16_t* utf16CharForward(const char16_t* pos, int n = 1);
+char16_t* utf16CharBack(char16_t* pos, char16_t* start, int n = 1);
+const char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n = 1);
 int utf16CharLength(char32_t ch);
 int utf16StringLength(const char16_t* str);
 
@@ -1055,7 +1058,7 @@ public:
         return _chars ? _chars : STR("");
     }
     
-    char_t* chars()
+    const char_t* chars() const
     {
         return _chars;
     }
@@ -1065,25 +1068,10 @@ public:
         return _length == 0;
     }
 
-    unichar_t charAt(const char_t* pos)
-    {
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-        return UTF_CHAR_AT(pos);
-    }
-
-    const char_t* charForward(const char_t* pos, int n)
-    {
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-        ASSERT(n >= 0);
-        return UTF_CHAR_FORWARD(pos, n);
-    }
-
-    const char_t* charBack(const char_t* pos, int n)
-    {
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-        ASSERT(n >= 0);
-        return UTF_CHAR_BACK(pos, _chars, n);
-    }
+    unichar_t charAt(const char_t* pos) const;
+    const char_t* charPosition(int n) const;
+    const char_t* charForward(const char_t* pos, int n = 1) const;
+    const char_t* charBack(const char_t* pos, int n = 1) const;
 
     String substr(const char_t* pos, int len = -1) const
     {

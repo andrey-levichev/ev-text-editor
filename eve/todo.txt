@@ -9,6 +9,7 @@ decode/encode text from file to runtime enconding, translate newlines
 support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
 rewrite string unit tests
+split/join
 * handle SIGWINCH to detect terminal size changes
 
 basic features:

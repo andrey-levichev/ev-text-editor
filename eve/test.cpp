@@ -23,6 +23,17 @@ bool equalsTo(const UniquePtr<int>& left, const UniquePtr<int>& right)
     }
 }
 
+template<typename _Char>
+int compareUniString(const _Char* str1, const _Char* str2)
+{
+    for (; *str1 == *str2; str1++, str2++)
+        if (!*str1)
+            return 0;
+
+    return static_cast<unsigned>(*str1) >
+        static_cast<unsigned>(*str2) ? 1 : -1;
+}
+
 template<typename _SeqType, typename _ElemType>
 bool compareSequence(const _SeqType& seq, const _ElemType* values)
 {
@@ -317,235 +328,369 @@ void testSharedPtr()
 
 void testString()
 {
-//    // String()
-//
-//    {
-//        String s;
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    // String(const String& other)
-//
-//    {
-//        String s1, s2(s1);
-//        ASSERT(!s2.chars());
-//        ASSERT(s2.length() == 0);
-//        ASSERT(s2.capacity() == 0);
-//    }
-//
-//    {
-//        String s1(STR("a")), s2(s1);
-//        ASSERT(s2 == STR("a"));
-//        ASSERT(s2.length() == 1);
-//        ASSERT(s2.capacity() == 2);
-//    }
-//
-//    // String(const String& other, int pos, int len)
-//
-//    {
-//        String s(STR("a"));
-//        ASSERT_EXCEPTION(Exception, String(s, -1, 0));
-//        ASSERT_EXCEPTION(Exception, String(s, 2, 0));
-//        ASSERT_EXCEPTION(Exception, String(s, 0, -1));
-//        ASSERT_EXCEPTION(Exception, String(s, 0, 2));
-//    }
-//
-//    {
-//        String s1, s2(s1, 0, 0);
-//        ASSERT(!s2.chars());
-//        ASSERT(s2.length() == 0);
-//        ASSERT(s2.capacity() == 0);
-//    }
-//
-//    {
-//        String s1(STR("a")), s2(s1, 0, 0);
-//        ASSERT(!s2.chars());
-//        ASSERT(s2.length() == 0);
-//        ASSERT(s2.capacity() == 0);
-//    }
-//
-//    {
-//        String s1(STR("a")), s2(s1, 1, 0);
-//        ASSERT(!s2.chars());
-//        ASSERT(s2.length() == 0);
-//        ASSERT(s2.capacity() == 0);
-//    }
-//
-//    {
-//        String s1(STR("a")), s2(s1, 0, 1);
-//        ASSERT(s2 == STR("a"));
-//        ASSERT(s2.length() == 1);
-//        ASSERT(s2.capacity() == 2);
-//    }
-//
-//    // String(const char_t* chars)
-//
-//    {
-//        const char_t* p = nullptr;
-//        ASSERT_EXCEPTION(Exception, String s(p));
-//    }
-//
-//    {
-//        String s(STR(""));
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    // String(const char_t* chars, int pos, int len)
-//
-//    ASSERT_EXCEPTION(Exception, String(nullptr, 0, 0));
-//    ASSERT_EXCEPTION(Exception, String(STR("a"), -1, 0));
-//    ASSERT_EXCEPTION(Exception, String(STR("a"), 0, -1));
-//
-//    {
-//        String s(STR("a"), 0, 0);
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    {
-//        String s(STR("a"), 1, 0);
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    {
-//        String s(STR("a"), 0, 1);
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    // String(char_t ch, int len)
-//
-//    ASSERT_EXCEPTION(Exception, String('a', -1));
-//    ASSERT_EXCEPTION(Exception, String(0, 1));
-//
-//    {
-//        String s('a', 0);
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    {
-//        String s('a', 1);
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    // String(String&& other)
-//
-//    {
-//        String s1 = STR("a");
-//        String s2(static_cast<String&&>(s1));
-//
-//        ASSERT(!s1.chars());
-//        ASSERT(s1.length() == 0);
-//        ASSERT(s1.capacity() == 0);
-//
-//        ASSERT(s2 == STR("a"));
-//        ASSERT(s2.length() == 1);
-//        ASSERT(s2.capacity() == 2);
-//    }
-//
-//    // String& operator=(const String& other);
-//    
-//    {
-//        String s;
-//        s = String(STR("abc"));
-//        ASSERT(s == STR("abc"));
-//    }
-//
-//    // String& operator=(const char_t* chars);
-// 
-//    {
-//        String s;
-//        s = STR("abc");
-//        ASSERT(s == STR("abc"));
-//    }
-//
-//    // String& operator=(String&& other);
-//
-//    {
-//        String s1(STR("a")), s2;
-//        s2 = static_cast<String&&>(s1);
-//
-//        ASSERT(!s1.chars());
-//        ASSERT(s1.length() == 0);
-//        ASSERT(s1.capacity() == 0);
-//
-//        ASSERT(s2 == STR("a"));
-//        ASSERT(s2.length() == 1);
-//        ASSERT(s2.capacity() == 2);
-//    }
-//
-//    // String& operator+=(const String& str);
-//
-//    {
-//        String s1(STR("a")), s2(STR("b"));
-//        s1 += s2;
-//        ASSERT(s1 == STR("ab"));
-//    }
-//
-//    // String& operator+=(const char_t* chars)
-//
-//    {
-//        String s(STR("a"));
-//        s += STR("b");
-//        ASSERT(s == STR("ab"));
-//    }
-//
-//    // String& operator+=(const char_t ch)
-//
-//    {
-//        String s(STR("a"));
-//        s += 'b';
-//        ASSERT(s == STR("ab"));
-//    }
-//
-//    // length/capacity/str/chars/empty
-//
-//    {
-//        String s;
-//        ASSERT(s == STR(""));
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//        ASSERT(s.empty());
-//    }
-//
-//    {
-//        String s;
-//        s.ensureCapacity(10);
-//        s = STR("a");
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.chars());
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 10);
-//        ASSERT(!s.empty());
-//    }
-//
-//    // String substr(int pos, int len) const
-//
-//    {
-//        String s(STR("abcd"));
-//        ASSERT(s.substr(1, 2) == STR("bc"));
-//    }
-//
+    unichar_t zc = 0;
+    const char_t* np = nullptr;
+    const char* CHARS8 = u8"\u0024\u00a2\u20ac\U00010348";
+    const char16_t* CHARS16 = u"\u0024\u00a2\u20ac\U00010348";
+    const char32_t* CHARS32 = U"\u0024\u00a2\u20ac\U00010348";
+
+    {
+        char32_t ch;
+        ASSERT(utf8CharToUtf32(u8"\u0024", ch) == 1 && ch == 0x24);
+        ASSERT(utf8CharToUtf32(u8"\u00a2", ch) == 2 && ch == 0xa2);
+        ASSERT(utf8CharToUtf32(u8"\u20ac", ch) == 3 && ch == 0x20ac);
+        ASSERT(utf8CharToUtf32(u8"\U00010348", ch) == 4 && ch == 0x10348);
+    }
+
+    {
+        char s[4];
+        ASSERT(utf32CharToUtf8(0x24, s) == 1 && memcmp(s, u8"\u0024", 1) == 0);
+        ASSERT(utf32CharToUtf8(0xa2, s) == 2 && memcmp(s, u8"\u00a2", 2) == 0);
+        ASSERT(utf32CharToUtf8(0x20ac, s) == 3 && memcmp(s, u8"\u20ac", 3) == 0);
+        ASSERT(utf32CharToUtf8(0x10348, s) == 4 && memcmp(s, u8"\U00010348", 4) == 0);
+    }
+
+    {
+        char32_t ch;
+        ASSERT(utf16CharToUtf32(u"\u0024", ch) == 1 && ch == 0x24);
+        ASSERT(utf16CharToUtf32(u"\u00a2", ch) == 1 && ch == 0xa2);
+        ASSERT(utf16CharToUtf32(u"\u20ac", ch) == 1 && ch == 0x20ac);
+        ASSERT(utf16CharToUtf32(u"\U00010348", ch) == 2 && ch == 0x10348);
+    }
+
+    {
+        char16_t s[2];
+        ASSERT(utf32CharToUtf16(0x24, s) == 1 && memcmp(s, u"\u0024", 2) == 0);
+        ASSERT(utf32CharToUtf16(0xa2, s) == 1 && memcmp(s, u"\u00a2", 2) == 0);
+        ASSERT(utf32CharToUtf16(0x20ac, s) == 1 && memcmp(s, u"\u20ac", 2) == 0);
+        ASSERT(utf32CharToUtf16(0x10348, s) == 2 && memcmp(s, u"\U00010348", 4) == 0);
+    }
+
+    {
+        char chars8[100];
+        char16_t chars16[100];
+        char32_t chars32[100];
+
+        utf8StringToUtf32(CHARS8, chars32);
+        ASSERT(compareUniString(chars32, CHARS32) == 0);
+
+        utf32StringToUtf8(CHARS32, chars8);
+        ASSERT(compareUniString(chars8, CHARS8) == 0);
+
+        utf16StringToUtf32(CHARS16, chars32);
+        ASSERT(compareUniString(chars32, CHARS32) == 0);
+
+        utf32StringToUtf16(CHARS32, chars16);
+        ASSERT(compareUniString(chars16, CHARS16) == 0);
+
+        utf8StringToUtf16(CHARS8, chars16);
+        ASSERT(compareUniString(chars16, CHARS16) == 0);
+
+        utf16StringToUtf8(CHARS16, chars8);
+        ASSERT(compareUniString(chars8, CHARS8) == 0);
+    }
+
+    {
+        const char* pos = CHARS8;
+        ASSERT(utf8CharAt(pos) == 0x24);
+        pos = utf8CharForward(pos);
+        ASSERT(utf8CharAt(pos) == 0xa2);
+        pos = utf8CharForward(pos);
+        ASSERT(utf8CharAt(pos) == 0x20ac);
+        pos = utf8CharForward(pos);
+        ASSERT(utf8CharAt(pos) == 0x10348);
+        pos = utf8CharForward(pos);
+        ASSERT(utf8CharAt(pos) == 0);
+        pos = utf8CharForward(pos);
+        ASSERT(utf8CharAt(pos) == 0);
+        pos = utf8CharBack(pos, CHARS8);
+        ASSERT(utf8CharAt(pos) == 0x10348);
+        pos = utf8CharBack(pos, CHARS8);
+        ASSERT(utf8CharAt(pos) == 0x20ac);
+        pos = utf8CharBack(pos, CHARS8);
+        ASSERT(utf8CharAt(pos) == 0xa2);
+        pos = utf8CharBack(pos, CHARS8);
+        ASSERT(utf8CharAt(pos) == 0x24);
+        pos = utf8CharBack(pos, CHARS8);
+        ASSERT(utf8CharAt(pos) == 0x24);
+    }
+
+    ASSERT(utf8CharLength(0x24) == 1);
+    ASSERT(utf8CharLength(0xa2) == 2);
+    ASSERT(utf8CharLength(0x20ac) == 3);
+    ASSERT(utf8CharLength(0x10348) == 4);
+    ASSERT(utf8StringLength(CHARS8) == 4);
+
+    {
+        const char16_t* pos = CHARS16;
+        ASSERT(utf16CharAt(pos) == 0x24);
+        pos = utf16CharForward(pos);
+        ASSERT(utf16CharAt(pos) == 0xa2);
+        pos = utf16CharForward(pos);
+        ASSERT(utf16CharAt(pos) == 0x20ac);
+        pos = utf16CharForward(pos);
+        ASSERT(utf16CharAt(pos) == 0x10348);
+        pos = utf16CharForward(pos);
+        ASSERT(utf16CharAt(pos) == 0);
+        pos = utf16CharForward(pos);
+        ASSERT(utf16CharAt(pos) == 0);
+        pos = utf16CharBack(pos, CHARS16);
+        ASSERT(utf16CharAt(pos) == 0x10348);
+        pos = utf16CharBack(pos, CHARS16);
+        ASSERT(utf16CharAt(pos) == 0x20ac);
+        pos = utf16CharBack(pos, CHARS16);
+        ASSERT(utf16CharAt(pos) == 0xa2);
+        pos = utf16CharBack(pos, CHARS16);
+        ASSERT(utf16CharAt(pos) == 0x24);
+        pos = utf16CharBack(pos, CHARS16);
+        ASSERT(utf16CharAt(pos) == 0x24);
+    }
+
+    ASSERT(utf16CharLength(0x24) == 1);
+    ASSERT(utf16CharLength(0xa2) == 1);
+    ASSERT(utf16CharLength(0x20ac) == 1);
+    ASSERT(utf16CharLength(0x10348) == 2);
+    ASSERT(utf16StringLength(CHARS16) == 4);
+
+    // String()
+
+    {
+        String s;
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    // String(const String& other)
+
+    {
+        String s1, s2(s1);
+        ASSERT(!s2.chars());
+        ASSERT(s2.length() == 0);
+        ASSERT(s2.capacity() == 0);
+    }
+
+    {
+        String s1(STR("a")), s2(s1);
+        ASSERT(s2 == STR("a"));
+        ASSERT(s2.length() == 1);
+        ASSERT(s2.capacity() == 2);
+    }
+
+    // String(const char_t* pos, int len)
+
+    ASSERT_EXCEPTION(Exception, String(nullptr, 1));
+
+    {
+        String s(np);
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(np, 0);
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR(""));
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR(""), 0);
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR(""), 1);
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR("a"));
+        ASSERT(s == STR("a"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("a"), 1);
+        ASSERT(s == STR("a"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("a"), 2);
+        ASSERT(s == STR("a"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    // String(unichar_t ch, int len)
+
+    ASSERT_EXCEPTION(Exception, String(zc, 1));
+    ASSERT_EXCEPTION(Exception, String('a', -1));
+
+    {
+        String s('a', 0);
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s('a', 1);
+        ASSERT(s == STR("a"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    // String(String&& other)
+
+    {
+        String s1 = STR("a");
+        String s2(static_cast<String&&>(s1));
+
+        ASSERT(!s1.chars());
+        ASSERT(s1.length() == 0);
+        ASSERT(s1.capacity() == 0);
+
+        ASSERT(s2 == STR("a"));
+        ASSERT(s2.length() == 1);
+        ASSERT(s2.capacity() == 2);
+    }
+
+    // String& operator=(const String& other);
+    
+    {
+        String s;
+        s = String(STR("abc"));
+        ASSERT(s == STR("abc"));
+    }
+
+    // String& operator=(const char_t* chars);
+ 
+    {
+        String s;
+        s = STR("abc");
+        ASSERT(s == STR("abc"));
+    }
+
+    // String& operator=(String&& other);
+
+    {
+        String s1(STR("a")), s2;
+        s2 = static_cast<String&&>(s1);
+
+        ASSERT(!s1.chars());
+        ASSERT(s1.length() == 0);
+        ASSERT(s1.capacity() == 0);
+
+        ASSERT(s2 == STR("a"));
+        ASSERT(s2.length() == 1);
+        ASSERT(s2.capacity() == 2);
+    }
+
+    // String& operator+=(const String& str);
+
+    {
+        String s1(STR("a")), s2(STR("b"));
+        s1 += s2;
+        ASSERT(s1 == STR("ab"));
+    }
+
+    // String& operator+=(const char_t* chars)
+
+    {
+        String s(STR("a"));
+        s += STR("b");
+        ASSERT(s == STR("ab"));
+    }
+
+    // String& operator+=(unichar_t ch)
+
+    {
+        String s(STR("a"));
+        s += 'b';
+        ASSERT(s == STR("ab"));
+    }
+
+    // length/charLength/capacity/str/chars/empty
+
+    {
+        String s;
+        ASSERT(s == STR(""));
+        ASSERT(s.length() == 0);
+        ASSERT(s.charLength() == 0);
+        ASSERT(s.capacity() == 0);
+        ASSERT(strCompare(s.str(), STR("")) == 0);
+        ASSERT(!s.chars());
+        ASSERT(s.empty());
+    }
+
+    {
+        String s;
+        s.ensureCapacity(10);
+        s = STR("\U00010348");
+        ASSERT(s == STR("\U00010348"));
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(s.length() == 2);
+#else
+        ASSERT(s.length() == 4);
+#endif
+        ASSERT(s.charLength() == 1);
+        ASSERT(s.capacity() == 10);
+        ASSERT(strCompare(s.str(), STR("\U00010348")) == 0);
+        ASSERT(strCompare(s.chars(), STR("\U00010348")) == 0);
+        ASSERT(!s.empty());
+    }
+
+    // charAt/charForward/charBack
+
+    {
+        String s(STR("\u0024\u00a2\u20ac\U00010348"));
+        const char_t* pos = s.chars();
+        ASSERT(s.charAt(pos) == 0x24);
+        pos = s.charForward(pos);
+        ASSERT(s.charAt(pos) == 0xa2);
+        pos = s.charForward(pos);
+        ASSERT(s.charAt(pos) == 0x20ac);
+        pos = s.charForward(pos);
+        ASSERT(s.charAt(pos) == 0x10348);
+        pos = s.charForward(pos);
+        ASSERT(s.charAt(pos) == 0);
+        pos = s.charForward(pos);
+        ASSERT(s.charAt(pos) == 0);
+        pos = s.charBack(pos);
+        ASSERT(s.charAt(pos) == 0x10348);
+        pos = s.charBack(pos);
+        ASSERT(s.charAt(pos) == 0x20ac);
+        pos = s.charBack(pos);
+        ASSERT(s.charAt(pos) == 0xa2);
+        pos = s.charBack(pos);
+        ASSERT(s.charAt(pos) == 0x24);
+        pos = s.charBack(pos);
+        ASSERT(s.charAt(pos) == 0x24);
+    }
+
+    // String substr(int pos, int len) const
+
+    {
+        String s(STR("abcd"));
+        ASSERT(s.substr(s.charPosition(1), 2) == STR("bc"));
+    }
+
 //    // int compare(const String& str) const
 //
 //    ASSERT(String(STR("ab")).compare(String(STR("a"))) > 0);

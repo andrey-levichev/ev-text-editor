@@ -64,14 +64,21 @@ int strCompareLenNoCase(const char_t* left, const char_t* right, int len)
         reinterpret_cast<const wchar_t*>(right), len);
 }
 
-char_t* strFind(const char_t* str, const char_t* searchStr)
+char_t* strFind(char_t* str, const char_t* searchStr)
 {
-    return reinterpret_cast<char_t*>(const_cast<wchar_t*>(
-        wcsstr(reinterpret_cast<const wchar_t*>(str), 
-            reinterpret_cast<const wchar_t*>(searchStr))));
+    return reinterpret_cast<char_t*>(
+        wcsstr(reinterpret_cast<wchar_t*>(str), 
+            reinterpret_cast<const wchar_t*>(searchStr)));
 }
 
-char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
+const char_t* strFind(const char_t* str, const char_t* searchStr)
+{
+    return reinterpret_cast<const char_t*>(
+        wcsstr(reinterpret_cast<const wchar_t*>(str), 
+            reinterpret_cast<const wchar_t*>(searchStr)));
+}
+
+char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 {
     int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, 
         FIND_FROMSTART | LINGUISTIC_IGNORECASE, 
@@ -79,7 +86,12 @@ char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
         reinterpret_cast<const wchar_t*>(searchStr),
         -1, nullptr, nullptr, nullptr, 0);
 
-    return const_cast<char_t*>(index >= 0 ? str + index : nullptr);
+    return index >= 0 ? str + index : nullptr;
+}
+
+const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
+{
+    return strFindNoCase(const_cast<char_t*>(str), searchStr);
 }
 
 long strToLong(const char_t* str, char_t** end, int base)
@@ -239,22 +251,24 @@ int strCompareLenNoCase(const char_t* left, const char_t* right, int len)
     return strncasecmp(left, right, len);
 }
 
-char_t* strFind(const char_t* str, const char_t* searchStr)
+char_t* strFind(char_t* str, const char_t* searchStr)
 {
     return strstr(str, searchStr);
 }
 
-char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
+const char_t* strFind(const char_t* str, const char_t* searchStr)
 {
-#ifdef PLATFORM_AIX
-    for (; *str; ++str)
-        if (!strcasecmp(str, searchStr))
-            return str;
+    return strstr(str, searchStr);
+}
 
-    return nullptr;
-#else
+char_t* strFindNoCase(char_t* str, const char_t* searchStr)
+{
     return strcasestr(str, searchStr);
-#endif
+}
+
+const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
+{
+    return strcasestr(str, searchStr);
 }
 
 long strToLong(const char_t* str, char_t** end, int base)
@@ -400,14 +414,6 @@ int utf8CharToUtf32(const char* in, char32_t& ch)
     }
 }
 
-void utf8StringToUtf32(const char* in, char32_t* out)
-{
-    while (*in)
-        in += utf8CharToUtf32(in, *out++);
-
-    *out = 0;
-}
-
 int utf32CharToUtf8(char32_t ch, char* out)
 {
     if (ch < 0x80)
@@ -438,14 +444,6 @@ int utf32CharToUtf8(char32_t ch, char* out)
     }
 }
 
-void utf32StringToUtf8(const char32_t* in, char* out)
-{
-    while (*in)
-        out += utf32CharToUtf8(*in++, out);
-
-    *out = 0;
-}
-
 int utf16CharToUtf32(const char16_t* in, char32_t& ch)
 {
     char16_t ch1 = *in++;
@@ -464,14 +462,6 @@ int utf16CharToUtf32(const char16_t* in, char32_t& ch)
     }
 }
 
-void utf16StringToUtf32(const char16_t* in, char32_t* out)
-{
-    while (*in)
-        in += utf16CharToUtf32(in, *out++);
-
-    *out = 0;
-}
-
 int utf32CharToUtf16(char32_t ch, char16_t* out)
 {
     if (ch < 0x010000)
@@ -486,6 +476,30 @@ int utf32CharToUtf16(char32_t ch, char16_t* out)
         *out++ = 0xdc00 | (ch & 0x03ff);
         return 2;
     }
+}
+
+void utf8StringToUtf32(const char* in, char32_t* out)
+{
+    while (*in)
+        in += utf8CharToUtf32(in, *out++);
+
+    *out = 0;
+}
+
+void utf32StringToUtf8(const char32_t* in, char* out)
+{
+    while (*in)
+        out += utf32CharToUtf8(*in++, out);
+
+    *out = 0;
+}
+
+void utf16StringToUtf32(const char16_t* in, char32_t* out)
+{
+    while (*in)
+        in += utf16CharToUtf32(in, *out++);
+
+    *out = 0;
 }
 
 void utf32StringToUtf16(const char32_t* in, char16_t* out)
@@ -529,7 +543,7 @@ char32_t utf8CharAt(const char* pos)
     return ch;
 }
 
-char* utf8CharForward(const char* pos, int n)
+char* utf8CharForward(char* pos, int n)
 {
     while (*pos && n--)
     {
@@ -540,10 +554,15 @@ char* utf8CharForward(const char* pos, int n)
         while ((*pos & 0xc0) == 0x80);
     }
 
-    return const_cast<char*>(pos);
+    return pos;
 }
 
-char* utf8CharBack(const char* pos, const char* start, int n)
+const char* utf8CharForward(const char* pos, int n)
+{
+    return utf8CharForward(const_cast<char*>(pos), n);
+}
+
+char* utf8CharBack(char* pos, char* start, int n)
 {
     while (pos > start && n--)
     {
@@ -554,7 +573,12 @@ char* utf8CharBack(const char* pos, const char* start, int n)
         while ((*pos & 0xc0) == 0x80);
     }
 
-    return const_cast<char*>(pos);
+    return pos;
+}
+
+const char* utf8CharBack(const char* pos, const char* start, int n)
+{
+    return utf8CharBack(const_cast<char*>(pos), const_cast<char*>(start), n);
 }
 
 int utf8CharLength(char32_t ch)
@@ -592,7 +616,7 @@ char32_t utf16CharAt(const char16_t* pos)
     return ch;
 }
 
-char16_t* utf16CharForward(const char16_t* pos, int n)
+char16_t* utf16CharForward(char16_t* pos, int n)
 {
     while (*pos && n--)
     {
@@ -602,10 +626,15 @@ char16_t* utf16CharForward(const char16_t* pos, int n)
             ++pos;
     }
 
-    return const_cast<char16_t*>(pos);
+    return pos;
 }
 
-char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n)
+const char16_t* utf16CharForward(const char16_t* pos, int n)
+{
+    return utf16CharForward(const_cast<char16_t*>(pos), n);
+}
+
+char16_t* utf16CharBack(char16_t* pos, char16_t* start, int n)
 {
     while (pos > start && n--)
     {
@@ -614,7 +643,12 @@ char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n)
             --pos;
     }
 
-    return const_cast<char16_t*>(pos);
+    return pos;
+}
+
+const char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n)
+{
+    return utf16CharBack(const_cast<char16_t*>(pos), const_cast<char16_t*>(start), n);
 }
 
 int utf16CharLength(char32_t ch)
@@ -677,7 +711,7 @@ String::String(const char_t* pos, int len)
         }
     }
     else
-        ASSERT(len == 0);
+        ASSERT(len <= 0);
 
     _length = 0;
     _capacity = 0;
@@ -729,6 +763,53 @@ String::String(String&& other)
     other._length = 0;
     other._capacity = 0;
     other._chars = nullptr;
+}
+
+unichar_t String::charAt(const char_t* pos) const
+{
+    if (_chars)
+    {
+        ASSERT(pos >= _chars && pos <= _chars + _length);
+        return UTF_CHAR_AT(pos);
+    }
+    else
+    {
+        ASSERT(!pos);
+        return 0;
+    }
+}
+
+const char_t* String::charPosition(int n) const
+{
+    ASSERT(n >= 0 && n <= _length);
+    if (_chars)
+        return UTF_CHAR_FORWARD(_chars, n);
+    else
+        return nullptr;
+}
+
+const char_t* String::charForward(const char_t* pos, int n) const
+{
+    if (_chars)
+    {
+        ASSERT(pos >= _chars && pos <= _chars + _length);
+        ASSERT(n >= 0);
+        return UTF_CHAR_FORWARD(pos, n);
+    }
+    else
+        return nullptr;
+}
+
+const char_t* String::charBack(const char_t* pos, int n) const
+{
+    if (_chars)
+    {
+        ASSERT(pos >= _chars && pos <= _chars + _length);
+        ASSERT(n >= 0);
+        return UTF_CHAR_BACK(pos, _chars, n);
+    }
+    else
+        return nullptr;
 }
 
 const char_t* String::find(const String& str, const char_t* pos) const
