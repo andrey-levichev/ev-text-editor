@@ -797,7 +797,10 @@ const char_t* String::charForward(const char_t* pos, int n) const
         return UTF_CHAR_FORWARD(pos, n);
     }
     else
+    {
+        ASSERT(!pos);
         return nullptr;
+    }
 }
 
 const char_t* String::charBack(const char_t* pos, int n) const
@@ -809,41 +812,57 @@ const char_t* String::charBack(const char_t* pos, int n) const
         return UTF_CHAR_BACK(pos, _chars, n);
     }
     else
+    {
+        ASSERT(!pos);
         return nullptr;
+    }
 }
 
 const char_t* String::find(const String& str, const char_t* pos) const
 {
-    if (pos)
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-    else
-        pos = _chars;
+    if (_chars)
+    {
+        if (pos)
+            ASSERT(pos >= _chars && pos <= _chars + _length);
+        else
+            pos = _chars;
 
-    if (str._chars)
-        return strFind(pos, str._chars);
+        if (str._chars)
+            return strFind(pos, str._chars);
+        else
+            return nullptr;
+    }
     else
+    {
+        ASSERT(!pos);
         return nullptr;
+    }
 }
 
 const char_t* String::find(const char_t* chars, const char_t* pos) const
 {
-    if (pos)
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-    else
-        pos = _chars;
+    if (_chars)
+    {
+        if (pos)
+            ASSERT(pos >= _chars && pos <= _chars + _length);
+        else
+            pos = _chars;
 
-    if (chars)
-        return strFind(pos, chars);
+        if (chars)
+            return strFind(pos, chars);
+        else
+            return nullptr;
+    }
     else
+    {
+        ASSERT(!pos);
         return nullptr;
+    }
 }
 
 const char_t* String::find(unichar_t ch, const char_t* pos) const
 {
-    if (pos)
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-    else
-        pos = _chars;
+    ASSERT(ch != 0);
 
     char_t s[5];
     int n = UNICODE_CHAR_TO_UTF(ch, s);
@@ -854,42 +873,55 @@ const char_t* String::find(unichar_t ch, const char_t* pos) const
 
 const char_t* String::findNoCase(const String& str, const char_t* pos) const
 {
-    if (pos)
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-    else
-        pos = _chars;
+    if (_chars)
+    {
+        if (pos)
+            ASSERT(pos >= _chars && pos <= _chars + _length);
+        else
+            pos = _chars;
 
-    if (str._chars)
-        return strFindNoCase(pos, str._chars);
+        if (str._chars)
+            return strFindNoCase(pos, str._chars);
+        else
+            return nullptr;
+    }
     else
+    {
+        ASSERT(!pos);
         return nullptr;
+    }
 }
 
 const char_t* String::findNoCase(const char_t* chars, const char_t* pos) const
 {
-    if (pos)
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-    else
-        pos = _chars;
+    if (_chars)
+    {
+        if (pos)
+            ASSERT(pos >= _chars && pos <= _chars + _length);
+        else
+            pos = _chars;
 
-    if (chars)
-        return strFindNoCase(pos, chars);
+        if (chars)
+            return strFindNoCase(pos, chars);
+        else
+            return nullptr;
+    }
     else
+    {
+        ASSERT(!pos);
         return nullptr;
+    }
 }
 
 const char_t* String::findNoCase(unichar_t ch, const char_t* pos) const
 {
-    if (pos)
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-    else
-        pos = _chars;
+    ASSERT(ch != 0);
 
     char_t s[5];
     int n = UNICODE_CHAR_TO_UTF(ch, s);
     s[n] = 0;
 
-    return find(s, pos);
+    return findNoCase(s, pos);
 }
 
 bool String::startsWith(const String& str) const

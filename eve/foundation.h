@@ -1085,8 +1085,7 @@ public:
 
     int compare(const char_t* chars) const
     {
-        ASSERT(chars);
-        return strCompare(str(), chars);
+        return strCompare(str(), chars ? chars : STR(""));
     }
 
     int compareNoCase(const String& str) const
@@ -1096,8 +1095,7 @@ public:
 
     int compareNoCase(const char_t* chars) const
     {
-        ASSERT(chars);
-        return strCompareNoCase(str(), chars);
+        return strCompareNoCase(str(), chars ? chars : STR(""));
     }
 
     const char_t* find(const String& str, const char_t* pos = nullptr) const;
