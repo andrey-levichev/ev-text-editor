@@ -177,7 +177,6 @@ void printString(char_t* str, const char_t* format, ...)
     va_end(args);
 }
 
-
 void printArgs(const char_t* format, va_list args)
 {
     vwprintf(reinterpret_cast<const wchar_t*>(format), args);
@@ -347,7 +346,6 @@ void printString(char_t* str, const char_t* format, ...)
     va_end(args);
 }
 
-
 void printArgs(const char_t* format, va_list args)
 {
     vprintf(format, args);
@@ -355,7 +353,7 @@ void printArgs(const char_t* format, va_list args)
 
 void printArgsAlloc(char_t** str, const char_t* format, va_list args)
 {
-    printArgsAlloc(str, format, args);
+    vasprintf(str, format, args);
 }
 
 void printAlloc(char_t** str, const char_t* format, ...)
@@ -779,6 +777,45 @@ unichar_t String::charAt(const char_t* pos) const
     }
 }
 
+char_t* String::charPosition(int n)
+{
+    ASSERT(n >= 0 && n <= _length);
+    if (_chars)
+        return UTF_CHAR_FORWARD(_chars, n);
+    else
+        return nullptr;
+}
+
+char_t* String::charForward(char_t* pos, int n)
+{
+    if (_chars)
+    {
+        ASSERT(pos >= _chars && pos <= _chars + _length);
+        ASSERT(n >= 0);
+        return UTF_CHAR_FORWARD(pos, n);
+    }
+    else
+    {
+        ASSERT(!pos);
+        return nullptr;
+    }
+}
+
+char_t* String::charBack(char_t* pos, int n)
+{
+    if (_chars)
+    {
+        ASSERT(pos >= _chars && pos <= _chars + _length);
+        ASSERT(n >= 0);
+        return UTF_CHAR_BACK(pos, _chars, n);
+    }
+    else
+    {
+        ASSERT(!pos);
+        return nullptr;
+    }
+}
+
 const char_t* String::charPosition(int n) const
 {
     ASSERT(n >= 0 && n <= _length);
@@ -1152,7 +1189,11 @@ void String::insert(char_t* pos, const String& str)
 
         int capacity = _length + str._length + 1;
         if (capacity > _capacity)
+        {
+            int i = pos - _chars;
             ensureCapacity(capacity * 2);
+            pos = _chars + i;
+        }
 
         strMove(pos + str._length, pos, _chars + _length - pos + 1);
         strCopyLen(pos, str._chars, str._length);
@@ -1170,7 +1211,11 @@ void String::insert(char_t* pos, const char_t* chars)
 
         int len = strLen(chars), capacity = _length + len + 1;
         if (capacity > _capacity)
+        {
+            int i = pos - _chars;
             ensureCapacity(capacity * 2);
+            pos = _chars + i;
+        }
 
         strMove(pos + len, pos, _chars + _length - pos + 1);
         strCopyLen(pos, chars, len);
@@ -1190,7 +1235,11 @@ void String::insert(char_t* pos, unichar_t ch, int len)
         int capacity = _length + l + 1;
 
         if (capacity > _capacity)
+        {
+            int i = pos - _chars;
             ensureCapacity(capacity * 2);
+            pos = _chars + i;
+        }
 
         strMove(pos + l, pos, _chars + _length - pos + 1);
         strSet(pos, ch, len);
@@ -1314,7 +1363,11 @@ void String::replace(char_t* pos, const String& str, int len)
 
             if (newLen > 0)
             {
+                int i = pos - _chars;
+                int j = end - _chars;
                 ensureCapacity(newLen + 1);
+                pos = _chars + i;
+                end = _chars + j;
 
                 strMove(pos + str._length, end, _chars + _length - end + 1);
                 strCopyLen(pos, str._chars, str._length);
@@ -1345,7 +1398,11 @@ void String::replace(char_t* pos, const char_t* chars, int len)
 
             if (newLen > 0)
             {
+                int i = pos - _chars;
+                int j = end - _chars;
                 ensureCapacity(newLen + 1);
+                pos = _chars + i;
+                end = _chars + j;
 
                 strMove(pos + replaceLen, end, _chars + _length - end + 1);
                 strCopyLen(pos, chars, replaceLen);

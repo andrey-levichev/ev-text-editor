@@ -559,6 +559,13 @@ void testString()
         ASSERT(s.capacity() == 2);
     }
 
+    {
+        String s('a', 2);
+        ASSERT(s == STR("aa"));
+        ASSERT(s.length() == 2);
+        ASSERT(s.capacity() == 3);
+    }
+
     // String(String&& other)
 
     {
@@ -675,12 +682,15 @@ void testString()
     // const char_t* charForward(const char_t* pos, int n = 1) const
     // const char_t* charBack(const char_t* pos, int n = 1) const
 
-    ASSERT(String().charAt(nullptr) == 0);
-    ASSERT_EXCEPTION(Exception, String().charAt(STR("")));
-    ASSERT(!String().charForward(nullptr));
-    ASSERT_EXCEPTION(Exception, String().charForward(STR("")));
-    ASSERT(!String().charBack(nullptr));
-    ASSERT_EXCEPTION(Exception, String().charBack(STR("")));
+    {
+        char_t p[1] = { 0 };
+        ASSERT(String().charAt(nullptr) == 0);
+        ASSERT_EXCEPTION(Exception, String().charAt(STR("")));
+        ASSERT(!String().charForward(nullptr));
+        ASSERT_EXCEPTION(Exception, String().charForward(p));
+        ASSERT(!String().charBack(nullptr));
+        ASSERT_EXCEPTION(Exception, String().charBack(p));
+    }
 
     {
         String s(CHARS);
@@ -988,7 +998,7 @@ void testString()
 
     {
         String s(STR("a"));
-        s.assign(s);
+        ASSERT_EXCEPTION(Exception, s.assign(s));
         ASSERT(s == STR("a"));
     }
 
@@ -1020,7 +1030,7 @@ void testString()
 
     {
         String s(STR("a"));
-        s.assign(s.chars());
+        ASSERT_EXCEPTION(Exception, s.assign(s.chars()));
         ASSERT(s == STR("a"));
     }
 
@@ -1080,551 +1090,633 @@ void testString()
         ASSERT(s.capacity() == 10);
     }
 
-//    // void append(const String& str)
-//
-//    {
-//        String s(STR("a"));
-//        ASSERT_EXCEPTION(Exception, s.append(s));
-//    }
-//
-//    {
-//        String s1(STR("a")), s2;
-//        s1.append(s2);
-//        ASSERT(s1 == STR("a"));
-//        ASSERT(s1.capacity() == 2);
-//    }
-//
-//    {
-//        String s1, s2(STR("b"));
-//        s1.append(s2);
-//        ASSERT(s1 == STR("b"));
-//        ASSERT(s1.capacity() == 4);
-//    }
-//
-//    {
-//        String s1(STR("a")), s2(STR("b"));
-//        s1.append(s2);
-//        ASSERT(s1 == STR("ab"));
-//        ASSERT(s1.capacity() == 6);
-//    }
-//
-//    {
-//        String s1, s2(STR("b"));
-//        s1.ensureCapacity(10);
-//        s1.append(s2);
-//        ASSERT(s1 == STR("b"));
-//        ASSERT(s1.capacity() == 10);
-//    }
-//
-//    // void append(const char_t* chars)
-//
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).append(nullptr));
-//
-//    {
-//        String s(STR("a"));
-//        ASSERT_EXCEPTION(Exception, s.append(s.chars()));
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.append(STR(""));
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s;
-//        s.append(STR("b"));
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.append(STR("b"));
-//        ASSERT(s == STR("ab"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s;
-//        s.ensureCapacity(10);
-//        s.append(STR("b"));
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.capacity() == 10);
-//    }
-//
-//    // void append(char_t ch, int len)
-//
-//    ASSERT_EXCEPTION(Exception, String().append('a', -1));
-//    ASSERT_EXCEPTION(Exception, String().append(0, 1));
-//
-//    {
-//        String s;
-//        s.append('a', 1);
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.capacity() == 4);
-//        s.append('b', 2);
-//        ASSERT(s == STR("abb"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    // void appendFormat(const char_t* format, ...)
-//    // void appendFormat(const char_t* format, va_list args)
-//
-//    {
-//        String s(STR("val = "));
-//        s.appendFormat(STR("%d"), 123);
-//        ASSERT(s == STR("val = 123"));
-//    }
-//
-//    // void insert(int pos, const String& str)
-//
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).insert(-1, String()));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).insert(2, String()));
-//
-//    {
-//        String s(STR("a"));
-//        ASSERT_EXCEPTION(Exception, s.insert(0, s));
-//    }
-//
-//    {
-//        String s1(STR("a")), s2;
-//        s1.insert(0, s2);
-//        ASSERT(s1 == STR("a"));
-//        ASSERT(s1.capacity() == 2);
-//    }
-//
-//    {
-//        String s1, s2(STR("b"));
-//        s1.insert(0, s2);
-//        ASSERT(s1 == STR("b"));
-//        ASSERT(s1.capacity() == 4);
-//    }
-//
-//    {
-//        String s1(STR("a")), s2(STR("b"));
-//        s1.insert(0, s2);
-//        ASSERT(s1 == STR("ba"));
-//        ASSERT(s1.capacity() == 6);
-//    }
-//
-//    {
-//        String s1(STR("a")), s2(STR("b"));
-//        s1.insert(1, s2);
-//        ASSERT(s1 == STR("ab"));
-//        ASSERT(s1.capacity() == 6);
-//    }
-//
-//    {
-//        String s1(STR("ab")), s2(STR("c"));
-//        s1.insert(1, s2);
-//        ASSERT(s1 == STR("acb"));
-//        ASSERT(s1.capacity() == 8);
-//    }
-//
-//    {
-//        String s1, s2(STR("c"));
-//        s1.ensureCapacity(10);
-//        s1 = STR("ab");
-//        s1.insert(1, s2);
-//        ASSERT(s1 == STR("acb"));
-//        ASSERT(s1.capacity() == 10);
-//    }
-//
-//    // void insert(int pos, const char_t* chars)
-//
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).insert(-1, STR("")));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).insert(2, STR("")));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).insert(0, nullptr));
-//
-//    {
-//        String s(STR("a"));
-//        ASSERT_EXCEPTION(Exception, s.insert(0, s.chars()));
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.insert(0, STR(""));
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s;
-//        s.insert(0, STR("b"));
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.insert(0, STR("b"));
-//        ASSERT(s == STR("ba"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.insert(1, STR("b"));
-//        ASSERT(s == STR("ab"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("ab"));
-//        s.insert(1, STR("c"));
-//        ASSERT(s == STR("acb"));
-//        ASSERT(s.capacity() == 8);
-//    }
-//
-//    {
-//        String s;
-//        s.ensureCapacity(10);
-//        s = STR("ab");
-//        s.insert(1, STR("c"));
-//        ASSERT(s == STR("acb"));
-//        ASSERT(s.capacity() == 10);
-//    }
-//
-//    // void insert(int pos, char_t ch)
-//
-//    ASSERT_EXCEPTION(Exception, String().insert(-1, 'a'));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).insert(2, 'a'));
-//
-//    {
-//        String s;
-//        s.insert(0, 'a');
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.insert(0, 'b');
-//        ASSERT(s == STR("ba"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.insert(1, 'b');
-//        ASSERT(s == STR("ab"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("ab"));
-//        s.insert(1, 'c');
-//        ASSERT(s == STR("acb"));
-//        ASSERT(s.capacity() == 8);
-//    }
-//
-//    {
-//        String s;
-//        s.ensureCapacity(10);
-//        s = STR("ab");
-//        s.insert(1, 'c');
-//        ASSERT(s == STR("acb"));
-//        ASSERT(s.capacity() == 10);
-//    }
-//
-//    // void erase(int pos, int len)
-//
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).erase(-1, 0));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).erase(2, 0));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).erase(0, -1));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).erase(0, 2));
-//
-//    {
-//        String s(STR("a"));
-//        s.erase(0, 0);
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.erase(0, 1);
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(0, 1);
-//        ASSERT(s == STR("bc"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(2, 1);
-//        ASSERT(s == STR("ab"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    // void erase(const String& str)
-//
-//    {
-//        String s;
-//        ASSERT_EXCEPTION(Exception, s.erase(s));
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(String());
-//        ASSERT(s == STR("abc"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s;
-//        s.erase(String(STR("abc")));
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(String(STR("x")));
-//        ASSERT(s == STR("abc"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(String(STR("abc")));
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(String(STR("b")));
-//        ASSERT(s == STR("ac"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(String(STR("a")));
-//        ASSERT(s == STR("bc"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(String(STR("c")));
-//        ASSERT(s == STR("ab"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("aab"));
-//        s.erase(String(STR("a")));
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abcbd"));
-//        s.erase(String(STR("b")));
-//        ASSERT(s == STR("acd"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    // void erase(const char_t* chars)
-//
-//    ASSERT_EXCEPTION(Exception, String().erase(nullptr));
-//
-//    {
-//        String s;
-//        ASSERT_EXCEPTION(Exception, s.erase(s.chars()));
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(STR(""));
-//        ASSERT(s == STR("abc"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s;
-//        s.erase(STR("abc"));
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(STR("x"));
-//        ASSERT(s == STR("abc"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(STR("abc"));
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(STR("b"));
-//        ASSERT(s == STR("ac"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(STR("a"));
-//        ASSERT(s == STR("bc"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.erase(STR("c"));
-//        ASSERT(s == STR("ab"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("aab"));
-//        s.erase(STR("a"));
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("abcbd"));
-//        s.erase(STR("b"));
-//        ASSERT(s == STR("acd"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    // void replace(int pos, int len, const String& str)
-//
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).replace(-1, 0, String()));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).replace(2, 0, String()));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).replace(0, -1, String()));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).replace(0, 2, String()));
-//
-//    {
-//        String s;
-//        ASSERT_EXCEPTION(Exception, s.replace(0, 0, String()));
-//    }
-//
-//    {
-//        String s(STR("ab"));
-//        s.replace(0, 1, String());
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 3);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.replace(0, 1, String(STR("b")));
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(1, 2, String(STR("x")));
-//        ASSERT(s == STR("axd"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(1, 2, String(STR("xyz")));
-//        ASSERT(s == STR("axyzd"));
-//        ASSERT(s.length() == 5);
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(0, 2, String(STR("x")));
-//        ASSERT(s == STR("xcd"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(2, 2, String(STR("x")));
-//        ASSERT(s == STR("abx"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    // void replace(int pos, int len, const char_t* chars)
-//
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).replace(-1, 0, STR("")));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).replace(2, 0, STR("")));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).replace(0, -1, STR("")));
-//    ASSERT_EXCEPTION(Exception, String(STR("a")).replace(0, 2, STR("")));
-//    
-//    {
-//        String s;
-//        ASSERT_EXCEPTION(Exception, s.replace(0, 0, s.chars()));
-//    }
-//
-//    {
-//        String s(STR("ab"));
-//        s.replace(0, 1, STR(""));
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 3);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.replace(0, 1, STR("b"));
-//        ASSERT(s == STR("b"));
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(1, 2, STR("x"));
-//        ASSERT(s == STR("axd"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(1, 2, STR("xyz"));
-//        ASSERT(s == STR("axyzd"));
-//        ASSERT(s.length() == 5);
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(0, 2, STR("x"));
-//        ASSERT(s == STR("xcd"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(2, 2, STR("x"));
-//        ASSERT(s == STR("abx"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
+    // void append(const String& str)
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.append(s));
+    }
+
+    {
+        String s1(STR("a")), s2;
+        s1.append(s2);
+        ASSERT(s1 == STR("a"));
+        ASSERT(s1.capacity() == 2);
+    }
+
+    {
+        String s1, s2(STR("b"));
+        s1.append(s2);
+        ASSERT(s1 == STR("b"));
+        ASSERT(s1.capacity() == 4);
+    }
+
+    {
+        String s1(STR("a")), s2(STR("b"));
+        s1.append(s2);
+        ASSERT(s1 == STR("ab"));
+        ASSERT(s1.capacity() == 6);
+    }
+
+    {
+        String s1, s2(STR("b"));
+        s1.ensureCapacity(10);
+        s1.append(s2);
+        ASSERT(s1 == STR("b"));
+        ASSERT(s1.capacity() == 10);
+    }
+
+    // void append(const char_t* chars)
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.append(s.chars()));
+    }
+
+    {
+        String s(STR("a"));
+        s.append(nullptr);
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("a"));
+        s.append(STR(""));
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s;
+        s.append(STR("b"));
+        ASSERT(s == STR("b"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("a"));
+        s.append(STR("b"));
+        ASSERT(s == STR("ab"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s;
+        s.ensureCapacity(10);
+        s.append(STR("b"));
+        ASSERT(s == STR("b"));
+        ASSERT(s.capacity() == 10);
+    }
+
+    // void append(char_t ch, int len)
+
+    ASSERT_EXCEPTION(Exception, String().append('a', -1));
+    ASSERT_EXCEPTION(Exception, String().append(0, 1));
+
+    {
+        String s;
+        s.append('a', 1);
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 4);
+        s.append('b', 2);
+        ASSERT(s == STR("abb"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    // void appendFormat(const char_t* format, ...)
+    // void appendFormat(const char_t* format, va_list args)
+
+    {
+        String s(STR("val = "));
+        s.appendFormat(STR("%d"), 123);
+        ASSERT(s == STR("val = 123"));
+    }
+
+    // void insert(char_t* pos, const String& str)
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars() - 1, String()));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars() + s.length() + 1, String()));
+    }
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars(), s));
+    }
+
+    {
+        String s1(STR("a")), s2;
+        s1.insert(s1.chars(), s2);
+        ASSERT(s1 == STR("a"));
+        ASSERT(s1.capacity() == 2);
+    }
+
+    {
+        String s1, s2(STR("b"));
+        s1.insert(s1.chars(), s2);
+        ASSERT(s1 == STR("b"));
+        ASSERT(s1.capacity() == 4);
+    }
+
+    {
+        String s1(STR("a")), s2(STR("b"));
+        s1.insert(s1.chars(), s2);
+        ASSERT(s1 == STR("ba"));
+        ASSERT(s1.capacity() == 6);
+    }
+
+    {
+        String s1(STR("a")), s2(STR("b"));
+        s1.insert(s1.chars() + 1, s2);
+        ASSERT(s1 == STR("ab"));
+        ASSERT(s1.capacity() == 6);
+    }
+
+    {
+        String s1(STR("ab")), s2(STR("c"));
+        s1.insert(s1.chars() + 1, s2);
+        ASSERT(s1 == STR("acb"));
+        ASSERT(s1.capacity() == 8);
+    }
+
+    {
+        String s1, s2(STR("c"));
+        s1.ensureCapacity(10);
+        s1 = STR("ab");
+        s1.insert(s1.chars() + 1, s2);
+        ASSERT(s1 == STR("acb"));
+        ASSERT(s1.capacity() == 10);
+    }
+
+    // void insert(char_t* pos, const String& str)
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars() - 1, STR("")));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars() + s.length() + 1, STR("")));
+    }
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars(), s.chars()));
+    }
+
+    {
+        String s(STR("a"));
+        s.insert(s.chars(), STR(""));
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s;
+        s.insert(s.chars(), STR("b"));
+        ASSERT(s == STR("b"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("a"));
+        s.insert(s.chars(), STR("b"));
+        ASSERT(s == STR("ba"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("a"));
+        s.insert(s.chars() + 1, STR("b"));
+        ASSERT(s == STR("ab"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("ab"));
+        s.insert(s.chars() + 1, STR("c"));
+        ASSERT(s == STR("acb"));
+        ASSERT(s.capacity() == 8);
+    }
+
+    {
+        String s;
+        s.ensureCapacity(10);
+        s = STR("ab");
+        s.insert(s.chars() + 1, STR("c"));
+        ASSERT(s == STR("acb"));
+        ASSERT(s.capacity() == 10);
+    }
+
+    // void insert(char_t* pos, unichar_t ch, int len)
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars() - 1, 'a'));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars() + s.length() + 1, 'a'));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars(), 0, 1));
+        ASSERT_EXCEPTION(Exception, s.insert(s.chars(), 'a', -1));
+    }
+
+    {
+        String s(STR("a"));
+        s.insert(s.chars(), 'b', 0);
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s;
+        s.insert(s.chars(), 'a');
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("a"));
+        s.insert(s.chars(), 'b');
+        ASSERT(s == STR("ba"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("a"));
+        s.insert(s.chars() + 1, 'b');
+        ASSERT(s == STR("ab"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("ab"));
+        s.insert(s.chars() + 1, 'c');
+        ASSERT(s == STR("acb"));
+        ASSERT(s.capacity() == 8);
+    }
+
+    {
+        String s(STR("ab"));
+        s.insert(s.chars() + 1, 'c', 2);
+        ASSERT(s == STR("accb"));
+        ASSERT(s.capacity() == 10);
+    }
+
+    {
+        String s;
+        s.ensureCapacity(10);
+        s = STR("ab");
+        s.insert(s.chars() + 1, 'c');
+        ASSERT(s == STR("acb"));
+        ASSERT(s.capacity() == 10);
+    }
+
+    // void erase(char_t* pos, int len)
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.erase(s.chars() - 1));
+        ASSERT_EXCEPTION(Exception, s.erase(s.chars() + s.length() + 1));
+    }
+
+    {
+        String s(STR("a"));
+        s.erase(s.chars(), 0);
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("a"));
+        s.erase(s.chars(), 1);
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(s.chars(), 1);
+        ASSERT(s == STR("bc"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(s.chars() + 2, 1);
+        ASSERT(s == STR("ab"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(s.chars() + 1);
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    // void erase(const String& str)
+
+    {
+        String s(STR("abc"));
+        s.erase(String());
+        ASSERT(s == STR("abc"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s;
+        s.erase(String(STR("abc")));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR("abc"));
+        ASSERT_EXCEPTION(Exception, s.erase(s));
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(String(STR("x")));
+        ASSERT(s == STR("abc"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(String(STR("abc")));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(String(STR("b")));
+        ASSERT(s == STR("ac"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(String(STR("a")));
+        ASSERT(s == STR("bc"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(String(STR("c")));
+        ASSERT(s == STR("ab"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("aab"));
+        s.erase(String(STR("a")));
+        ASSERT(s == STR("b"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abcbd"));
+        s.erase(String(STR("b")));
+        ASSERT(s == STR("acd"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    // void erase(const char_t* chars)
+
+    {
+        String s(STR("abc"));
+        s.erase(np);
+        ASSERT(s == STR("abc"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(STR(""));
+        ASSERT(s == STR("abc"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s;
+        s.erase(STR("abc"));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR("abc"));
+        ASSERT_EXCEPTION(Exception, s.erase(s.chars()));
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(STR("x"));
+        ASSERT(s == STR("abc"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(STR("abc"));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(STR("b"));
+        ASSERT(s == STR("ac"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(STR("a"));
+        ASSERT(s == STR("bc"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(STR("c"));
+        ASSERT(s == STR("ab"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("aab"));
+        s.erase(STR("a"));
+        ASSERT(s == STR("b"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abcbd"));
+        s.erase(STR("b"));
+        ASSERT(s == STR("acd"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    // void replace(char_t* pos, const String& str, int len)
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.replace(s.chars() - 1, String()));
+        ASSERT_EXCEPTION(Exception, s.replace(s.chars() + s.length() + 1, String()));
+    }
+
+    {
+        String s;
+        s.replace(s.chars(), String(STR("abc")));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR("abc"));
+        ASSERT_EXCEPTION(Exception, s.replace(s.chars(), s));
+    }
+
+    {
+        String s(STR("ab"));
+        s.replace(s.chars(), String(), 1);
+        ASSERT(s == STR("b"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 3);
+    }
+
+    {
+        String s(STR("a"));
+        s.replace(s.chars(), String(STR("b")), 1);
+        ASSERT(s == STR("b"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.chars() + 1, String(STR("x")), 2);
+        ASSERT(s == STR("axd"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.chars() + 1, String(STR("xyz")), 2);
+        ASSERT(s == STR("axyzd"));
+        ASSERT(s.length() == 5);
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.chars(), String(STR("x")), 2);
+        ASSERT(s == STR("xcd"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.chars() + 2, String(STR("x")), 2);
+        ASSERT(s == STR("abx"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abc"));
+        s.replace(s.chars() + 2, String(STR("xyz")));
+        ASSERT(s == STR("abxyz"));
+        ASSERT(s.length() == 5);
+        ASSERT(s.capacity() == 6);
+    }
+
+    // replace(char_t* pos, const char_t* chars, int len)
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.replace(s.chars() - 1, STR("")));
+        ASSERT_EXCEPTION(Exception, s.replace(s.chars() + s.length() + 1, STR("")));
+    }
+
+    {
+        String s;
+        s.replace(s.chars(), STR("abc"));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR("abc"));
+        ASSERT_EXCEPTION(Exception, s.replace(s.chars(), s.chars()));
+    }
+
+    {
+        String s(STR("ab"));
+        s.replace(s.chars(), nullptr, 1);
+        ASSERT(s == STR("b"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 3);
+    }
+
+    {
+        String s(STR("ab"));
+        s.replace(s.chars(), STR(""), 1);
+        ASSERT(s == STR("b"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 3);
+    }
+
+    {
+        String s(STR("a"));
+        s.replace(s.chars(), STR("b"), 1);
+        ASSERT(s == STR("b"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.chars() + 1, STR("x"), 2);
+        ASSERT(s == STR("axd"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.chars() + 1, STR("xyz"), 2);
+        ASSERT(s == STR("axyzd"));
+        ASSERT(s.length() == 5);
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.chars(), STR("x"), 2);
+        ASSERT(s == STR("xcd"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.chars() + 2, STR("x"), 2);
+        ASSERT(s == STR("abx"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abc"));
+        s.replace(s.chars() + 2, STR("xyz"));
+        ASSERT(s == STR("abxyz"));
+        ASSERT(s.length() == 5);
+        ASSERT(s.capacity() == 6);
+    }
 //
 //    // void replace(const String& searchStr, const String& replaceStr)
 //

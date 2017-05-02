@@ -1058,6 +1058,11 @@ public:
         return _chars ? _chars : STR("");
     }
     
+    char_t* chars()
+    {
+        return _chars;
+    }
+    
     const char_t* chars() const
     {
         return _chars;
@@ -1069,6 +1074,11 @@ public:
     }
 
     unichar_t charAt(const char_t* pos) const;
+
+    char_t* charPosition(int n);
+    char_t* charForward(char_t* pos, int n = 1);
+    char_t* charBack(char_t* pos, int n = 1);
+
     const char_t* charPosition(int n) const;
     const char_t* charForward(const char_t* pos, int n = 1) const;
     const char_t* charBack(const char_t* pos, int n = 1) const;

@@ -10,6 +10,8 @@ support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
 rewrite string unit tests
 split/join
+make char_t* charForward(char_t* pos, int n = 1) const?
+default params in test comments
 * handle SIGWINCH to detect terminal size changes
 
 basic features:
