@@ -675,7 +675,11 @@ void testString()
         ASSERT_EXCEPTION(Exception, s.charPosition(-1));
         ASSERT_EXCEPTION(Exception, s.charPosition(s.length() + 1));
         ASSERT(s.charPosition(0) == s.chars());
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(s.charPosition(3) == s.chars() + 3);
+#else
         ASSERT(s.charPosition(3) == s.chars() + 6);
+#endif        
     }
 
     // unichar_t charAt(const char_t* pos) const
@@ -1717,416 +1721,501 @@ void testString()
         ASSERT(s.length() == 5);
         ASSERT(s.capacity() == 6);
     }
-//
-//    // void replace(const String& searchStr, const String& replaceStr)
-//
-//    {
-//        String s;
-//        ASSERT_EXCEPTION(Exception, s.replace(s, String()));
-//        ASSERT_EXCEPTION(Exception, s.replace(String(), s));
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.replace(String(), String());
-//        ASSERT(s == STR("abc"));
-//    }
-//     
-//    {
-//        String s(STR("abc"));
-//        s.replace(String(STR("b")), String());
-//        ASSERT(s == STR("ac"));
-//    }  
-//
-//    {
-//        String s;
-//        s.replace(String(STR("a")), String(STR("b")));
-//        ASSERT(s == STR(""));
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.replace(String(STR("x")), String(STR("y")));
-//        ASSERT(s == STR("abc"));
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(String(STR("bc")), String(STR("x")));
-//        ASSERT(s == STR("axd"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(String(STR("bc")), String(STR("xyz")));
-//        ASSERT(s == STR("axyzd"));
-//        ASSERT(s.length() == 5);
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(String(STR("ab")), String(STR("x")));
-//        ASSERT(s == STR("xcd"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(String(STR("cd")), String(STR("x")));
-//        ASSERT(s == STR("abx"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("aab"));
-//        s.replace(String(STR("a")), String(STR("xy")));
-//        ASSERT(s == STR("xyxyb"));
-//        ASSERT(s.length() == 5);
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("abcbd"));
-//        s.replace(String(STR("b")), String(STR("xy")));
-//        ASSERT(s == STR("axycxyd"));
-//        ASSERT(s.length() == 7);
-//        ASSERT(s.capacity() == 8);
-//    }
-//
-//    // void replace(const char_t* searchChars, const char_t* replaceChars)
-//
-//    {
-//        String s;
-//        ASSERT_EXCEPTION(Exception, s.replace(nullptr, STR("")));
-//        ASSERT_EXCEPTION(Exception, s.replace(s.chars(), STR("")));
-//        ASSERT_EXCEPTION(Exception, s.replace(STR(""), nullptr));
-//        ASSERT_EXCEPTION(Exception, s.replace(STR(""), s.chars()));
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.replace(STR(""), STR(""));
-//        ASSERT(s == STR("abc"));
-//    }
-//     
-//    {
-//        String s(STR("abc"));
-//        s.replace(STR("b"), STR(""));
-//        ASSERT(s == STR("ac"));
-//    }  
-//
-//    {
-//        String s;
-//        s.replace(STR("a"), STR("b"));
-//        ASSERT(s == STR(""));
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.replace(STR("x"), STR("y"));
-//        ASSERT(s == STR("abc"));
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(STR("bc"), STR("x"));
-//        ASSERT(s == STR("axd"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(STR("bc"), STR("xyz"));
-//        ASSERT(s == STR("axyzd"));
-//        ASSERT(s.length() == 5);
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(STR("ab"), STR("x"));
-//        ASSERT(s == STR("xcd"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("abcd"));
-//        s.replace(STR("cd"), STR("x"));
-//        ASSERT(s == STR("abx"));
-//        ASSERT(s.length() == 3);
-//        ASSERT(s.capacity() == 5);
-//    }
-//
-//    {
-//        String s(STR("aab"));
-//        s.replace(STR("a"), STR("xy"));
-//        ASSERT(s == STR("xyxyb"));
-//        ASSERT(s.length() == 5);
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    {
-//        String s(STR("abcbd"));
-//        s.replace(STR("b"), STR("xy"));
-//        ASSERT(s == STR("axycxyd"));
-//        ASSERT(s.length() == 7);
-//        ASSERT(s.capacity() == 8);
-//    }
-//
-//    // void reverse()
-//
-//    {
-//        String s;
-//        s.reverse();
-//        ASSERT(s == STR(""));
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.reverse();
-//        ASSERT(s == STR("a"));
-//    }
-//
-//    {
-//        String s(STR("ab"));
-//        s.reverse();
-//        ASSERT(s == STR("ba"));
-//    }
-//
-//    {
-//        String s(STR("abc"));
-//        s.reverse();
-//        ASSERT(s == STR("cba"));
-//    }
-//
-//    // void trim()
-//
-//    {
-//        String s;
-//        s.trim();
-//        ASSERT(s == STR(""));
-//    }
-//
-//    {
-//        String s(STR(" "));
-//        s.trim();
-//        ASSERT(s == STR(""));
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s(STR(" a "));
-//        s.trim();
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("  a  "));
-//        s.trim();
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    // void trimRight()
-//
-//    {
-//        String s;
-//        s.trimRight();
-//        ASSERT(s == STR(""));
-//    }
-//
-//    {
-//        String s(STR(" "));
-//        s.trimRight();
-//        ASSERT(s == STR(""));
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s(STR(" a "));
-//        s.trimRight();
-//        ASSERT(s == STR(" a"));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("  a  "));
-//        s.trimRight();
-//        ASSERT(s == STR("  a"));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    // void trimLeft()
-//
-//    {
-//        String s;
-//        s.trimLeft();
-//        ASSERT(s == STR(""));
-//    }
-//
-//    {
-//        String s(STR(" "));
-//        s.trimLeft();
-//        ASSERT(s == STR(""));
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    {
-//        String s(STR(" a "));
-//        s.trimLeft();
-//        ASSERT(s == STR("a "));
-//        ASSERT(s.capacity() == 4);
-//    }
-//
-//    {
-//        String s(STR("  a  "));
-//        s.trimLeft();
-//        ASSERT(s == STR("a  "));
-//        ASSERT(s.capacity() == 6);
-//    }
-//
-//    // void toUpper()
-//
-//    {
-//        String s(STR("abC"));
-//        s.toUpper();
-//        ASSERT(s == STR("ABC"));
-//    }
-//
-//    // void toLower()
-//
-//    {
-//        String s(STR("ABc"));
-//        s.toLower();
-//        ASSERT(s == STR("abc"));
-//    }
-//
-//    // void clear()
-//
-//    {
-//        String s;
-//        s.clear();
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.clear();
-//        ASSERT(*s.chars() == 0);
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    // void reset()
-//
-//    {
-//        String s;
-//        s.reset();
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    {
-//        String s(STR("a"));
-//        s.reset();
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//    }
-//
-//    // String acquire(char_t* chars)
-//
-//    {
-//        char_t* p = Memory::allocate<char_t>(1);
-//        strCopy(p, STR(""));
-//        String s = String::acquire(p);
-//        ASSERT(s.chars() == p);
-//        ASSERT(s == STR(""));
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 1);
-//    }
-//
-//    {
-//        char_t* p = Memory::allocate<char_t>(2);
-//        strCopy(p, STR("a"));
-//        String s = String::acquire(p);
-//        ASSERT(s.chars() == p);
-//        ASSERT(s == STR("a"));
-//        ASSERT(s.length() == 1);
-//        ASSERT(s.capacity() == 2);
-//    }
-//
-//    // char_t* release()
-//
-//    {
-//        String s(STR("a"));
-//        char_t* p = s.release();
-//        ASSERT(strCompare(p, STR("a")) == 0);
-//        ASSERT(!s.chars());
-//        ASSERT(s.length() == 0);
-//        ASSERT(s.capacity() == 0);
-//        Memory::deallocate(p);
-//    }
-//
-//    // String concat(_Args&&... args)
-//
-//    ASSERT(String::concat(STR("a")) == STR("a"));
-//    ASSERT(String::concat(String(STR("a"))) == STR("a"));
-//    ASSERT(String::concat(STR("a"), STR("b")) == STR("ab"));
-//    ASSERT(String::concat(STR("a"), String(STR("b"))) == STR("ab"));
-//    ASSERT(String::concat(String(STR("a")), STR("b")) == STR("ab"));
-//    ASSERT(String::concat(String(STR("a")), String(STR("b"))) == STR("ab"));
-//
-//    // conversion from string
-//
-//    ASSERT(String(STR("true")).toBool() == true);
-//    ASSERT(String(STR("false")).toBool() == false);
-//    ASSERT(String(STR("-123")).toInt() == -123);
-//    ASSERT(String(STR("-123")).toInt32() == -123);
-//    ASSERT(String(STR("123")).toUInt32() == 123);
-//    ASSERT(String(STR("-123")).toInt64() == -123);
-//    ASSERT(String(STR("123")).toUInt64() == 123);
-//    ASSERT(String(STR("123.45")).toFloat() == 123.45f);
-//    ASSERT(String(STR("123.45")).toDouble() == 123.45);
-//    
-//    ASSERT_EXCEPTION(Exception, String(STR("abc")).toBool());
-//    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt());
-//    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt32());
-//    ASSERT_EXCEPTION(Exception, String(STR("abc")).toUInt32());
-//    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt64());
-//    ASSERT_EXCEPTION(Exception, String(STR("abc")).toUInt64());
-//    ASSERT_EXCEPTION(Exception, String(STR("abc")).toFloat());
-//    ASSERT_EXCEPTION(Exception, String(STR("abc")).toDouble());
-//
-//    // conversion to string
-//
-//    ASSERT(String::from(true) == STR("true"));
-//    ASSERT(String::from(false) == STR("false"));
-//    ASSERT(String::from(-123) == STR("-123"));
-//    ASSERT(String::from(123u) == STR("123"));
-//    ASSERT(String::from(-123l) == STR("-123"));
-//    ASSERT(String::from(123ul) == STR("123"));
-//    ASSERT(String::from(-123ll) == STR("-123"));
-//    ASSERT(String::from(123ull) == STR("123"));
-//    ASSERT(String::from(123.45f, 2) == STR("123.45"));
-//    ASSERT(String::from(123.45, 2) == STR("123.45"));
-//
-//    // String format(const char_t* format, ...)
-//    // String format(const char_t* format, va_list args)
-//
-//    ASSERT(String::format(STR("str = %s, int = %d, float = %g"), 
-//            STR("abc"), 123, 123.45) == STR("str = abc, int = 123, float = 123.45"));
+
+    // void replace(const String& searchStr, const String& replaceStr)
+
+    {
+        String s;
+        s.replace(String(STR("a")), String(STR("b")));
+        ASSERT(s == STR(""));
+    }
+
+    {
+        String s(STR("abc"));
+        s.replace(String(), String(STR("a")));
+        ASSERT(s == STR("abc"));
+    }
+     
+    {
+        String s(STR("abc"));
+        s.replace(String(STR("b")), String());
+        ASSERT(s == STR("ac"));
+    }  
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.replace(s, String((STR("a")))));
+        ASSERT_EXCEPTION(Exception, s.replace(String((STR("a"))), s));
+    }
+
+    {
+        String s(STR("abc"));
+        s.replace(String(STR("x")), String(STR("y")));
+        ASSERT(s == STR("abc"));
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(String(STR("bc")), String(STR("x")));
+        ASSERT(s == STR("axd"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(String(STR("bc")), String(STR("xyz")));
+        ASSERT(s == STR("axyzd"));
+        ASSERT(s.length() == 5);
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(String(STR("ab")), String(STR("x")));
+        ASSERT(s == STR("xcd"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(String(STR("cd")), String(STR("x")));
+        ASSERT(s == STR("abx"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("aab"));
+        s.replace(String(STR("a")), String(STR("xy")));
+        ASSERT(s == STR("xyxyb"));
+        ASSERT(s.length() == 5);
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("abcbd"));
+        s.replace(String(STR("b")), String(STR("xy")));
+        ASSERT(s == STR("axycxyd"));
+        ASSERT(s.length() == 7);
+        ASSERT(s.capacity() == 8);
+    }
+
+    // void replace(const char_t* searchChars, const char_t* replaceChars)
+
+    {
+        String s;
+        s.replace(STR("a"), STR("b"));
+        ASSERT(s == STR(""));
+    }
+
+    {
+        String s(STR("abc"));
+        s.replace(STR(""), STR("a"));
+        ASSERT(s == STR("abc"));
+        s.replace(np,  STR("a"));
+        ASSERT(s == STR("abc"));
+    }
+     
+    {
+        String s(STR("abc"));
+        s.replace(STR("b"), STR(""));
+        ASSERT(s == STR("ac"));
+        s.replace(STR("b"), np);
+        ASSERT(s == STR("ac"));
+    }  
+
+    {
+        String s(STR("a"));
+        ASSERT_EXCEPTION(Exception, s.replace(s.chars(), STR("a")));
+        ASSERT_EXCEPTION(Exception, s.replace(STR("a"), s.chars()));
+    }
+
+    {
+        String s(STR("abc"));
+        s.replace(STR("x"), STR("y"));
+        ASSERT(s == STR("abc"));
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(STR("bc"), STR("x"));
+        ASSERT(s == STR("axd"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(STR("bc"), STR("xyz"));
+        ASSERT(s == STR("axyzd"));
+        ASSERT(s.length() == 5);
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(STR("ab"), STR("x"));
+        ASSERT(s == STR("xcd"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(STR("cd"), STR("x"));
+        ASSERT(s == STR("abx"));
+        ASSERT(s.length() == 3);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("aab"));
+        s.replace(STR("a"), STR("xy"));
+        ASSERT(s == STR("xyxyb"));
+        ASSERT(s.length() == 5);
+        ASSERT(s.capacity() == 6);
+    }
+
+    {
+        String s(STR("abcbd"));
+        s.replace(STR("b"), STR("xy"));
+        ASSERT(s == STR("axycxyd"));
+        ASSERT(s.length() == 7);
+        ASSERT(s.capacity() == 8);
+    }
+
+    // void trim()
+
+    {
+        String s;
+        s.trim();
+        ASSERT(s == STR(""));
+    }
+
+    {
+        String s(STR(" "));
+        s.trim();
+        ASSERT(s == STR(""));
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR(" a "));
+        s.trim();
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("  a  "));
+        s.trim();
+        ASSERT(s == STR("a"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    // void trimRight()
+
+    {
+        String s;
+        s.trimRight();
+        ASSERT(s == STR(""));
+    }
+
+    {
+        String s(STR(" "));
+        s.trimRight();
+        ASSERT(s == STR(""));
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR(" a "));
+        s.trimRight();
+        ASSERT(s == STR(" a"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("  a  "));
+        s.trimRight();
+        ASSERT(s == STR("  a"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    // void trimLeft()
+
+    {
+        String s;
+        s.trimLeft();
+        ASSERT(s == STR(""));
+    }
+
+    {
+        String s(STR(" "));
+        s.trimLeft();
+        ASSERT(s == STR(""));
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR(" a "));
+        s.trimLeft();
+        ASSERT(s == STR("a "));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("  a  "));
+        s.trimLeft();
+        ASSERT(s == STR("a  "));
+        ASSERT(s.capacity() == 6);
+    }
+
+    // void toUpper()
+
+    {
+        String s(STR("abC"));
+        s.toUpper();
+        ASSERT(s == STR("ABC"));
+    }
+
+    // void toLower()
+
+    {
+        String s(STR("ABc"));
+        s.toLower();
+        ASSERT(s == STR("abc"));
+    }
+
+    // void clear()
+
+    {
+        String s;
+        s.clear();
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR("a"));
+        s.clear();
+        ASSERT(*s.chars() == 0);
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 2);
+    }
+
+    // void reset()
+
+    {
+        String s;
+        s.reset();
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    {
+        String s(STR("a"));
+        s.reset();
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+
+    // String acquire(char_t* chars)
+
+    {
+        char_t* p = Memory::allocate<char_t>(1);
+        strCopy(p, STR(""));
+        String s = String::acquire(p);
+        ASSERT(s.chars() == p);
+        ASSERT(s == STR(""));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 1);
+    }
+
+    {
+        char_t* p = Memory::allocate<char_t>(2);
+        strCopy(p, STR("a"));
+        String s = String::acquire(p);
+        ASSERT(s.chars() == p);
+        ASSERT(s == STR("a"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    // char_t* release()
+
+    {
+        String s(STR("a"));
+        char_t* p = s.release();
+        ASSERT(strCompare(p, STR("a")) == 0);
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+        Memory::deallocate(p);
+    }
+
+    // String concat(_Args&&... args)
+
+    ASSERT(String::concat(STR("a")) == STR("a"));
+    ASSERT(String::concat(String(STR("a"))) == STR("a"));
+    ASSERT(String::concat(STR("a"), STR("b")) == STR("ab"));
+    ASSERT(String::concat(STR("a"), String(STR("b"))) == STR("ab"));
+    ASSERT(String::concat(String(STR("a")), STR("b")) == STR("ab"));
+    ASSERT(String::concat(String(STR("a")), String(STR("b"))) == STR("ab"));
+
+    // conversion from string
+
+    ASSERT(String(STR("true")).toBool() == true);
+    ASSERT(String(STR("false")).toBool() == false);
+    ASSERT(String(STR("-123")).toInt() == -123);
+    ASSERT(String(STR("-123")).toInt32() == -123);
+    ASSERT(String(STR("123")).toUInt32() == 123);
+    ASSERT(String(STR("-123")).toInt64() == -123);
+    ASSERT(String(STR("123")).toUInt64() == 123);
+    ASSERT(String(STR("123.45")).toFloat() == 123.45f);
+    ASSERT(String(STR("123.45")).toDouble() == 123.45);
+    
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toBool());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt32());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toUInt32());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt64());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toUInt64());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toFloat());
+    ASSERT_EXCEPTION(Exception, String(STR("abc")).toDouble());
+
+    // conversion to string
+
+    ASSERT(String::from(true) == STR("true"));
+    ASSERT(String::from(false) == STR("false"));
+    ASSERT(String::from(-123) == STR("-123"));
+    ASSERT(String::from(123u) == STR("123"));
+    ASSERT(String::from(-123l) == STR("-123"));
+    ASSERT(String::from(123ul) == STR("123"));
+    ASSERT(String::from(-123ll) == STR("-123"));
+    ASSERT(String::from(123ull) == STR("123"));
+    ASSERT(String::from(123.45f, 2) == STR("123.45"));
+    ASSERT(String::from(123.45, 2) == STR("123.45"));
+
+    // String format(const char_t* format, ...)
+    // String format(const char_t* format, va_list args)
+
+    ASSERT(String::format(STR("str = %s, int = %d, float = %g"), 
+            STR("abc"), 123, 123.45) == STR("str = abc, int = 123, float = 123.45"));
+
+    // String operator+(const String& left, const String& right)
+    // String operator+(const String& left, const char_t* right)
+    // String operator+(const char_t* left, const String& right)
+
+    ASSERT(String(STR("ab")) + String(STR("cd")) == STR("abcd"));
+    ASSERT(String(STR("ab")) + STR("cd") == STR("abcd"));
+    ASSERT(STR("ab") + String(STR("cd")) == STR("abcd"));
+
+    // string compare operators
+
+    ASSERT(String(STR("ab")) == String(STR("ab")));
+    ASSERT(String(STR("ab")) != String(STR("xy")));
+    ASSERT(String(STR("ab")) < String(STR("abc")));
+    ASSERT(String(STR("ab")) <= String(STR("abc")));
+    ASSERT(String(STR("abc")) > String(STR("ab")));
+    ASSERT(String(STR("abc")) >= String(STR("ab")));
+
+    ASSERT(STR("ab") == String(STR("ab")));
+    ASSERT(STR("ab") != String(STR("xy")));
+    ASSERT(STR("ab") < String(STR("abc")));
+    ASSERT(STR("ab") <= String(STR("abc")));
+    ASSERT(STR("abc") > String(STR("ab")));
+    ASSERT(STR("abc") >= String(STR("ab")));
+
+    ASSERT(String(STR("ab")) == STR("ab"));
+    ASSERT(String(STR("ab")) != STR("xy"));
+    ASSERT(String(STR("ab")) < STR("abc"));
+    ASSERT(String(STR("ab")) <= STR("abc"));
+    ASSERT(String(STR("abc")) > STR("ab"));
+    ASSERT(String(STR("abc")) >= STR("ab"));
+}
+
+void testStringIterator()
+{
+    const char_t* CHARS = STR("\u0024\u00a2\u20ac\U00010348");
+
+    {
+        String s;
+        String::ConstIterator it(s);
+
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(!it.moveNext());
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(!it.movePrev());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        String s(CHARS);
+        String::ConstIterator it(s);
+
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0x24);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0xa2);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0x20ac);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0x10348);
+        ASSERT(!it.moveNext());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        String s(CHARS);
+        String::ConstIterator it(s);
+
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 0x10348);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 0x20ac);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 0xa2);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 0x24);
+        ASSERT(!it.movePrev());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        String s(CHARS);
+        String::ConstIterator it(s);
+
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0x24);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0xa2);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 0x24);
+    }
+
+    {
+        String s(CHARS);
+        String::ConstIterator it(s);
+
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0x24);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0xa2);
+        it.reset();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 0x24);
+    }
 }
 
 void testArray()
@@ -4228,6 +4317,7 @@ void testFoundation()
     testUniquePtr();
     testSharedPtr();
     testString();
+    testStringIterator();
     testArray();
     testArrayIterator();
     testList();

@@ -1487,7 +1487,6 @@ void String::replace(const char_t* searchChars, const char_t* replaceChars)
                 if (foundCnt > 0)
                 {
                     int replaceLen = strLen(replaceChars);
-
                     int capacity = _length + foundCnt * (replaceLen - searchLen) + 1;
                     ensureCapacity(capacity);
 
@@ -1845,6 +1844,8 @@ String String::format(const char_t* format, va_list args)
 
 unichar_t ConstStringIterator::value() const
 {
+    ASSERT(_pos);
+
     unichar_t ch;
     UTF_CHAR_TO_UNICODE(_pos, ch);
     return ch;

@@ -980,8 +980,14 @@ inline int hash(const SharedPtr<_Type>& val)
 
 // String
 
+class ConstStringIterator;
+
 class String
 {
+public:
+    friend class ConstStringIterator;
+    typedef ConstStringIterator ConstIterator;
+
 public:
     String() :
         _length(0),
@@ -1327,19 +1333,9 @@ inline bool operator==(const char_t* left, const String& right)
     return strCompare(left, right.str()) == 0;
 }
 
-inline bool operator==(const String& left, const char_t* right)
-{
-    return strCompare(left.str(), right) == 0;
-}
-
 inline bool operator!=(const char_t* left, const String& right)
 {
     return strCompare(left, right.str()) != 0;
-}
-
-inline bool operator!=(const String& left, const char_t* right)
-{
-    return strCompare(left.str(), right) != 0;
 }
 
 inline bool operator<(const char_t* left, const String& right)
@@ -1347,19 +1343,9 @@ inline bool operator<(const char_t* left, const String& right)
     return strCompare(left, right.str()) < 0;
 }
 
-inline bool operator<(const String& left, const char_t* right)
-{
-    return strCompare(left.str(), right) < 0;
-}
-
 inline bool operator<=(const char_t* left, const String& right)
 {
     return strCompare(left, right.str()) <= 0;
-}
-
-inline bool operator<=(const String& left, const char_t* right)
-{
-    return strCompare(left.str(), right) <= 0;
 }
 
 inline bool operator>(const char_t* left, const String& right)
@@ -1367,14 +1353,34 @@ inline bool operator>(const char_t* left, const String& right)
     return strCompare(left, right.str()) > 0;
 }
 
-inline bool operator>(const String& left, const char_t* right)
-{
-    return strCompare(left.str(), right) > 0;
-}
-
 inline bool operator>=(const char_t* left, const String& right)
 {
     return strCompare(left, right.str()) >= 0;
+}
+
+inline bool operator==(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) == 0;
+}
+
+inline bool operator!=(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) != 0;
+}
+
+inline bool operator<(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) < 0;
+}
+
+inline bool operator<=(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) <= 0;
+}
+
+inline bool operator>(const String& left, const char_t* right)
+{
+    return strCompare(left.str(), right) > 0;
 }
 
 inline bool operator>=(const String& left, const char_t* right)
