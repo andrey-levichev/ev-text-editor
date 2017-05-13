@@ -1,4 +1,5 @@
 bugs & misc:
+* handle SIGWINCH to detect terminal size changes
 * rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
 * minimal screen update for colored text
@@ -6,11 +7,17 @@ screen update code must not differ between platforms
 * support unicode input and newline differences
 support unicode input, console etc
 decode/encode text from file to runtime enconding, translate newlines
+rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
-rewrite string unit tests
-split/join
-* handle SIGWINCH to detect terminal size changes
+* misc
+string split/join
+rewrite toUpper/toLower
+make char_t* charForward(char_t* pos, int n = 1) const?
+default params in test comments
+tests for const iterators?
+drop const if only one iterator
+map can have only const iterator
 
 basic features:
 * search/replace

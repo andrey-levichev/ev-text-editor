@@ -12,7 +12,7 @@ tags
 test.txt
 Debug
 Release
-eve.VC.db
+.vs
 .DS_Store
 .suo
 cmake-build-*
