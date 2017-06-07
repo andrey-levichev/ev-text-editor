@@ -13,9 +13,9 @@ Array<Key> Console::_keys;
 void Console::setMode(int mode)
 {
     if (mode & CONSOLE_MODE_NOTBUFFERED)
-        ASSERT(setvbuf(stdout, nullptr, _IONBF, 0) == 0);
+        ASSERT(setvbuf(stdout, NULL, _IONBF, 0) == 0);
     else
-        ASSERT(setvbuf(stdout, nullptr, _IOFBF, BUFSIZ) == 0);
+        ASSERT(setvbuf(stdout, NULL, _IOFBF, BUFSIZ) == 0);
 
 #ifdef PLATFORM_WINDOWS
 
@@ -469,7 +469,7 @@ void Console::write(const char_t* chars, int len)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(WriteConsole(handle, chars, len, &written, nullptr));
+    ASSERT(WriteConsole(handle, chars, len, &written, NULL));
 #else
     ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
 #endif

@@ -123,6 +123,8 @@
 
 #define COMPILER_XL_CPP
 #define COMPILER_VERSION __IBMCPP__
+typedef unsigned short char16_t;
+typedef unsigned char32_t;
 
 #endif
 
@@ -168,7 +170,13 @@ typedef wint_t getchar_t;
 
 #define CHAR_ENCODING_UTF8
 #define MAIN main
+
+#ifdef COMPILER_XL_CPP
 #define STR(arg) arg
+#else
+#define STR(arg) u8##arg
+#endif
+
 #define CHAR_EOF EOF
 typedef char char_t;
 typedef int getchar_t;
@@ -519,7 +527,7 @@ inline _Type* allocate(int size)
             throw OutOfMemoryException();
     }
     else
-        return nullptr;
+        return NULL;
 }
 
 template<typename _Type>
@@ -696,24 +704,20 @@ class UniquePtr
 {
 public:
     UniquePtr() :
-        _ptr(nullptr)
+        _ptr(NULL)
     {
     }
-
-    UniquePtr(const UniquePtr<_Type>&) = delete;
 
     UniquePtr(UniquePtr<_Type>&& other)
     {
         _ptr = other._ptr;
-        other._ptr = nullptr;
+        other._ptr = NULL;
     }
 
     ~UniquePtr()
     {
         Memory::destroy(_ptr);
     }
-
-    UniquePtr<_Type>& operator=(const UniquePtr<_Type>&) = delete;
 
     UniquePtr<_Type>& operator=(UniquePtr<_Type>&& other)
     {
@@ -740,12 +744,12 @@ public:
 
     operator bool() const
     {
-        return _ptr != nullptr;
+        return _ptr != NULL;
     }
 
     bool empty() const
     {
-        return _ptr == nullptr;
+        return _ptr == NULL;
     }
 
     _Type* ptr() const
@@ -763,7 +767,7 @@ public:
     void reset()
     {
         Memory::destroy(_ptr);
-        _ptr = nullptr;
+        _ptr = NULL;
     }
 
     friend void swap(UniquePtr<_Type>& left, UniquePtr<_Type>& right)
@@ -793,6 +797,10 @@ protected:
     {
     }
 
+private:
+    UniquePtr(const UniquePtr<_Type>&);
+    UniquePtr<_Type>& operator=(const UniquePtr<_Type>&);
+
 protected:
     _Type* _ptr;
 };
@@ -816,7 +824,7 @@ class SharedPtr
 {
 public:
     SharedPtr() :
-        _sharedPtr(nullptr)
+        _sharedPtr(NULL)
     {
     }
 
@@ -830,7 +838,7 @@ public:
     SharedPtr(SharedPtr<_Type>&& other)
     {
         _sharedPtr = other._sharedPtr;
-        other._sharedPtr = nullptr;
+        other._sharedPtr = NULL;
     }
 
     ~SharedPtr()
@@ -871,12 +879,12 @@ public:
 
     operator bool() const
     {
-        return _sharedPtr != nullptr;
+        return _sharedPtr != NULL;
     }
 
     bool empty() const
     {
-        return _sharedPtr == nullptr;
+        return _sharedPtr == NULL;
     }
 
     _Type* ptr() const
@@ -884,7 +892,7 @@ public:
         if (_sharedPtr)
             return reinterpret_cast<_Type*>(_sharedPtr);
         else
-            return nullptr;
+            return NULL;
     }
 
     int refCount() const
@@ -907,7 +915,7 @@ public:
         if (_sharedPtr)
             releaseRef();
 
-        _sharedPtr = nullptr;
+        _sharedPtr = NULL;
     }
 
     friend void swap(SharedPtr<_Type>& left, SharedPtr<_Type>& right)
@@ -992,7 +1000,7 @@ public:
     String() :
         _length(0),
         _capacity(0),
-        _chars(nullptr)
+        _chars(NULL)
     {
     }
 
@@ -1114,12 +1122,12 @@ public:
         return strCompareNoCase(str(), chars ? chars : STR(""));
     }
 
-    const char_t* find(const String& str, const char_t* pos = nullptr) const;
-    const char_t* find(const char_t* chars, const char_t* pos = nullptr) const;
-    const char_t* find(unichar_t ch, const char_t* pos = nullptr) const;
-    const char_t* findNoCase(const String& str, const char_t* pos = nullptr) const;
-    const char_t* findNoCase(const char_t* chars, const char_t* pos = nullptr) const;
-    const char_t* findNoCase(unichar_t ch, const char_t* pos = nullptr) const;
+    const char_t* find(const String& str, const char_t* pos = NULL) const;
+    const char_t* find(const char_t* chars, const char_t* pos = NULL) const;
+    const char_t* find(unichar_t ch, const char_t* pos = NULL) const;
+    const char_t* findNoCase(const String& str, const char_t* pos = NULL) const;
+    const char_t* findNoCase(const char_t* chars, const char_t* pos = NULL) const;
+    const char_t* findNoCase(unichar_t ch, const char_t* pos = NULL) const;
     
     bool startsWith(const String& str) const;
     bool startsWith(const char_t* chars) const;
@@ -1394,7 +1402,7 @@ class ConstStringIterator
 {
 public:
     ConstStringIterator(const String& str) :
-        _str(str), _pos(nullptr)
+        _str(str), _pos(NULL)
     {
     }
 
@@ -1404,7 +1412,7 @@ public:
 
     void reset()
     {
-        _pos = nullptr;
+        _pos = NULL;
     }
 
 private:
@@ -1438,7 +1446,7 @@ public:
 
 public:
     Array() : 
-        _size(0), _capacity(0), _values(nullptr)
+        _size(0), _capacity(0), _values(NULL)
     {
     }
 
@@ -1484,7 +1492,7 @@ public:
         
         other._size = 0;
         other._capacity = 0;
-        other._values = nullptr;
+        other._values = NULL;
     }
 
     ~Array()
@@ -1782,7 +1790,7 @@ public:
 
         _size = 0;
         _capacity = 0;
-        _values = nullptr;
+        _values = NULL;
     }
     
     static Array<_Type> acquire(int size, _Type* values)
@@ -1795,7 +1803,7 @@ public:
         _Type* values = _values;
         _size = 0;
         _capacity = 0;
-        _values = nullptr;
+        _values = NULL;
         
         return values;
     }
@@ -1845,7 +1853,7 @@ public:
     {
     }
 
-    _Type& value() const
+    _Type& value()
     {
         ASSERT(_index >= 0);
         return _array._values[_index];
@@ -1973,12 +1981,12 @@ public:
 
 public:
     List() :
-        _front(nullptr), _back(nullptr)
+        _front(NULL), _back(NULL)
     {
     }
 
     List(int size) :
-        _front(nullptr), _back(nullptr)
+        _front(NULL), _back(NULL)
     {
         ASSERT(size >= 0);
 
@@ -1995,7 +2003,7 @@ public:
     }
 
     List(int size, const _Type& value) :
-        _front(nullptr), _back(nullptr)
+        _front(NULL), _back(NULL)
     {
         ASSERT(size >= 0);
 
@@ -2012,7 +2020,7 @@ public:
     }
 
     List(int size, const _Type* values) :
-        _front(nullptr), _back(nullptr)
+        _front(NULL), _back(NULL)
     {
         ASSERT((size == 0 && !values) || (size > 0 && values));
 
@@ -2029,7 +2037,7 @@ public:
     }
 
     List(const List<_Type>& other) :
-        _front(nullptr), _back(nullptr)
+        _front(NULL), _back(NULL)
     {
         try
         {
@@ -2047,8 +2055,8 @@ public:
     {
         _front = other._front;
         _back = other._back;
-        other._front = nullptr;
-        other._back = nullptr;
+        other._front = NULL;
+        other._back = NULL;
     }
 
     ~List()
@@ -2110,7 +2118,7 @@ public:
             if (equalsTo(node->value, value))
                 return node;
 
-        return nullptr;
+        return NULL;
     }
 
     const ListNode<_Type>* find(const _Type& value) const
@@ -2119,7 +2127,7 @@ public:
             if (equalsTo(node->value, value))
                 return node;
 
-        return nullptr;
+        return NULL;
     }
 
     void assign(int size, const _Type* values)
@@ -2142,9 +2150,9 @@ public:
         _front = _front->next;
 
         if (_front)
-            _front->prev = nullptr;
+            _front->prev = NULL;
         else
-            _back = nullptr;
+            _back = NULL;
 
         Memory::destroy(node);
     }
@@ -2157,9 +2165,9 @@ public:
         _back = _back->prev;
 
         if (_back)
-            _back->next = nullptr;
+            _back->next = NULL;
         else
-            _front = nullptr;
+            _front = NULL;
 
         Memory::destroy(node);
     }
@@ -2168,13 +2176,13 @@ public:
     {
         if (_front)
         {
-            auto node = Memory::create<ListNode<_Type>>(value, nullptr, _front);
+            auto node = createListNode(value, NULL, _front);
             _front->prev = node;
             _front = node;
         }
         else
         {
-            auto node = Memory::create<ListNode<_Type>>(value, nullptr, nullptr);
+            auto node = createListNode(value, NULL, NULL);
             _front = _back = node;
         }
     }
@@ -2183,13 +2191,13 @@ public:
     {
         if (_front)
         {
-            auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), nullptr, _front);
+            auto node = createListNode(static_cast<_Type&&>(value), NULL, _front);
             _front->prev = node;
             _front = node;
         }
         else
         {
-            auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), nullptr, nullptr);
+            auto node = createListNode(static_cast<_Type&&>(value), NULL, NULL);
             _front = _back = node;
         }
     }
@@ -2198,13 +2206,13 @@ public:
     {
         if (_front)
         {
-            auto node = Memory::create<ListNode<_Type>>(value, _back, nullptr);
+            auto node = createListNode(value, _back, NULL);
             _back->next = node;
             _back = node;
         }
         else
         {
-            auto node = Memory::create<ListNode<_Type>>(value, nullptr, nullptr);
+            auto node = createListNode(value, NULL, NULL);
             _front = _back = node;
         }
     }
@@ -2213,13 +2221,13 @@ public:
     {
         if (_front)
         {
-            auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), _back, nullptr);
+            auto node = createListNode(static_cast<_Type&&>(value), _back, NULL);
             _back->next = node;
             _back = node;
         }
         else
         {
-            auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), nullptr, nullptr);
+            auto node = createListNode(static_cast<_Type&&>(value), NULL, NULL);
             _front = _back = node;
         }
     }
@@ -2228,7 +2236,7 @@ public:
     {
         ASSERT(pos);
 
-        auto node = Memory::create<ListNode<_Type>>(value, pos->prev, pos);
+        auto node = createListNode(value, pos->prev, pos);
 
         if (pos->prev)
             pos->prev->next = node;
@@ -2243,7 +2251,7 @@ public:
     {
         ASSERT(pos);
 
-        auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), pos->prev, pos);
+        auto node = createListNode(static_cast<_Type&&>(value), pos->prev, pos);
 
         if (pos->prev)
             pos->prev->next = node;
@@ -2258,7 +2266,7 @@ public:
     {
         ASSERT(pos);
 
-        auto node = Memory::create<ListNode<_Type>>(value, pos, pos->next);
+        auto node = createListNode(value, pos, pos->next);
 
         if (pos->next)
             pos->next->prev = node;
@@ -2273,7 +2281,7 @@ public:
     {
         ASSERT(pos);
 
-        auto node = Memory::create<ListNode<_Type>>(static_cast<_Type&&>(value), pos, pos->next);
+        auto node = createListNode(static_cast<_Type&&>(value), pos, pos->next);
 
         if (pos->next)
             pos->next->prev = node;
@@ -2304,7 +2312,7 @@ public:
     void clear()
     {
         destroyNodes();
-        _front = _back = nullptr;
+        _front = _back = NULL;
     }
 
     friend void swap(List<_Type>& left, List<_Type>& right)
@@ -2314,6 +2322,40 @@ public:
     }
 
 protected:
+    ListNode<_Type>* createListNode(const _Type& value, ListNode<_Type>* prev, ListNode<_Type>* next)
+    {
+        ListNode<_Type>* ptr = Memory::allocate<ListNode<_Type>>();
+
+        try
+        {
+            ::new(ptr) ListNode<_Type>(value, prev, next);
+        }
+        catch (...)
+        {
+            Memory::deallocate(ptr);
+            throw;
+        }
+
+        return ptr;
+    }
+
+    ListNode<_Type>* createListNode(_Type&& value, ListNode<_Type>* prev, ListNode<_Type>* next)
+    {
+        ListNode<_Type>* ptr = Memory::allocate<ListNode<_Type>>();
+
+        try
+        {
+            ::new(ptr) ListNode<_Type>(static_cast<_Type&&>(value), prev, next);
+        }
+        catch (...)
+        {
+            Memory::deallocate(ptr);
+            throw;
+        }
+
+        return ptr;
+    }
+
     void destroyNodes()
     {
         for (auto node = _front; node;)
@@ -2336,11 +2378,11 @@ class ListIterator
 {
 public:
     ListIterator(List<_Type>& list) : 
-        _list(list), _node(nullptr)
+        _list(list), _node(NULL)
     {
     }
 
-    _Type& value() const
+    _Type& value()
     {
         ASSERT(_node);
         return _node->value;
@@ -2353,7 +2395,7 @@ public:
         else
             _node = _list.front();
 
-        return _node != nullptr;
+        return _node != NULL;
     }
 
     bool movePrev()
@@ -2363,12 +2405,12 @@ public:
         else
             _node = _list.back();
 
-        return _node != nullptr;
+        return _node != NULL;
     }
 
     void reset()
     {
-        _node = nullptr;
+        _node = NULL;
     }
 
 protected:
@@ -2383,7 +2425,7 @@ class ConstListIterator
 {
 public:
     ConstListIterator(const List<_Type>& list) : 
-        _list(list), _node(nullptr)
+        _list(list), _node(NULL)
     {
     }
 
@@ -2400,7 +2442,7 @@ public:
         else
             _node = _list.front();
 
-        return _node != nullptr;
+        return _node != NULL;
     }
 
     bool movePrev()
@@ -2410,12 +2452,12 @@ public:
         else
             _node = _list.back();
 
-        return _node != nullptr;
+        return _node != NULL;
     }
 
     void reset()
     {
-        _node = nullptr;
+        _node = NULL;
     }
 
 protected:
@@ -2573,7 +2615,7 @@ public:
             }
         }
 
-        return nullptr;
+        return NULL;
     }
 
     const _Value* find(const _Key& key) const
@@ -2589,7 +2631,7 @@ public:
             }
         }
 
-        return nullptr;
+        return NULL;
     }
 
     void assign(const Map<_Key, _Value>& other)
@@ -2714,6 +2756,17 @@ protected:
             value(static_cast<_Value&&>(value))
         {
         }
+
+        KeyValue(const KeyValue& other) :
+            key(other.key), value(other.value)
+        {
+        }
+
+        KeyValue(KeyValue&& other) :
+            key(static_cast<_Key&&>(other.key)), 
+            value(static_cast<_Value&&>(other.value))
+        {
+        }
     };
 
 protected:
@@ -2748,11 +2801,11 @@ class MapIterator
 {
 public:
     MapIterator(Map<_Key, _Value>& map) : 
-        _map(map), _index(0), _node(nullptr)
+        _map(map), _index(0), _node(NULL)
     {
     }
 
-    typename Map<_Key, _Value>::KeyValue& value() const
+    typename Map<_Key, _Value>::KeyValue& value()
     {
         ASSERT(_node);
         return _node->value;
@@ -2790,14 +2843,14 @@ public:
         }
 
         _index = 0;
-        _node = nullptr;
+        _node = NULL;
         return false;
     }
 
     void reset()
     {
         _index = 0;
-        _node = nullptr;
+        _node = NULL;
     }
 
 protected:
@@ -2813,7 +2866,7 @@ class ConstMapIterator
 {
 public:
     ConstMapIterator(const Map<_Key, _Value>& map) : 
-        _map(map), _index(0), _node(nullptr)
+        _map(map), _index(0), _node(NULL)
     {
     }
 
@@ -2855,14 +2908,14 @@ public:
         }
 
         _index = 0;
-        _node = nullptr;
+        _node = NULL;
         return false;
     }
 
     void reset()
     {
         _index = 0;
-        _node = nullptr;
+        _node = NULL;
     }
 
 protected:
@@ -2949,7 +3002,7 @@ public:
                 return &vNode->value;
         }
 
-        return nullptr;
+        return NULL;
     }
 
     void assign(const Set<_Type>& other)
@@ -3086,7 +3139,7 @@ class ConstSetIterator
 {
 public:
     ConstSetIterator(const Set<_Type>& set) : 
-        _set(set), _index(0), _node(nullptr)
+        _set(set), _index(0), _node(NULL)
     {
     }
 
@@ -3128,14 +3181,14 @@ public:
         }
 
         _index = 0;
-        _node = nullptr;
+        _node = NULL;
         return false;
     }
 
     void reset()
     {
         _index = 0;
-        _node = nullptr;
+        _node = NULL;
     }
 
 protected:

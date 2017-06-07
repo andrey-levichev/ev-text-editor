@@ -84,9 +84,9 @@ char_t* strFindNoCase(char_t* str, const char_t* searchStr)
         FIND_FROMSTART | LINGUISTIC_IGNORECASE, 
         reinterpret_cast<const wchar_t*>(str), -1, 
         reinterpret_cast<const wchar_t*>(searchStr),
-        -1, nullptr, nullptr, nullptr, 0);
+        -1, NULL, NULL, NULL, 0);
 
-    return index >= 0 ? str + index : nullptr;
+    return index >= 0 ? str + index : NULL;
 }
 
 const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
@@ -262,12 +262,30 @@ const char_t* strFind(const char_t* str, const char_t* searchStr)
 
 char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 {
+#ifdef PLATFORM_AIX
+    int len = strlen(searchStr);
+	for (; *str; ++str)
+        if (!strncasecmp(str, searchStr, len))
+            return str;
+
+    return NULL;
+#else
     return strcasestr(str, searchStr);
+#endif
 }
 
 const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
 {
+#ifdef PLATFORM_AIX
+    int len = strlen(searchStr);
+	for (; *str; ++str)
+        if (!strncasecmp(str, searchStr, len))
+            return str;
+
+    return NULL;
+#else
     return strcasestr(str, searchStr);
+#endif
 }
 
 long strToLong(const char_t* str, char_t** end, int base)
@@ -353,14 +371,29 @@ void printArgs(const char_t* format, va_list args)
 
 void printArgsAlloc(char_t** str, const char_t* format, va_list args)
 {
+#ifdef PLATFORM_AIX
+    va_list args2;
+	va_copy(args2, args);
+	int len = vsnprintf(0, 0, format, args2);
+	va_end(args2);
+
+    if (len > 0)
+    {
+        *str = Memory::allocate<char_t>(len + 1);
+        vsnprintf(*str, len + 1, format, args);
+    }
+    else
+        *str = 0;
+#else
     vasprintf(str, format, args);
+#endif
 }
 
 void printAlloc(char_t** str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    vasprintf(str, format, args);
+    printArgsAlloc(str, format, args);
     va_end(args);
 }
 
@@ -688,7 +721,7 @@ String::String(const String& other)
     {
         _length = 0;
         _capacity = 0;
-        _chars = nullptr;
+        _chars = NULL;
     }
 }
 
@@ -713,7 +746,7 @@ String::String(const char_t* pos, int len)
 
     _length = 0;
     _capacity = 0;
-    _chars = nullptr;
+    _chars = NULL;
 }
 
 String::String(unichar_t ch, int len)
@@ -732,7 +765,7 @@ String::String(unichar_t ch, int len)
     {
         _length = 0;
         _capacity = 0;
-        _chars = nullptr;
+        _chars = NULL;
     }
 }
 
@@ -748,7 +781,7 @@ String::String(char_t* chars)
     {
         _length = 0;
         _capacity = 0;
-        _chars = nullptr;
+        _chars = NULL;
     }
 }
 
@@ -760,7 +793,7 @@ String::String(String&& other)
 
     other._length = 0;
     other._capacity = 0;
-    other._chars = nullptr;
+    other._chars = NULL;
 }
 
 unichar_t String::charAt(const char_t* pos) const
@@ -783,7 +816,7 @@ char_t* String::charPosition(int n)
     if (_chars)
         return UTF_CHAR_FORWARD(_chars, n);
     else
-        return nullptr;
+        return NULL;
 }
 
 char_t* String::charForward(char_t* pos, int n)
@@ -797,7 +830,7 @@ char_t* String::charForward(char_t* pos, int n)
     else
     {
         ASSERT(!pos);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -812,7 +845,7 @@ char_t* String::charBack(char_t* pos, int n)
     else
     {
         ASSERT(!pos);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -822,7 +855,7 @@ const char_t* String::charPosition(int n) const
     if (_chars)
         return UTF_CHAR_FORWARD(_chars, n);
     else
-        return nullptr;
+        return NULL;
 }
 
 const char_t* String::charForward(const char_t* pos, int n) const
@@ -836,7 +869,7 @@ const char_t* String::charForward(const char_t* pos, int n) const
     else
     {
         ASSERT(!pos);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -851,7 +884,7 @@ const char_t* String::charBack(const char_t* pos, int n) const
     else
     {
         ASSERT(!pos);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -867,12 +900,12 @@ const char_t* String::find(const String& str, const char_t* pos) const
         if (str._chars)
             return strFind(pos, str._chars);
         else
-            return nullptr;
+            return NULL;
     }
     else
     {
         ASSERT(!pos);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -888,12 +921,12 @@ const char_t* String::find(const char_t* chars, const char_t* pos) const
         if (chars)
             return strFind(pos, chars);
         else
-            return nullptr;
+            return NULL;
     }
     else
     {
         ASSERT(!pos);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -920,12 +953,12 @@ const char_t* String::findNoCase(const String& str, const char_t* pos) const
         if (str._chars)
             return strFindNoCase(pos, str._chars);
         else
-            return nullptr;
+            return NULL;
     }
     else
     {
         ASSERT(!pos);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -941,12 +974,12 @@ const char_t* String::findNoCase(const char_t* chars, const char_t* pos) const
         if (chars)
             return strFindNoCase(pos, chars);
         else
-            return nullptr;
+            return NULL;
     }
     else
     {
         ASSERT(!pos);
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -1003,12 +1036,12 @@ bool String::endsWith(const char_t* chars) const
 
 bool String::contains(const String& str) const
 {
-    return find(str) != nullptr;
+    return find(str) != NULL;
 }
 
 bool String::contains(const char_t* chars) const
 {
-    return find(chars) != nullptr;
+    return find(chars) != NULL;
 }
 
 void String::ensureCapacity(int capacity)
@@ -1279,7 +1312,7 @@ void String::erase(const String& str)
             char_t* found;
             int foundCnt = 0;
 
-            while ((found = strFind(from, str._chars)) != nullptr)
+            while ((found = strFind(from, str._chars)) != NULL)
             {
                 ++foundCnt;
                 from = found + str._length;
@@ -1291,7 +1324,7 @@ void String::erase(const String& str)
                 if (newLen > 0)
                 {
                     from = _chars;
-                    while ((found = strFind(from, str._chars)) != nullptr)
+                    while ((found = strFind(from, str._chars)) != NULL)
                     {
                         strMove(found, found + str._length, 
                             _chars + _length - found - str._length + 1);
@@ -1319,7 +1352,7 @@ void String::erase(const char_t* chars)
             char_t* found;
             int foundCnt = 0, len = strLen(chars);
 
-            while ((found = strFind(from, chars)) != nullptr)
+            while ((found = strFind(from, chars)) != NULL)
             {
                 ++foundCnt;
                 from = found + len;
@@ -1331,7 +1364,7 @@ void String::erase(const char_t* chars)
                 if (newLen > 0)
                 {
                     from = _chars;
-                    while ((found = strFind(from, chars)) != nullptr)
+                    while ((found = strFind(from, chars)) != NULL)
                     {
                         strMove(found, found + len,
                             _chars + _length - found - len + 1);
@@ -1432,7 +1465,7 @@ void String::replace(const String& searchStr, const String& replaceStr)
                 char_t* found;
                 int foundCnt = 0;
 
-                while ((found = strFind(from, searchStr._chars)) != nullptr)
+                while ((found = strFind(from, searchStr._chars)) != NULL)
                 {
                     ++foundCnt;
                     from = found + searchStr._length;
@@ -1444,7 +1477,7 @@ void String::replace(const String& searchStr, const String& replaceStr)
                     ensureCapacity(capacity);
 
                     from = _chars;
-                    while ((found = strFind(from, searchStr._chars)) != nullptr)
+                    while ((found = strFind(from, searchStr._chars)) != NULL)
                     {
                         strMove(found + replaceStr._length, found + searchStr._length,
                             _chars + _length - found - searchStr._length + 1);
@@ -1478,7 +1511,7 @@ void String::replace(const char_t* searchChars, const char_t* replaceChars)
                 int foundCnt = 0;
                 int searchLen = strLen(searchChars);
 
-                while ((found = strFind(from, searchChars)) != nullptr)
+                while ((found = strFind(from, searchChars)) != NULL)
                 {
                     ++foundCnt;
                     from = found + searchLen;
@@ -1491,7 +1524,7 @@ void String::replace(const char_t* searchChars, const char_t* replaceChars)
                     ensureCapacity(capacity);
 
                     from = _chars;
-                    while ((found = strFind(from, searchChars)) != nullptr)
+                    while ((found = strFind(from, searchChars)) != NULL)
                     {
                         strMove(found + replaceLen, found + searchLen,
                             _chars + _length - found - searchLen + 1);
@@ -1650,7 +1683,7 @@ void String::reset()
 
     _length = 0;
     _capacity = 0;
-    _chars = nullptr;
+    _chars = NULL;
 }
 
 char_t* String::release()
@@ -1658,7 +1691,7 @@ char_t* String::release()
     char_t* chars = _chars;
     _length = 0;
     _capacity = 0;
-    _chars = nullptr;
+    _chars = NULL;
     
     return chars;
 }
@@ -1859,7 +1892,7 @@ bool ConstStringIterator::moveNext()
         return true;
     else
     {
-        _pos = nullptr;
+        _pos = NULL;
         return false;
     }
 }
@@ -1876,7 +1909,7 @@ bool ConstStringIterator::movePrev()
     }
     else
     {
-        _pos = nullptr;
+        _pos = NULL;
         return false;
     }
 }

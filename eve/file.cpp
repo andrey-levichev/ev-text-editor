@@ -57,8 +57,8 @@ bool File::open(const String& fileName, FileMode openMode)
     }
     
     _handle = CreateFile(reinterpret_cast<const wchar_t*>(fileName.str()), 
-        GENERIC_READ | GENERIC_WRITE, 0, nullptr, 
-        mode, FILE_ATTRIBUTE_NORMAL, nullptr);
+        GENERIC_READ | GENERIC_WRITE, 0, NULL, 
+        mode, FILE_ATTRIBUTE_NORMAL, NULL);
 #else
     switch (openMode)
     {
@@ -109,7 +109,7 @@ ByteArray File::readBytes()
     DWORD bytesSize = size(), bytesRead;
     ByteArray bytes(bytesSize);
     
-    if (ReadFile(_handle, bytes.values(), bytesSize, &bytesRead, nullptr))
+    if (ReadFile(_handle, bytes.values(), bytesSize, &bytesRead, NULL))
 #else
     ssize_t bytesSize = size(), bytesRead;
     ByteArray bytes(bytesSize);
@@ -134,7 +134,7 @@ void File::writeBytes(const ByteArray& bytes)
 #ifdef PLATFORM_WINDOWS
     DWORD bytesSize = bytes.size(), bytesWritten;
     
-    if (WriteFile(_handle, bytes.values(), bytesSize, &bytesWritten, nullptr))
+    if (WriteFile(_handle, bytes.values(), bytesSize, &bytesWritten, NULL))
 #else
     ssize_t bytesSize = bytes.size(), bytesWritten;
 
@@ -158,7 +158,7 @@ String File::readString()
     DWORD bytesSize = charsSize * sizeof(char_t), bytesRead;
     Array<char_t> chars(charsSize + 1);
     
-    if (ReadFile(_handle, chars.values(), bytesSize, &bytesRead, nullptr))
+    if (ReadFile(_handle, chars.values(), bytesSize, &bytesRead, NULL))
 #else
     ssize_t charsSize = size() / sizeof(char_t);
     ssize_t bytesSize = charsSize * sizeof(char_t), bytesRead;
@@ -185,7 +185,7 @@ void File::writeString(const String& str)
 #ifdef PLATFORM_WINDOWS
     DWORD bytesSize = str.length() * sizeof(char_t), bytesWritten;
     
-    if (WriteFile(_handle, str.str(), bytesSize, &bytesWritten, nullptr))
+    if (WriteFile(_handle, str.str(), bytesSize, &bytesWritten, NULL))
 #else
     ssize_t bytesSize = str.length() * sizeof(char_t), bytesWritten;
     
