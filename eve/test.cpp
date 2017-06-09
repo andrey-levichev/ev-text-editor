@@ -4617,8 +4617,6 @@ void testKeys()
 
 #endif
 
-#include <assert.h>
-
 int MAIN(int argc, const char_t** argv)
 {
     try

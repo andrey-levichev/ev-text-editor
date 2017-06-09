@@ -15,10 +15,10 @@ string split/join
 rewrite toUpper/toLower
 make char_t* charForward(char_t* pos, int n = 1) const?
 default params in test comments
-const value in iterators?
 tests for const iterators?
-drop const if only one iterator
 map can have only const iterator
+simplify templated code with typedefs
+missing overloads for non-copyable types in list and map
 
 basic features:
 * search/replace

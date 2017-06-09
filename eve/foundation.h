@@ -986,9 +986,33 @@ inline int hash(const SharedPtr<_Type>& val)
     return hash(*reinterpret_cast<const intptr_t*>(&val._sharedPtr));
 }
 
-// String
+// ConstStringIterator
 
-class ConstStringIterator;
+class String;
+
+class ConstStringIterator
+{
+public:
+    ConstStringIterator(const String& str) :
+        _str(str), _pos(NULL)
+    {
+    }
+
+    unichar_t value() const;
+    bool moveNext();
+    bool movePrev();
+
+    void reset()
+    {
+        _pos = NULL;
+    }
+
+private:
+    const String& _str;
+    const char_t* _pos;
+};
+
+// String
 
 class String
 {
@@ -1085,6 +1109,11 @@ public:
     bool empty() const
     {
         return _length == 0;
+    }
+
+    ConstIterator constIterator() const
+    {
+        return ConstIterator(*this);
     }
 
     unichar_t charAt(const char_t* pos) const;
@@ -1396,37 +1425,106 @@ inline bool operator>=(const String& left, const char_t* right)
     return strCompare(left.str(), right) >= 0;
 }
 
-// ConstStringIterator
+// ArrayIterator
 
-class ConstStringIterator
+template<typename _Type>
+class Array;
+
+template<typename _Type>
+class ArrayIterator
 {
 public:
-    ConstStringIterator(const String& str) :
-        _str(str), _pos(NULL)
+    ArrayIterator(Array<_Type>& array) : 
+        _array(array), _index(-1)
     {
     }
 
-    unichar_t value() const;
-    bool moveNext();
-    bool movePrev();
+    _Type& value()
+    {
+        ASSERT(_index >= 0);
+        return _array._values[_index];
+    }
+
+    bool moveNext()
+    {
+        if (++_index < _array._size)
+            return true;
+
+        _index = -1;
+        return false;
+    }
+
+    bool movePrev()
+    {
+        if (_index < 0)
+            _index = _array._size;
+
+        if (--_index >= 0)
+            return true;
+
+        _index = -1;
+        return false;
+    }
 
     void reset()
     {
-        _pos = NULL;
+        _index = -1;
     }
 
-private:
-    const String& _str;
-    const char_t* _pos;
+protected:
+    Array<_Type>& _array;
+    int _index;
+};
+
+// ConstArrayIterator
+
+template<typename _Type>
+class ConstArrayIterator
+{
+public:
+    ConstArrayIterator(const Array<_Type>& array) : 
+        _array(array), _index(-1)
+    {
+    }
+
+    const _Type& value() const
+    {
+        ASSERT(_index >= 0);
+        return _array._values[_index];
+    }
+
+    bool moveNext()
+    {
+        if (++_index < _array._size)
+            return true;
+
+        _index = -1;
+        return false;
+    }
+
+    bool movePrev()
+    {
+        if (_index < 0)
+            _index = _array._size;
+
+        if (--_index >= 0)
+            return true;
+
+        _index = -1;
+        return false;
+    }
+
+    void reset()
+    {
+        _index = -1;
+    }
+
+protected:
+    const Array<_Type>& _array;
+    int _index;
 };
 
 // Array
-
-template<typename>
-class ArrayIterator;
-
-template<typename>
-class ConstArrayIterator;
 
 template<typename _Type>
 class Array
@@ -1582,6 +1680,16 @@ public:
     {
         ASSERT(_size > 0);
         return _values[_size - 1];
+    }
+
+    Iterator iterator()
+    {
+        return Iterator(*this);
+    }
+
+    ConstIterator constIterator() const
+    {
+        return ConstIterator(*this);
     }
 
     int find(const _Type& value) const
@@ -1842,102 +1950,6 @@ protected:
 typedef Array<uint8_t> ByteArray;
 typedef Array<char_t> CharArray;
 
-// ArrayIterator
-
-template<typename _Type>
-class ArrayIterator
-{
-public:
-    ArrayIterator(Array<_Type>& array) : 
-        _array(array), _index(-1)
-    {
-    }
-
-    _Type& value()
-    {
-        ASSERT(_index >= 0);
-        return _array._values[_index];
-    }
-
-    bool moveNext()
-    {
-        if (++_index < _array._size)
-            return true;
-
-        _index = -1;
-        return false;
-    }
-
-    bool movePrev()
-    {
-        if (_index < 0)
-            _index = _array._size;
-
-        if (--_index >= 0)
-            return true;
-
-        _index = -1;
-        return false;
-    }
-
-    void reset()
-    {
-        _index = -1;
-    }
-
-protected:
-    Array<_Type>& _array;
-    int _index;
-};
-
-// ConstArrayIterator
-
-template<typename _Type>
-class ConstArrayIterator
-{
-public:
-    ConstArrayIterator(const Array<_Type>& array) : 
-        _array(array), _index(-1)
-    {
-    }
-
-    const _Type& value() const
-    {
-        ASSERT(_index >= 0);
-        return _array._values[_index];
-    }
-
-    bool moveNext()
-    {
-        if (++_index < _array._size)
-            return true;
-
-        _index = -1;
-        return false;
-    }
-
-    bool movePrev()
-    {
-        if (_index < 0)
-            _index = _array._size;
-
-        if (--_index >= 0)
-            return true;
-
-        _index = -1;
-        return false;
-    }
-
-    void reset()
-    {
-        _index = -1;
-    }
-
-protected:
-    const Array<_Type>& _array;
-    int _index;
-};
-
 // ListNode
 
 template<typename _Type>
@@ -1958,13 +1970,104 @@ struct ListNode
     }
 };
 
+// ListIterator
+
+template<typename _Type>
+class List;
+
+template<typename _Type>
+class ListIterator
+{
+public:
+    ListIterator(List<_Type>& list) : 
+        _list(list), _node(NULL)
+    {
+    }
+
+    _Type& value()
+    {
+        ASSERT(_node);
+        return _node->value;
+    }
+
+    bool moveNext()
+    {
+        if (_node)
+            _node = _node->next;
+        else
+            _node = _list.front();
+
+        return _node != NULL;
+    }
+
+    bool movePrev()
+    {
+        if (_node)
+            _node = _node->prev;
+        else
+            _node = _list.back();
+
+        return _node != NULL;
+    }
+
+    void reset()
+    {
+        _node = NULL;
+    }
+
+protected:
+    List<_Type>& _list;
+    ListNode<_Type>* _node;
+};
+
+// ConstListIterator
+
+template<typename _Type>
+class ConstListIterator
+{
+public:
+    ConstListIterator(const List<_Type>& list) : 
+        _list(list), _node(NULL)
+    {
+    }
+
+    const _Type& value() const
+    {
+        ASSERT(_node);
+        return _node->value;
+    }
+
+    bool moveNext()
+    {
+        if (_node)
+            _node = _node->next;
+        else
+            _node = _list.front();
+
+        return _node != NULL;
+    }
+
+    bool movePrev()
+    {
+        if (_node)
+            _node = _node->prev;
+        else
+            _node = _list.back();
+
+        return _node != NULL;
+    }
+
+    void reset()
+    {
+        _node = NULL;
+    }
+
+protected:
+    const List<_Type>& _list;
+    const ListNode<_Type>* _node;
+};
+
 // List
-
-template<typename>
-class ListIterator;
-
-template<typename>
-class ConstListIterator;
 
 template<typename _Type>
 class List
@@ -2110,6 +2213,16 @@ public:
     const ListNode<_Type>* back() const
     {
         return _back;
+    }
+    
+    Iterator iterator()
+    {
+        return Iterator(*this);
+    }
+
+    ConstIterator constIterator() const
+    {
+        return ConstIterator(*this);
     }
 
     ListNode<_Type>* find(const _Type& value)
@@ -2371,65 +2484,62 @@ protected:
     ListNode<_Type>* _back;
 };
 
-// ListIterator
+// KeyValue
 
-template<typename _Type>
-class ListIterator
+template<typename _Key, typename _Value>
+struct KeyValue
 {
-public:
-    ListIterator(List<_Type>& list) : 
-        _list(list), _node(NULL)
+    _Key key;
+    _Value value;
+
+    KeyValue(const _Key& key) :
+        key(key)
     {
     }
 
-    _Type& value()
+    KeyValue(_Key&& key) :
+        key(static_cast<_Key&&>(key))
     {
-        ASSERT(_node);
-        return _node->value;
     }
 
-    bool moveNext()
+    KeyValue(const _Key& key, const _Value& value) :
+        key(key), value(value)
     {
-        if (_node)
-            _node = _node->next;
-        else
-            _node = _list.front();
-
-        return _node != NULL;
     }
 
-    bool movePrev()
+    KeyValue(_Key&& key, _Value&& value) :
+        key(static_cast<_Key&&>(key)), 
+        value(static_cast<_Value&&>(value))
     {
-        if (_node)
-            _node = _node->prev;
-        else
-            _node = _list.back();
-
-        return _node != NULL;
     }
 
-    void reset()
+    KeyValue(const KeyValue<_Key, _Value>& other) :
+        key(other.key), value(other.value)
     {
-        _node = NULL;
     }
 
-protected:
-    List<_Type>& _list;
-    ListNode<_Type>* _node;
+    KeyValue(KeyValue<_Key, _Value>&& other) :
+        key(static_cast<_Key&&>(other.key)), 
+        value(static_cast<_Value&&>(other.value))
+    {
+    }
 };
 
-// ConstListIterator
+// MapIterator
 
-template<typename _Type>
-class ConstListIterator
+template<typename _Key, typename _Value>
+class Map;
+
+template<typename _Key, typename _Value>
+class MapIterator
 {
 public:
-    ConstListIterator(const List<_Type>& list) : 
-        _list(list), _node(NULL)
+    MapIterator(Map<_Key, _Value>& map) : 
+        _map(map), _index(0), _node(NULL)
     {
     }
 
-    const _Type& value() const
+    KeyValue<_Key, _Value>& value()
     {
         ASSERT(_node);
         return _node->value;
@@ -2438,40 +2548,117 @@ public:
     bool moveNext()
     {
         if (_node)
-            _node = _node->next;
+        {
+            if (_node->next)
+            {
+                _node = _node->next;
+                return true;
+            }
+            else
+            {
+                for (++_index; _index < _map._keyValues.size(); ++_index)
+                {
+                    _node = _map._keyValues[_index].front();
+
+                    if (_node)
+                        return true;
+                }
+            }
+        }
         else
-            _node = _list.front();
+        {
+            for (_index = 0; _index < _map._keyValues.size(); ++_index)
+            {
+                _node = _map._keyValues[_index].front();
 
-        return _node != NULL;
-    }
+                if (_node)
+                    return true;
+            }
+        }
 
-    bool movePrev()
-    {
-        if (_node)
-            _node = _node->prev;
-        else
-            _node = _list.back();
-
-        return _node != NULL;
+        _index = 0;
+        _node = NULL;
+        return false;
     }
 
     void reset()
     {
+        _index = 0;
         _node = NULL;
     }
 
 protected:
-    const List<_Type>& _list;
-    const ListNode<_Type>* _node;
+    Map<_Key, _Value>& _map;
+    int _index;
+    ListNode<KeyValue<_Key, _Value>>* _node;
+};
+
+// ConstMapIterator
+
+template<typename _Key, typename _Value>
+class ConstMapIterator
+{
+public:
+    ConstMapIterator(const Map<_Key, _Value>& map) : 
+        _map(map), _index(0), _node(NULL)
+    {
+    }
+
+    const KeyValue<_Key, _Value>& value() const
+    {
+        ASSERT(_node);
+        return _node->value;
+    }
+
+    bool moveNext()
+    {
+        if (_node)
+        {
+            if (_node->next)
+            {
+                _node = _node->next;
+                return true;
+            }
+            else
+            {
+                for (++_index; _index < _map._keyValues.size(); ++_index)
+                {
+                    _node = _map._keyValues[_index].front();
+
+                    if (_node)
+                        return true;
+                }
+            }
+        }
+        else
+        {
+            for (_index = 0; _index < _map._keyValues.size(); ++_index)
+            {
+                _node = _map._keyValues[_index].front();
+
+                if (_node)
+                    return true;
+            }
+        }
+
+        _index = 0;
+        _node = NULL;
+        return false;
+    }
+
+    void reset()
+    {
+        _index = 0;
+        _node = NULL;
+    }
+
+protected:
+    const Map<_Key, _Value>& _map;
+    int _index;
+    const ListNode<KeyValue<_Key, _Value>>* _node;
 };
 
 // Map
-
-template<typename, typename>
-class MapIterator;
-
-template<typename, typename>
-class ConstMapIterator;
 
 template<typename _Key, typename _Value>
 class Map
@@ -2501,7 +2688,7 @@ public:
     }
 
     Map(Map<_Key, _Value>&& other) :
-        _keyValues(static_cast<Array<List<KeyValue>>&&>(other._keyValues))
+        _keyValues(static_cast<Array<List<KeyValue<_Key, _Value>>>&&>(other._keyValues))
     {
         _size = other._size;
         other._size = 0;
@@ -2555,12 +2742,22 @@ public:
         return static_cast<float>(_size) / _keyValues.size();
     }
 
+    Iterator iterator()
+    {
+        return Iterator(*this);
+    }
+
+    ConstIterator constIterator() const
+    {
+        return ConstIterator(*this);
+    }
+
     _Value& value(const _Key& key)
     {
         if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_keyValues.size() * 2 + 1);
 
-        List<KeyValue>& kvList = getBucket(key);
+        auto& kvList = getBucket(key);
 
         for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
         {
@@ -2568,7 +2765,7 @@ public:
                 return kvNode->value.value;
         }
 
-        kvList.pushBack(KeyValue(key));
+        kvList.pushBack(KeyValue<_Key, _Value>(key));
         ++_size;
 
         return kvList.back()->value.value;
@@ -2579,7 +2776,7 @@ public:
         if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_keyValues.size() * 2 + 1);
 
-        List<KeyValue>& kvList = getBucket(key);
+        auto& kvList = getBucket(key);
 
         for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
         {
@@ -2587,7 +2784,7 @@ public:
                 return kvNode->value.value;
         }
 
-        kvList.pushBack(KeyValue(static_cast<_Key&&>(key)));
+        kvList.pushBack(KeyValue<_Key, _Value>(static_cast<_Key&&>(key)));
         ++_size;
 
         return kvList.back()->value.value;
@@ -2606,7 +2803,7 @@ public:
     {
         if (!_keyValues.empty())
         {
-            List<KeyValue>& kvList = getBucket(key);
+            auto& kvList = getBucket(key);
 
             for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
             {
@@ -2622,7 +2819,7 @@ public:
     {
         if (!_keyValues.empty())
         {
-            const List<KeyValue>& kvList = getBucket(key);
+            auto& kvList = getBucket(key);
 
             for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
             {
@@ -2645,7 +2842,7 @@ public:
         if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_keyValues.size() * 2 + 1);
 
-        List<KeyValue>& kvList = getBucket(key);
+        auto& kvList = getBucket(key);
 
         for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
         {
@@ -2656,7 +2853,7 @@ public:
             }
         }
 
-        kvList.pushBack(KeyValue(key, value));
+        kvList.pushBack(KeyValue<_Key, _Value>(key, value));
         ++_size;
     }
 
@@ -2665,7 +2862,7 @@ public:
         if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
             rehash(_keyValues.size() * 2 + 1);
 
-        List<KeyValue>& kvList = getBucket(key);
+        auto& kvList = getBucket(key);
 
         for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
         {
@@ -2676,7 +2873,7 @@ public:
             }
         }
 
-        kvList.pushBack(KeyValue(
+        kvList.pushBack(KeyValue<_Key, _Value>(
             static_cast<_Key&&>(key), static_cast<_Value&&>(value)));
             
         ++_size;
@@ -2686,7 +2883,7 @@ public:
     {
         if (!_keyValues.empty())
         {
-            List<KeyValue>& kvList = getBucket(key);
+            auto& kvList = getBucket(key);
 
             for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
             {
@@ -2731,51 +2928,12 @@ public:
     }
 
 protected:
-    struct KeyValue
-    {
-        _Key key;
-        _Value value;
-
-        KeyValue(const _Key& key) :
-            key(key)
-        {
-        }
-
-        KeyValue(_Key&& key) :
-            key(static_cast<_Key&&>(key))
-        {
-        }
-
-        KeyValue(const _Key& key, const _Value& value) :
-            key(key), value(value)
-        {
-        }
-
-        KeyValue(_Key&& key, _Value&& value) :
-            key(static_cast<_Key&&>(key)), 
-            value(static_cast<_Value&&>(value))
-        {
-        }
-
-        KeyValue(const KeyValue& other) :
-            key(other.key), value(other.value)
-        {
-        }
-
-        KeyValue(KeyValue&& other) :
-            key(static_cast<_Key&&>(other.key)), 
-            value(static_cast<_Value&&>(other.value))
-        {
-        }
-    };
-
-protected:
-    List<KeyValue>& getBucket(const _Key& key)
+    List<KeyValue<_Key, _Value>>& getBucket(const _Key& key)
     {
         return _keyValues[getBucketIndex(key)];
     }
 
-    const List<KeyValue>& getBucket(const _Key& key) const
+    const List<KeyValue<_Key, _Value>>& getBucket(const _Key& key) const
     {
         return _keyValues[getBucketIndex(key)];
     }
@@ -2787,25 +2945,28 @@ protected:
     }
 
 protected:
-    Array<List<KeyValue>> _keyValues;
+    Array<List<KeyValue<_Key, _Value>>> _keyValues;
     int _size;
 };
 
 template<typename _Key, typename _Value>
 const float Map<_Key, _Value>::MAX_LOAD_FACTOR = 0.75f;
 
-// MapIterator
+// ConstSetIterator
 
-template<typename _Key, typename _Value>
-class MapIterator
+template<typename _Type>
+class Set;
+
+template<typename _Type>
+class ConstSetIterator
 {
 public:
-    MapIterator(Map<_Key, _Value>& map) : 
-        _map(map), _index(0), _node(NULL)
+    ConstSetIterator(const Set<_Type>& set) : 
+        _set(set), _index(0), _node(NULL)
     {
     }
 
-    typename Map<_Key, _Value>::KeyValue& value()
+    const _Type& value() const
     {
         ASSERT(_node);
         return _node->value;
@@ -2822,9 +2983,9 @@ public:
             }
             else
             {
-                for (++_index; _index < _map._keyValues.size(); ++_index)
+                for (++_index; _index < _set._values.size(); ++_index)
                 {
-                    _node = _map._keyValues[_index].front();
+                    _node = _set._values[_index].front();
 
                     if (_node)
                         return true;
@@ -2833,9 +2994,9 @@ public:
         }
         else
         {
-            for (_index = 0; _index < _map._keyValues.size(); ++_index)
+            for (_index = 0; _index < _set._values.size(); ++_index)
             {
-                _node = _map._keyValues[_index].front();
+                _node = _set._values[_index].front();
 
                 if (_node)
                     return true;
@@ -2854,80 +3015,12 @@ public:
     }
 
 protected:
-    Map<_Key, _Value>& _map;
+    const Set<_Type>& _set;
     int _index;
-    ListNode<typename Map<_Key, _Value>::KeyValue>* _node;
-};
-
-// ConstMapIterator
-
-template<typename _Key, typename _Value>
-class ConstMapIterator
-{
-public:
-    ConstMapIterator(const Map<_Key, _Value>& map) : 
-        _map(map), _index(0), _node(NULL)
-    {
-    }
-
-    const typename Map<_Key, _Value>::KeyValue& value() const
-    {
-        ASSERT(_node);
-        return _node->value;
-    }
-
-    bool moveNext()
-    {
-        if (_node)
-        {
-            if (_node->next)
-            {
-                _node = _node->next;
-                return true;
-            }
-            else
-            {
-                for (++_index; _index < _map._keyValues.size(); ++_index)
-                {
-                    _node = _map._keyValues[_index].front();
-
-                    if (_node)
-                        return true;
-                }
-            }
-        }
-        else
-        {
-            for (_index = 0; _index < _map._keyValues.size(); ++_index)
-            {
-                _node = _map._keyValues[_index].front();
-
-                if (_node)
-                    return true;
-            }
-        }
-
-        _index = 0;
-        _node = NULL;
-        return false;
-    }
-
-    void reset()
-    {
-        _index = 0;
-        _node = NULL;
-    }
-
-protected:
-    const Map<_Key, _Value>& _map;
-    int _index;
-    const ListNode<typename Map<_Key, _Value>::KeyValue>* _node;
+    const ListNode<_Type>* _node;
 };
 
 // Set
-
-template<typename>
-class ConstSetIterator;
 
 template<typename _Type>
 class Set
@@ -2985,6 +3078,11 @@ public:
     bool empty() const
     {
         return _size == 0;
+    }
+
+    ConstIterator constIterator() const
+    {
+        return ConstIterator(*this);
     }
 
     float loadFactor() const
@@ -3131,71 +3229,6 @@ protected:
 
 template<typename _Type>
 const float Set<_Type>::MAX_LOAD_FACTOR = 0.75f;
-
-// ConstSetIterator
-
-template<typename _Type>
-class ConstSetIterator
-{
-public:
-    ConstSetIterator(const Set<_Type>& set) : 
-        _set(set), _index(0), _node(NULL)
-    {
-    }
-
-    const _Type& value() const
-    {
-        ASSERT(_node);
-        return _node->value;
-    }
-
-    bool moveNext()
-    {
-        if (_node)
-        {
-            if (_node->next)
-            {
-                _node = _node->next;
-                return true;
-            }
-            else
-            {
-                for (++_index; _index < _set._values.size(); ++_index)
-                {
-                    _node = _set._values[_index].front();
-
-                    if (_node)
-                        return true;
-                }
-            }
-        }
-        else
-        {
-            for (_index = 0; _index < _set._values.size(); ++_index)
-            {
-                _node = _set._values[_index].front();
-
-                if (_node)
-                    return true;
-            }
-        }
-
-        _index = 0;
-        _node = NULL;
-        return false;
-    }
-
-    void reset()
-    {
-        _index = 0;
-        _node = NULL;
-    }
-
-protected:
-    const Set<_Type>& _set;
-    int _index;
-    const ListNode<_Type>* _node;
-};
 
 #endif
 
