@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(SOURCE_FILES
     eve/console.cpp
     eve/console.h
-    eve/eve.cpp
-    eve/eve.h
     eve/file.cpp
     eve/file.h
     eve/foundation.cpp
@@ -19,3 +17,5 @@ set(SOURCE_FILES
 include_directories(eve)
 
 add_executable(eve ${SOURCE_FILES})
+
+add_definitions(-DDEBUG)
