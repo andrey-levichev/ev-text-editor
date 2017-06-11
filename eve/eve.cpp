@@ -348,7 +348,7 @@ void Text::trimTrailingWhitespace()
 {
     char_t* p = _chars;
     char_t* q = p;
-    char_t* r = nullptr;
+    char_t* r = NULL;
 
     while (true)
     {
@@ -362,11 +362,11 @@ void Text::trimTrailingWhitespace()
             if (r)
             {
                 q = r;
-                r = nullptr;
+                r = NULL;
             }
         }
         else
-            r = nullptr;
+            r = NULL;
 
         *q = *p;
 

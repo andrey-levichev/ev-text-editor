@@ -40,11 +40,17 @@ enum KeyCode
 
 struct Key
 {
-    KeyCode code = KEY_NONE;
-    char_t ch = 0;
-    bool ctrl = false;
-    bool alt = false;
-    bool shift = false;
+    KeyCode code;
+    char_t ch;
+    bool ctrl;
+    bool alt;
+    bool shift;
+
+    Key() :
+        code(KEY_NONE), ch(0), 
+        ctrl(false), alt(false), shift(false)
+    {
+    }
 };
 
 // ConsoleMode

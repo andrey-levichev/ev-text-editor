@@ -1,5 +1,17 @@
 #include <test.h>
 
+const char* CHARS8 = "\x24\xc2\xa2\xe2\x82\xac\xf0\x90\x8d\x88";
+const char16_t* CHARS16 = u"\x0024\x00a2\x20ac\xd800\xdf48";
+const char32_t* CHARS32 = U"\x00000024\x000000a2\x000020ac\x00010348";
+
+#ifdef CHAR_ENCODING_UTF8
+const char_t* CHARS = CHARS8;
+const char_t* BIG_CHAR = "\xf0\x90\x8d\x88";
+#else
+const char_t* CHARS = CHARS16;
+const char_t* BIG_CHAR = u"\xd800\xdf48";
+#endif
+
 int hash(const UniquePtr<int>& val)
 {
     return val ? *val : 0;
@@ -329,44 +341,40 @@ void testSharedPtr()
 void testString()
 {
     unichar_t zc = 0;
-    const char_t* np = nullptr;
-    const char_t* CHARS = STR("\u0024\u00a2\u20ac\U00010348");
-    const char* CHARS8 = u8"\u0024\u00a2\u20ac\U00010348";
-    const char16_t* CHARS16 = u"\u0024\u00a2\u20ac\U00010348";
-    const char32_t* CHARS32 = U"\u0024\u00a2\u20ac\U00010348";
+    const char_t* np = NULL;
 
     // Unicode support
 
     {
         char32_t ch;
-        ASSERT(utf8CharToUtf32(u8"\u0024", ch) == 1 && ch == 0x24);
-        ASSERT(utf8CharToUtf32(u8"\u00a2", ch) == 2 && ch == 0xa2);
-        ASSERT(utf8CharToUtf32(u8"\u20ac", ch) == 3 && ch == 0x20ac);
-        ASSERT(utf8CharToUtf32(u8"\U00010348", ch) == 4 && ch == 0x10348);
+        ASSERT(utf8CharToUtf32("\x24", ch) == 1 && ch == 0x24);
+        ASSERT(utf8CharToUtf32("\xc2\xa2", ch) == 2 && ch == 0xa2);
+        ASSERT(utf8CharToUtf32("\xe2\x82\xac", ch) == 3 && ch == 0x20ac);
+        ASSERT(utf8CharToUtf32("\xf0\x90\x8d\x88", ch) == 4 && ch == 0x10348);
     }
 
     {
         char s[4];
-        ASSERT(utf32CharToUtf8(0x24, s) == 1 && memcmp(s, u8"\u0024", 1) == 0);
-        ASSERT(utf32CharToUtf8(0xa2, s) == 2 && memcmp(s, u8"\u00a2", 2) == 0);
-        ASSERT(utf32CharToUtf8(0x20ac, s) == 3 && memcmp(s, u8"\u20ac", 3) == 0);
-        ASSERT(utf32CharToUtf8(0x10348, s) == 4 && memcmp(s, u8"\U00010348", 4) == 0);
+        ASSERT(utf32CharToUtf8(0x24, s) == 1 && memcmp(s, "\x24", 1) == 0);
+        ASSERT(utf32CharToUtf8(0xa2, s) == 2 && memcmp(s, "\xc2\xa2", 2) == 0);
+        ASSERT(utf32CharToUtf8(0x20ac, s) == 3 && memcmp(s, "\xe2\x82\xac", 3) == 0);
+        ASSERT(utf32CharToUtf8(0x10348, s) == 4 && memcmp(s, "\xf0\x90\x8d\x88", 4) == 0);
     }
 
     {
         char32_t ch;
-        ASSERT(utf16CharToUtf32(u"\u0024", ch) == 1 && ch == 0x24);
-        ASSERT(utf16CharToUtf32(u"\u00a2", ch) == 1 && ch == 0xa2);
-        ASSERT(utf16CharToUtf32(u"\u20ac", ch) == 1 && ch == 0x20ac);
-        ASSERT(utf16CharToUtf32(u"\U00010348", ch) == 2 && ch == 0x10348);
+        ASSERT(utf16CharToUtf32(u"\x0024", ch) == 1 && ch == 0x24);
+        ASSERT(utf16CharToUtf32(u"\x00a2", ch) == 1 && ch == 0xa2);
+        ASSERT(utf16CharToUtf32(u"\x20ac", ch) == 1 && ch == 0x20ac);
+        ASSERT(utf16CharToUtf32(u"\xd800\xdf48", ch) == 2 && ch == 0x10348);
     }
 
     {
         char16_t s[2];
-        ASSERT(utf32CharToUtf16(0x24, s) == 1 && memcmp(s, u"\u0024", 2) == 0);
-        ASSERT(utf32CharToUtf16(0xa2, s) == 1 && memcmp(s, u"\u00a2", 2) == 0);
-        ASSERT(utf32CharToUtf16(0x20ac, s) == 1 && memcmp(s, u"\u20ac", 2) == 0);
-        ASSERT(utf32CharToUtf16(0x10348, s) == 2 && memcmp(s, u"\U00010348", 4) == 0);
+        ASSERT(utf32CharToUtf16(0x24, s) == 1 && memcmp(s, u"\x0024", 2) == 0);
+        ASSERT(utf32CharToUtf16(0xa2, s) == 1 && memcmp(s, u"\x00a2", 2) == 0);
+        ASSERT(utf32CharToUtf16(0x20ac, s) == 1 && memcmp(s, u"\x20ac", 2) == 0);
+        ASSERT(utf32CharToUtf16(0x10348, s) == 2 && memcmp(s, u"\xd800\xdf48", 4) == 0);
     }
 
     {
@@ -482,7 +490,7 @@ void testString()
 
     // String(const char_t* pos, int len = -1)
 
-    ASSERT_EXCEPTION(Exception, String(nullptr, 1));
+    ASSERT_EXCEPTION(Exception, String(np, 1));
 
     {
         String s(np);
@@ -652,8 +660,8 @@ void testString()
     {
         String s;
         s.ensureCapacity(10);
-        s = STR("\U00010348");
-        ASSERT(s == STR("\U00010348"));
+        s = BIG_CHAR;
+        ASSERT(s == BIG_CHAR);
 #ifdef CHAR_ENCODING_UTF16
         ASSERT(s.length() == 2);
 #else
@@ -661,8 +669,8 @@ void testString()
 #endif
         ASSERT(s.charLength() == 1);
         ASSERT(s.capacity() == 10);
-        ASSERT(strCompare(s.str(), STR("\U00010348")) == 0);
-        ASSERT(strCompare(s.chars(), STR("\U00010348")) == 0);
+        ASSERT(strCompare(s.str(), BIG_CHAR) == 0);
+        ASSERT(strCompare(s.chars(), BIG_CHAR) == 0);
         ASSERT(!s.empty());
     }
 
@@ -688,11 +696,11 @@ void testString()
 
     {
         char_t p[1] = { 0 };
-        ASSERT(String().charAt(nullptr) == 0);
+        ASSERT(String().charAt(NULL) == 0);
         ASSERT_EXCEPTION(Exception, String().charAt(STR("")));
-        ASSERT(!String().charForward(nullptr));
+        ASSERT(!String().charForward(NULL));
         ASSERT_EXCEPTION(Exception, String().charForward(p));
-        ASSERT(!String().charBack(nullptr));
+        ASSERT(!String().charBack(NULL));
         ASSERT_EXCEPTION(Exception, String().charBack(p));
     }
 
@@ -753,8 +761,8 @@ void testString()
 
     // int compare(const char_t* chars) const
 
-    ASSERT(String(STR("a")).compare(nullptr) > 0);
-    ASSERT(String().compare(nullptr) == 0);
+    ASSERT(String(STR("a")).compare(NULL) > 0);
+    ASSERT(String().compare(NULL) == 0);
     ASSERT(String(STR("ab")).compare(STR("a")) > 0);
     ASSERT(String(STR("a")).compare(STR("ab")) < 0);
     ASSERT(String(STR("a")).compare(STR("a")) == 0);
@@ -770,13 +778,13 @@ void testString()
 
     // int compareNoCase(const char_t* chars) const
 
-    ASSERT(String(STR("a")).compareNoCase(nullptr) > 0);
-    ASSERT(String().compareNoCase(nullptr) == 0);
+    ASSERT(String(STR("a")).compareNoCase(NULL) > 0);
+    ASSERT(String().compareNoCase(NULL) == 0);
     ASSERT(String(STR("AB")).compareNoCase(STR("a")) > 0);
     ASSERT(String(STR("A")).compareNoCase(STR("ab")) < 0);
     ASSERT(String(STR("A")).compareNoCase(STR("a")) == 0);
 
-    // const char_t* find(const String& str, const char_t* pos = nullptr) const
+    // const char_t* find(const String& str, const char_t* pos = NULL) const
 
     ASSERT(!String().find(String()));
     ASSERT(!String().find(String(STR("a"))));
@@ -794,11 +802,11 @@ void testString()
         ASSERT(!s.find(String()));
     }
 
-    // const char_t* find(const char_t* chars, const char_t* pos = nullptr) const
+    // const char_t* find(const char_t* chars, const char_t* pos = NULL) const
 
-    ASSERT(!String().find(nullptr));
+    ASSERT(!String().find(np));
     ASSERT(!String().find(STR("a")));
-    ASSERT_EXCEPTION(Exception, String().find(nullptr, STR("")));
+    ASSERT_EXCEPTION(Exception, String().find(np, STR("")));
 
     {
         String s(STR("abcdabcd"));
@@ -807,12 +815,12 @@ void testString()
         ASSERT(!s.find(STR("bc"), s.charPosition(6)));
         ASSERT(!s.find(STR("xy")));
 
-        ASSERT_EXCEPTION(Exception, s.find(nullptr, s.chars() - 1));
-        ASSERT_EXCEPTION(Exception, s.find(nullptr, s.chars() + s.length() + 1));
-        ASSERT(!s.find(nullptr));
+        ASSERT_EXCEPTION(Exception, s.find(np, s.chars() - 1));
+        ASSERT_EXCEPTION(Exception, s.find(np, s.chars() + s.length() + 1));
+        ASSERT(!s.find(np));
     }
 
-    // const char_t* find(unichar_t ch, const char_t* pos = nullptr) const
+    // const char_t* find(unichar_t ch, const char_t* pos = NULL) const
 
     ASSERT_EXCEPTION(Exception, String().find(zc));
     ASSERT(!String().find('a'));
@@ -829,7 +837,7 @@ void testString()
         ASSERT_EXCEPTION(Exception, s.find('a', s.chars() + s.length() + 1));
     }
 
-    // const char_t* findNoCase(const String& str, const char_t* pos = nullptr) const
+    // const char_t* findNoCase(const String& str, const char_t* pos = NULL) const
 
     ASSERT(!String().findNoCase(String()));
     ASSERT(!String().findNoCase(String(STR("a"))));
@@ -847,11 +855,11 @@ void testString()
         ASSERT(!s.findNoCase(String()));
     }
 
-    // const char_t* findNoCase(const char_t* chars, const char_t* pos = nullptr) const
+    // const char_t* findNoCase(const char_t* chars, const char_t* pos = NULL) const
 
-    ASSERT(!String().findNoCase(nullptr));
+    ASSERT(!String().findNoCase(np));
     ASSERT(!String().findNoCase(STR("a")));
-    ASSERT_EXCEPTION(Exception, String().findNoCase(nullptr, STR("")));
+    ASSERT_EXCEPTION(Exception, String().findNoCase(np, STR("")));
 
     {
         String s(STR("ABCDABCD"));
@@ -860,12 +868,12 @@ void testString()
         ASSERT(!s.findNoCase(STR("bc"), s.charPosition(6)));
         ASSERT(!s.findNoCase(STR("xy")));
 
-        ASSERT_EXCEPTION(Exception, s.findNoCase(nullptr, s.chars() - 1));
-        ASSERT_EXCEPTION(Exception, s.findNoCase(nullptr, s.chars() + s.length() + 1));
-        ASSERT(!s.findNoCase(nullptr));
+        ASSERT_EXCEPTION(Exception, s.findNoCase(np, s.chars() - 1));
+        ASSERT_EXCEPTION(Exception, s.findNoCase(np, s.chars() + s.length() + 1));
+        ASSERT(!s.findNoCase(np));
     }
 
-    // const char_t* findNoCase(unichar_t ch, const char_t* pos = nullptr) const
+    // const char_t* findNoCase(unichar_t ch, const char_t* pos = NULL) const
 
     ASSERT_EXCEPTION(Exception, String().findNoCase(zc));
     ASSERT(!String().findNoCase('a'));
@@ -893,7 +901,7 @@ void testString()
 
     // bool startsWith(const char_t* chars) const
 
-    ASSERT_EXCEPTION(Exception, String().startsWith(nullptr));
+    ASSERT_EXCEPTION(Exception, String().startsWith(NULL));
     ASSERT(String().startsWith(STR("")) == false);
     ASSERT(String().startsWith(STR("a")) == false);
     ASSERT(String(STR("a")).startsWith(STR("")) == false);
@@ -912,7 +920,7 @@ void testString()
 
     // bool endsWith(const char_t* chars) const
 
-    ASSERT_EXCEPTION(Exception, String().endsWith(nullptr));
+    ASSERT_EXCEPTION(Exception, String().endsWith(NULL));
     ASSERT(String().endsWith(STR("")) == false);
     ASSERT(String().endsWith(STR("a")) == false);
     ASSERT(String(STR("a")).endsWith(STR("")) == false);
@@ -1030,7 +1038,7 @@ void testString()
 
     // void assign(const char_t* chars)
 
-    ASSERT_EXCEPTION(Exception, String().assign(nullptr));
+    ASSERT_EXCEPTION(Exception, String().assign(np));
 
     {
         String s(STR("a"));
@@ -1139,7 +1147,7 @@ void testString()
 
     {
         String s(STR("a"));
-        s.append(nullptr);
+        s.append(np);
         ASSERT(s == STR("a"));
         ASSERT(s.capacity() == 2);
     }
@@ -1660,7 +1668,7 @@ void testString()
 
     {
         String s(STR("ab"));
-        s.replace(s.chars(), nullptr, 1);
+        s.replace(s.chars(), NULL, 1);
         ASSERT(s == STR("b"));
         ASSERT(s.length() == 1);
         ASSERT(s.capacity() == 3);
@@ -2142,8 +2150,6 @@ void testString()
 
 void testStringIterator()
 {
-    const char_t* CHARS = STR("\u0024\u00a2\u20ac\U00010348");
-
     {
         String s;
         String::ConstIterator it(s);
@@ -2221,7 +2227,7 @@ void testStringIterator()
 void testArray()
 {
     int elem[] = { 1, 2, 3 };
-    const int* np = nullptr;
+    const int* np = NULL;
     const int* ep = elem;
 
     // Array()
@@ -2988,7 +2994,7 @@ void testArrayIterator()
 void testList()
 {
     int elem[] = { 1, 2, 3 };
-    const int* np = nullptr;
+    const int* np = NULL;
     const int* ep = elem;
 
     // List()
@@ -3345,7 +3351,7 @@ void testList()
 
     {
         int v;
-        ASSERT_EXCEPTION(Exception, List<int>().insertBefore(nullptr, v));
+        ASSERT_EXCEPTION(Exception, List<int>().insertBefore(NULL, v));
     }
 
     {
@@ -3359,7 +3365,7 @@ void testList()
 
     // ListNode<_Type>* insertBefore(ListNode<_Type>* pos, _Type&& value)
 
-    ASSERT_EXCEPTION(Exception, List<int>().insertBefore(nullptr, 0));
+    ASSERT_EXCEPTION(Exception, List<int>().insertBefore(NULL, 0));
 
     {
         List<int> l;
@@ -3373,7 +3379,7 @@ void testList()
 
     {
         int v;
-        ASSERT_EXCEPTION(Exception, List<int>().insertAfter(nullptr, v));
+        ASSERT_EXCEPTION(Exception, List<int>().insertAfter(NULL, v));
     }
 
     {
@@ -3387,7 +3393,7 @@ void testList()
 
     // ListNode<_Type>* insertAfter(ListNode<_Type>* pos, _Type&& value)
 
-    ASSERT_EXCEPTION(Exception, List<int>().insertAfter(nullptr, 0));
+    ASSERT_EXCEPTION(Exception, List<int>().insertAfter(NULL, 0));
 
     {
         List<int> l;
@@ -3399,7 +3405,7 @@ void testList()
 
     // void remove(ListNode<_Type>* pos)
 
-    ASSERT_EXCEPTION(Exception, List<int>().remove(nullptr));
+    ASSERT_EXCEPTION(Exception, List<int>().remove(NULL));
 
     {
         List<int> l(3, ep);

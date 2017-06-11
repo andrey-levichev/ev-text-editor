@@ -21,11 +21,7 @@ public:
     File(const String& fileName,
         FileMode openMode = FILE_MODE_OPEN_EXISTING);
         
-    File(const File&) = delete;
-    
     ~File();
-    
-    File& operator=(const File&) = delete;
 
     bool isOpen() const;
     
@@ -41,7 +37,11 @@ public:
     void writeString(const String& str);
     
     int64_t size() const;
-    
+   
+private:
+    File(const File&);
+    File& operator=(const File&);
+
 protected:
 #ifdef PLATFORM_WINDOWS
     HANDLE _handle;
