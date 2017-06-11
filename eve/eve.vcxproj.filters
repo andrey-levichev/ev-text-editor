@@ -43,6 +43,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="makefile" />
+  </ItemGroup>
+  <ItemGroup>
     <Text Include="todo.txt" />
   </ItemGroup>
 </Project>
