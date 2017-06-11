@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		975891C81EECEC2B0047FB86 /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FA71DEB6EC3002A31FB /* test.cpp */; };
 		97785FAA1DEB6EC3002A31FB /* makefile in Sources */ = {isa = PBXBuildFile; fileRef = 97785FA81DEB6EC3002A31FB /* makefile */; };
 		97785FB31DEB6ECD002A31FB /* foundation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FAC1DEB6ECD002A31FB /* foundation.cpp */; };
 		97785FB41DEB6ECD002A31FB /* file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FAE1DEB6ECD002A31FB /* file.cpp */; };
-		97785FB51DEB6ECD002A31FB /* eve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FB01DEB6ECD002A31FB /* eve.cpp */; };
 		97785FB61DEB6ECD002A31FB /* console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FB21DEB6ECD002A31FB /* console.cpp */; };
 /* End PBXBuildFile section */
 
@@ -146,10 +146,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				97785FB51DEB6ECD002A31FB /* eve.cpp in Sources */,
 				97785FB31DEB6ECD002A31FB /* foundation.cpp in Sources */,
 				97785FB41DEB6ECD002A31FB /* file.cpp in Sources */,
 				97785FB61DEB6ECD002A31FB /* console.cpp in Sources */,
+				975891C81EECEC2B0047FB86 /* test.cpp in Sources */,
 				97785FAA1DEB6EC3002A31FB /* makefile in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
