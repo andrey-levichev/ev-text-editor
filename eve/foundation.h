@@ -2489,7 +2489,7 @@ protected:
 template<typename _Key, typename _Value>
 struct KeyValue
 {
-    _Key key;
+    const _Key key;
     _Value value;
 
     KeyValue(const _Key& key) :
@@ -2519,7 +2519,7 @@ struct KeyValue
     }
 
     KeyValue(KeyValue<_Key, _Value>&& other) :
-        key(static_cast<_Key&&>(other.key)), 
+        key(const_cast<_Key&&>(other.key)), 
         value(static_cast<_Value&&>(other.value))
     {
     }
@@ -2914,7 +2914,7 @@ public:
         for (int i = 0; i < _keyValues.size(); ++i)
         {
             for (auto kvNode = _keyValues[i].front(); kvNode; kvNode = kvNode->next)
-                tmp.insert(static_cast<_Key&&>(kvNode->value.key), 
+                tmp.insert(const_cast<_Key&&>(kvNode->value.key), 
                     static_cast<_Value&&>(kvNode->value.value));
         }
 

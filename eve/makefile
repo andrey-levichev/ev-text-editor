@@ -3,7 +3,7 @@ HEADERS=foundation.h console.h file.h test.h
 SOURCES=foundation.cpp console.cpp file.cpp test.cpp
 RM=$(if $(OS),del,rm)
 
-all: $(TARGET).clang.exe
+all: $(TARGET).gcc
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /std:c++latest /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \

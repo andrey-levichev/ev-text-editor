@@ -2152,18 +2152,16 @@ void testStringIterator()
 {
     {
         String s;
-        String::ConstIterator it(s);
+        auto it = s.constIterator();
 
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
     }
 
     {
         String s(CHARS);
-        String::ConstIterator it(s);
+        auto it = s.constIterator();
 
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
@@ -2180,7 +2178,7 @@ void testStringIterator()
 
     {
         String s(CHARS);
-        String::ConstIterator it(s);
+        auto it = s.constIterator();
 
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.movePrev());
@@ -2197,7 +2195,7 @@ void testStringIterator()
 
     {
         String s(CHARS);
-        String::ConstIterator it(s);
+        auto it = s.constIterator();
 
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
@@ -2206,11 +2204,13 @@ void testStringIterator()
         ASSERT(it.value() == 0xa2);
         ASSERT(it.movePrev());
         ASSERT(it.value() == 0x24);
+        ASSERT(!it.movePrev());
+        ASSERT_EXCEPTION(Exception, it.value());
     }
 
     {
         String s(CHARS);
-        String::ConstIterator it(s);
+        auto it = s.constIterator();
 
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
@@ -2930,17 +2930,15 @@ void testArrayIterator()
 
     {
         Array<int> a;
-        Array<int>::Iterator it(a);
+        auto it = a.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
     }
 
     {
         Array<int> a(3, ep);
-        Array<int>::Iterator it(a);
+        auto it = a.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
         ASSERT(it.value() == 1);
@@ -2954,7 +2952,7 @@ void testArrayIterator()
 
     {
         Array<int> a(3, ep);
-        Array<int>::Iterator it(a);
+        auto it = a.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.movePrev());
         ASSERT(it.value() == 3);
@@ -2968,7 +2966,7 @@ void testArrayIterator()
 
     {
         Array<int> a(3, ep);
-        Array<int>::Iterator it(a);
+        auto it = a.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
         ASSERT(it.value() == 1);
@@ -2982,12 +2980,80 @@ void testArrayIterator()
 
     {
         Array<int> a(3, ep);
-        Array<int>::Iterator it(a);
+        auto it = a.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
         ASSERT(it.value() == 1);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 2);
         it.reset();
         ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
+    }
+
+    {
+        Array<int> a;
+        auto it = a.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(!it.moveNext());
+        ASSERT(!it.movePrev());
+    }
+
+    {
+        Array<int> a(3, ep);
+        auto it = a.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 2);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 3);
+        ASSERT(!it.moveNext());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        Array<int> a(3, ep);
+        auto it = a.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 3);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 2);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 1);
+        ASSERT(!it.movePrev());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        Array<int> a(3, ep);
+        auto it = a.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 2);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 1);
+        ASSERT(!it.movePrev());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        Array<int> a(3, ep);
+        auto it = a.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 2);
+        it.reset();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
     }
 }
 
@@ -3496,17 +3562,15 @@ void testListIterator()
 
     {
         List<int> l;
-        List<int>::Iterator it(l);
+        auto it = l.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
     }
 
     {
         List<int> l(3, ep);
-        List<int>::Iterator it(l);
+        auto it = l.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
         ASSERT(it.value() == 1);
@@ -3520,7 +3584,7 @@ void testListIterator()
 
     {
         List<int> l(3, ep);
-        List<int>::Iterator it(l);
+        auto it = l.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.movePrev());
         ASSERT(it.value() == 3);
@@ -3534,7 +3598,7 @@ void testListIterator()
 
     {
         List<int> l(3, ep);
-        List<int>::Iterator it(l);
+        auto it = l.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
         ASSERT(it.value() == 1);
@@ -3548,12 +3612,80 @@ void testListIterator()
 
     {
         List<int> l(3, ep);
-        List<int>::Iterator it(l);
+        auto it = l.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
         ASSERT(it.value() == 1);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 2);
         it.reset();
         ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
+    }
+
+    {
+        List<int> l;
+        auto it = l.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(!it.moveNext());
+        ASSERT(!it.movePrev());
+    }
+
+    {
+        List<int> l(3, ep);
+        auto it = l.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 2);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 3);
+        ASSERT(!it.moveNext());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        List<int> l(3, ep);
+        auto it = l.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 3);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 2);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 1);
+        ASSERT(!it.movePrev());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        List<int> l(3, ep);
+        auto it = l.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 2);
+        ASSERT(it.movePrev());
+        ASSERT(it.value() == 1);
+        ASSERT(!it.movePrev());
+        ASSERT_EXCEPTION(Exception, it.value());
+    }
+
+    {
+        List<int> l(3, ep);
+        auto it = l.constIterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 2);
+        it.reset();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT(it.value() == 1);
     }
 }
 
@@ -3928,41 +4060,89 @@ void testMapIterator()
 {
     {
         Map<int, int> m;
-        Map<int, int>::Iterator it(m);
+        auto it = m.iterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(!it.moveNext());
+    }
+
+    {
+        Map<int, int> m;
+        m.insert(1, 10);
+        m.insert(2, 20);
+        m.insert(3, 30);
+
+        auto it = m.iterator();
+        int sum1 = 0, sum2 = 0;
+
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        sum1 += it.value().key;
+        sum2 += it.value().value;
+        ASSERT(it.moveNext());
+        sum1 += it.value().key;
+        sum2 += it.value().value;
+        ASSERT(it.moveNext());
+        sum1 += it.value().key;
+        sum2 += it.value().value;
+        ASSERT(!it.moveNext());
+        ASSERT_EXCEPTION(Exception, it.value());
+
+        ASSERT(sum1 == 6 && sum2 == 60);
+    }
+
+    {
+        Map<int, int> m;
+        m.insert(1, 10);
+        m.insert(2, 20);
+        m.insert(3, 30);
+
+        auto it = m.iterator();
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        ASSERT_NO_EXCEPTION(it.value());
+        it.reset();
         ASSERT_EXCEPTION(Exception, it.value());
     }
 
     {
         Map<int, int> m;
-        m.insert(0, 0);
-        m.insert(1, 1);
-        m.insert(2, 2);
-
-        Map<int, int>::Iterator it(m);
-        bool flg[3] = { false };
-
+        auto it = m.constIterator();
         ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        flg[it.value().key] = true;
-        ASSERT(it.moveNext());
-        flg[it.value().key] = true;
-        ASSERT(it.moveNext());
-        flg[it.value().key] = true;
         ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
-
-        ASSERT(flg[0] && flg[1] && flg[2]);
     }
 
     {
         Map<int, int> m;
-        m.insert(0, 0);
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
+        m.insert(3, 30);
 
-        Map<int, int>::Iterator it(m);
+        auto it = m.constIterator();
+        int sum1 = 0, sum2 = 0;
+
+        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT(it.moveNext());
+        sum1 += it.value().key;
+        sum2 += it.value().value;
+        ASSERT(it.moveNext());
+        sum1 += it.value().key;
+        sum2 += it.value().value;
+        ASSERT(it.moveNext());
+        sum1 += it.value().key;
+        sum2 += it.value().value;
+        ASSERT(!it.moveNext());
+        ASSERT_EXCEPTION(Exception, it.value());
+
+        ASSERT(sum1 == 6 && sum2 == 60);
+    }
+
+    {
+        Map<int, int> m;
+        m.insert(1, 10);
+        m.insert(2, 20);
+        m.insert(3, 30);
+
+        auto it = m.constIterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
         ASSERT_NO_EXCEPTION(it.value());
@@ -4275,41 +4455,40 @@ void testSetIterator()
 {
     {
         Set<int> s;
-        Set<int>::ConstIterator it(s);
+        auto it = s.constIterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
     }
 
     {
         Set<int> s;
-        s.insert(0);
         s.insert(1);
         s.insert(2);
+        s.insert(3);
 
-        Set<int>::ConstIterator it(s);
-        bool flg[3] = { false };
+        auto it = s.constIterator();
+        int sum = 0;
 
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
-        flg[it.value()] = true;
+        sum += it.value();
         ASSERT(it.moveNext());
-        flg[it.value()] = true;
+        sum += it.value();
         ASSERT(it.moveNext());
-        flg[it.value()] = true;
+        sum += it.value();
         ASSERT(!it.moveNext());
         ASSERT_EXCEPTION(Exception, it.value());
 
-        ASSERT(flg[0] && flg[1] && flg[2]);
+        ASSERT(sum == 6);
     }
 
     {
         Set<int> s;
-        s.insert(0);
         s.insert(1);
         s.insert(2);
+        s.insert(3);
 
-        Set<int>::ConstIterator it(s);
+        auto it = s.constIterator();
         ASSERT_EXCEPTION(Exception, it.value());
         ASSERT(it.moveNext());
         ASSERT_NO_EXCEPTION(it.value());
