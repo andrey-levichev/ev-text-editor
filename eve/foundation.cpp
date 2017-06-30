@@ -1412,6 +1412,8 @@ void String::replace(char_t* pos, const String& str, int len)
         else
             erase(pos, len);
     }
+    else
+        assign(str);
 }
 
 void String::replace(char_t* pos, const char_t* chars, int len)
@@ -1447,6 +1449,8 @@ void String::replace(char_t* pos, const char_t* chars, int len)
         else
             erase(pos, len);
     }
+    else
+        assign(chars);
 }
 
 void String::replace(const String& searchStr, const String& replaceStr)
@@ -1642,14 +1646,17 @@ void String::toUpper()
 
     if (p)
     {
+        String tmp;
+        tmp.ensureCapacity(_length + 1);
+
         while (*p)
         {
             unichar_t ch;
-            int l = UTF_CHAR_TO_UNICODE(p, ch);
-            ch = charToUpper(ch);
-            UNICODE_CHAR_TO_UTF(ch, p);
-            p += l;
+            p += UTF_CHAR_TO_UNICODE(p, ch);
+            tmp += charToUpper(ch);
         }
+
+        swap(*this, tmp);
     }
 }
 
@@ -1659,14 +1666,17 @@ void String::toLower()
 
     if (p)
     {
+        String tmp;
+        tmp.ensureCapacity(_length + 1);
+
         while (*p)
         {
             unichar_t ch;
-            int l = UTF_CHAR_TO_UNICODE(p, ch);
-            ch = charToLower(ch);
-            UNICODE_CHAR_TO_UTF(ch, p);
-            p += l;
+            p += UTF_CHAR_TO_UNICODE(p, ch);
+            tmp += charToLower(ch);
         }
+
+        swap(*this, tmp);
     }
 }
 

@@ -11,12 +11,8 @@ rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
 * misc
-string split/join
-rewrite toUpper/toLower
-make char_t* charForward(char_t* pos, int n = 1) const?
+review the rest of unit tests
 default params in test comments
-simplify templated code with typedefs
-missing overloads for non-copyable types in list and map
 
 basic features:
 * search/replace
@@ -44,7 +40,6 @@ complete on tab or punctuation
 
 foundation features:
 * convert any object to string
-* simple parsing a la scanf
 * type safe string formatting
 * date and time
 * locales (formatting, string compare/search/case conversion)
@@ -52,8 +47,13 @@ foundation features:
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
-* string to binary/hex conversion
-* initializer_list support
-* conversion between containers (array to list etc)
-* create element in place for containers
-
+* containers
+initializer_list support
+conversion between containers (array to list etc)
+create element in place
+move node pointers in map/set when rehashing to avoid allocation
+* strings
+split/join, tokenizer
+conversion to binary/hex
+simple parsing a la scanf
+simple regular expressions
