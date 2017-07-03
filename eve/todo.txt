@@ -13,6 +13,7 @@ handle invalid unicode sequences?
 * misc
 review the rest of unit tests
 default params in test comments
+replace rehash with ensureCapacity?
 
 basic features:
 * search/replace

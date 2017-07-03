@@ -1899,7 +1899,7 @@ public:
     
     static Array<_Type> acquire(int size, _Type* values)
     {
-        return Array<_Type>(size, values);
+        return Array<_Type>(size, size, values);
     }
     
     _Type* release()

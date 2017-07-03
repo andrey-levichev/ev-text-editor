@@ -3060,9 +3060,12 @@ void testArray()
     {
         Array<UniquePtr<int>> a;
         a.ensureCapacity(2);
+        ASSERT(a.capacity() == 2);
         a.pushBack(createUnique<int>(1));
         a.shrinkToLength();
+        ASSERT(a.capacity() == 1);
         a.resize(3);
+        ASSERT(a.capacity() == 3);
     }
 
     {
@@ -3070,6 +3073,15 @@ void testArray()
         a.insert(0, createUnique<int>(1));
         a.insert(0, createUnique<int>(2));
         a.popBack();
+        ASSERT(*a.back() == 2);
+    }
+
+    {
+        Array<UniquePtr<int>> a;
+        a.pushBack(createUnique<int>(1));
+        a.pushBack(createUnique<int>(2));
+        a.remove(0);
+        ASSERT(*a.front() == 2);
     }
 
     {
@@ -3077,6 +3089,7 @@ void testArray()
         a.pushBack(createUnique<int>(1));
         a.pushBack(createUnique<int>(2));
         a.clear();
+        ASSERT(a.empty());
     }
 }
 
@@ -3460,6 +3473,21 @@ void testList()
         ASSERT(!cl.find(0));
     }
 
+    // void assign(int size, const _Type& value)
+
+    {
+        List<int> l;
+        l.assign(0, 123);
+        ASSERT(l.empty());
+    }
+
+    {
+        List<int> l;
+        l.assign(1, 123);
+        ASSERT(!l.empty());
+        ASSERT(l.front()->value == 123);
+    }
+    
     // void assign(int size, const _Type* values)
 
     {
@@ -3688,6 +3716,7 @@ void testList()
          l.pushBack(createUnique<int>(1));
          l.insertBefore(l.front(), createUnique<int>(2));
          l.popFront();
+         ASSERT(*l.back()->value == 1);
     }
 
     {
@@ -3695,6 +3724,7 @@ void testList()
          l.pushFront(createUnique<int>(1));
          l.insertAfter(l.back(), createUnique<int>(2));
          l.popBack();
+         ASSERT(*l.back()->value == 1);
     }
 
     {
@@ -3702,6 +3732,7 @@ void testList()
          l.pushBack(createUnique<int>(1));
          l.pushBack(createUnique<int>(2));
          l.remove(l.front());
+         ASSERT(*l.back()->value == 2);
     }
 
     {
@@ -3709,6 +3740,7 @@ void testList()
          l.pushBack(createUnique<int>(1));
          l.pushBack(createUnique<int>(2));
          l.clear();
+         ASSERT(l.empty());
     }
 }
 
@@ -3877,12 +3909,12 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
         Map<int, int> m2(m1);
         ASSERT(m1.size() == 1);
         ASSERT(m1.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // Map(Map<_Key, _Value>&& other)
@@ -3901,7 +3933,7 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
 
         Map<int, int> m2(static_cast<Map<int, int>&&>(m1));
 
@@ -3912,7 +3944,7 @@ void testMap()
         ASSERT(m2.size() == 1);
         ASSERT(m2.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // _Value& operator[](const _Key& key)
@@ -3921,7 +3953,7 @@ void testMap()
     {
         Map<int, int> m;
         int k1 = 1, k2 = 2;
-        int v1 = 1, v2 = 2, v3 = 3;
+        int v1 = 10, v2 = 20, v3 = 30;
 
         m[k1] = v1;
         ASSERT(m.size() == 1);
@@ -3949,24 +3981,24 @@ void testMap()
     {
         Map<int, int> m;
 
-        m[1] = 1;
+        m[1] = 10;
         ASSERT(m.size() == 1);
         ASSERT(m.numBuckets() == 1);
         ASSERT(!m.empty());
-        ASSERT(m[1] == 1);
+        ASSERT(m[1] == 10);
 
-        m[1] = 2;
+        m[1] = 20;
         ASSERT(m.size() == 1);
         ASSERT(m.numBuckets() == 3);
         ASSERT(!m.empty());
-        ASSERT(m[1] == 2);
+        ASSERT(m[1] == 20);
 
-        m[2] = 3;
+        m[2] = 30;
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
         ASSERT(!m.empty());
-        ASSERT(m[1] == 2);
-        ASSERT(m[2] == 3);
+        ASSERT(m[1] == 20);
+        ASSERT(m[2] == 30);
     }
 
     // const _Value& operator[](const _Key& key) const
@@ -3974,10 +4006,10 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
+        m.insert(1, 10);
 
         const Map<int, int>& cm = m;
-        ASSERT(cm[1] == 1);
+        ASSERT(cm[1] == 10);
         ASSERT_EXCEPTION(Exception, cm[2]);
     }
 
@@ -3985,13 +4017,13 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
         Map<int, int> m2;
         m2 = m1;
         ASSERT(m1.size() == 1);
         ASSERT(m1.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // Map<_Key, _Value>& operator=(Map<_Key, _Value>&& other)
@@ -4011,7 +4043,7 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
 
         Map<int, int> m2;
         m2 = static_cast<Map<int, int>&&>(m1);
@@ -4023,7 +4055,7 @@ void testMap()
         ASSERT(m2.size() == 1);
         ASSERT(m2.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // int size() const
@@ -4041,7 +4073,7 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
+        m.insert(1, 10);
 
         ASSERT(m.size() == 1);
         ASSERT(m.numBuckets() == 1);
@@ -4051,8 +4083,8 @@ void testMap()
             
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
 
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
@@ -4064,8 +4096,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        ASSERT(*m.find(1) == 1);
+        m.insert(1, 10);
+        ASSERT(*m.find(1) == 10);
         ASSERT(!m.find(2));
     }
 
@@ -4073,10 +4105,10 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
+        m.insert(1, 10);
 
         const Map<int, int>& cm = m;
-        ASSERT(*cm.find(1) == 1);
+        ASSERT(*cm.find(1) == 10);
         ASSERT(!cm.find(2));
     }
 
@@ -4092,20 +4124,20 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
         Map<int, int> m2;
         m2.assign(m1);
         ASSERT(m1.size() == 1);
         ASSERT(m1.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // void insert(const _Key& key, const _Value& value)
 
     {
         Map<int, int> m;
-        int k = 1, v = 1;
+        int k = 1, v = 10;
         m.insert(k, v);
         ASSERT(m[k] == v);
     }
@@ -4114,15 +4146,15 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        ASSERT(m[1] == 1);
+        m.insert(1, 10);
+        ASSERT(m[1] == 10);
     }
 
     // bool remove(const _Key& key)
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
+        m.insert(1, 10);
         m.remove(1);
         ASSERT(m.empty());
     }
@@ -4131,8 +4163,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
         m.clear();
         ASSERT(m.empty());
     }
@@ -4153,8 +4185,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
 
@@ -4165,8 +4197,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
 
@@ -4178,26 +4210,19 @@ void testMap()
     // UniquePtr
 
     {
-        Map<UniquePtr<int>, UniquePtr<int>> m1(10);
-        m1[createUnique<int>(1)] = createUnique<int>(1);
-        Map<UniquePtr<int>, UniquePtr<int>> m2(
-            static_cast<Map<UniquePtr<int>, UniquePtr<int>>&&>(m1));
-    }
-
-    {
         Map<UniquePtr<int>, UniquePtr<int>> m;
-        m[createUnique<int>(1)] = createUnique<int>(1);
-        ASSERT(*m.find(createUnique<int>(1)) == 1);
+        m[createUnique<int>(1)] = createUnique<int>(10);
+        ASSERT(**m.find(createUnique<int>(1)) == 10);
         const Map<UniquePtr<int>, UniquePtr<int>>& cm = m;
-        ASSERT(*cm[createUnique<int>(1)] == 1);
-        ASSERT(*cm.find(createUnique<int>(1)) == 1);
+        ASSERT(*cm[createUnique<int>(1)] == 10);
+        ASSERT(**cm.find(createUnique<int>(1)) == 10);
     }
 
     {
         Map<UniquePtr<int>, UniquePtr<int>> m;
-        m.insert(createUnique<int>(1), createUnique<int>(1));
-        m.insert(createUnique<int>(1), createUnique<int>(2));
-        m.insert(createUnique<int>(2), createUnique<int>(2));
+        m.insert(createUnique<int>(1), createUnique<int>(10));
+        m.insert(createUnique<int>(1), createUnique<int>(20));
+        m.insert(createUnique<int>(2), createUnique<int>(20));
         ASSERT(m.size() == 2);
         ASSERT(m.remove(createUnique<int>(1)));
         ASSERT(!m.remove(createUnique<int>(3)));
@@ -4206,8 +4231,8 @@ void testMap()
 
     {
         Map<UniquePtr<int>, UniquePtr<int>> m;
-        m.insert(createUnique<int>(1), createUnique<int>(1));
-        m.insert(createUnique<int>(2), createUnique<int>(2));
+        m.insert(createUnique<int>(1), createUnique<int>(10));
+        m.insert(createUnique<int>(2), createUnique<int>(20));
         m.rehash(10);
         m.clear();
     }
@@ -4505,7 +4530,7 @@ void testSet()
         ASSERT(s.find(1));
     }
 
-    // _Type&& remove()
+    // _Type remove()
 
     ASSERT_EXCEPTION(Exception, Set<int>().remove());
 
@@ -4520,7 +4545,8 @@ void testSet()
     {
         Set<int> s;
         s.insert(1);
-        s.remove(1);
+        ASSERT(!s.remove(2));
+        ASSERT(s.remove(1));
         ASSERT(s.empty());
     }
 
@@ -4575,12 +4601,6 @@ void testSet()
     // UniquePtr
 
     {
-        Set<UniquePtr<int>> s1(10);
-        s1.insert(createUnique<int>(1));
-        Set<UniquePtr<int>> s2(static_cast<Set<UniquePtr<int>>&&>(s1));
-    }
-
-    {
         Set<UniquePtr<int>> s;
         s.insert(createUnique<int>(1));
         ASSERT(s.find(createUnique<int>(1)));
@@ -4596,6 +4616,7 @@ void testSet()
     {
         Set<UniquePtr<int>> s;
         s.insert(createUnique<int>(1));
+        ASSERT(!s.remove(createUnique<int>(2)));
         ASSERT(s.remove(createUnique<int>(1)));
     }
 
