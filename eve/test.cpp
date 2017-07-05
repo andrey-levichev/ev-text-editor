@@ -3888,6 +3888,7 @@ void testMap()
         Map<int, int> m;
         ASSERT(m.size() == 0);
         ASSERT(m.numBuckets() == 0);
+        ASSERT(m.maxLoadFactor() == 0.75f);
         ASSERT(m.empty());
     }
 
@@ -3895,6 +3896,7 @@ void testMap()
         Map<int, int> m(10);
         ASSERT(m.size() == 0);
         ASSERT(m.numBuckets() == 10);
+        ASSERT(m.maxLoadFactor() == 0.75f);
         ASSERT(m.empty());
     }
 
@@ -3904,6 +3906,7 @@ void testMap()
         Map<int, int> m1, m2(m1);
         ASSERT(m2.size() == 0);
         ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(m2.empty());
     }
 
@@ -3913,6 +3916,7 @@ void testMap()
         Map<int, int> m2(m1);
         ASSERT(m1.size() == 1);
         ASSERT(m1.numBuckets() == 1);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(!m2.empty());
         ASSERT(m2[1] == 10);
     }
@@ -3924,10 +3928,12 @@ void testMap()
 
         ASSERT(m1.size() == 0);
         ASSERT(m1.numBuckets() == 0);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(m1.empty());
 
         ASSERT(m2.size() == 0);
         ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(m2.empty());
     }
 
@@ -3939,10 +3945,12 @@ void testMap()
 
         ASSERT(m1.size() == 0);
         ASSERT(m1.numBuckets() == 0);
+        ASSERT(m1.maxLoadFactor() == 0.75f);
         ASSERT(m1.empty());
 
         ASSERT(m2.size() == 1);
         ASSERT(m2.numBuckets() == 1);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(!m2.empty());
         ASSERT(m2[1] == 10);
     }
@@ -4090,6 +4098,16 @@ void testMap()
         ASSERT(m.numBuckets() == 3);
         ASSERT(!m.empty());
         ASSERT(m.loadFactor() == 2.0f / 3.0f);
+    }
+
+    // float maxLoadFactor() const
+    // void maxLoadFactor(float loadFactor)
+
+    {
+        Map<int, int> m;
+        ASSERT_EXCEPTION(Exception, m.maxLoadFactor(0));
+        m.maxLoadFactor(0.5f);
+        ASSERT(m.maxLoadFactor() == 0.5f);
     }
 
     // _Value* find(const _Key& key)
@@ -4343,6 +4361,7 @@ void testSet()
         Set<int> s;
         ASSERT(s.size() == 0);
         ASSERT(s.numBuckets() == 0);
+        ASSERT(s.maxLoadFactor() == 0.75f);
         ASSERT(s.empty());
     }
 
@@ -4350,6 +4369,7 @@ void testSet()
         Set<int> s(10);
         ASSERT(s.size() == 0);
         ASSERT(s.numBuckets() == 10);
+        ASSERT(s.maxLoadFactor() == 0.75f);
         ASSERT(s.empty());
     }
 
@@ -4359,6 +4379,7 @@ void testSet()
         Set<int> s1, s2(s1);
         ASSERT(s2.size() == 0);
         ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(s2.empty());
     }
 
@@ -4366,8 +4387,9 @@ void testSet()
         Set<int> s1;
         s1.insert(1);
         Set<int> s2(s1);
-        ASSERT(s1.size() == 1);
-        ASSERT(s1.numBuckets() == 1);
+        ASSERT(s2.size() == 1);
+        ASSERT(s2.numBuckets() == 1);
+        ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(!s2.empty());
         ASSERT(s2.find(1));
     }
@@ -4379,10 +4401,12 @@ void testSet()
 
         ASSERT(s1.size() == 0);
         ASSERT(s1.numBuckets() == 0);
+        ASSERT(s1.maxLoadFactor() == 0.75f);
         ASSERT(s1.empty());
 
         ASSERT(s2.size() == 0);
         ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(s2.empty());
     }
 
@@ -4394,10 +4418,12 @@ void testSet()
 
         ASSERT(s1.size() == 0);
         ASSERT(s1.numBuckets() == 0);
+        ASSERT(s1.maxLoadFactor() == 0.75f);
         ASSERT(s1.empty());
 
         ASSERT(s2.size() == 1);
         ASSERT(s2.numBuckets() == 1);
+        ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(!s2.empty());
         ASSERT(s2.find(1));
     }
@@ -4479,6 +4505,16 @@ void testSet()
         ASSERT(s.numBuckets() == 3);
         ASSERT(!s.empty());
         ASSERT(s.loadFactor() == 2.0f / 3.0f);
+    }
+
+    // float maxLoadFactor() const
+    // void maxLoadFactor(float loadFactor)
+
+    {
+        Set<int> s;
+        ASSERT_EXCEPTION(Exception, s.maxLoadFactor(0));
+        s.maxLoadFactor(0.5f);
+        ASSERT(s.maxLoadFactor() == 0.5f);
     }
 
     // const _Type* find(const _Type& value) const
@@ -4693,9 +4729,6 @@ void testFoundation()
 
 void testFile()
 {
-    String s = STR("qwerty");
-    int v = 12345;
-
     {
         File f;
         ASSERT(!f.isOpen());
@@ -4704,23 +4737,29 @@ void testFile()
     {
         File f(STR("test.txt"), FILE_MODE_CREATE_ALWAYS);
         ASSERT(f.isOpen());
+        String s(STR("qwerty"));
         f.writeString(s);
     }
 
     {
         File f(STR("test.txt"));
-        int size = sizeof(char_t) * s.length();
+        int size = 6 * sizeof(char_t);
         ASSERT(f.size() == size);
-        String s2 = f.readString();
-        ASSERT(s == s2);
+        String s = f.readString();
+        ASSERT(s == STR("qwerty"));
     }
 
     {
         File f;
         ASSERT(f.open(STR("test.dat"), FILE_MODE_CREATE_ALWAYS));
         ASSERT(f.isOpen());
-        ByteArray b(4, reinterpret_cast<uint8_t*>(&v));
-        f.writeBytes(b);
+
+        Array<int> a;
+        a.pushBack(1);
+        a.pushBack(2);
+        a.pushBack(3);
+
+        f.write(a);
         f.close();
         ASSERT(!f.isOpen());
     }
@@ -4729,10 +4768,12 @@ void testFile()
         File f;
         ASSERT(f.open(STR("test.dat")));
         ASSERT(f.isOpen());
-        int size = sizeof(int);
+
+        int size = 3 * sizeof(int);
         ASSERT(f.size() == size);
-        ByteArray b = f.readBytes();
-        ASSERT(*reinterpret_cast<int*>(b.values()) == v);
+        Array<int> a = f.read<int>();
+        compareSequence(a, 1, 2, 3);
+
         f.close();
         ASSERT(!f.isOpen());
     }
@@ -4802,6 +4843,8 @@ void testConsoleWrite()
 
 void testConsoleReadChar()
 {
+    Console::writeLine(STR("Type characters followed by ENTER (q to exit)"));
+
     while (true)
     {
         char_t ch = Console::readChar();
@@ -4813,6 +4856,8 @@ void testConsoleReadChar()
 
 void testConsoleReadLine()
 {
+    Console::writeLine(STR("Type characters followed by ENTER (quit to exit)"));
+
     while (true)
     {
         String line = Console::readLine();
@@ -4824,6 +4869,7 @@ void testConsoleReadLine()
 
 void testConsoleReadKeys()
 {
+    Console::writeLine(STR("Press any key or key combination (ESC to exit)"));
     Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
 
     while (true)
@@ -4978,13 +5024,13 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        testFoundation();
-        // testFile();
-        // testConsole();
-        // testConsoleWrite();
-        // testConsoleReadChar();
-        // testConsoleReadLine();
-        // testConsoleReadKeys();
+//        testFoundation();
+//        testFile();
+        testConsole();
+        testConsoleWrite();
+        testConsoleReadChar();
+        testConsoleReadLine();
+        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {

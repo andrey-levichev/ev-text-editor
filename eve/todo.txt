@@ -10,10 +10,6 @@ decode/encode text from file to runtime enconding, translate newlines
 rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
-* misc
-review the rest of unit tests
-default params in test comments
-replace rehash with ensureCapacity?
 
 basic features:
 * search/replace
@@ -52,7 +48,7 @@ foundation features:
 initializer_list support
 conversion between containers (array to list etc)
 create element in place
-move node pointers in map/set when rehashing to avoid allocation
+move node pointers instead of nodes when rehashing to avoid allocation
 * strings
 split/join, tokenizer
 conversion to binary/hex

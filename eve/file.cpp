@@ -2,10 +2,6 @@
 
 // File
 
-#ifndef PLATFORM_WINDOWS
-const int INVALID_HANDLE_VALUE = -1;
-#endif
-
 File::File() :
     _handle(INVALID_HANDLE_VALUE)
 {    
@@ -100,58 +96,10 @@ void File::close()
     }        
 }
 
-ByteArray File::readBytes()
-{
-    if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
-
-#ifdef PLATFORM_WINDOWS
-    DWORD bytesSize = size(), bytesRead;
-    ByteArray bytes(bytesSize);
-    
-    if (ReadFile(_handle, bytes.values(), bytesSize, &bytesRead, NULL))
-#else
-    ssize_t bytesSize = size(), bytesRead;
-    ByteArray bytes(bytesSize);
-
-    if ((bytesRead = read(_handle, bytes.values(), bytesSize)) >= 0)
-#endif
-    {
-        if (bytesSize != bytesRead)
-            throw Exception(STR("failed to read entire file"));
-    }
-    else
-        throw Exception(STR("failed to read file"));
-
-    return bytes;
-}
-
-void File::writeBytes(const ByteArray& bytes)
-{
-    if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
-    
-#ifdef PLATFORM_WINDOWS
-    DWORD bytesSize = bytes.size(), bytesWritten;
-    
-    if (WriteFile(_handle, bytes.values(), bytesSize, &bytesWritten, NULL))
-#else
-    ssize_t bytesSize = bytes.size(), bytesWritten;
-
-    if ((bytesWritten = write(_handle, bytes.values(), bytesSize)) >= 0)
-#endif
-    {
-        if (bytesSize != bytesWritten)
-            throw Exception(STR("failed to write entire file"));
-    }
-    else
-        throw Exception(STR("failed to write file"));
-}
-
 String File::readString()
 {
     if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
+        throw Exception(STR("file not open"));
 
 #ifdef PLATFORM_WINDOWS
     DWORD charsSize = size() / sizeof(char_t);
@@ -164,7 +112,7 @@ String File::readString()
     ssize_t bytesSize = charsSize * sizeof(char_t), bytesRead;
     Array<char_t> chars(charsSize + 1);
     
-    if ((bytesRead = read(_handle, chars.values(), bytesSize)) >= 0)
+    if ((bytesRead = ::read(_handle, chars.values(), bytesSize)) >= 0)
 #endif
     {
         if (bytesSize != bytesRead)
@@ -180,7 +128,7 @@ String File::readString()
 void File::writeString(const String& str)
 {
     if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
+        throw Exception(STR("file not open"));
 
 #ifdef PLATFORM_WINDOWS
     DWORD bytesSize = str.length() * sizeof(char_t), bytesWritten;
@@ -189,7 +137,7 @@ void File::writeString(const String& str)
 #else
     ssize_t bytesSize = str.length() * sizeof(char_t), bytesWritten;
     
-    if ((bytesWritten = write(_handle, str.str(), bytesSize)) >= 0)
+    if ((bytesWritten = ::write(_handle, str.str(), bytesSize)) >= 0)
 #endif
     {
         if (bytesSize != bytesWritten)
@@ -202,7 +150,7 @@ void File::writeString(const String& str)
 int64_t File::size() const
 {
     if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
+        throw Exception(STR("file not open"));
 
 #ifdef PLATFORM_WINDOWS
     int64_t sz;

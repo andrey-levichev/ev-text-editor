@@ -156,6 +156,7 @@ typedef unsigned char32_t;
 // string support
 
 typedef char32_t unichar_t;
+typedef unsigned char byte_t;
 
 #ifdef PLATFORM_WINDOWS
 
@@ -1943,8 +1944,9 @@ protected:
     _Type* _values;
 };
 
-typedef Array<uint8_t> ByteArray;
+typedef Array<byte_t> ByteArray;
 typedef Array<char_t> CharArray;
+typedef Array<unichar_t> UniCharArray;
 
 // ListNode
 
@@ -2666,8 +2668,6 @@ template<typename _Key, typename _Value>
 class Map
 {
 public:
-    static const float MAX_LOAD_FACTOR;
-
     template<typename, typename>
     friend class MapIterator;
 
@@ -2679,13 +2679,17 @@ public:
 
 public:
     Map(int numBuckets = 0) : 
-        _keyValues(numBuckets), _size(0)
+        _keyValues(numBuckets),
+        _size(0),
+        _maxLoadFactor(0.75f)
     {
         ASSERT(numBuckets >= 0);
     }
 
     Map(const Map<_Key, _Value>& other) :
-        _keyValues(other._keyValues), _size(other._size)
+        _keyValues(other._keyValues),
+        _size(other._size),
+        _maxLoadFactor(other._maxLoadFactor)
     {
     }
 
@@ -2694,6 +2698,7 @@ public:
     {
         _size = other._size;
         other._size = 0;
+        _maxLoadFactor = other._maxLoadFactor;
     }
 
     _Value& operator[](const _Key& key)
@@ -2744,6 +2749,17 @@ public:
         return static_cast<float>(_size) / _keyValues.size();
     }
 
+    float maxLoadFactor() const
+    {
+        return _maxLoadFactor;
+    }
+
+    void maxLoadFactor(float loadFactor)
+    {
+        ASSERT(loadFactor > 0);
+        _maxLoadFactor = loadFactor;
+    }
+
     Iterator iterator()
     {
         return Iterator(*this);
@@ -2756,8 +2772,8 @@ public:
 
     _Value& value(const _Key& key)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
+        if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         auto& kvList = getBucket(key);
 
@@ -2775,8 +2791,8 @@ public:
 
     _Value& value(_Key&& key)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
+        if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         auto& kvList = getBucket(key);
 
@@ -2841,8 +2857,8 @@ public:
 
     void insert(const _Key& key, const _Value& value)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
+        if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         auto& kvList = getBucket(key);
 
@@ -2861,8 +2877,8 @@ public:
 
     void insert(_Key&& key, _Value&& value)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
+        if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         auto& kvList = getBucket(key);
 
@@ -2949,10 +2965,8 @@ protected:
 protected:
     Array<List<KeyValue<_Key, _Value>>> _keyValues;
     int _size;
+    float _maxLoadFactor;
 };
-
-template<typename _Key, typename _Value>
-const float Map<_Key, _Value>::MAX_LOAD_FACTOR = 0.75f;
 
 // ConstSetIterator
 
@@ -3028,8 +3042,6 @@ template<typename _Type>
 class Set
 {
 public:
-    static const float MAX_LOAD_FACTOR;
-
     template<typename>
     friend class ConstSetIterator;
 
@@ -3037,13 +3049,17 @@ public:
 
 public:
     Set(int numBuckets = 0) : 
-        _values(numBuckets), _size(0)
+        _values(numBuckets),
+        _size(0),
+        _maxLoadFactor(0.75f)
     {
         ASSERT(numBuckets >= 0);
     }
 
     Set(const Set<_Type>& other) :
-        _values(other._values), _size(other._size)
+        _values(other._values),
+        _size(other._size),
+        _maxLoadFactor(other._maxLoadFactor)
     {
     }
 
@@ -3052,6 +3068,7 @@ public:
     {
         _size = other._size;
         other._size = 0;
+        _maxLoadFactor = other._maxLoadFactor;
     }
 
     Set<_Type>& operator=(const Set<_Type>& other)
@@ -3092,6 +3109,17 @@ public:
         return static_cast<float>(_size) / _values.size();
     }
 
+    float maxLoadFactor() const
+    {
+        return _maxLoadFactor;
+    }
+
+    void maxLoadFactor(float loadFactor)
+    {
+        ASSERT(loadFactor > 0);
+        _maxLoadFactor = loadFactor;
+    }
+
     const _Type* find(const _Type& value) const
     {
         const List<_Type>& vList = getBucket(value);
@@ -3113,8 +3141,8 @@ public:
 
     void insert(const _Type& value)
     {
-        if (_values.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_values.size() * 2 + 1);
+        if (_values.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         List<_Type>& vList = getBucket(value);
 
@@ -3130,8 +3158,8 @@ public:
 
     void insert(_Type&& value)
     {
-        if (_values.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_values.size() * 2 + 1);
+        if (_values.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         List<_Type>& vList = getBucket(value);
 
@@ -3227,10 +3255,8 @@ protected:
 protected:
     Array<List<_Type>> _values;
     int _size;
+    float _maxLoadFactor;
 };
-
-template<typename _Type>
-const float Set<_Type>::MAX_LOAD_FACTOR = 0.75f;
 
 #endif
 
