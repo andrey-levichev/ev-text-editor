@@ -10,6 +10,12 @@ decode/encode text from file to runtime enconding, translate newlines
 rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
+* console unicode support
+WriteConsole - bytes or chars?
+rename Formatted
+tests for Unicode output
+unicode getchar
+don't mix OS and encoding
 
 basic features:
 * search/replace

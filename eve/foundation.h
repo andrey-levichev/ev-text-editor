@@ -163,8 +163,7 @@ typedef unsigned char byte_t;
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
 #define STR(arg) u##arg
-#define CHAR_EOF WEOF
-typedef char16_t char_t;
+
 typedef wint_t getchar_t;
 
 #else
@@ -178,9 +177,7 @@ typedef wint_t getchar_t;
 #define STR(arg) u8##arg
 #endif
 
-#define CHAR_EOF EOF
 typedef char char_t;
-typedef int getchar_t;
 
 #endif
 

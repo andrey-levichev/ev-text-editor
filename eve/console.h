@@ -41,7 +41,7 @@ enum KeyCode
 struct Key
 {
     KeyCode code;
-    char_t ch;
+    unichar_t ch;
     bool ctrl;
     bool alt;
     bool shift;
@@ -72,16 +72,16 @@ public:
 
     static void write(const String& str);
     static void write(const char_t* chars);
-    static void write(char_t ch, int len = 1);
+    static void write(unichar_t ch, int len = 1);
 
     static void writeLine(const String& str);
     static void writeLine(const char_t* chars);
-    static void writeLine(char_t ch, int len = 1);
+    static void writeLine(unichar_t ch, int len = 1);
     static void writeLine();
 
     static void write(int line, int column, const String& str);
     static void write(int line, int column, const char_t* chars);
-    static void write(int line, int column, char_t ch, int len = 1);
+    static void write(int line, int column, unichar_t ch, int len = 1);
 
     static void writeFormatted(const char_t* format, ...);
     static void writeFormatted(const char_t* format, va_list args);
@@ -89,7 +89,11 @@ public:
     static void writeLineFormatted(const char_t* format, ...);
     static void writeLineFormatted(const char_t* format, va_list args);
 
-    static char_t readChar();
+    static unichar_t readChar()
+    {
+        return getChar();
+    }
+
     static String readLine();
 
     static void getSize(int& width, int& height);
@@ -105,7 +109,7 @@ protected:
     static void write(int line, int column, const char_t* chars, int len);
 
 #ifdef PLATFORM_UNIX
-    static void readRegularKey(char_t ch, Key& key);
+    static const char_t* readRegularKey(const char_t* p, Key& key);
     static const char_t* readSpecialKey(const char_t* p, Key& key);
 #endif
 

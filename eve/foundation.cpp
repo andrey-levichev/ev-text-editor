@@ -221,7 +221,8 @@ void putChar(unichar_t ch)
 
 unichar_t getChar()
 {
-    return getwchar();
+    wint_t ch = getwchar();
+    return ch == WEOF ? 0 : ch;
 }
 
 #else
@@ -410,7 +411,8 @@ void putChar(unichar_t ch)
 
 unichar_t getChar()
 {
-    return getchar();
+    int ch = getwchar();
+    return ch == EOF ? 0 : ch;
 }
 
 #endif

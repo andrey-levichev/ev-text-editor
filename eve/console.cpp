@@ -55,12 +55,14 @@ void Console::write(const char_t* chars)
     write(chars, strLen(chars));
 }
 
-void Console::write(char_t ch, int len)
+void Console::write(unichar_t ch, int len)
 {
     ASSERT(len >= 0);
-    char_t* chars = ALLOCATE_STACK(char_t, len);
+
+    int l = UTF_CHAR_LENGTH(ch) * len;
+    char_t* chars = ALLOCATE_STACK(char_t, l);
     strSet(chars, ch, len);
-    write(chars, len);
+    write(chars, l);
 }
 
 void Console::writeLine(const String& str)
@@ -76,7 +78,7 @@ void Console::writeLine(const char_t* chars)
     writeLine();
 }
 
-void Console::writeLine(char_t ch, int len)
+void Console::writeLine(unichar_t ch, int len)
 {
     ASSERT(len >= 0);
     write(ch, len);
@@ -99,12 +101,14 @@ void Console::write(int line, int column, const char_t* chars)
     write(line, column, chars, strLen(chars));
 }
 
-void Console::write(int line, int column, char_t ch, int len)
+void Console::write(int line, int column, unichar_t ch, int len)
 {
     ASSERT(len >= 0);
-    char_t* chars = ALLOCATE_STACK(char_t, len);
+
+    int l = UTF_CHAR_LENGTH(ch) * len;
+    char_t* chars = ALLOCATE_STACK(char_t, l);
     strSet(chars, ch, len);
-    write(line, column, chars, len);
+    write(line, column, chars, l);
 }
 
 void Console::writeFormatted(const char_t* format, ...)
@@ -141,18 +145,12 @@ void Console::writeLineFormatted(const char_t* format, va_list args)
     putChar('\n');
 }
 
-char_t Console::readChar()
-{
-    getchar_t ch = getChar();
-    return ch == CHAR_EOF ? 0 : ch;
-}
-
 String Console::readLine()
 {
     String line;
-    getchar_t ch = getChar();
+    unichar_t ch = getChar();
 
-    while (!(ch == '\n' || ch == CHAR_EOF))
+    while (ch && ch != '\n')
     {
         line += ch;
         ch = getChar();
@@ -436,17 +434,13 @@ const Array<Key>& Console::readKeys()
                     else if (*p)
                     {
                         key.alt = true;
-                        readRegularKey(*p, key);
-                        ++p;
+                        p = readRegularKey(p, key);
                     }
                     else
                         key.code = KEY_ESC;
                 }
                 else
-                {
-                    readRegularKey(*p, key);
-                    ++p;
-                }
+                    p = readRegularKey(p, key);
 
                 _keys.pushBack(key);
             }
@@ -501,8 +495,12 @@ void Console::write(int line, int column, const char_t* chars, int len)
 
 #ifdef PLATFORM_UNIX
 
-void Console::readRegularKey(char_t ch, Key& key)
+const char_t* Console::readRegularKey(const char_t* p, Key& key)
 {
+    ASSERT(p);
+
+    unichar_t ch;
+    p += UTF_CHAR_TO_UNICODE(p, ch);
     key.ch = ch;
 
     if (ch == '\t')
@@ -515,6 +513,8 @@ void Console::readRegularKey(char_t ch, Key& key)
         key.ctrl = true;
     else
         key.shift = isupper(ch);
+
+    return p;
 }
 
 const char_t* Console::readSpecialKey(const char_t* p, Key& key)
