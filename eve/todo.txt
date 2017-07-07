@@ -1,9 +1,9 @@
 bugs & misc:
 * handle SIGWINCH to detect terminal size changes
-* rework keyboard input to support different terminals
+* screen update code shouldn't differ between platforms
+* many keys don't work in Linux, macOS, xterm
+rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
-* minimal screen update for colored text
-screen update code must not differ between platforms
 * support unicode input and newline differences
 support unicode input, console etc
 decode/encode text from file to runtime enconding, translate newlines
@@ -21,7 +21,7 @@ basic features:
 * paragraph back/forward
 
 advanced features:
-* multiple file support
+* multiple file
 * regex search/replace
 * search/replace in files
 * parse build output for errors

@@ -213,12 +213,12 @@ bool charIsAlphaNum(unichar_t ch);
 unichar_t charToLower(unichar_t ch);
 unichar_t charToUpper(unichar_t ch);
 
-void print(const char_t* str);
-void printFormatted(const char_t* format, ...);
+void printLine(const char_t* str);
+void print(const char_t* format, ...);
 void printString(char_t* str, const char_t* format, ...);
 void printArgs(const char_t* format, va_list args);
-void printArgsAlloc(char_t** str, const char_t* format, va_list args);
-void printAlloc(char_t** str, const char_t* format, ...);
+void printAllocStringArgs(char_t** str, const char_t* format, va_list args);
+void printAllocString(char_t** str, const char_t* format, ...);
 
 void putChar(unichar_t ch);
 unichar_t getChar();
@@ -288,7 +288,7 @@ int utf16StringLength(const char16_t* str);
 #define ASSERT_MSG(condition, message) \
     do { \
         if (!(condition)) { \
-            print(STR("assertion failed in ") \
+            printLine(STR("assertion failed in ") \
                 STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message); \
             abort(); \
         } \
@@ -1152,6 +1152,13 @@ public:
         return strCompareNoCase(str(), chars ? chars : STR(""));
     }
 
+    char_t* find(const String& str, char_t* pos = NULL);
+    char_t* find(const char_t* chars, char_t* pos = NULL);
+    char_t* find(unichar_t ch, char_t* pos = NULL);
+    char_t* findNoCase(const String& str, char_t* pos = NULL);
+    char_t* findNoCase(const char_t* chars, char_t* pos = NULL);
+    char_t* findNoCase(unichar_t ch, char_t* pos = NULL);
+    
     const char_t* find(const String& str, const char_t* pos = NULL) const;
     const char_t* find(const char_t* chars, const char_t* pos = NULL) const;
     const char_t* find(unichar_t ch, const char_t* pos = NULL) const;

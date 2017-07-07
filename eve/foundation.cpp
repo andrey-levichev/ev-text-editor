@@ -91,7 +91,13 @@ char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 
 const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
 {
-    return strFindNoCase(const_cast<char_t*>(str), searchStr);
+    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, 
+        FIND_FROMSTART | LINGUISTIC_IGNORECASE, 
+        reinterpret_cast<const wchar_t*>(str), -1, 
+        reinterpret_cast<const wchar_t*>(searchStr),
+        -1, NULL, NULL, NULL, 0);
+
+    return index >= 0 ? str + index : NULL;
 }
 
 long strToLong(const char_t* str, char_t** end, int base)
@@ -155,12 +161,12 @@ unichar_t charToUpper(unichar_t ch)
     return towupper(ch);
 }
 
-void print(const char_t* str)
+void printLine(const char_t* str)
 {
     _putws(reinterpret_cast<const wchar_t*>(str));
 }
 
-void printFormatted(const char_t* format, ...)
+void print(const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -172,7 +178,7 @@ void printString(char_t* str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    swprintf(reinterpret_cast<wchar_t*>(str), 
+    vswprintf(reinterpret_cast<wchar_t*>(str), 
         reinterpret_cast<const wchar_t*>(format), args);
     va_end(args);
 }
@@ -182,7 +188,7 @@ void printArgs(const char_t* format, va_list args)
     vwprintf(reinterpret_cast<const wchar_t*>(format), args);
 }
 
-void printArgsAlloc(char_t** str, const char_t* format, va_list args)
+void printAllocStringArgs(char_t** str, const char_t* format, va_list args)
 {
     va_list args2;
 
@@ -200,11 +206,11 @@ void printArgsAlloc(char_t** str, const char_t* format, va_list args)
         *str = 0;
 }
 
-void printAlloc(char_t** str, const char_t* format, ...)
+void printAllocString(char_t** str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    printArgsAlloc(str, format, args);
+    printAllocStringArgs(str, format, args);
     va_end(args);
 }
 
@@ -343,12 +349,12 @@ unichar_t charToUpper(unichar_t ch)
     return toupper(ch);
 }
 
-void print(const char_t* str)
+void printLine(const char_t* str)
 {
     puts(str);
 }
 
-void printFormatted(const char_t* format, ...)
+void print(const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -360,7 +366,7 @@ void printString(char_t* str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    sprintf(str, format, args);
+    vsprintf(str, format, args);
     va_end(args);
 }
 
@@ -369,7 +375,7 @@ void printArgs(const char_t* format, va_list args)
     vprintf(format, args);
 }
 
-void printArgsAlloc(char_t** str, const char_t* format, va_list args)
+void printAllocStringArgs(char_t** str, const char_t* format, va_list args)
 {
 #ifdef PLATFORM_AIX
     va_list args2;
@@ -389,11 +395,11 @@ void printArgsAlloc(char_t** str, const char_t* format, va_list args)
 #endif
 }
 
-void printAlloc(char_t** str, const char_t* format, ...)
+void printAllocString(char_t** str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    printArgsAlloc(str, format, args);
+    printAllocStringArgs(str, format, args);
     va_end(args);
 }
 
@@ -590,7 +596,16 @@ char* utf8CharForward(char* pos, int n)
 
 const char* utf8CharForward(const char* pos, int n)
 {
-    return utf8CharForward(const_cast<char*>(pos), n);
+    while (*pos && n--)
+    {
+        do
+        {
+            ++pos;
+        }
+        while ((*pos & 0xc0) == 0x80);
+    }
+
+    return pos;
 }
 
 char* utf8CharBack(char* pos, char* start, int n)
@@ -609,7 +624,16 @@ char* utf8CharBack(char* pos, char* start, int n)
 
 const char* utf8CharBack(const char* pos, const char* start, int n)
 {
-    return utf8CharBack(const_cast<char*>(pos), const_cast<char*>(start), n);
+    while (pos > start && n--)
+    {
+        do
+        {
+            --pos;
+        }
+        while ((*pos & 0xc0) == 0x80);
+    }
+
+    return pos;
 }
 
 int utf8CharLength(char32_t ch)
@@ -662,7 +686,15 @@ char16_t* utf16CharForward(char16_t* pos, int n)
 
 const char16_t* utf16CharForward(const char16_t* pos, int n)
 {
-    return utf16CharForward(const_cast<char16_t*>(pos), n);
+    while (*pos && n--)
+    {
+        if ((*pos & 0xfc00) == 0xd800)
+            pos += 2;
+        else
+            ++pos;
+    }
+
+    return pos;
 }
 
 char16_t* utf16CharBack(char16_t* pos, char16_t* start, int n)
@@ -679,7 +711,14 @@ char16_t* utf16CharBack(char16_t* pos, char16_t* start, int n)
 
 const char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n)
 {
-    return utf16CharBack(const_cast<char16_t*>(pos), const_cast<char16_t*>(start), n);
+    while (pos > start && n--)
+    {
+        --pos;
+        if ((*pos & 0xfc00) == 0xdc00)
+            --pos;
+    }
+
+    return pos;
 }
 
 int utf16CharLength(char32_t ch)
@@ -886,6 +925,112 @@ const char_t* String::charBack(const char_t* pos, int n) const
         ASSERT(!pos);
         return NULL;
     }
+}
+
+char_t* String::find(const String& str, char_t* pos)
+{
+    if (_chars)
+    {
+        if (pos)
+            ASSERT(pos >= _chars && pos <= _chars + _length);
+        else
+            pos = _chars;
+
+        if (str._chars)
+            return strFind(pos, str._chars);
+        else
+            return NULL;
+    }
+    else
+    {
+        ASSERT(!pos);
+        return NULL;
+    }
+}
+
+char_t* String::find(const char_t* chars, char_t* pos)
+{
+    if (_chars)
+    {
+        if (pos)
+            ASSERT(pos >= _chars && pos <= _chars + _length);
+        else
+            pos = _chars;
+
+        if (chars)
+            return strFind(pos, chars);
+        else
+            return NULL;
+    }
+    else
+    {
+        ASSERT(!pos);
+        return NULL;
+    }
+}
+
+char_t* String::find(unichar_t ch, char_t* pos)
+{
+    ASSERT(ch != 0);
+
+    char_t s[5];
+    int n = UNICODE_CHAR_TO_UTF(ch, s);
+    s[n] = 0;
+
+    return find(s, pos);
+}
+
+char_t* String::findNoCase(const String& str, char_t* pos)
+{
+    if (_chars)
+    {
+        if (pos)
+            ASSERT(pos >= _chars && pos <= _chars + _length);
+        else
+            pos = _chars;
+
+        if (str._chars)
+            return strFindNoCase(pos, str._chars);
+        else
+            return NULL;
+    }
+    else
+    {
+        ASSERT(!pos);
+        return NULL;
+    }
+}
+
+char_t* String::findNoCase(const char_t* chars, char_t* pos)
+{
+    if (_chars)
+    {
+        if (pos)
+            ASSERT(pos >= _chars && pos <= _chars + _length);
+        else
+            pos = _chars;
+
+        if (chars)
+            return strFindNoCase(pos, chars);
+        else
+            return NULL;
+    }
+    else
+    {
+        ASSERT(!pos);
+        return NULL;
+    }
+}
+
+char_t* String::findNoCase(unichar_t ch, char_t* pos)
+{
+    ASSERT(ch != 0);
+
+    char_t s[5];
+    int n = UNICODE_CHAR_TO_UTF(ch, s);
+    s[n] = 0;
+
+    return findNoCase(s, pos);
 }
 
 const char_t* String::find(const String& str, const char_t* pos) const
@@ -1805,56 +1950,56 @@ String String::from(bool value)
 String String::from(int value)
 {
     char_t* chars;
-    printAlloc(&chars, STR("%d"), value);
+    printAllocString(&chars, STR("%d"), value);
     return String(chars);
 }
 
 String String::from(unsigned value)
 {
     char_t* chars;
-    printAlloc(&chars, STR("%u"), value);
+    printAllocString(&chars, STR("%u"), value);
     return String(chars);
 }
 
 String String::from(long value)
 {
     char_t* chars;
-    printAlloc(&chars, STR("%ld"), value);
+    printAllocString(&chars, STR("%ld"), value);
     return String(chars);
 }
 
 String String::from(unsigned long value)
 {
     char_t* chars;
-    printAlloc(&chars, STR("%lu"), value);
+    printAllocString(&chars, STR("%lu"), value);
     return String(chars);
 }
 
 String String::from(long long value)
 {
     char_t* chars;
-    printAlloc(&chars, STR("%lld"), value);
+    printAllocString(&chars, STR("%lld"), value);
     return String(chars);
 }
 
 String String::from(unsigned long long value)
 {
     char_t* chars;
-    printAlloc(&chars, STR("%llu"), value);
+    printAllocString(&chars, STR("%llu"), value);
     return String(chars);
 }
 
 String String::from(float value, int precision)
 {
     char_t* chars;
-    printAlloc(&chars, STR("%.*f"), precision, static_cast<double>(value));
+    printAllocString(&chars, STR("%.*f"), precision, static_cast<double>(value));
     return String(chars);
 }
 
 String String::from(double value, int precision)
 {
     char_t* chars;
-    printAlloc(&chars, STR("%.*f"), precision, value);
+    printAllocString(&chars, STR("%.*f"), precision, value);
     return String(chars);
 }
 
@@ -1868,7 +2013,7 @@ String String::format(const char_t* format, ...)
     va_list args;
 
     va_start(args, format);
-    printArgsAlloc(&chars, format, args);
+    printAllocStringArgs(&chars, format, args);
     va_end(args);
 
     return String(chars);
@@ -1879,7 +2024,7 @@ String String::format(const char_t* format, va_list args)
     ASSERT(format);
 
     char_t* chars;
-    printArgsAlloc(&chars, format, args);
+    printAllocStringArgs(&chars, format, args);
     return String(chars);
 }
 

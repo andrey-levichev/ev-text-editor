@@ -358,6 +358,7 @@ void testString()
 {
     unichar_t zc = 0;
     const char_t* np = NULL;
+    char_t ep[] = { 0 };
 
     // Unicode support
 
@@ -876,11 +877,14 @@ void testString()
     ASSERT(String(STR("A")).compareNoCase(STR("ab")) < 0);
     ASSERT(String(STR("A")).compareNoCase(STR("a")) == 0);
 
-    // const char_t* find(const String& str, const char_t* pos = NULL) const
+    // char_t* find(const String& str, char_t* pos = NULL)
 
-    ASSERT(!String().find(String()));
-    ASSERT(!String().find(String(STR("a"))));
-    ASSERT_EXCEPTION(Exception, String().find(String(), STR("")));
+    {
+        String s;
+        ASSERT(!s.find(String()));
+        ASSERT(!s.find(String(STR("a"))));
+        ASSERT_EXCEPTION(Exception, s.find(String(), ep));
+    }
 
     {
         String s(STR("abcdabcd"));
@@ -894,11 +898,14 @@ void testString()
         ASSERT(!s.find(String()));
     }
 
-    // const char_t* find(const char_t* chars, const char_t* pos = NULL) const
+    // char_t* find(const char_t* chars, char_t* pos = NULL)
 
-    ASSERT(!String().find(np));
-    ASSERT(!String().find(STR("a")));
-    ASSERT_EXCEPTION(Exception, String().find(np, STR("")));
+    {
+        String s;
+        ASSERT(!s.find(np));
+        ASSERT(!s.find(STR("a")));
+        ASSERT_EXCEPTION(Exception, s.find(np, ep));
+    }
 
     {
         String s(STR("abcdabcd"));
@@ -912,11 +919,14 @@ void testString()
         ASSERT(!s.find(np));
     }
 
-    // const char_t* find(unichar_t ch, const char_t* pos = NULL) const
+    // char_t* find(unichar_t ch, char_t* pos = NULL)
 
-    ASSERT_EXCEPTION(Exception, String().find(zc));
-    ASSERT(!String().find('a'));
-    ASSERT_EXCEPTION(Exception, String().find('a', STR("")));
+    {
+        String s;
+        ASSERT_EXCEPTION(Exception, s.find(zc));
+        ASSERT(!s.find('a'));
+        ASSERT_EXCEPTION(Exception, s.find('a', ep));
+    }
 
     {
         String s(STR("abcabc"));
@@ -929,11 +939,14 @@ void testString()
         ASSERT_EXCEPTION(Exception, s.find('a', s.chars() + s.length() + 1));
     }
 
-    // const char_t* findNoCase(const String& str, const char_t* pos = NULL) const
+    // char_t* findNoCase(const String& str, char_t* pos = NULL)
 
-    ASSERT(!String().findNoCase(String()));
-    ASSERT(!String().findNoCase(String(STR("a"))));
-    ASSERT_EXCEPTION(Exception, String().findNoCase(String(), STR("")));
+    {
+        String s;
+        ASSERT(!s.findNoCase(String()));
+        ASSERT(!s.findNoCase(String(STR("a"))));
+        ASSERT_EXCEPTION(Exception, s.findNoCase(String(), ep));
+    }
 
     {
         String s(STR("ABCDABCD"));
@@ -947,11 +960,14 @@ void testString()
         ASSERT(!s.findNoCase(String()));
     }
 
-    // const char_t* findNoCase(const char_t* chars, const char_t* pos = NULL) const
+    // char_t* findNoCase(const char_t* chars, char_t* pos = NULL)
 
-    ASSERT(!String().findNoCase(np));
-    ASSERT(!String().findNoCase(STR("a")));
-    ASSERT_EXCEPTION(Exception, String().findNoCase(np, STR("")));
+    {
+        String s;
+        ASSERT(!s.findNoCase(np));
+        ASSERT(!s.findNoCase(STR("a")));
+        ASSERT_EXCEPTION(Exception, s.findNoCase(np, ep));
+    }
 
     {
         String s(STR("ABCDABCD"));
@@ -965,11 +981,14 @@ void testString()
         ASSERT(!s.findNoCase(np));
     }
 
-    // const char_t* findNoCase(unichar_t ch, const char_t* pos = NULL) const
+    // char_t* findNoCase(unichar_t ch, char_t* pos = NULL)
 
-    ASSERT_EXCEPTION(Exception, String().findNoCase(zc));
-    ASSERT(!String().findNoCase('a'));
-    ASSERT_EXCEPTION(Exception, String().findNoCase('a', STR("")));
+    {
+        String s;
+        ASSERT_EXCEPTION(Exception, s.findNoCase(zc));
+        ASSERT(!s.findNoCase('a'));
+        ASSERT_EXCEPTION(Exception, s.findNoCase('a', ep));
+    }
 
     {
         String s(STR("ABCABC"));
@@ -980,6 +999,142 @@ void testString()
 
         ASSERT_EXCEPTION(Exception, s.findNoCase('a', s.chars() - 1));
         ASSERT_EXCEPTION(Exception, s.findNoCase('a', s.chars() + s.length() + 1));
+    }
+
+    // char_t* find(const String& str, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.find(String()));
+        ASSERT(!cs.find(String(STR("a"))));
+        ASSERT_EXCEPTION(Exception, cs.find(String(), ep));
+    }
+
+    {
+        String s(STR("abcdabcd"));
+        const String& cs = s;
+        ASSERT(cs.find(String(STR("bc"))) == cs.charPosition(1));
+        ASSERT(cs.find(String(STR("bc")), cs.charPosition(2)) == cs.charPosition(5));
+        ASSERT(!cs.find(String(STR("bc")), cs.charPosition(6)));
+        ASSERT(!cs.find(String(STR("xy"))));
+
+        ASSERT_EXCEPTION(Exception, cs.find(String(), cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.find(String(), cs.chars() + cs.length() + 1));
+        ASSERT(!cs.find(String()));
+    }
+
+    // char_t* find(const char_t* chars, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.find(np));
+        ASSERT(!cs.find(STR("a")));
+        ASSERT_EXCEPTION(Exception, cs.find(np, ep));
+    }
+
+    {
+        String s(STR("abcdabcd"));
+        const String& cs = s;
+        ASSERT(cs.find(STR("bc")) == cs.charPosition(1));
+        ASSERT(cs.find(STR("bc"), cs.charPosition(2)) == cs.charPosition(5));
+        ASSERT(!cs.find(STR("bc"), cs.charPosition(6)));
+        ASSERT(!cs.find(STR("xy")));
+
+        ASSERT_EXCEPTION(Exception, cs.find(np, cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.find(np, cs.chars() + cs.length() + 1));
+        ASSERT(!cs.find(np));
+    }
+
+    // char_t* find(unichar_t ch, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT_EXCEPTION(Exception, cs.find(zc));
+        ASSERT(!cs.find('a'));
+        ASSERT_EXCEPTION(Exception, cs.find('a', ep));
+    }
+
+    {
+        String s(STR("abcabc"));
+        const String& cs = s;
+        ASSERT(cs.find('b') == cs.charPosition(1));
+        ASSERT(cs.find('b', cs.charPosition(2)) == cs.charPosition(4));
+        ASSERT(!cs.find('b', cs.charPosition(5)));
+        ASSERT(!cs.find('x'));
+
+        ASSERT_EXCEPTION(Exception, cs.find('a', cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.find('a', cs.chars() + cs.length() + 1));
+    }
+
+    // char_t* findNoCase(const String& str, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.findNoCase(String()));
+        ASSERT(!cs.findNoCase(String(STR("a"))));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(String(), ep));
+    }
+
+    {
+        String s(STR("ABCDABCD"));
+        const String& cs = s;
+        ASSERT(cs.findNoCase(String(STR("bc"))) == cs.charPosition(1));
+        ASSERT(cs.findNoCase(String(STR("bc")), cs.charPosition(2)) == cs.charPosition(5));
+        ASSERT(!cs.findNoCase(String(STR("bc")), cs.charPosition(6)));
+        ASSERT(!cs.findNoCase(String(STR("xy"))));
+
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(String(), cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(String(), cs.chars() + cs.length() + 1));
+        ASSERT(!cs.findNoCase(String()));
+    }
+
+    // char_t* findNoCase(const char_t* chars, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.findNoCase(np));
+        ASSERT(!cs.findNoCase(STR("a")));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(np, ep));
+    }
+
+    {
+        String s(STR("ABCDABCD"));
+        const String& cs = s;
+        ASSERT(cs.findNoCase(STR("bc")) == cs.charPosition(1));
+        ASSERT(cs.findNoCase(STR("bc"), cs.charPosition(2)) == cs.charPosition(5));
+        ASSERT(!cs.findNoCase(STR("bc"), cs.charPosition(6)));
+        ASSERT(!cs.findNoCase(STR("xy")));
+
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(np, cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(np, cs.chars() + cs.length() + 1));
+        ASSERT(!cs.findNoCase(np));
+    }
+
+    // char_t* findNoCase(unichar_t ch, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(zc));
+        ASSERT(!cs.findNoCase('a'));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase('a', ep));
+    }
+
+    {
+        String s(STR("ABCABC"));
+        const String& cs = s;
+        ASSERT(cs.findNoCase('b') == cs.charPosition(1));
+        ASSERT(cs.findNoCase('b', cs.charPosition(2)) == cs.charPosition(4));
+        ASSERT(!cs.findNoCase('b', cs.charPosition(5)));
+        ASSERT(!cs.findNoCase('x'));
+
+        ASSERT_EXCEPTION(Exception, cs.findNoCase('a', cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase('a', cs.chars() + cs.length() + 1));
     }
 
     // bool startsWith(const String& str) const
@@ -5024,13 +5179,13 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-//        testFoundation();
+        testFoundation();
 //        testFile();
-        testConsole();
-        testConsoleWrite();
-        testConsoleReadChar();
-        testConsoleReadLine();
-        testConsoleReadKeys();
+//        testConsole();
+//        testConsoleWrite();
+//        testConsoleReadChar();
+//        testConsoleReadLine();
+//        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {
