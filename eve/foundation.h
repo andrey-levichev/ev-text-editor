@@ -164,7 +164,7 @@ typedef unsigned char byte_t;
 #define MAIN wmain
 #define STR(arg) u##arg
 
-typedef wint_t getchar_t;
+typedef char16_t char_t;
 
 #else
 
