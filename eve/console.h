@@ -53,23 +53,18 @@ struct Key
     }
 };
 
-// ConsoleMode
-
-enum ConsoleMode
-{
-    CONSOLE_MODE_DEFAULT = 0,
-    CONSOLE_MODE_NONCANONICAL = 1,
-    CONSOLE_MODE_NOTBUFFERED = 2,
-    CONSOLE_MODE_UNICODE = 4
-};
-
 // Console
 
 class Console
 {
 public:
-    static void setMode(int mode);
+    static void setLineMode(bool lineMode);
 
+    static void writeChar(unichar_t ch)
+    {
+        UTF_PUT_CHAR(ch);
+    }
+    
     static void write(const String& str);
     static void write(const char_t* chars);
     static void write(unichar_t ch, int len = 1);
@@ -91,7 +86,7 @@ public:
 
     static unichar_t readChar()
     {
-        return getChar();
+        return UTF_GET_CHAR();
     }
 
     static String readLine();
@@ -109,8 +104,8 @@ protected:
     static void write(int line, int column, const char_t* chars, int len);
 
 #ifdef PLATFORM_UNIX
-    static const char_t* readRegularKey(const char_t* p, Key& key);
-    static const char_t* readSpecialKey(const char_t* p, Key& key);
+    static const char* readRegularKey(const char* p, Key& key);
+    static const char* readSpecialKey(const char* p, Key& key);
 #endif
 
 protected:

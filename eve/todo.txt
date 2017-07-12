@@ -1,21 +1,16 @@
 bugs & misc:
+* check git line ending settings
 * handle SIGWINCH to detect terminal size changes
 * screen update code shouldn't differ between platforms
+bring back the fast update code for windows?
 * many keys don't work in Linux, macOS, xterm
 rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
 * support unicode input and newline differences
-support unicode input, console etc
 decode/encode text from file to runtime enconding, translate newlines
 rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
-* console unicode support
-WriteConsole - bytes or chars?
-rename Formatted
-tests for Unicode output
-unicode getchar
-don't mix OS and encoding
 
 basic features:
 * search/replace

@@ -136,31 +136,6 @@ double strToDouble(const char_t* str, char_t** end)
         reinterpret_cast<wchar_t**>(end));
 }
 
-bool charIsSpace(unichar_t ch)
-{
-    return iswspace(ch) != 0;
-}
-
-bool charIsPrint(unichar_t ch)
-{
-    return iswprint(ch) != 0;
-}
-
-bool charIsAlphaNum(unichar_t ch)
-{
-    return iswalnum(ch) != 0;
-}
-
-unichar_t charToLower(unichar_t ch)
-{
-    return towlower(ch);
-}
-
-unichar_t charToUpper(unichar_t ch)
-{
-    return towupper(ch);
-}
-
 void printLine(const char_t* str)
 {
     _putws(reinterpret_cast<const wchar_t*>(str));
@@ -212,17 +187,6 @@ void printAllocString(char_t** str, const char_t* format, ...)
     va_start(args, format);
     printAllocStringArgs(str, format, args);
     va_end(args);
-}
-
-void putChar(unichar_t ch)
-{
-    putwchar(ch);
-}
-
-unichar_t getChar()
-{
-    wint_t ch = getwchar();
-    return ch == WEOF ? 0 : ch;
 }
 
 #else
@@ -325,31 +289,6 @@ double strToDouble(const char_t* str, char_t** end)
     return strtod(str, end);
 }
 
-bool charIsSpace(unichar_t ch)
-{
-    return isspace(ch);
-}
-
-bool charIsPrint(unichar_t ch)
-{
-    return isprint(ch);
-}
-
-bool charIsAlphaNum(unichar_t ch)
-{
-    return isalnum(ch);
-}
-
-unichar_t charToLower(unichar_t ch)
-{
-    return tolower(ch);
-}
-
-unichar_t charToUpper(unichar_t ch)
-{
-    return toupper(ch);
-}
-
 void printLine(const char_t* str)
 {
     puts(str);
@@ -404,22 +343,46 @@ void printAllocString(char_t** str, const char_t* format, ...)
     va_end(args);
 }
 
-void putChar(unichar_t ch)
-{
-    putchar(ch);
-}
-
-unichar_t getChar()
-{
-    int ch = getwchar();
-    return ch == EOF ? 0 : ch;
-}
-
 #endif
+
+bool charIsSpace(unichar_t ch)
+{
+    return iswspace(ch);
+}
+
+bool charIsPrint(unichar_t ch)
+{
+    return iswprint(ch);
+}
+
+bool charIsAlphaNum(unichar_t ch)
+{
+    return iswalnum(ch);
+}
+
+bool charIsUpper(unichar_t ch)
+{
+    return iswupper(ch);
+}
+
+bool charIsLower(unichar_t ch)
+{
+    return iswlower(ch);
+}
+
+unichar_t charToLower(unichar_t ch)
+{
+    return towlower(ch);
+}
+
+unichar_t charToUpper(unichar_t ch)
+{
+    return towupper(ch);
+}
 
 // Unicode support
 
-int utf8CharToUtf32(const char* in, char32_t& ch)
+int utf8CharToUnicode(const char* in, char32_t& ch)
 {
     uint8_t ch1 = *in++;
 
@@ -453,7 +416,7 @@ int utf8CharToUtf32(const char* in, char32_t& ch)
     }
 }
 
-int utf32CharToUtf8(char32_t ch, char* out)
+int unicodeCharToUtf8(char32_t ch, char* out)
 {
     if (ch < 0x80)
     {
@@ -483,7 +446,69 @@ int utf32CharToUtf8(char32_t ch, char* out)
     }
 }
 
-int utf16CharToUtf32(const char16_t* in, char32_t& ch)
+char getChar8()
+{
+    int ch = getchar();
+    return ch == EOF ? 0 : ch;
+}
+
+char32_t utf8GetChar()
+{
+    uint8_t ch1 = getChar8();
+
+    if (ch1 < 0x80)
+    {
+        return ch1;
+    }
+    else if (ch1 < 0xe0)
+    {
+        uint8_t ch2 = getChar8();
+        return ((ch1 & 0x1f) << 6) | (ch2 & 0x3f);
+    }
+    else if (ch1 < 0xf0)
+    {
+        uint8_t ch2 = getChar8();
+        uint8_t ch3 = getChar8();
+        return ((ch1 & 0x0f) << 12) | 
+            ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
+    }
+    else
+    {
+        uint8_t ch2 = getChar8();
+        uint8_t ch3 = getChar8();
+        uint8_t ch4 = getChar8();
+        return ((ch1 & 0x07) << 18) | 
+            ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
+    }
+}
+
+void utf8PutChar(char32_t ch)
+{
+    if (ch < 0x80)
+    {
+        putchar(ch);
+    }
+    else if (ch < 0x800)
+    {
+        putchar(0xc0 | (ch >> 6));
+        putchar(0x80 | (ch & 0x03f));
+    }
+    else if (ch < 0x10000)
+    {
+        putchar(0xe0 | (ch >> 12));
+        putchar(0x80 | ((ch & 0x0fc0) >> 6));
+        putchar(0x80 | (ch & 0x003f));
+    }
+    else
+    {
+        putchar(0xf0 | (ch >> 18));
+        putchar(0x80 | ((ch & 0x03f000) >> 12));
+        putchar(0x80 | ((ch & 0x000fc0) >> 6));
+        putchar(0x80 | (ch & 0x00003f));
+    }
+}
+
+int utf16CharToUnicode(const char16_t* in, char32_t& ch)
 {
     char16_t ch1 = *in++;
 
@@ -501,7 +526,7 @@ int utf16CharToUtf32(const char16_t* in, char32_t& ch)
     }
 }
 
-int utf32CharToUtf16(char32_t ch, char16_t* out)
+int unicodeCharToUtf16(char32_t ch, char16_t* out)
 {
     if (ch < 0x010000)
     {
@@ -517,34 +542,70 @@ int utf32CharToUtf16(char32_t ch, char16_t* out)
     }
 }
 
-void utf8StringToUtf32(const char* in, char32_t* out)
+char16_t getChar16()
+{
+    wint_t ch = getwchar();
+    return ch == WEOF ? 0 : ch;
+}
+
+char32_t utf16GetChar()
+{
+    char16_t ch1 = getChar16();
+
+    if ((ch1 & 0xfc00) != 0xd800)
+    {
+        return ch1;
+    }
+    else
+    {
+        char16_t ch2 = getChar16();
+        return ((((ch1 & 0x03c0) >> 6) + 1) << 16) | 
+            ((ch1 & 0x003f) << 10) | (ch2 & 0x03ff);
+    }
+}
+
+void utf16PutChar(char32_t ch)
+{
+    if (ch < 0x010000)
+    {
+        putwchar(ch);
+    }
+    else
+    {
+        putwchar(0xd800 | 
+            ((((ch & 0x1f0000) >> 16) - 1) << 6) | ((ch & 0x00fc00) >> 10));
+        putwchar(0xdc00 | (ch & 0x03ff));
+    }
+}
+
+void utf8StringToUnicode(const char* in, char32_t* out)
 {
     while (*in)
-        in += utf8CharToUtf32(in, *out++);
+        in += utf8CharToUnicode(in, *out++);
 
     *out = 0;
 }
 
-void utf32StringToUtf8(const char32_t* in, char* out)
+void unicodeStringToUtf8(const char32_t* in, char* out)
 {
     while (*in)
-        out += utf32CharToUtf8(*in++, out);
+        out += unicodeCharToUtf8(*in++, out);
 
     *out = 0;
 }
 
-void utf16StringToUtf32(const char16_t* in, char32_t* out)
+void utf16StringToUnicode(const char16_t* in, char32_t* out)
 {
     while (*in)
-        in += utf16CharToUtf32(in, *out++);
+        in += utf16CharToUnicode(in, *out++);
 
     *out = 0;
 }
 
-void utf32StringToUtf16(const char32_t* in, char16_t* out)
+void unicodeStringToUtf16(const char32_t* in, char16_t* out)
 {
     while (*in)
-        out += utf32CharToUtf16(*in++, out);
+        out += unicodeCharToUtf16(*in++, out);
 
     *out = 0;
 }
@@ -555,8 +616,8 @@ void utf8StringToUtf16(const char* in, char16_t* out)
 
     while (*in)
     {
-        in += utf8CharToUtf32(in, ch);
-        out += utf32CharToUtf16(ch, out);
+        in += utf8CharToUnicode(in, ch);
+        out += unicodeCharToUtf16(ch, out);
     }
 
     *out = 0;
@@ -568,8 +629,8 @@ void utf16StringToUtf8(const char16_t* in, char* out)
 
     while (*in)
     {
-        in += utf16CharToUtf32(in, ch);
-        out += utf32CharToUtf8(ch, out);
+        in += utf16CharToUnicode(in, ch);
+        out += unicodeCharToUtf8(ch, out);
     }
 
     *out = 0;
@@ -578,7 +639,7 @@ void utf16StringToUtf8(const char16_t* in, char* out)
 char32_t utf8CharAt(const char* pos)
 {
     char32_t ch;
-    utf8CharToUtf32(pos, ch);
+    utf8CharToUnicode(pos, ch);
     return ch;
 }
 
@@ -669,7 +730,7 @@ int utf8StringLength(const char* str)
 char32_t utf16CharAt(const char16_t* pos)
 {
     char32_t ch;
-    utf16CharToUtf32(pos, ch);
+    utf16CharToUnicode(pos, ch);
     return ch;
 }
 

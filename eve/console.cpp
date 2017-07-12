@@ -10,37 +10,36 @@ Array<char> Console::_input(10);
 
 Array<Key> Console::_keys;
 
-void Console::setMode(int mode)
+void Console::setLineMode(bool lineMode)
 {
-    if (mode & CONSOLE_MODE_NOTBUFFERED)
-        ASSERT(setvbuf(stdout, NULL, _IONBF, 0) == 0);
-    else
-        ASSERT(setvbuf(stdout, NULL, _IOFBF, BUFSIZ) == 0);
-
-#ifdef PLATFORM_WINDOWS
-
-    ASSERT(_setmode(_fileno(stdout), 
-            mode & CONSOLE_MODE_UNICODE ? _O_U16TEXT : _O_TEXT) >= 0);
-
-#else
-
-    if (mode & CONSOLE_MODE_NONCANONICAL)
+    if (lineMode)
     {
+        ASSERT(setvbuf(stdout, NULL, _IOFBF, BUFSIZ) == 0);
+        
+#ifndef PLATFORM_WINDOWS
+        termios ta;
+        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
+        ta.c_lflag |= ECHO | ICANON;
+        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
+#endif
+    }
+    else
+    {
+        ASSERT(setvbuf(stdout, NULL, _IONBF, 0) == 0);
+        
+#ifndef PLATFORM_WINDOWS
         termios ta;
         ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
         ta.c_lflag &= ~(ECHO | ICANON);
         ta.c_cc[VTIME] = 0;
         ta.c_cc[VMIN] = 1;
         ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
+#endif
     }
-    else
-    {
-        termios ta;
-        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
-        ta.c_lflag |= ECHO | ICANON;
-        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
-    }
-
+    
+#ifdef PLATFORM_WINDOWS
+    ASSERT(_setmode(_fileno(stdin), _O_U16TEXT) >= 0);
+    ASSERT(_setmode(_fileno(stdout), _O_U16TEXT) >= 0);
 #endif
 }
 
@@ -135,25 +134,25 @@ void Console::writeLineFormatted(const char_t* format, ...)
     va_start(args, format);
     printArgs(format, args);
     va_end(args);
-    putChar('\n');
+    UTF_PUT_CHAR('\n');
 }
 
 void Console::writeLineFormatted(const char_t* format, va_list args)
 {
     ASSERT(format);
     printArgs(format, args);
-    putChar('\n');
+    UTF_PUT_CHAR('\n');
 }
 
 String Console::readLine()
 {
     String line;
-    unichar_t ch = getChar();
+    unichar_t ch = UTF_GET_CHAR();
 
     while (ch && ch != '\n')
     {
         line += ch;
-        ch = getChar();
+        ch = UTF_GET_CHAR();
     }
 
     return line;
@@ -395,7 +394,7 @@ const Array<Key>& Console::readKeys()
         if (len > 0)
         {
             _input[len] = 0;
-            const char_t* p = _input.values();
+            const char* p = _input.values();
 
             while (*p)
             {
@@ -495,7 +494,7 @@ void Console::write(int line, int column, const char_t* chars, int len)
 
 #ifdef PLATFORM_UNIX
 
-const char_t* Console::readRegularKey(const char_t* p, Key& key)
+const char* Console::readRegularKey(const char* p, Key& key)
 {
     ASSERT(p);
 
@@ -509,15 +508,15 @@ const char_t* Console::readRegularKey(const char_t* p, Key& key)
         key.code = KEY_ENTER;
     else if (ch == 0x7f)
         key.code = KEY_BACKSPACE;
-    else if (iscntrl(ch))
+    else if (iswcntrl(ch))
         key.ctrl = true;
     else
-        key.shift = isupper(ch);
+        key.shift = charIsUpper(ch);
 
     return p;
 }
 
-const char_t* Console::readSpecialKey(const char_t* p, Key& key)
+const char* Console::readSpecialKey(const char* p, Key& key)
 {
     ASSERT(p);
 

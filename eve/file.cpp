@@ -102,16 +102,19 @@ String File::readString()
         throw Exception(STR("file not open"));
 
 #ifdef PLATFORM_WINDOWS
-    DWORD charsSize = size() / sizeof(char_t);
-    DWORD bytesSize = charsSize * sizeof(char_t), bytesRead;
+    DWORD bytesSize = size(), charsSize = bytesSize / sizeof(char_t), bytesRead;
+#else
+    ssize_t bytesSize = size(), charsSize = bytesSize / sizeof(char_t), bytesRead;
+#endif
+
+    if (bytesSize % sizeof(char_t) != 0)
+        throw Exception(STR("file size must be a multiple of char size"));
+
     Array<char_t> chars(charsSize + 1);
-    
+
+#ifdef PLATFORM_WINDOWS
     if (ReadFile(_handle, chars.values(), bytesSize, &bytesRead, NULL))
 #else
-    ssize_t charsSize = size() / sizeof(char_t);
-    ssize_t bytesSize = charsSize * sizeof(char_t), bytesRead;
-    Array<char_t> chars(charsSize + 1);
-    
     if ((bytesRead = ::read(_handle, chars.values(), bytesSize)) >= 0)
 #endif
     {

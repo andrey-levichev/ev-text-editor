@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
+#include <wctype.h>
 #include <ctype.h>
 #include <math.h>
 
@@ -207,6 +208,8 @@ double strToDouble(const char_t* str, char_t** end);
 bool charIsSpace(unichar_t ch);
 bool charIsPrint(unichar_t ch);
 bool charIsAlphaNum(unichar_t ch);
+bool charIsUpper(unichar_t ch);
+bool charIsLower(unichar_t ch);
 unichar_t charToLower(unichar_t ch);
 unichar_t charToUpper(unichar_t ch);
 
@@ -217,20 +220,28 @@ void printArgs(const char_t* format, va_list args);
 void printAllocStringArgs(char_t** str, const char_t* format, va_list args);
 void printAllocString(char_t** str, const char_t* format, ...);
 
-void putChar(unichar_t ch);
-unichar_t getChar();
-
 // Unicode support
 
-int utf8CharToUtf32(const char* in, char32_t& ch);
-int utf32CharToUtf8(char32_t ch, char* out);
-int utf16CharToUtf32(const char16_t* in, char32_t& ch);
-int utf32CharToUtf16(char32_t ch, char16_t* out);
+int utf8CharToUnicode(const char* in, char32_t& ch);
+int unicodeCharToUtf8(char32_t ch, char* out);
 
-void utf8StringToUtf32(const char* in, char32_t* out);
-void utf32StringToUtf8(const char32_t* in, char* out);
-void utf16StringToUtf32(const char16_t* in, char32_t* out);
-void utf32StringToUtf16(const char32_t* in, char16_t* out);
+char getChar8();
+char32_t utf8GetChar();
+void utf8PutChar(char32_t ch);
+
+int utf16CharToUnicode(const char16_t* in, char32_t& ch);
+int unicodeCharToUtf16(char32_t ch, char16_t* out);
+
+char16_t getChar16();
+char32_t utf16GetChar();
+void utf16PutChar(char32_t ch);
+
+void utf8StringToUnicode(const char* in, char32_t* out);
+void unicodeStringToUtf8(const char32_t* in, char* out);
+
+void utf16StringToUnicode(const char16_t* in, char32_t* out);
+void unicodeStringToUtf16(const char32_t* in, char16_t* out);
+
 void utf8StringToUtf16(const char* in, char16_t* out);
 void utf16StringToUtf8(const char16_t* in, char* out);
 
@@ -252,8 +263,10 @@ int utf16StringLength(const char16_t* str);
 
 #ifdef PLATFORM_WINDOWS
 
-#define UTF_CHAR_TO_UNICODE utf16CharToUtf32
-#define UNICODE_CHAR_TO_UTF utf32CharToUtf16 
+#define UTF_CHAR_TO_UNICODE utf16CharToUnicode
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf16 
+#define UTF_GET_CHAR utf16GetChar
+#define UTF_PUT_CHAR utf16PutChar
 #define UTF_CHAR_AT utf16CharAt
 #define UTF_CHAR_FORWARD utf16CharForward
 #define UTF_CHAR_BACK utf16CharBack
@@ -262,8 +275,10 @@ int utf16StringLength(const char16_t* str);
 
 #else
 
-#define UTF_CHAR_TO_UNICODE utf8CharToUtf32
-#define UNICODE_CHAR_TO_UTF utf32CharToUtf8 
+#define UTF_CHAR_TO_UNICODE utf8CharToUnicode
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf8 
+#define UTF_GET_CHAR utf8GetChar
+#define UTF_PUT_CHAR utf8PutChar
 #define UTF_CHAR_AT utf8CharAt
 #define UTF_CHAR_FORWARD utf8CharForward
 #define UTF_CHAR_BACK utf8CharBack

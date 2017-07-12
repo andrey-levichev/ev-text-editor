@@ -406,7 +406,7 @@ Editor::Editor(const char_t* filename) :
     _lineSelection(false)
 
 {
-    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
+    Console::setLineMode(false);
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
     _text.ensureCapacity(1);
@@ -414,7 +414,7 @@ Editor::Editor(const char_t* filename) :
 
 Editor::~Editor()
 {
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::setLineMode(true);
     Console::clear();
 }
 
@@ -945,7 +945,7 @@ String Editor::getCommand(const char_t* prompt)
 
 void Editor::buildProject()
 {
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::setLineMode(true);
     Console::clear();
 
     saveFile();
@@ -954,7 +954,7 @@ void Editor::buildProject()
     Console::writeLine(STR("Press any key to continue..."));
     Console::readChar();
 
-    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
+    Console::setLineMode(false);
 
     updateScreen();
 }

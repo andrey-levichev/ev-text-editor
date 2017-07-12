@@ -364,34 +364,34 @@ void testString()
 
     {
         char32_t ch;
-        ASSERT(utf8CharToUtf32("\x24", ch) == 1 && ch == 0x24);
-        ASSERT(utf8CharToUtf32("\xc2\xa2", ch) == 2 && ch == 0xa2);
-        ASSERT(utf8CharToUtf32("\xe2\x82\xac", ch) == 3 && ch == 0x20ac);
-        ASSERT(utf8CharToUtf32("\xf0\x90\x8d\x88", ch) == 4 && ch == 0x10348);
+        ASSERT(utf8CharToUnicode("\x24", ch) == 1 && ch == 0x24);
+        ASSERT(utf8CharToUnicode("\xc2\xa2", ch) == 2 && ch == 0xa2);
+        ASSERT(utf8CharToUnicode("\xe2\x82\xac", ch) == 3 && ch == 0x20ac);
+        ASSERT(utf8CharToUnicode("\xf0\x90\x8d\x88", ch) == 4 && ch == 0x10348);
     }
 
     {
         char s[4];
-        ASSERT(utf32CharToUtf8(0x24, s) == 1 && memcmp(s, "\x24", 1) == 0);
-        ASSERT(utf32CharToUtf8(0xa2, s) == 2 && memcmp(s, "\xc2\xa2", 2) == 0);
-        ASSERT(utf32CharToUtf8(0x20ac, s) == 3 && memcmp(s, "\xe2\x82\xac", 3) == 0);
-        ASSERT(utf32CharToUtf8(0x10348, s) == 4 && memcmp(s, "\xf0\x90\x8d\x88", 4) == 0);
+        ASSERT(unicodeCharToUtf8(0x24, s) == 1 && memcmp(s, "\x24", 1) == 0);
+        ASSERT(unicodeCharToUtf8(0xa2, s) == 2 && memcmp(s, "\xc2\xa2", 2) == 0);
+        ASSERT(unicodeCharToUtf8(0x20ac, s) == 3 && memcmp(s, "\xe2\x82\xac", 3) == 0);
+        ASSERT(unicodeCharToUtf8(0x10348, s) == 4 && memcmp(s, "\xf0\x90\x8d\x88", 4) == 0);
     }
 
     {
         char32_t ch;
-        ASSERT(utf16CharToUtf32(u"\x0024", ch) == 1 && ch == 0x24);
-        ASSERT(utf16CharToUtf32(u"\x00a2", ch) == 1 && ch == 0xa2);
-        ASSERT(utf16CharToUtf32(u"\x20ac", ch) == 1 && ch == 0x20ac);
-        ASSERT(utf16CharToUtf32(u"\xd800\xdf48", ch) == 2 && ch == 0x10348);
+        ASSERT(utf16CharToUnicode(u"\x0024", ch) == 1 && ch == 0x24);
+        ASSERT(utf16CharToUnicode(u"\x00a2", ch) == 1 && ch == 0xa2);
+        ASSERT(utf16CharToUnicode(u"\x20ac", ch) == 1 && ch == 0x20ac);
+        ASSERT(utf16CharToUnicode(u"\xd800\xdf48", ch) == 2 && ch == 0x10348);
     }
 
     {
         char16_t s[2];
-        ASSERT(utf32CharToUtf16(0x24, s) == 1 && memcmp(s, u"\x0024", 2) == 0);
-        ASSERT(utf32CharToUtf16(0xa2, s) == 1 && memcmp(s, u"\x00a2", 2) == 0);
-        ASSERT(utf32CharToUtf16(0x20ac, s) == 1 && memcmp(s, u"\x20ac", 2) == 0);
-        ASSERT(utf32CharToUtf16(0x10348, s) == 2 && memcmp(s, u"\xd800\xdf48", 4) == 0);
+        ASSERT(unicodeCharToUtf16(0x24, s) == 1 && memcmp(s, u"\x0024", 2) == 0);
+        ASSERT(unicodeCharToUtf16(0xa2, s) == 1 && memcmp(s, u"\x00a2", 2) == 0);
+        ASSERT(unicodeCharToUtf16(0x20ac, s) == 1 && memcmp(s, u"\x20ac", 2) == 0);
+        ASSERT(unicodeCharToUtf16(0x10348, s) == 2 && memcmp(s, u"\xd800\xdf48", 4) == 0);
     }
 
     {
@@ -399,16 +399,16 @@ void testString()
         char16_t chars16[100];
         char32_t chars32[100];
 
-        utf8StringToUtf32(CHARS8, chars32);
+        utf8StringToUnicode(CHARS8, chars32);
         ASSERT(compareUniString(chars32, CHARS32) == 0);
 
-        utf32StringToUtf8(CHARS32, chars8);
+        unicodeStringToUtf8(CHARS32, chars8);
         ASSERT(compareUniString(chars8, CHARS8) == 0);
 
-        utf16StringToUtf32(CHARS16, chars32);
+        utf16StringToUnicode(CHARS16, chars32);
         ASSERT(compareUniString(chars32, CHARS32) == 0);
 
-        utf32StringToUtf16(CHARS32, chars16);
+        unicodeStringToUtf16(CHARS32, chars16);
         ASSERT(compareUniString(chars16, CHARS16) == 0);
 
         utf8StringToUtf16(CHARS8, chars16);
@@ -5002,7 +5002,7 @@ void testConsoleReadChar()
 
     while (true)
     {
-        char_t ch = Console::readChar();
+        unichar_t ch = Console::readChar();
         Console::writeLine(ch);
         if (ch == 'q')
             break;
@@ -5025,7 +5025,7 @@ void testConsoleReadLine()
 void testConsoleReadKeys()
 {
     Console::writeLine(STR("Press any key or key combination (ESC to exit)"));
-    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
+    Console::setLineMode(false);
 
     while (true)
     {
@@ -5046,7 +5046,7 @@ void testConsoleReadKeys()
             {
             case KEY_ESC:
                 Console::writeLine(STR("KEY_ESC"));
-                Console::setMode(CONSOLE_MODE_DEFAULT);
+                Console::setLineMode(true);
                 return;
             case KEY_TAB:
                 Console::writeLine(STR("KEY_TAB"));
@@ -5146,7 +5146,7 @@ void testKeys()
     pfd.events = POLLIN;
     pfd.revents = 0;
 
-    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
+    Console::setLineMode(false);
 
     while (true)
     {
@@ -5158,19 +5158,19 @@ void testKeys()
             read(STDIN_FILENO, chars, len);
 
             for (int i = 0; i < len; ++i)
-                printf("%x ", (unsigned)chars[i]);
+                printf("%x ", static_cast<uint8_t>(chars[i]));
 
             for (int i = 0; i < len; ++i)
                 if (isprint(chars[i]))
                     putchar(chars[i]);
                 else
-                    printf("\\x%x", (unsigned)chars[i]);
+                    printf("\\x%x", static_cast<uint8_t>(chars[i]));
 
             printf("\n");
         }
     }
 
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::setLineMode(true);
 }
 
 #endif
@@ -5179,13 +5179,15 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        testFoundation();
-//        testFile();
-//        testConsole();
-//        testConsoleWrite();
-//        testConsoleReadChar();
-//        testConsoleReadLine();
-//        testConsoleReadKeys();
+        Console::setLineMode(true);
+    
+        // testFoundation();
+        // testFile();
+        testConsole();
+        testConsoleWrite();
+        testConsoleReadChar();
+        testConsoleReadLine();
+        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {
