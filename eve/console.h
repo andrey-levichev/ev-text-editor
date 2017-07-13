@@ -58,6 +58,7 @@ struct Key
 class Console
 {
 public:
+    static void enableUnicode();
     static void setLineMode(bool lineMode);
 
     static void writeChar(unichar_t ch)

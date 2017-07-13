@@ -5179,6 +5179,7 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
+        Console::enableUnicode();
         Console::setLineMode(true);
     
         // testFoundation();

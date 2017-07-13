@@ -10,36 +10,33 @@ Array<char> Console::_input(10);
 
 Array<Key> Console::_keys;
 
+void Console::enableUnicode()
+{
+#ifdef PLATFORM_WINDOWS
+    ASSERT(_setmode(_fileno(stdin), _O_U16TEXT) >= 0);
+    ASSERT(_setmode(_fileno(stdout), _O_U16TEXT) >= 0);
+#endif
+}
+
 void Console::setLineMode(bool lineMode)
 {
+#ifndef PLATFORM_WINDOWS
     if (lineMode)
     {
-        ASSERT(setvbuf(stdout, NULL, _IOFBF, BUFSIZ) == 0);
-        
-#ifndef PLATFORM_WINDOWS
         termios ta;
         ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
         ta.c_lflag |= ECHO | ICANON;
         ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
-#endif
     }
     else
     {
-        ASSERT(setvbuf(stdout, NULL, _IONBF, 0) == 0);
-        
-#ifndef PLATFORM_WINDOWS
         termios ta;
         ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
         ta.c_lflag &= ~(ECHO | ICANON);
         ta.c_cc[VTIME] = 0;
         ta.c_cc[VMIN] = 1;
         ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
-#endif
     }
-    
-#ifdef PLATFORM_WINDOWS
-    ASSERT(_setmode(_fileno(stdin), _O_U16TEXT) >= 0);
-    ASSERT(_setmode(_fileno(stdout), _O_U16TEXT) >= 0);
 #endif
 }
 
@@ -229,23 +226,19 @@ void Console::getSize(int& width, int& height)
 
 void Console::clear()
 {
-    ASSERT(::write(STDOUT_FILENO, "\x1b[2J", 4) >= 0);
-    setCursorPosition(1, 1);
+    printf("\x1b[2J\x1b[1;1H");
 }
 
 void Console::showCursor(bool show)
 {
-    ASSERT(::write(STDOUT_FILENO, show ? "\x1b[?25h" : "\x1b[?25l", 6) >= 0);
+    printf(show ? "\x1b[?25h" : "\x1b[?25l");
 }
 
 void Console::setCursorPosition(int line, int column)
 {
     ASSERT(line > 0);
     ASSERT(column > 0);
-
-    char_t cmd[30];
-    ASSERT(sprintf(cmd, "\x1b[%d;%dH", line, column) >= 0);
-    ASSERT(::write(STDOUT_FILENO, cmd, strlen(cmd)) >= 0);
+    printf("\x1b[%d;%dH", line, column);
 }
 
 #endif
@@ -456,16 +449,7 @@ void Console::write(const char_t* chars, int len)
     ASSERT(chars);
     ASSERT(len >= 0);
 
-#ifdef PLATFORM_WINDOWS
-    DWORD written;
-
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle);
-
-    ASSERT(WriteConsole(handle, chars, len, &written, NULL));
-#else
-    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
-#endif
+    fwrite(chars, sizeof(char_t), len, stdout);
 }
 
 void Console::write(int line, int column, const char_t* chars, int len)
@@ -475,21 +459,8 @@ void Console::write(int line, int column, const char_t* chars, int len)
     ASSERT(chars);
     ASSERT(len >= 0);
 
-#ifdef PLATFORM_WINDOWS
-    DWORD written;
-    COORD pos;
-    pos.X = column - 1;
-    pos.Y = line - 1;
-    
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle);
-
-    ASSERT(WriteConsoleOutputCharacter(handle, 
-        reinterpret_cast<const wchar_t*>(chars), len, pos, &written));
-#else
     setCursorPosition(line, column);
-    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
-#endif
+    fwrite(chars, sizeof(char_t), len, stdout);
 }
 
 #ifdef PLATFORM_UNIX

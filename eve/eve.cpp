@@ -406,7 +406,9 @@ Editor::Editor(const char_t* filename) :
     _lineSelection(false)
 
 {
+    Console::enableUnicode();
     Console::setLineMode(false);
+    
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
     _text.ensureCapacity(1);
