@@ -287,6 +287,46 @@ int utf16StringLength(const char16_t* str);
 
 #endif
 
+// byte swap
+
+inline uint16_t swapBytes(uint16_t value)
+{
+    return (value << 8) | (value >> 8 );
+}
+
+inline uint32_t swapBytes(uint32_t value)
+{
+    value = ((value << 8) & 0xff00ff00) | ((value >> 8) & 0xff00ff); 
+    return (value << 16) | (value >> 16);
+}
+
+inline uint64_t swapBytes(uint64_t value)
+{
+    value = ((value << 8) & 0xff00ff00ff00ff00ull) | 
+        ((value >> 8) & 0x00ff00ff00ff00ffull);
+    value = ((value << 16) & 0xffff0000ffff0000ull) | 
+        ((value >> 16) & 0x0000ffff0000ffffull);
+    return (value << 32) | (value >> 32);
+}
+
+inline void swapBytes(uint16_t* values, int len)
+{
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
+
+inline void swapBytes(uint32_t* values, int len)
+{
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
+
+inline void swapBytes(uint64_t* values, int len)
+{
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
+
 // assert macros
 
 #define TO_STR(arg) #arg

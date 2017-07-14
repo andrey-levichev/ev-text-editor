@@ -858,7 +858,7 @@ void Editor::openFile()
 	File file;
 
 	if (file.open(_filename))
-		_text.assign(file.readString());
+		_text.assign(file.readString(_encoding, _bom, _unixCrLf));
 	else
 		_text.clear();
 
@@ -874,7 +874,7 @@ void Editor::saveFile()
     _selection = -1;
 
 	File file(_filename, FILE_MODE_CREATE_ALWAYS);
-	file.writeString(_text);
+	file.writeString(_text, _encoding, _bom, _unixCrLf);
 }
 
 String Editor::getCommand(const char_t* prompt)

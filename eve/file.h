@@ -18,6 +18,13 @@ enum FileMode
     FILE_MODE_TRUNCATE_EXISTING
 };
 
+enum TextEncoding
+{
+    TEXT_ENCODING_UTF8,
+    TEXT_ENCODING_UTF16_LE,
+    TEXT_ENCODING_UTF16_BE
+};
+
 class File
 {
 public:
@@ -88,10 +95,13 @@ public:
             throw Exception(STR("failed to write file"));
     }
     
-    String readString();
-    void writeString(const String& str);
+    String readString(TextEncoding& encoding, bool& bom, bool& crLf);
+    void writeString(const String& str, TextEncoding encoding, bool bom, bool crLf);
     
     int64_t size() const;
+    
+protected:
+    void appendChar(ByteArray& bytes, TextEncoding encoding, unichar_t ch);
    
 private:
     File(const File&);

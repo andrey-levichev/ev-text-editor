@@ -89,6 +89,10 @@ protected:
 
 protected:
     Text _text;
+    TextEncoding _encoding;
+    bool _bom;
+    bool _unixCrLf;
+    
     String _buffer;
     String _pattern;
 
