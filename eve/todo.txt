@@ -20,6 +20,8 @@ simple string too?
 have to scan utf-8 file every time for utf-16 detection
 make sure app code doens't do low level stuff and relies on foundation
 console writing to screen is totally broken
+* consider adding scoped_ptr and scoped_array like in boost
+consider renaming one of smart pointers to Ptr
 
 basic features:
 * search/replace
