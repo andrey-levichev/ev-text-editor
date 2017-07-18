@@ -58,7 +58,7 @@ struct Key
 class Console
 {
 public:
-    static void enableUnicode();
+    static void initialize();
     static void setLineMode(bool lineMode);
 
     static void writeChar(unichar_t ch)
@@ -79,6 +79,9 @@ public:
     static void write(int line, int column, const char_t* chars);
     static void write(int line, int column, unichar_t ch, int len = 1);
 
+    static void write(const char_t* chars, int len);
+    static void write(int line, int column, const char_t* chars, int len);
+    
     static void writeFormatted(const char_t* format, ...);
     static void writeFormatted(const char_t* format, va_list args);
 
@@ -101,9 +104,6 @@ public:
     static const Array<Key>& readKeys();
 
 protected:
-    static void write(const char_t* chars, int len);
-    static void write(int line, int column, const char_t* chars, int len);
-
 #ifdef PLATFORM_UNIX
     static const char* readRegularKey(const char* p, Key& key);
     static const char* readSpecialKey(const char* p, Key& key);

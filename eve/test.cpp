@@ -5003,7 +5003,7 @@ void testConsoleReadChar()
     while (true)
     {
         unichar_t ch = Console::readChar();
-        Console::writeLine(ch);
+        Console::writeChar(ch);
         if (ch == 'q')
             break;
     }
@@ -5179,23 +5179,23 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        Console::enableUnicode();
+        Console::initialize();
         Console::setLineMode(true);
-    
+
         // testFoundation();
         // testFile();
-        // testConsole();
-        // testConsoleWrite();
-        // testConsoleReadChar();
-        // testConsoleReadLine();
-        // testConsoleReadKeys();
+        testConsole();
+        testConsoleWrite();
+        testConsoleReadChar();
+        testConsoleReadLine();
+        testConsoleReadKeys();
         
-        File f(STR("test.txt"));
-        TextEncoding encoding;
-        bool bom, crLf;
-        String text = f.readString(encoding, bom, crLf);
-        File f2(STR("test2.txt"), FILE_MODE_CREATE_ALWAYS);
-        f2.writeString(text, encoding, bom, crLf);
+        // File f(STR("test.txt"));
+        // TextEncoding encoding;
+        // bool bom, crLf;
+        // String text = f.readString(encoding, bom, crLf);
+        // File f2(STR("test2.txt"));
+        // f2.writeString(text, encoding, bom, crLf);
     }
     catch (Exception& ex)
     {

@@ -10,8 +10,9 @@ Array<char> Console::_input(10);
 
 Array<Key> Console::_keys;
 
-void Console::enableUnicode()
+void Console::initialize()
 {
+    setvbuf(stdout, NULL, _IONBF, 0);
 #ifdef PLATFORM_WINDOWS
     ASSERT(_setmode(_fileno(stdin), _O_U16TEXT) >= 0);
     ASSERT(_setmode(_fileno(stdout), _O_U16TEXT) >= 0);
@@ -105,6 +106,47 @@ void Console::write(int line, int column, unichar_t ch, int len)
     char_t* chars = ALLOCATE_STACK(char_t, l);
     strSet(chars, ch, len);
     write(line, column, chars, l);
+}
+
+void Console::write(const char_t* chars, int len)
+{
+    ASSERT(chars);
+    ASSERT(len >= 0);
+
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(WriteConsole(handle, chars, len, &written, NULL));
+#else
+    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
+#endif
+}
+
+void Console::write(int line, int column, const char_t* chars, int len)
+{
+    ASSERT(line > 0);
+    ASSERT(column > 0);
+    ASSERT(chars);
+    ASSERT(len >= 0);
+
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+    COORD pos;
+    pos.X = column - 1;
+    pos.Y = line - 1;
+    
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(WriteConsoleOutputCharacter(handle, 
+        reinterpret_cast<const wchar_t*>(chars), len, pos, &written));
+#else
+    setCursorPosition(line, column);
+    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
+#endif
 }
 
 void Console::writeFormatted(const char_t* format, ...)
@@ -442,25 +484,6 @@ const Array<Key>& Console::readKeys()
 #endif
 
     return _keys;
-}
-
-void Console::write(const char_t* chars, int len)
-{
-    ASSERT(chars);
-    ASSERT(len >= 0);
-
-    fwrite(chars, sizeof(char_t), len, stdout);
-}
-
-void Console::write(int line, int column, const char_t* chars, int len)
-{
-    ASSERT(line > 0);
-    ASSERT(column > 0);
-    ASSERT(chars);
-    ASSERT(len >= 0);
-
-    setCursorPosition(line, column);
-    fwrite(chars, sizeof(char_t), len, stdout);
 }
 
 #ifdef PLATFORM_UNIX

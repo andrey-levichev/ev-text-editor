@@ -406,9 +406,7 @@ Editor::Editor(const char_t* filename) :
     _lineSelection(false)
 
 {
-    Console::enableUnicode();
     Console::setLineMode(false);
-    
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
     _text.ensureCapacity(1);
@@ -963,6 +961,8 @@ void Editor::buildProject()
 
 int MAIN(int argc, const char_t** argv)
 {
+    Console::enableUnicode();
+    
     if (argc != 2)
     {
         Console::writeLine(STR("usage: eve filename\n\n"
