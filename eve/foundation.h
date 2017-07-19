@@ -11,6 +11,7 @@
 #include <wctype.h>
 #include <ctype.h>
 #include <math.h>
+#include <locale.h>
 
 // 32/64 bit
 
@@ -164,6 +165,7 @@ typedef unsigned char byte_t;
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
 #define STR(arg) u##arg
+#define PUTS _putws
 
 typedef char16_t char_t;
 
@@ -171,6 +173,7 @@ typedef char16_t char_t;
 
 #define CHAR_ENCODING_UTF8
 #define MAIN main
+#define PUTS puts
 
 #ifdef COMPILER_XL_CPP
 #define STR(arg) arg
@@ -213,28 +216,17 @@ bool charIsLower(unichar_t ch);
 unichar_t charToLower(unichar_t ch);
 unichar_t charToUpper(unichar_t ch);
 
-void printLine(const char_t* str);
-void print(const char_t* format, ...);
-void printString(char_t* str, const char_t* format, ...);
-void printArgs(const char_t* format, va_list args);
-void printAllocStringArgs(char_t** str, const char_t* format, va_list args);
-void printAllocString(char_t** str, const char_t* format, ...);
+void formatString(char_t* str, const char_t* format, ...);
+void formatAllocStringArgs(char_t** str, const char_t* format, va_list args);
+void formatAllocString(char_t** str, const char_t* format, ...);
 
 // Unicode support
 
 int utf8CharToUnicode(const char* in, char32_t& ch);
 int unicodeCharToUtf8(char32_t ch, char* out);
 
-char getChar8();
-char32_t utf8GetChar();
-void utf8PutChar(char32_t ch);
-
 int utf16CharToUnicode(const char16_t* in, char32_t& ch);
 int unicodeCharToUtf16(char32_t ch, char16_t* out);
-
-char16_t getChar16();
-char32_t utf16GetChar();
-void utf16PutChar(char32_t ch);
 
 void utf8StringToUnicode(const char* in, char32_t* out);
 void unicodeStringToUtf8(const char32_t* in, char* out);
@@ -265,8 +257,6 @@ int utf16StringLength(const char16_t* str);
 
 #define UTF_CHAR_TO_UNICODE utf16CharToUnicode
 #define UNICODE_CHAR_TO_UTF unicodeCharToUtf16 
-#define UTF_GET_CHAR utf16GetChar
-#define UTF_PUT_CHAR utf16PutChar
 #define UTF_CHAR_AT utf16CharAt
 #define UTF_CHAR_FORWARD utf16CharForward
 #define UTF_CHAR_BACK utf16CharBack
@@ -277,8 +267,6 @@ int utf16StringLength(const char16_t* str);
 
 #define UTF_CHAR_TO_UNICODE utf8CharToUnicode
 #define UNICODE_CHAR_TO_UTF unicodeCharToUtf8 
-#define UTF_GET_CHAR utf8GetChar
-#define UTF_PUT_CHAR utf8PutChar
 #define UTF_CHAR_AT utf8CharAt
 #define UTF_CHAR_FORWARD utf8CharForward
 #define UTF_CHAR_BACK utf8CharBack
@@ -340,7 +328,7 @@ inline void swapBytes(uint64_t* values, int len)
 #define ASSERT_MSG(condition, message) \
     do { \
         if (!(condition)) { \
-            printLine(STR("assertion failed in ") \
+            PUTS(STR("assertion failed in ") \
                 STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message); \
             abort(); \
         } \

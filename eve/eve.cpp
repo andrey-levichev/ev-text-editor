@@ -567,7 +567,7 @@ void Editor::updateScreen()
     Console::write(1, 1, _screen);
 
     char_t lineCol[30];
-    printString(lineCol, STR("%d, %d"), _line, _column);
+    formatString(lineCol, STR("%d, %d"), _line, _column);
     int lineColLen = strLen(lineCol);
 
     len = _width;

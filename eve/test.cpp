@@ -4940,7 +4940,7 @@ void testConsole()
 
     int width, height;
     Console::getSize(width, height);
-    Console::writeLineFormatted(STR("console size: %dx%d"), width, height);
+    Console::writeFormatted(STR("console size: %dx%d"), width, height);
     Console::setCursorPosition(height - 3, 2);
     Console::write(STR("press ENTER to hide cursor"));
     Console::readChar();
@@ -5003,7 +5003,7 @@ void testConsoleReadChar()
     while (true)
     {
         unichar_t ch = Console::readChar();
-        Console::writeChar(ch);
+        Console::write(ch);
         if (ch == 'q')
             break;
     }
@@ -5181,7 +5181,7 @@ int MAIN(int argc, const char_t** argv)
     {
         Console::initialize();
         Console::setLineMode(true);
-
+        
         // testFoundation();
         // testFile();
         testConsole();

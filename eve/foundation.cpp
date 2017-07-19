@@ -136,20 +136,7 @@ double strToDouble(const char_t* str, char_t** end)
         reinterpret_cast<wchar_t**>(end));
 }
 
-void printLine(const char_t* str)
-{
-    _putws(reinterpret_cast<const wchar_t*>(str));
-}
-
-void print(const char_t* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    wprintf(reinterpret_cast<const wchar_t*>(format), args);
-    va_end(args);
-}
-
-void printString(char_t* str, const char_t* format, ...)
+void formatString(char_t* str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -158,12 +145,7 @@ void printString(char_t* str, const char_t* format, ...)
     va_end(args);
 }
 
-void printArgs(const char_t* format, va_list args)
-{
-    vwprintf(reinterpret_cast<const wchar_t*>(format), args);
-}
-
-void printAllocStringArgs(char_t** str, const char_t* format, va_list args)
+void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
 {
     va_list args2;
 
@@ -181,11 +163,11 @@ void printAllocStringArgs(char_t** str, const char_t* format, va_list args)
         *str = 0;
 }
 
-void printAllocString(char_t** str, const char_t* format, ...)
+void formatAllocString(char_t** str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    printAllocStringArgs(str, format, args);
+    formatAllocStringArgs(str, format, args);
     va_end(args);
 }
 
@@ -289,20 +271,7 @@ double strToDouble(const char_t* str, char_t** end)
     return strtod(str, end);
 }
 
-void printLine(const char_t* str)
-{
-    puts(str);
-}
-
-void print(const char_t* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    printf(format, args);
-    va_end(args);
-}
-
-void printString(char_t* str, const char_t* format, ...)
+void formatString(char_t* str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -310,12 +279,7 @@ void printString(char_t* str, const char_t* format, ...)
     va_end(args);
 }
 
-void printArgs(const char_t* format, va_list args)
-{
-    vprintf(format, args);
-}
-
-void printAllocStringArgs(char_t** str, const char_t* format, va_list args)
+void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
 {
 #ifdef PLATFORM_AIX
     va_list args2;
@@ -335,11 +299,11 @@ void printAllocStringArgs(char_t** str, const char_t* format, va_list args)
 #endif
 }
 
-void printAllocString(char_t** str, const char_t* format, ...)
+void formatAllocString(char_t** str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    printAllocStringArgs(str, format, args);
+    formatAllocStringArgs(str, format, args);
     va_end(args);
 }
 
@@ -446,68 +410,6 @@ int unicodeCharToUtf8(char32_t ch, char* out)
     }
 }
 
-char getChar8()
-{
-    int ch = getchar();
-    return ch == EOF ? 0 : ch;
-}
-
-char32_t utf8GetChar()
-{
-    uint8_t ch1 = getChar8();
-
-    if (ch1 < 0x80)
-    {
-        return ch1;
-    }
-    else if (ch1 < 0xe0)
-    {
-        uint8_t ch2 = getChar8();
-        return ((ch1 & 0x1f) << 6) | (ch2 & 0x3f);
-    }
-    else if (ch1 < 0xf0)
-    {
-        uint8_t ch2 = getChar8();
-        uint8_t ch3 = getChar8();
-        return ((ch1 & 0x0f) << 12) | 
-            ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
-    }
-    else
-    {
-        uint8_t ch2 = getChar8();
-        uint8_t ch3 = getChar8();
-        uint8_t ch4 = getChar8();
-        return ((ch1 & 0x07) << 18) | 
-            ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
-    }
-}
-
-void utf8PutChar(char32_t ch)
-{
-    if (ch < 0x80)
-    {
-        putchar(ch);
-    }
-    else if (ch < 0x800)
-    {
-        putchar(0xc0 | (ch >> 6));
-        putchar(0x80 | (ch & 0x03f));
-    }
-    else if (ch < 0x10000)
-    {
-        putchar(0xe0 | (ch >> 12));
-        putchar(0x80 | ((ch & 0x0fc0) >> 6));
-        putchar(0x80 | (ch & 0x003f));
-    }
-    else
-    {
-        putchar(0xf0 | (ch >> 18));
-        putchar(0x80 | ((ch & 0x03f000) >> 12));
-        putchar(0x80 | ((ch & 0x000fc0) >> 6));
-        putchar(0x80 | (ch & 0x00003f));
-    }
-}
-
 int utf16CharToUnicode(const char16_t* in, char32_t& ch)
 {
     char16_t ch1 = *in++;
@@ -539,42 +441,6 @@ int unicodeCharToUtf16(char32_t ch, char16_t* out)
             ((((ch & 0x1f0000) >> 16) - 1) << 6) | ((ch & 0x00fc00) >> 10);
         *out++ = 0xdc00 | (ch & 0x03ff);
         return 2;
-    }
-}
-
-char16_t getChar16()
-{
-    wint_t ch = getwchar();
-    return ch == WEOF ? 0 : ch;
-}
-
-char32_t utf16GetChar()
-{
-    char16_t ch1 = getChar16();
-
-    if ((ch1 & 0xfc00) != 0xd800)
-    {
-        return ch1;
-    }
-    else
-    {
-        char16_t ch2 = getChar16();
-        return ((((ch1 & 0x03c0) >> 6) + 1) << 16) | 
-            ((ch1 & 0x003f) << 10) | (ch2 & 0x03ff);
-    }
-}
-
-void utf16PutChar(char32_t ch)
-{
-    if (ch < 0x010000)
-    {
-        putwchar(ch);
-    }
-    else
-    {
-        putwchar(0xd800 | 
-            ((((ch & 0x1f0000) >> 16) - 1) << 6) | ((ch & 0x00fc00) >> 10));
-        putwchar(0xdc00 | (ch & 0x03ff));
     }
 }
 
@@ -2013,56 +1879,56 @@ String String::from(bool value)
 String String::from(int value)
 {
     char_t* chars;
-    printAllocString(&chars, STR("%d"), value);
+    formatAllocString(&chars, STR("%d"), value);
     return String(chars);
 }
 
 String String::from(unsigned value)
 {
     char_t* chars;
-    printAllocString(&chars, STR("%u"), value);
+    formatAllocString(&chars, STR("%u"), value);
     return String(chars);
 }
 
 String String::from(long value)
 {
     char_t* chars;
-    printAllocString(&chars, STR("%ld"), value);
+    formatAllocString(&chars, STR("%ld"), value);
     return String(chars);
 }
 
 String String::from(unsigned long value)
 {
     char_t* chars;
-    printAllocString(&chars, STR("%lu"), value);
+    formatAllocString(&chars, STR("%lu"), value);
     return String(chars);
 }
 
 String String::from(long long value)
 {
     char_t* chars;
-    printAllocString(&chars, STR("%lld"), value);
+    formatAllocString(&chars, STR("%lld"), value);
     return String(chars);
 }
 
 String String::from(unsigned long long value)
 {
     char_t* chars;
-    printAllocString(&chars, STR("%llu"), value);
+    formatAllocString(&chars, STR("%llu"), value);
     return String(chars);
 }
 
 String String::from(float value, int precision)
 {
     char_t* chars;
-    printAllocString(&chars, STR("%.*f"), precision, static_cast<double>(value));
+    formatAllocString(&chars, STR("%.*f"), precision, static_cast<double>(value));
     return String(chars);
 }
 
 String String::from(double value, int precision)
 {
     char_t* chars;
-    printAllocString(&chars, STR("%.*f"), precision, value);
+    formatAllocString(&chars, STR("%.*f"), precision, value);
     return String(chars);
 }
 
@@ -2076,7 +1942,7 @@ String String::format(const char_t* format, ...)
     va_list args;
 
     va_start(args, format);
-    printAllocStringArgs(&chars, format, args);
+    formatAllocStringArgs(&chars, format, args);
     va_end(args);
 
     return String(chars);
@@ -2087,7 +1953,7 @@ String String::format(const char_t* format, va_list args)
     ASSERT(format);
 
     char_t* chars;
-    printAllocStringArgs(&chars, format, args);
+    formatAllocStringArgs(&chars, format, args);
     return String(chars);
 }
 

@@ -3,6 +3,12 @@
 
 #include <foundation.h>
 
+// console I/O support
+
+void printLine(const char_t* str);
+void print(const char_t* format, ...);
+void printArgs(const char_t* format, va_list args);
+
 // KeyCode
 
 enum KeyCode
@@ -61,11 +67,6 @@ public:
     static void initialize();
     static void setLineMode(bool lineMode);
 
-    static void writeChar(unichar_t ch)
-    {
-        UTF_PUT_CHAR(ch);
-    }
-    
     static void write(const String& str);
     static void write(const char_t* chars);
     static void write(unichar_t ch, int len = 1);
@@ -88,11 +89,7 @@ public:
     static void writeLineFormatted(const char_t* format, ...);
     static void writeLineFormatted(const char_t* format, va_list args);
 
-    static unichar_t readChar()
-    {
-        return UTF_GET_CHAR();
-    }
-
+    static unichar_t readChar();
     static String readLine();
 
     static void getSize(int& width, int& height);
