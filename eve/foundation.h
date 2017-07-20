@@ -165,6 +165,7 @@ typedef unsigned char byte_t;
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
 #define STR(arg) u##arg
+#define CHAR(arg) U##arg
 #define PUTS _putws
 
 typedef char16_t char_t;
@@ -180,6 +181,8 @@ typedef char16_t char_t;
 #else
 #define STR(arg) u8##arg
 #endif
+
+#define CHAR(arg) U##arg
 
 typedef char char_t;
 

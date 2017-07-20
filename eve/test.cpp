@@ -5184,11 +5184,11 @@ int MAIN(int argc, const char_t** argv)
         
         // testFoundation();
         // testFile();
-        testConsole();
-        testConsoleWrite();
-        testConsoleReadChar();
-        testConsoleReadLine();
-        testConsoleReadKeys();
+        // testConsole();
+        // testConsoleWrite();
+        // testConsoleReadChar();
+        // testConsoleReadLine();
+        // testConsoleReadKeys();
         
         // File f(STR("test.txt"));
         // TextEncoding encoding;

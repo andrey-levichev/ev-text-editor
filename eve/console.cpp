@@ -55,11 +55,12 @@ Array<Key> Console::_keys;
 void Console::initialize()
 {
     setlocale(LC_ALL, "");
-    setvbuf(stdout, NULL, _IONBF, 0);
 
 #ifdef PLATFORM_WINDOWS
     ASSERT(_setmode(_fileno(stdin), _O_U16TEXT) >= 0);
     ASSERT(_setmode(_fileno(stdout), _O_U16TEXT) >= 0);
+#else
+    setvbuf(stdout, NULL, _IONBF, 0);
 #endif
 }
 

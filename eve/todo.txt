@@ -23,15 +23,6 @@ simple string too?
 have to scan utf-8 file every time for utf-16 detection
 make sure app code doens't do low level stuff and relies on foundation
 StringWithEncoding - string with encoding information
-need cross platform way to specify char constants
-mingw getwchar doesn't work with unicode chars
-unicode literals in code revisited
-do we need low level functions in public interface?
-rewrite readLine to use block read?
-get rid of print* functions?
-does windows support reading/printing 4 byte chars?
-do we need to print \r\n on windows?
-mingw fails to print text when buffering is off and unicode is on
 
 basic features:
 * search/replace
