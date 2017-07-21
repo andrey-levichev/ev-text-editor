@@ -554,35 +554,29 @@ void Editor::updateScreen()
         }
     }
 
-#ifdef PLATFORM_WINDOWS
-    _screen.append(' ', _width);
-#else
-    _screen += '\x1b';
-    _screen += '[';
-    _screen += 'J';
+    _status.clear();
+    _status += _filename;
+    _status += _encoding == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
+    _status += _crLf ? STR("  CR LF") : STR("  LF");
+    _status.appendFormat(STR("  %d"), _text.length());
+    _status.appendFormat(STR("  %d, %d"), _line, _column);
+    
+    if (_status.length() <= _width)
+        _status.insert(_status.chars(), ' ', _width - _status.length());
+    else
+    {
+        if (_width >= 3)
+            _status.replace(_status.chars(), STR("..."), _status.length() - _width + 3);
+        else
+            _status.assign(' ', _width);
+    }
 
+#ifndef PLATFORM_WINDOWS
     Console::showCursor(false);
 #endif
 
     Console::write(1, 1, _screen);
-
-    char_t lineCol[30];
-    formatString(lineCol, STR("%d, %d"), _line, _column);
-    int lineColLen = strLen(lineCol);
-
-    len = _width;
-
-    if (lineColLen <= len)
-    {
-        Console::write(_screenHeight, _width - lineColLen + 1, lineCol);
-        len -= lineColLen;
-        if (len > 0)
-            --len;
-    }
-
-    if (_filename.length() <= len)
-        Console::write(_screenHeight, 1, _filename);
-
+    Console::write(_screenHeight, 1, _status);
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
 
 #ifndef PLATFORM_WINDOWS
@@ -856,7 +850,7 @@ void Editor::openFile()
 	File file;
 
 	if (file.open(_filename))
-		_text.assign(file.readString(_encoding, _bom, _unixCrLf));
+		_text.assign(file.readString(_encoding, _bom, _crLf));
 	else
 		_text.clear();
 
@@ -871,8 +865,8 @@ void Editor::saveFile()
     lineColumnToPosition();
     _selection = -1;
 
-	File file(_filename, FILE_MODE_CREATE_ALWAYS);
-	file.writeString(_text, _encoding, _bom, _unixCrLf);
+	File file(_filename, FILE_MODE_CREATE);
+	file.writeString(_text, _encoding, _bom, _crLf);
 }
 
 String Editor::getCommand(const char_t* prompt)
@@ -961,7 +955,7 @@ void Editor::buildProject()
 
 int MAIN(int argc, const char_t** argv)
 {
-    Console::enableUnicode();
+    Console::initialize();
     
     if (argc != 2)
     {

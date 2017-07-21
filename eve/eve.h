@@ -91,13 +91,14 @@ protected:
     Text _text;
     TextEncoding _encoding;
     bool _bom;
-    bool _unixCrLf;
+    bool _crLf;
     
     String _buffer;
     String _pattern;
 
     String _screen;
     String _filename;
+    String _status;
 
     int _width, _height, _screenHeight;
     int _top, _left;
