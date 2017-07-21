@@ -1232,16 +1232,16 @@ public:
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
 
-    void insert(char_t* pos, const String& str);
-    void insert(char_t* pos, const char_t* chars);
-    void insert(char_t* pos, unichar_t ch, int len = 1);
+    char_t* insert(char_t* pos, const String& str);
+    char_t* insert(char_t* pos, const char_t* chars);
+    char_t* insert(char_t* pos, unichar_t ch, int len = 1);
     
     void erase(char_t* pos, int len = -1);
     void erase(const String& str);
     void erase(const char_t* chars);
     
-    void replace(char_t* pos, const String& str, int len = -1);
-    void replace(char_t* pos, const char_t* chars, int len = -1);
+    char_t* replace(char_t* pos, const String& str, int len = -1);
+    char_t* replace(char_t* pos, const char_t* chars, int len = -1);
     void replace(const String& searchStr, const String& replaceStr);
     void replace(const char_t* searchChars, const char_t* replaceChars);
    

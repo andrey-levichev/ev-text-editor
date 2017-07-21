@@ -10,6 +10,8 @@ allow customizable key mappings and reading partial keys
 rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
+position ref to pointer
+need a better way to initialize position
 * foundation improvements
 prohibit write access to container data via pointer?
 acquire with capacity?
@@ -18,8 +20,7 @@ simple string too?
 make sure app code doens't do low level stuff and relies on foundation
 StringWithEncoding - string with encoding information
 support for zero chars in string?
-add scoped_ptr and scoped_array like in boost?
-rename most often used smart pointer to Ptr?
+replace smart pointers with smart references
 rename the types to make int 64 bit?
 string constructor that accepts ascii strings
 

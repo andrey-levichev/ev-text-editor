@@ -1286,7 +1286,7 @@ void String::appendFormat(const char_t* format, va_list args)
     *this += String::format(format, args);
 }
 
-void String::insert(char_t* pos, const String& str)
+char_t* String::insert(char_t* pos, const String& str)
 {
     ASSERT(pos >= _chars && pos <= _chars + _length);
 
@@ -1306,9 +1306,11 @@ void String::insert(char_t* pos, const String& str)
         strCopyLen(pos, str._chars, str._length);
         _length += str._length;
     }
+    
+    return pos;
 }
 
-void String::insert(char_t* pos, const char_t* chars)
+char_t* String::insert(char_t* pos, const char_t* chars)
 {
     ASSERT(pos >= _chars && pos <= _chars + _length);
 
@@ -1328,9 +1330,11 @@ void String::insert(char_t* pos, const char_t* chars)
         strCopyLen(pos, chars, len);
         _length += len;
     }
+    
+    return pos;
 }
 
-void String::insert(char_t* pos, unichar_t ch, int len)
+char_t* String::insert(char_t* pos, unichar_t ch, int len)
 {
     ASSERT(pos >= _chars && pos <= _chars + _length);
     ASSERT(ch != 0);
@@ -1352,6 +1356,8 @@ void String::insert(char_t* pos, unichar_t ch, int len)
         strSet(pos, ch, len);
         _length += l;
     }
+    
+    return pos;
 }
 
 void String::erase(char_t* pos, int len)
@@ -1454,7 +1460,7 @@ void String::erase(const char_t* chars)
     }
 }
 
-void String::replace(char_t* pos, const String& str, int len)
+char_t* String::replace(char_t* pos, const String& str, int len)
 {
     ASSERT(pos >= _chars && pos <= _chars + _length);
 
@@ -1488,9 +1494,11 @@ void String::replace(char_t* pos, const String& str, int len)
     }
     else
         assign(str);
+    
+    return pos;
 }
 
-void String::replace(char_t* pos, const char_t* chars, int len)
+char_t* String::replace(char_t* pos, const char_t* chars, int len)
 {
     ASSERT(pos >= _chars && pos <= _chars + _length);
 
@@ -1525,6 +1533,8 @@ void String::replace(char_t* pos, const char_t* chars, int len)
     }
     else
         assign(chars);
+    
+    return pos;
 }
 
 void String::replace(const String& searchStr, const String& replaceStr)

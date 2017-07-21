@@ -11,16 +11,16 @@ class Text : public String
 {
 public:
     Text() :
-        _position(0)
+        _position(NULL)
     {
     }
 
-    int& position()
+    char_t*& position()
     {
         return _position;
     }
 
-    const int& position() const
+    const char_t* position() const
     {
         return _position;
     }
@@ -45,7 +45,7 @@ public:
     bool deleteWordForward();
     bool deleteWordBack();
 
-    String copyDeleteText(int pos, bool copy);
+    String copyDeleteText(char_t* pos, bool copy);
     void pasteText(const String& text, bool lineSelection);
 
     char_t* findChar(char_t ch) const;
@@ -61,7 +61,7 @@ protected:
     static bool isIdent(char_t ch);
 
 protected:
-    int _position;
+    char_t* _position;
 };
 
 // Editor
@@ -104,7 +104,7 @@ protected:
     int _top, _left;
 
     int _line, _column, _preferredColumn;
-    int _selection;
+    char_t* _selection;
     bool _lineSelection;
 };
 

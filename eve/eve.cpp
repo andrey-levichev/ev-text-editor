@@ -7,7 +7,7 @@ const char_t* tab = STR("    ");
 
 bool Text::charForward()
 {
-    if (_position < _length)
+    if (_position < _chars + _length)
     {
         ++_position;
         return true;
@@ -18,7 +18,7 @@ bool Text::charForward()
 
 bool Text::charBack()
 {
-    if (_position > 0)
+    if (_position > _chars)
     {
         --_position;
         return true;
@@ -29,47 +29,43 @@ bool Text::charBack()
 
 bool Text::wordForward()
 {
-    int prev = _position;
-    char_t* p = _chars + _position;
+    char_t* prev = _position;
 
-    while (*p)
+    while (*_position)
     {
-        ++p;
+        ++_position;
 
-        if (charIsSpace(*(p - 1)) && !charIsSpace(*p))
+        if (charIsSpace(*(_position - 1)) && !charIsSpace(*_position))
             break;
     }
 
-    _position = p - _chars;
     return _position > prev;
 }
 
 bool Text::wordBack()
 {
-    int prev = _position;
-    char_t* p = _chars + _position;
+    char_t* prev = _position;
 
-    if (p > _chars)
+    if (_position > _chars)
     {
-        --p;
-        while (p > _chars)
+        --_position;
+        while (_position > _chars)
         {
-            if (charIsSpace(*(p - 1)) && !charIsSpace(*p))
+            if (charIsSpace(*(_position - 1)) && !charIsSpace(*_position))
                 break;
 
-            --p;
+            --_position;
         }
     }
 
-    _position = p - _chars;
     return _position < prev;
 }
 
 bool Text::toStart()
 {
-    if (_position > 0)
+    if (_position > _chars)
     {
-        _position = 0;
+        _position = _chars;
         return true;
     }
 
@@ -78,9 +74,9 @@ bool Text::toStart()
 
 bool Text::toEnd()
 {
-    if (_position < _length)
+    if (_position < _chars + _length)
     {
-        _position = _length;
+        _position = _chars + _length;
         return true;
     }
 
@@ -89,13 +85,13 @@ bool Text::toEnd()
 
 bool Text::toLineStart()
 {
-    if (_position > 0)
+    if (_position > _chars)
     {
         char_t* p = Text::findCharBack('\n');
         if (*p == '\n')
             ++p;
 
-        _position = p - _chars;
+        _position = p;
         return true;
     }
 
@@ -104,9 +100,9 @@ bool Text::toLineStart()
 
 bool Text::toLineEnd()
 {
-    if (_position < _length)
+    if (_position < _chars + _length)
     {
-        _position = findChar('\n') - _chars;
+        _position = findChar('\n');
         return true;
     }
 
@@ -120,7 +116,7 @@ void Text::insertChar(char_t ch)
     if (ch == '\n') // new line
     {
         char_t* p = findCharBack('\n');
-        if (*p == '\n' && _position > 0)
+        if (*p == '\n' && _position > _chars)
             ++p;
 
         char_t* q = p;
@@ -133,31 +129,27 @@ void Text::insertChar(char_t ch)
         chars[0] = '\n';
         *strCopyLen(chars + 1, p, q - p) = 0;
 
-        insert(_chars + _position, chars);
-        _position += len;
+        _position = insert(_position, chars) + len;
     }
     else if (ch == '\t') // tab
     {
-        insert(_chars + _position, tab);
-        _position += TAB_SIZE;
+        _position = insert(_position, tab) + TAB_SIZE;
     }
     else if (ch == 0x14) // real tab
     {
-        insert(_chars + _position, '\t');
-        ++_position;
+        _position = insert(_position, '\t') + 1;
     }
     else
     {
-        insert(_chars + _position, ch);
-        ++_position;
+        _position = insert(_position, ch) + 1;
     }
 }
 
 bool Text::deleteCharForward()
 {
-    if (_position < _length)
+    if (_position < _position + _length)
     {
-        erase(_chars + _position, 1);
+        erase(_position, 1);
         return true;
     }
 
@@ -166,10 +158,10 @@ bool Text::deleteCharForward()
 
 bool Text::deleteCharBack()
 {
-    if (_position > 0)
+    if (_position > _chars)
     {
         --_position;
-        erase(_chars + _position, 1);
+        erase(_position, 1);
         return true;
     }
 
@@ -178,11 +170,11 @@ bool Text::deleteCharBack()
 
 bool Text::deleteWordForward()
 {
-    int prev = _position;
+    char_t* prev = _position;
 
     if (wordForward())
     {
-        erase(_chars + prev, _position - prev);
+        erase(prev, _position - prev);
         _position = prev;
         return true;
     }
@@ -192,55 +184,55 @@ bool Text::deleteWordForward()
 
 bool Text::deleteWordBack()
 {
-    int prev = _position;
+    char_t* prev = _position;
 
     if (wordBack())
     {
-        erase(_chars + _position, prev - _position);
+        erase(_position, prev - _position);
         return true;
     }
 
     return false;
 }
 
-String Text::copyDeleteText(int pos, bool copy)
+String Text::copyDeleteText(char_t* pos, bool copy)
 {
-    ASSERT(pos < 0 || (pos >= 0 && pos <= _length));
+    ASSERT(!pos || (pos >= _chars && pos <= _chars + _length));
 
     char_t* p;
     char_t* q;
 
-    if (pos < 0)
+    if (pos)
+    {
+        if (pos < _position)
+        {
+            p = pos;
+            q = _position;
+        }
+        else
+        {
+            p = _position;
+            q = pos;
+        }
+    }
+    else
     {
         p = findCharBack('\n');
-        if (*p == '\n' && _position > 0)
+        if (*p == '\n' && _position > _chars)
             ++p;
 
         q = findChar('\n');
         if (*q == '\n')
             ++q;
     }
-    else
-    {
-        if (pos < _position)
-        {
-            p = _chars + pos;
-            q = _chars + _position;
-        }
-        else
-        {
-            p = _chars + _position;
-            q = _chars + pos;
-        }
-    }
-
+    
     if (p < q)
     {
         String text = substr(p, q - p);
 
         if (!copy)
         {
-            _position = p - _chars;
+            _position = p;
             erase(p, q - p);
         }
 
@@ -255,21 +247,19 @@ void Text::pasteText(const String& text, bool lineSelection)
     if (lineSelection)
     {
         char_t* p = findCharBack('\n');
-        if (*p == '\n' && _position > 0)
+        if (*p == '\n' && _position > _chars)
             ++p;
 
-        insert(p, text);
+        _position = insert(p, text) + text.length();
     }
     else
-        insert(_chars + _position, text);
-
-    _position += text.length();
+        _position = insert(_position, text) + text.length();
 }
 
 char_t* Text::findChar(char_t ch) const
 {
     ASSERT(ch != 0);
-    char_t* p = _chars + _position;
+    char_t* p = _position;
 
     while (*p && *p != ch)
         ++p;
@@ -280,7 +270,7 @@ char_t* Text::findChar(char_t ch) const
 char_t* Text::findCharBack(char_t ch) const
 {
     ASSERT(ch != 0);
-    char_t* p = _chars + _position;
+    char_t* p = _position;
 
     while (p > _chars)
         if (*--p == ch)
@@ -309,18 +299,18 @@ bool Text::findNext(const String& pattern)
     {
         char_t* pos;
 
-        if (_position < _length)
+        if (_position < _chars + _length)
         {
-            pos = find(pattern, _chars + _position + 1);
+            pos = find(pattern, _position + 1);
             if (!pos)
                 pos = find(pattern);
         }
         else
 			pos = find(pattern);
 
-		if (pos && pos != _chars + _position)
+		if (pos && pos != _position)
 		{
-			_position = pos - _chars;
+			_position = pos;
             return true;
         }
     }
@@ -330,7 +320,7 @@ bool Text::findNext(const String& pattern)
 
 String Text::currentWord() const
 {
-    char_t* p = _chars + _position;
+    char_t* p = _position;
 
     if (isIdent(*p))
     {
@@ -341,7 +331,7 @@ String Text::currentWord() const
             --p;
         }
 
-        char_t* q = _chars + _position + 1;
+        char_t* q = _position + 1;
         while (*q)
         {
             if (!isIdent(*q))
@@ -388,6 +378,7 @@ void Text::trimTrailingWhitespace()
     }
 
     _length = strLen(_chars);
+    _position = _chars;
 }
 
 bool Text::isIdent(char_t ch)
@@ -402,7 +393,7 @@ Editor::Editor(const char_t* filename) :
     _top(1), _left(1),
     _line(1), _column(1),
     _preferredColumn(1),
-    _selection(-1),
+    _selection(NULL),
     _lineSelection(false)
 
 {
@@ -410,6 +401,7 @@ Editor::Editor(const char_t* filename) :
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
     _text.ensureCapacity(1);
+    _text.position() = _text.chars();
 }
 
 Editor::~Editor()
@@ -429,7 +421,7 @@ void Editor::run()
 void Editor::positionToLineColumn()
 {
     char_t* p = _text.chars();
-    char_t* q = p + _text.position();
+    char_t* q = _text.position();
     _line = 1, _column = 1;
 
     while (*p && p < q)
@@ -472,7 +464,7 @@ void Editor::lineColumnToPosition()
         ++p;
     }
 
-    _text.position() = p - _text.chars();
+    _text.position() = p;
 }
 
 void Editor::updateScreen()
@@ -687,7 +679,7 @@ bool Editor::processKey()
             else if (key.ch == 'd')
             {
                 _buffer = _text.copyDeleteText(_selection, false);
-                _lineSelection = _selection < 0;
+                _lineSelection = !_selection;
 
                 if (!_buffer.empty())
                 {
@@ -699,7 +691,7 @@ bool Editor::processKey()
             else if (key.ch == 'c')
             {
                 _buffer = _text.copyDeleteText(_selection, true);
-                _lineSelection = _selection < 0;
+                _lineSelection = !_selection;
             }
             else if (key.ch == 'p')
             {
@@ -837,7 +829,7 @@ bool Editor::processKey()
     }
 
     if (modified)
-        _selection = -1;
+        _selection = NULL;
 
     if (update)
         updateScreen();
@@ -850,20 +842,23 @@ void Editor::openFile()
 	File file;
 
 	if (file.open(_filename))
+    {
 		_text.assign(file.readString(_encoding, _bom, _crLf));
+        _text.position() = _text.chars();
+    }
 	else
 		_text.clear();
 
     _line = 1; _column = 1;
     _preferredColumn = 1;
-    _selection = -1;
+    _selection = NULL;
 }
 
 void Editor::saveFile()
 {
     _text.trimTrailingWhitespace();
     lineColumnToPosition();
-    _selection = -1;
+    _selection = NULL;
 
 	File file(_filename, FILE_MODE_CREATE);
 	file.writeString(_text, _encoding, _bom, _crLf);
