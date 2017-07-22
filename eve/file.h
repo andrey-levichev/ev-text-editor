@@ -11,9 +11,9 @@
 
 enum FileMode
 {
-    FILE_MODE_CREATE_ALWAYS,
+    FILE_MODE_CREATE,
     FILE_MODE_CREATE_NEW,
-    FILE_MODE_OPEN_ALWAYS,
+    FILE_MODE_OPEN,
     FILE_MODE_OPEN_EXISTING,
     FILE_MODE_TRUNCATE_EXISTING
 };
@@ -58,8 +58,12 @@ public:
         Array<_Type> data(bytesSize / sizeof(_Type));
 
 #ifdef PLATFORM_WINDOWS
+        LARGE_INTEGER offset = { 0 };
+        ASSERT(SetFilePointerEx(_handle, offset, NULL, FILE_BEGIN));
+        
         if (ReadFile(_handle, data.values(), bytesSize, &bytesRead, NULL))
 #else
+        ASSERT(lseek(_handle, 0, SEEK_SET) == 0);
         if ((bytesRead = ::read(_handle, data.values(), bytesSize)) >= 0)
 #endif
         {
@@ -75,17 +79,30 @@ public:
     template<typename _Type>
     void write(const Array<_Type>& data)
     {
+        write(data.size(), data.values());
+    }
+    
+    template<typename _Type>
+    void write(int size, const _Type* data)
+    {
+        ASSERT(size >= 0);
+        ASSERT(data);
+        
         if (_handle == INVALID_HANDLE_VALUE)
             throw Exception(STR("file not open"));
 
-#ifdef PLATFORM_WINDOWS
-        DWORD bytesSize = data.size() * sizeof(_Type), bytesWritten;
-
-        if (WriteFile(_handle, data.values(), bytesSize, &bytesWritten, NULL))
+#ifdef PLATFORM_WINDOWS        
+        DWORD bytesSize = size * sizeof(_Type), bytesWritten;
+        
+        LARGE_INTEGER offset = { 0 };
+        ASSERT(SetFilePointerEx(_handle, offset, NULL, FILE_BEGIN));
+        
+        if (WriteFile(_handle, data, bytesSize, &bytesWritten, NULL))
 #else
-        ssize_t bytesSize = data.size() * sizeof(_Type), bytesWritten;
+        ssize_t bytesSize = size * sizeof(_Type), bytesWritten;
 
-        if ((bytesWritten = ::write(_handle, data.values(), bytesSize)) >= 0)
+        ASSERT(lseek(_handle, 0, SEEK_SET) == 0);
+        if ((bytesWritten = ::write(_handle, data, bytesSize)) >= 0)
 #endif
         {
             if (bytesSize != bytesWritten)

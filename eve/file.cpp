@@ -34,13 +34,13 @@ bool File::open(const String& fileName, FileMode openMode)
 #ifdef PLATFORM_WINDOWS
     switch (openMode)
     {
-    case FILE_MODE_CREATE_ALWAYS:
+    case FILE_MODE_CREATE:
         mode = CREATE_ALWAYS;
         break;
     case FILE_MODE_CREATE_NEW:
         mode = CREATE_NEW;
         break;
-    case FILE_MODE_OPEN_ALWAYS:
+    case FILE_MODE_OPEN:
         mode = OPEN_ALWAYS;
         break;
     default:
@@ -58,13 +58,13 @@ bool File::open(const String& fileName, FileMode openMode)
 #else
     switch (openMode)
     {
-    case FILE_MODE_CREATE_ALWAYS:
+    case FILE_MODE_CREATE:
         mode = O_CREAT | O_TRUNC;
         break;
     case FILE_MODE_CREATE_NEW:
         mode = O_CREAT | O_EXCL;
         break;
-    case FILE_MODE_OPEN_ALWAYS:
+    case FILE_MODE_OPEN:
         mode = O_CREAT;
         break;
     default:
@@ -118,23 +118,8 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
     }
     else
     {
-        int n = bytes.size() / 2 * 2;
         encoding = TEXT_ENCODING_UTF8;
         bom = false;
-        
-        for (int i = 0; i < n; i += 2)
-        {
-            if (bytes[i] == 0 && bytes[i + 1] != 0)
-            {
-                encoding = TEXT_ENCODING_UTF16_BE;
-                break;
-            }
-            else if (bytes[i] != 0 && bytes[i + 1] == 0)
-            {
-                encoding = TEXT_ENCODING_UTF16_LE;
-                break;
-            }
-        }
     }
     
     if (encoding != TEXT_ENCODING_UTF8 && bytes.size() % 2 != 0)
@@ -188,6 +173,7 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
         }
         else
         {
+            ASSERT(bom);
             char16_t ch = 0xfeff;
             bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch)));
             bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch) + 1));

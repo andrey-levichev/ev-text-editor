@@ -10,18 +10,19 @@ allow customizable key mappings and reading partial keys
 rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
 handle invalid unicode sequences?
-* decode/encode text from file to runtime enconding, translate newlines
-trim trailing whitespace
-must not be allowed to maniulate string data via pointer?
-check for zero chars in text file?
+position ref to pointer
+need a better way to initialize position
+* foundation improvements
+prohibit write access to container data via pointer?
 acquire with capacity?
 blob class for array of value types?
 simple string too?
-have to scan utf-8 file every time for utf-16 detection
 make sure app code doens't do low level stuff and relies on foundation
-console writing to screen is totally broken
-* consider adding scoped_ptr and scoped_array like in boost
-consider renaming one of smart pointers to Ptr
+StringWithEncoding - string with encoding information
+support for zero chars in string?
+replace smart pointers with smart references
+rename the types to make int 64 bit?
+string constructor that accepts ascii strings
 
 basic features:
 * search/replace
