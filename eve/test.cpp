@@ -5266,7 +5266,7 @@ void testConsoleReadKeys()
     }
 }
 
-#ifndef PLATFORM_WINDOWS
+#ifdef PLATFORM_UNIX
 
 void testKeys()
 {
@@ -5306,20 +5306,92 @@ void testKeys()
 
 #endif
 
+void printPlatformInfo()
+{
+    Console::write(STR("architecture:"));
+
+#ifdef ARCH_32BIT
+    Console::write(STR(" 32 bit"));
+#endif
+#ifdef ARCH_64BIT
+    Console::write(STR(" 64 bit"));
+#endif
+
+#ifdef ARCH_INTEL
+    Console::writeLine(STR(" Intel"));
+#endif
+#ifdef ARCH_ARM
+    Console::writeLine(STR(" ARM"));
+#endif
+#ifdef ARCH_SPARC
+    Console::writeLine(STR(" SPARC"));
+#endif
+#ifdef ARCH_POWER
+    Console::writeLine(STR(" Power"));
+#endif
+
+    Console::write(STR("platform:"));
+#ifdef PLATFORM_WINDOWS
+    Console::writeLine(STR(" Windows"));
+#endif
+#ifdef PLATFORM_APPLE
+    Console::write(STR(" Apple"));
+#endif
+#ifdef PLATFORM_LINUX
+    Console::write(STR(" Linux"));
+#endif
+#ifdef PLATFORM_SOLARIS
+    Console::write(STR(" Solaris"));
+#endif
+#ifdef PLATFORM_AIX
+    Console::write(STR(" AIX"));
+#endif
+#ifdef PLATFORM_ANROID
+    Console::write(STR(" Android"));
+#endif
+#ifdef PLATFORM_UNIX
+    Console::writeLine(STR(" UNIX"));
+#else
+    Console::writeLine();
+#endif
+
+    Console::write(STR("compiler:"));
+#ifdef COMPILER_INTEL_CPP
+    Console::write(STR(" Intel C++"));
+#endif
+#ifdef COMPILER_CLANG
+    Console::write(STR(" clang"));
+#endif
+#ifdef COMPILER_VISUAL_CPP
+    Console::write(STR(" Visual C__"));
+#endif
+#ifdef COMPILER_GCC
+    Console::write(STR(" gcc"));
+#endif
+#ifdef COMPILER_SOLARIS_STUDIO
+    Console::write(STR(" Solaris Studio"));
+#endif
+#ifdef COMPILER_XL_CPP
+    Console::write(STR(" IBM XL C/C++"));
+#endif
+    Console::writeLineFormatted(STR(" version %d"), COMPILER_VERSION);
+}
+
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
         Console::initialize();
         Console::setLineMode(true);
-        
-        // testFoundation();
-        testFile();
-        // testConsole();
-        // testConsoleWrite();
-        // testConsoleReadChar();
-        // testConsoleReadLine();
-        // testConsoleReadKeys();
+        printPlatformInfo();
+
+//        testFoundation();
+//        testFile();
+        testConsole();
+//        testConsoleWrite();
+//        testConsoleReadChar();
+//        testConsoleReadLine();
+//        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {

@@ -1,14 +1,13 @@
 bugs & misc:
 * check git line ending settings
 * handle SIGWINCH to detect terminal size changes
-* screen update code shouldn't differ between platforms
-bring back the fast update code for windows?
 * many keys don't work in Linux, macOS, xterm
 rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
 * support unicode input and newline differences
 rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
+research utf-8 support in windows and macos
 handle invalid unicode sequences?
 position ref to pointer
 need a better way to initialize position

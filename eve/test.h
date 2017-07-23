@@ -5,6 +5,8 @@
 #include <console.h>
 #include <file.h>
 
+void printPlatformInfo();
+
 // Test
 
 class Test

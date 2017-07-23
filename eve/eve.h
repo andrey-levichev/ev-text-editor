@@ -78,7 +78,7 @@ protected:
     void positionToLineColumn();
     void lineColumnToPosition();
 
-    void updateScreen();
+    void updateScreen(bool redrawAll = false);
     bool processKey();
 
     void openFile();
@@ -96,7 +96,8 @@ protected:
     String _buffer;
     String _pattern;
 
-    String _screen;
+    CharArray _screen;
+    CharArray _window;
     String _filename;
     String _status;
 

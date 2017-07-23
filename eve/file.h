@@ -30,14 +30,14 @@ class File
 public:
     File();
     File(const String& fileName,
-        FileMode openMode = FILE_MODE_OPEN_EXISTING);
+        FileMode openMode = FILE_MODE_OPEN);
         
     ~File();
 
     bool isOpen() const;
     
     bool open(const String& fileName, 
-        FileMode openMode = FILE_MODE_OPEN_EXISTING);
+        FileMode openMode = FILE_MODE_OPEN);
         
     void close();
     

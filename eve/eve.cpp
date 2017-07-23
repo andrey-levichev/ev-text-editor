@@ -398,10 +398,15 @@ Editor::Editor(const char_t* filename) :
 
 {
     Console::setLineMode(false);
+
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
+
     _text.ensureCapacity(1);
     _text.position() = _text.chars();
+
+    _screen.resize(_width * _height);
+    _window.resize(_width * _height);
 }
 
 Editor::~Editor()
@@ -413,7 +418,7 @@ Editor::~Editor()
 void Editor::run()
 {
     openFile();
-    updateScreen();
+    updateScreen(true);
 
     while (processKey());
 }
@@ -467,10 +472,8 @@ void Editor::lineColumnToPosition()
     _text.position() = p;
 }
 
-void Editor::updateScreen()
+void Editor::updateScreen(bool redrawAll)
 {
-    _screen.clear();
-
     if (_line < _top)
         _top = _line;
     else if (_line >= _top + _height)
@@ -482,13 +485,11 @@ void Editor::updateScreen()
         _left = _column - _width + 1;
 
     char_t* p = _text.findLine(_top);
+    char_t* q = _window.values();
     int len = _left + _width - 1;
 
     for (int j = 1; j <= _height; ++j)
     {
-#ifndef PLATFORM_WINDOWS
-        bool clearedLine = false;
-#endif
         for (int i = 1; i <= len; ++i)
         {
             char_t ch;
@@ -499,39 +500,13 @@ void Editor::updateScreen()
                 if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
                     ++p;
             }
-            else if (*p == '\n')
-                ch = *p;
-            else if (*p)
+            else if (*p && *p != '\n')
                 ch = *p++;
             else
-                ch = 0;
+                ch = ' ';
 
             if (i >= _left)
-            {
-                if (ch == '\n')
-                {
-#ifdef PLATFORM_WINDOWS
-                    _screen += ' ';
-#else
-                    if (!clearedLine)
-                    {
-                        _screen += '\x1b';
-                        _screen += '[';
-                        _screen += 'K';
-                        _screen += '\n';
-                        clearedLine = true;
-                    }
-#endif
-                }
-                else if (ch == 0)
-                {
-#ifdef PLATFORM_WINDOWS
-                    _screen += ' ';
-#endif
-                }
-                else
-                    _screen += ch;
-            }
+                *q++ = ch;
         }
 
         if (*p == '\n')
@@ -546,8 +521,7 @@ void Editor::updateScreen()
         }
     }
 
-    _status.clear();
-    _status += _filename;
+    _status = _filename;
     _status += _encoding == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
     _status += _crLf ? STR("  CR LF") : STR("  LF");
     _status.appendFormat(STR("  %d"), _text.length());
@@ -567,7 +541,45 @@ void Editor::updateScreen()
     Console::showCursor(false);
 #endif
 
-    Console::write(1, 1, _screen);
+    int i = 0, j = 0;
+    bool matching = true;
+    int nchars = _width * _height;
+
+    if (redrawAll)
+    {
+        Console::write(1, 1, _window.values(), nchars);
+    }
+    else
+    {
+        for (; j < nchars; ++j)
+        {
+            if (_window[j] == _screen[j])
+            {
+                if (!matching)
+                {
+                    Console::write(i / _width + 1, i % _width + 1,
+                                   _window.values() + i, j - i);
+                    i = j;
+                    matching = true;
+                }
+            }
+            else
+            {
+                if (matching)
+                {
+                    i = j;
+                    matching = false;
+                }
+            }
+        }
+
+        if (!matching)
+            Console::write(i / _width + 1, i % _width + 1,
+                           _window.values() + i, j - i);
+    }
+
+    swap(_window, _screen);
+
     Console::write(_screenHeight, 1, _status);
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
 
@@ -945,7 +957,7 @@ void Editor::buildProject()
 
     Console::setLineMode(false);
 
-    updateScreen();
+    updateScreen(true);
 }
 
 int MAIN(int argc, const char_t** argv)
