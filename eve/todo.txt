@@ -1,24 +1,27 @@
 bugs & misc:
+* check git line ending settings
 * handle SIGWINCH to detect terminal size changes
-* rework keyboard input to support different terminals
+* many keys don't work in Linux, macOS, xterm
+rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
-* minimal screen update for colored text
-screen update code must not differ between platforms
 * support unicode input and newline differences
-support unicode input, console etc
-decode/encode text from file to runtime enconding, translate newlines
 rewrite eve code to support unicode
 support utf-8 on windows and utf-16 on linux?
+research utf-8 support in windows and macos
 handle invalid unicode sequences?
-* misc
-string split/join
-rewrite toUpper/toLower
-make char_t* charForward(char_t* pos, int n = 1) const?
-default params in test comments
-tests for const iterators?
-map can have only const iterator
-simplify templated code with typedefs
-missing overloads for non-copyable types in list and map
+position ref to pointer
+need a better way to initialize position
+* foundation improvements
+prohibit write access to container data via pointer?
+acquire with capacity?
+blob class for array of value types?
+simple string too?
+make sure app code doens't do low level stuff and relies on foundation
+StringWithEncoding - string with encoding information
+support for zero chars in string?
+replace smart pointers with smart references
+rename the types to make int 64 bit?
+string constructor that accepts ascii strings
 
 basic features:
 * search/replace
@@ -30,7 +33,7 @@ basic features:
 * paragraph back/forward
 
 advanced features:
-* multiple file support
+* multiple file
 * regex search/replace
 * search/replace in files
 * parse build output for errors
@@ -46,7 +49,6 @@ complete on tab or punctuation
 
 foundation features:
 * convert any object to string
-* simple parsing a la scanf
 * type safe string formatting
 * date and time
 * locales (formatting, string compare/search/case conversion)
@@ -54,8 +56,13 @@ foundation features:
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
-* string to binary/hex conversion
-* initializer_list support
-* conversion between containers (array to list etc)
-* create element in place for containers
-
+* containers
+initializer_list support
+conversion between containers (array to list etc)
+create element in place
+move node pointers instead of nodes when rehashing to avoid allocation
+* strings
+split/join, tokenizer
+conversion to binary/hex
+simple parsing a la scanf
+simple regular expressions

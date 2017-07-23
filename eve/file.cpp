@@ -2,10 +2,6 @@
 
 // File
 
-#ifndef PLATFORM_WINDOWS
-const int INVALID_HANDLE_VALUE = -1;
-#endif
-
 File::File() :
     _handle(INVALID_HANDLE_VALUE)
 {    
@@ -38,13 +34,13 @@ bool File::open(const String& fileName, FileMode openMode)
 #ifdef PLATFORM_WINDOWS
     switch (openMode)
     {
-    case FILE_MODE_CREATE_ALWAYS:
+    case FILE_MODE_CREATE:
         mode = CREATE_ALWAYS;
         break;
     case FILE_MODE_CREATE_NEW:
         mode = CREATE_NEW;
         break;
-    case FILE_MODE_OPEN_ALWAYS:
+    case FILE_MODE_OPEN:
         mode = OPEN_ALWAYS;
         break;
     default:
@@ -62,13 +58,13 @@ bool File::open(const String& fileName, FileMode openMode)
 #else
     switch (openMode)
     {
-    case FILE_MODE_CREATE_ALWAYS:
+    case FILE_MODE_CREATE:
         mode = O_CREAT | O_TRUNC;
         break;
     case FILE_MODE_CREATE_NEW:
         mode = O_CREAT | O_EXCL;
         break;
-    case FILE_MODE_OPEN_ALWAYS:
+    case FILE_MODE_OPEN:
         mode = O_CREAT;
         break;
     default:
@@ -100,109 +96,118 @@ void File::close()
     }        
 }
 
-ByteArray File::readBytes()
+String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
 {
-    if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
-
-#ifdef PLATFORM_WINDOWS
-    DWORD bytesSize = size(), bytesRead;
-    ByteArray bytes(bytesSize);
+    ByteArray bytes = read<byte_t>();
     
-    if (ReadFile(_handle, bytes.values(), bytesSize, &bytesRead, NULL))
-#else
-    ssize_t bytesSize = size(), bytesRead;
-    ByteArray bytes(bytesSize);
-
-    if ((bytesRead = read(_handle, bytes.values(), bytesSize)) >= 0)
-#endif
+    if (bytes.size() >= 2 && bytes[0] == 0xfe && bytes[1] == 0xff)
     {
-        if (bytesSize != bytesRead)
-            throw Exception(STR("failed to read entire file"));
+        encoding = TEXT_ENCODING_UTF16_BE;
+        bom = true;
+    }
+    else if (bytes.size() >= 2 && bytes[0] == 0xff && bytes[1] == 0xfe)
+    {
+        encoding = TEXT_ENCODING_UTF16_LE;
+        bom = true;
+    }
+    else if (bytes.size() >= 3 && bytes[0] == 0xef &&
+        bytes[1] == 0xbb && bytes[2] == 0xbf)
+    {
+        encoding = TEXT_ENCODING_UTF8;
+        bom = true;
     }
     else
-        throw Exception(STR("failed to read file"));
+    {
+        encoding = TEXT_ENCODING_UTF8;
+        bom = false;
+    }
+    
+    if (encoding != TEXT_ENCODING_UTF8 && bytes.size() % 2 != 0)
+        throw Exception(STR("text in UTF-16 encoding has odd number of bytes"));
 
-    return bytes;
+#ifdef ARCH_LITTLE_ENDIAN
+    if (encoding == TEXT_ENCODING_UTF16_BE)
+        swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
+#else
+    if (encoding == TEXT_ENCODING_UTF16_LE)
+        swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
+#endif
+    
+    byte_t* p = bytes.values();
+    byte_t* e = p + bytes.size();
+    
+    if (bom)
+        p += encoding == TEXT_ENCODING_UTF8 ? 3 : 2;
+    
+    String str;
+    unichar_t ch;
+    crLf = false;
+    
+    while (p < e)
+    {
+        if (encoding == TEXT_ENCODING_UTF8)
+            p += utf8CharToUnicode(reinterpret_cast<char*>(p), ch);
+        else
+            p += utf16CharToUnicode(reinterpret_cast<char16_t*>(p), ch) * 2;
+        
+        if (ch == '\r')
+            crLf = true;
+        else
+            str.append(ch);
+    }
+    
+    return str;
 }
 
-void File::writeBytes(const ByteArray& bytes)
+void File::writeString(const String& str, TextEncoding encoding, bool bom, bool crLf)
 {
-    if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
+    ByteArray bytes;
     
-#ifdef PLATFORM_WINDOWS
-    DWORD bytesSize = bytes.size(), bytesWritten;
-    
-    if (WriteFile(_handle, bytes.values(), bytesSize, &bytesWritten, NULL))
-#else
-    ssize_t bytesSize = bytes.size(), bytesWritten;
-
-    if ((bytesWritten = write(_handle, bytes.values(), bytesSize)) >= 0)
-#endif
+    if (bom)
     {
-        if (bytesSize != bytesWritten)
-            throw Exception(STR("failed to write entire file"));
+        if (encoding == TEXT_ENCODING_UTF8)
+        {
+            bytes.pushBack(0xef);
+            bytes.pushBack(0xbb);
+            bytes.pushBack(0xbf);
+        }
+        else
+        {
+            ASSERT(bom);
+            char16_t ch = 0xfeff;
+            bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch)));
+            bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch) + 1));
+        }
     }
-    else
-        throw Exception(STR("failed to write file"));
-}
-
-String File::readString()
-{
-    if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
-
-#ifdef PLATFORM_WINDOWS
-    DWORD charsSize = size() / sizeof(char_t);
-    DWORD bytesSize = charsSize * sizeof(char_t), bytesRead;
-    Array<char_t> chars(charsSize + 1);
     
-    if (ReadFile(_handle, chars.values(), bytesSize, &bytesRead, NULL))
-#else
-    ssize_t charsSize = size() / sizeof(char_t);
-    ssize_t bytesSize = charsSize * sizeof(char_t), bytesRead;
-    Array<char_t> chars(charsSize + 1);
+    const char_t* p = str.str();
+    const char_t* e = p + str.length();
+    unichar_t ch;
     
-    if ((bytesRead = read(_handle, chars.values(), bytesSize)) >= 0)
-#endif
+    while (p < e)
     {
-        if (bytesSize != bytesRead)
-            throw Exception(STR("failed to read entire file"));
+        p += UTF_CHAR_TO_UNICODE(p, ch);
+        
+        if (ch == '\n' && crLf)
+            appendChar(bytes, encoding, '\r');
+        appendChar(bytes, encoding, ch);
     }
-    else
-        throw Exception(STR("failed to read file"));
-            
-    chars[charsSize] = 0;
-    return String::acquire(chars.release());
-}
-
-void File::writeString(const String& str)
-{
-    if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
-
-#ifdef PLATFORM_WINDOWS
-    DWORD bytesSize = str.length() * sizeof(char_t), bytesWritten;
     
-    if (WriteFile(_handle, str.str(), bytesSize, &bytesWritten, NULL))
+#ifdef ARCH_LITTLE_ENDIAN
+    if (encoding == TEXT_ENCODING_UTF16_BE)
+        swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
 #else
-    ssize_t bytesSize = str.length() * sizeof(char_t), bytesWritten;
-    
-    if ((bytesWritten = write(_handle, str.str(), bytesSize)) >= 0)
+    if (encoding == TEXT_ENCODING_UTF16_LE)
+        swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
 #endif
-    {
-        if (bytesSize != bytesWritten)
-            throw Exception(STR("failed to write entire file"));
-    }
-    else
-        throw Exception(STR("failed to write file"));
+
+    write(bytes);
 }
 
 int64_t File::size() const
 {
     if (_handle == INVALID_HANDLE_VALUE)
-        throw Exception(STR("file not opened"));
+        throw Exception(STR("file not open"));
 
 #ifdef PLATFORM_WINDOWS
     int64_t sz;
@@ -213,4 +218,18 @@ int64_t File::size() const
     ASSERT(fstat(_handle, &st) == 0);
     return st.st_size;
 #endif
+}
+
+void File::appendChar(ByteArray& bytes, TextEncoding encoding, unichar_t ch)
+{
+    byte_t s[4];
+    int n;
+    
+    if (encoding == TEXT_ENCODING_UTF8)
+        n = unicodeCharToUtf8(ch, reinterpret_cast<char*>(s));
+    else
+        n = unicodeCharToUtf16(ch, reinterpret_cast<char16_t*>(s)) * 2;
+    
+    for (int i = 0; i < n; ++i)
+        bytes.pushBack(s[i]);
 }

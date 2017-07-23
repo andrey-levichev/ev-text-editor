@@ -49,7 +49,7 @@ int compareUniString(const _Char* str1, const _Char* str2)
 template<typename _SeqType, typename _ElemType>
 bool compareSequence(const _SeqType& seq, const _ElemType* values)
 {
-    typename _SeqType::ConstIterator iter(seq);
+    auto iter = seq.constIterator();
     while (!iter.moveNext())
         if (iter.value() != *values++)
             return false;
@@ -79,7 +79,7 @@ bool compareSequenceIter(_IterType& iter, _Arg&& arg, _Args&&... args)
 template<typename _SeqType, typename... _Args>
 bool compareSequence(const _SeqType& seq, _Args&&... args)
 {
-    typename _SeqType::ConstIterator iter(seq);
+    auto iter = seq.constIterator();
     return compareSequenceIter(iter, static_cast<_Args&&>(args)...);
 }
 
@@ -136,11 +136,19 @@ void testUniquePtr()
         UniquePtr<Test> p;
         ASSERT(!p);
         ASSERT(p.empty());
+
         p.create(1);
-        ASSERT(p && p->val() == 1);
+        ASSERT(p);
+        ASSERT(p.ptr());
+        ASSERT((*p).val() == 1);
+        ASSERT(p->val() == 1);
         ASSERT(!p.empty());
+
         p.create(2);
-        ASSERT(p && p->val() == 2);
+        ASSERT(p);
+        ASSERT(p.ptr());
+        ASSERT((*p).val() == 2);
+        ASSERT(p->val() == 2);
         ASSERT(!p.empty());
     }
 
@@ -162,21 +170,11 @@ void testUniquePtr()
         ASSERT(!p);
     }
 
-    // UniquePtr<_T> createUnique(_Args&&... args)
-
-    {
-        UniquePtr<Test> p = createUnique<Test>();
-        ASSERT((*p).val() == 0);
-        ASSERT(p->val() == 0);
-        ASSERT(p);
-        ASSERT(p.ptr());
-    }
-
     // bool operator==(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
 
     {
         UniquePtr<Test> p1 = createUnique<Test>();
-        UniquePtr<Test> p2 = static_cast<UniquePtr<Test>&&>(p1);
+        UniquePtr<Test> p2 = createUnique<Test>();
         ASSERT(!(p1 == p2));
     }
 
@@ -186,6 +184,16 @@ void testUniquePtr()
         UniquePtr<Test> p1 = createUnique<Test>();
         UniquePtr<Test> p2 = createUnique<Test>();
         ASSERT(p1 != p2);
+    }
+
+    // UniquePtr<_T> createUnique(_Args&&... args)
+
+    {
+        UniquePtr<Test> p = createUnique<Test>(1);
+        ASSERT(p);
+        ASSERT(p.ptr());
+        ASSERT((*p).val() == 1);
+        ASSERT(p->val() == 1);
     }
 }
 
@@ -284,11 +292,19 @@ void testSharedPtr()
         SharedPtr<Test> p;
         ASSERT(!p);
         ASSERT(p.empty());
+
         p.create(1);
-        ASSERT(p && p->val() == 1);
+        ASSERT(p);
+        ASSERT(p.ptr());
+        ASSERT((*p).val() == 1);
+        ASSERT(p->val() == 1);
         ASSERT(!p.empty());
+
         p.create(2);
-        ASSERT(p && p->val() == 2);
+        ASSERT(p);
+        ASSERT(p.ptr());
+        ASSERT((*p).val() == 2);
+        ASSERT(p->val() == 2);
         ASSERT(!p.empty());
     }
 
@@ -310,17 +326,6 @@ void testSharedPtr()
         ASSERT(!p);
     }
 
-    // SharedPtr<_T> createShared(_Args&&... args)
-
-    {
-        SharedPtr<Test> p = createShared<Test>();
-        ASSERT((*p).val() == 0);
-        ASSERT(p->val() == 0);
-        ASSERT(p);
-        ASSERT(p.ptr());
-        ASSERT(p.refCount() == 1);
-    }
-
     // bool operator==(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
 
     {
@@ -336,45 +341,57 @@ void testSharedPtr()
         SharedPtr<Test> p2 = createShared<Test>();
         ASSERT(p1 != p2);
     }
+
+    // SharedPtr<_T> createShared(_Args&&... args)
+
+    {
+        SharedPtr<Test> p = createShared<Test>(1);
+        ASSERT(p);
+        ASSERT(p.ptr());
+        ASSERT((*p).val() == 1);
+        ASSERT(p->val() == 1);
+        ASSERT(p.refCount() == 1);
+    }
 }
 
 void testString()
 {
     unichar_t zc = 0;
     const char_t* np = NULL;
+    char_t ep[] = { 0 };
 
     // Unicode support
 
     {
         char32_t ch;
-        ASSERT(utf8CharToUtf32("\x24", ch) == 1 && ch == 0x24);
-        ASSERT(utf8CharToUtf32("\xc2\xa2", ch) == 2 && ch == 0xa2);
-        ASSERT(utf8CharToUtf32("\xe2\x82\xac", ch) == 3 && ch == 0x20ac);
-        ASSERT(utf8CharToUtf32("\xf0\x90\x8d\x88", ch) == 4 && ch == 0x10348);
+        ASSERT(utf8CharToUnicode("\x24", ch) == 1 && ch == 0x24);
+        ASSERT(utf8CharToUnicode("\xc2\xa2", ch) == 2 && ch == 0xa2);
+        ASSERT(utf8CharToUnicode("\xe2\x82\xac", ch) == 3 && ch == 0x20ac);
+        ASSERT(utf8CharToUnicode("\xf0\x90\x8d\x88", ch) == 4 && ch == 0x10348);
     }
 
     {
         char s[4];
-        ASSERT(utf32CharToUtf8(0x24, s) == 1 && memcmp(s, "\x24", 1) == 0);
-        ASSERT(utf32CharToUtf8(0xa2, s) == 2 && memcmp(s, "\xc2\xa2", 2) == 0);
-        ASSERT(utf32CharToUtf8(0x20ac, s) == 3 && memcmp(s, "\xe2\x82\xac", 3) == 0);
-        ASSERT(utf32CharToUtf8(0x10348, s) == 4 && memcmp(s, "\xf0\x90\x8d\x88", 4) == 0);
+        ASSERT(unicodeCharToUtf8(0x24, s) == 1 && memcmp(s, "\x24", 1) == 0);
+        ASSERT(unicodeCharToUtf8(0xa2, s) == 2 && memcmp(s, "\xc2\xa2", 2) == 0);
+        ASSERT(unicodeCharToUtf8(0x20ac, s) == 3 && memcmp(s, "\xe2\x82\xac", 3) == 0);
+        ASSERT(unicodeCharToUtf8(0x10348, s) == 4 && memcmp(s, "\xf0\x90\x8d\x88", 4) == 0);
     }
 
     {
         char32_t ch;
-        ASSERT(utf16CharToUtf32(u"\x0024", ch) == 1 && ch == 0x24);
-        ASSERT(utf16CharToUtf32(u"\x00a2", ch) == 1 && ch == 0xa2);
-        ASSERT(utf16CharToUtf32(u"\x20ac", ch) == 1 && ch == 0x20ac);
-        ASSERT(utf16CharToUtf32(u"\xd800\xdf48", ch) == 2 && ch == 0x10348);
+        ASSERT(utf16CharToUnicode(u"\x0024", ch) == 1 && ch == 0x24);
+        ASSERT(utf16CharToUnicode(u"\x00a2", ch) == 1 && ch == 0xa2);
+        ASSERT(utf16CharToUnicode(u"\x20ac", ch) == 1 && ch == 0x20ac);
+        ASSERT(utf16CharToUnicode(u"\xd800\xdf48", ch) == 2 && ch == 0x10348);
     }
 
     {
         char16_t s[2];
-        ASSERT(utf32CharToUtf16(0x24, s) == 1 && memcmp(s, u"\x0024", 2) == 0);
-        ASSERT(utf32CharToUtf16(0xa2, s) == 1 && memcmp(s, u"\x00a2", 2) == 0);
-        ASSERT(utf32CharToUtf16(0x20ac, s) == 1 && memcmp(s, u"\x20ac", 2) == 0);
-        ASSERT(utf32CharToUtf16(0x10348, s) == 2 && memcmp(s, u"\xd800\xdf48", 4) == 0);
+        ASSERT(unicodeCharToUtf16(0x24, s) == 1 && memcmp(s, u"\x0024", 2) == 0);
+        ASSERT(unicodeCharToUtf16(0xa2, s) == 1 && memcmp(s, u"\x00a2", 2) == 0);
+        ASSERT(unicodeCharToUtf16(0x20ac, s) == 1 && memcmp(s, u"\x20ac", 2) == 0);
+        ASSERT(unicodeCharToUtf16(0x10348, s) == 2 && memcmp(s, u"\xd800\xdf48", 4) == 0);
     }
 
     {
@@ -382,16 +399,16 @@ void testString()
         char16_t chars16[100];
         char32_t chars32[100];
 
-        utf8StringToUtf32(CHARS8, chars32);
+        utf8StringToUnicode(CHARS8, chars32);
         ASSERT(compareUniString(chars32, CHARS32) == 0);
 
-        utf32StringToUtf8(CHARS32, chars8);
+        unicodeStringToUtf8(CHARS32, chars8);
         ASSERT(compareUniString(chars8, CHARS8) == 0);
 
-        utf16StringToUtf32(CHARS16, chars32);
+        utf16StringToUnicode(CHARS16, chars32);
         ASSERT(compareUniString(chars32, CHARS32) == 0);
 
-        utf32StringToUtf16(CHARS32, chars16);
+        unicodeStringToUtf16(CHARS32, chars16);
         ASSERT(compareUniString(chars16, CHARS16) == 0);
 
         utf8StringToUtf16(CHARS8, chars16);
@@ -674,7 +691,7 @@ void testString()
         ASSERT(!s.empty());
     }
 
-    // const char_t* charPosition(int n) const
+    // char_t* charPosition(int n)
 
     ASSERT(!String().charPosition(0));
 
@@ -691,17 +708,17 @@ void testString()
     }
 
     // unichar_t charAt(const char_t* pos) const
-    // const char_t* charForward(const char_t* pos, int n = 1) const
-    // const char_t* charBack(const char_t* pos, int n = 1) const
+    // char_t* charForward(char_t* pos, int n = 1)
+    // char_t* charBack(char_t* pos, int n = 1)
 
     {
-        char_t p[1] = { 0 };
+        char_t pos[1] = { 0 };
         ASSERT(String().charAt(NULL) == 0);
-        ASSERT_EXCEPTION(Exception, String().charAt(STR("")));
+        ASSERT_EXCEPTION(Exception, String().charAt(pos));
         ASSERT(!String().charForward(NULL));
-        ASSERT_EXCEPTION(Exception, String().charForward(p));
+        ASSERT_EXCEPTION(Exception, String().charForward(pos));
         ASSERT(!String().charBack(NULL));
-        ASSERT_EXCEPTION(Exception, String().charBack(p));
+        ASSERT_EXCEPTION(Exception, String().charBack(pos));
     }
 
     {
@@ -716,7 +733,7 @@ void testString()
         ASSERT_EXCEPTION(Exception, s.charBack(s.chars() + s.length() + 1));
         ASSERT_EXCEPTION(Exception, s.charBack(s.chars() + s.length(), -1));
 
-        const char_t* pos = s.chars();
+        char_t* pos = s.chars();
         ASSERT(s.charAt(pos) == 0x24);
         pos = s.charForward(pos);
         ASSERT(s.charAt(pos) == 0xa2);
@@ -741,6 +758,82 @@ void testString()
 
         ASSERT(s.charForward(s.chars(), 0) == s.chars());
         ASSERT(s.charBack(s.chars(), 0) == s.chars());
+    }
+
+    // const char_t* charPosition(int n) const
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.charPosition(0));
+    }
+
+    {
+        String s(CHARS);
+        const String& cs = s;
+
+        ASSERT_EXCEPTION(Exception, cs.charPosition(-1));
+        ASSERT_EXCEPTION(Exception, cs.charPosition(cs.length() + 1));
+        ASSERT(cs.charPosition(0) == cs.chars());
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(cs.charPosition(3) == cs.chars() + 3);
+#else
+        ASSERT(cs.charPosition(3) == cs.chars() + 6);
+#endif        
+    }
+
+    // unichar_t charAt(const char_t* pos) const
+    // const char_t* charForward(const char_t* pos, int n = 1) const
+    // const char_t* charBack(const char_t* pos, int n = 1) const
+
+    {
+        const char_t* pos = STR("");
+        ASSERT(String().charAt(NULL) == 0);
+        ASSERT_EXCEPTION(Exception, String().charAt(pos));
+        ASSERT(!String().charForward(np));
+        ASSERT_EXCEPTION(Exception, String().charForward(pos));
+        ASSERT(!String().charBack(np));
+        ASSERT_EXCEPTION(Exception, String().charBack(pos));
+    }
+
+    {
+        String s(CHARS);
+        const String& cs = s;
+
+        ASSERT_EXCEPTION(Exception, cs.charAt(cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.charAt(cs.chars() + cs.length() + 1));
+        ASSERT_EXCEPTION(Exception, cs.charForward(cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.charForward(cs.chars() + cs.length() + 1));
+        ASSERT_EXCEPTION(Exception, cs.charForward(cs.chars(), -1));
+        ASSERT_EXCEPTION(Exception, cs.charBack(cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.charBack(cs.chars() + cs.length() + 1));
+        ASSERT_EXCEPTION(Exception, cs.charBack(cs.chars() + cs.length(), -1));
+
+        const char_t* pos = cs.chars();
+        ASSERT(cs.charAt(pos) == 0x24);
+        pos = cs.charForward(pos);
+        ASSERT(cs.charAt(pos) == 0xa2);
+        pos = cs.charForward(pos);
+        ASSERT(cs.charAt(pos) == 0x20ac);
+        pos = cs.charForward(pos);
+        ASSERT(cs.charAt(pos) == 0x10348);
+        pos = cs.charForward(pos);
+        ASSERT(cs.charAt(pos) == 0);
+        pos = cs.charForward(pos);
+        ASSERT(cs.charAt(pos) == 0);
+        pos = cs.charBack(pos);
+        ASSERT(cs.charAt(pos) == 0x10348);
+        pos = cs.charBack(pos);
+        ASSERT(cs.charAt(pos) == 0x20ac);
+        pos = cs.charBack(pos);
+        ASSERT(cs.charAt(pos) == 0xa2);
+        pos = cs.charBack(pos);
+        ASSERT(cs.charAt(pos) == 0x24);
+        pos = cs.charBack(pos);
+        ASSERT(cs.charAt(pos) == 0x24);
+
+        ASSERT(cs.charForward(cs.chars(), 0) == cs.chars());
+        ASSERT(cs.charBack(cs.chars(), 0) == cs.chars());
     }
 
     // String substr(const char_t* pos, int len = -1) const
@@ -784,11 +877,14 @@ void testString()
     ASSERT(String(STR("A")).compareNoCase(STR("ab")) < 0);
     ASSERT(String(STR("A")).compareNoCase(STR("a")) == 0);
 
-    // const char_t* find(const String& str, const char_t* pos = NULL) const
+    // char_t* find(const String& str, char_t* pos = NULL)
 
-    ASSERT(!String().find(String()));
-    ASSERT(!String().find(String(STR("a"))));
-    ASSERT_EXCEPTION(Exception, String().find(String(), STR("")));
+    {
+        String s;
+        ASSERT(!s.find(String()));
+        ASSERT(!s.find(String(STR("a"))));
+        ASSERT_EXCEPTION(Exception, s.find(String(), ep));
+    }
 
     {
         String s(STR("abcdabcd"));
@@ -802,11 +898,14 @@ void testString()
         ASSERT(!s.find(String()));
     }
 
-    // const char_t* find(const char_t* chars, const char_t* pos = NULL) const
+    // char_t* find(const char_t* chars, char_t* pos = NULL)
 
-    ASSERT(!String().find(np));
-    ASSERT(!String().find(STR("a")));
-    ASSERT_EXCEPTION(Exception, String().find(np, STR("")));
+    {
+        String s;
+        ASSERT(!s.find(np));
+        ASSERT(!s.find(STR("a")));
+        ASSERT_EXCEPTION(Exception, s.find(np, ep));
+    }
 
     {
         String s(STR("abcdabcd"));
@@ -820,11 +919,14 @@ void testString()
         ASSERT(!s.find(np));
     }
 
-    // const char_t* find(unichar_t ch, const char_t* pos = NULL) const
+    // char_t* find(unichar_t ch, char_t* pos = NULL)
 
-    ASSERT_EXCEPTION(Exception, String().find(zc));
-    ASSERT(!String().find('a'));
-    ASSERT_EXCEPTION(Exception, String().find('a', STR("")));
+    {
+        String s;
+        ASSERT_EXCEPTION(Exception, s.find(zc));
+        ASSERT(!s.find('a'));
+        ASSERT_EXCEPTION(Exception, s.find('a', ep));
+    }
 
     {
         String s(STR("abcabc"));
@@ -837,11 +939,14 @@ void testString()
         ASSERT_EXCEPTION(Exception, s.find('a', s.chars() + s.length() + 1));
     }
 
-    // const char_t* findNoCase(const String& str, const char_t* pos = NULL) const
+    // char_t* findNoCase(const String& str, char_t* pos = NULL)
 
-    ASSERT(!String().findNoCase(String()));
-    ASSERT(!String().findNoCase(String(STR("a"))));
-    ASSERT_EXCEPTION(Exception, String().findNoCase(String(), STR("")));
+    {
+        String s;
+        ASSERT(!s.findNoCase(String()));
+        ASSERT(!s.findNoCase(String(STR("a"))));
+        ASSERT_EXCEPTION(Exception, s.findNoCase(String(), ep));
+    }
 
     {
         String s(STR("ABCDABCD"));
@@ -855,11 +960,14 @@ void testString()
         ASSERT(!s.findNoCase(String()));
     }
 
-    // const char_t* findNoCase(const char_t* chars, const char_t* pos = NULL) const
+    // char_t* findNoCase(const char_t* chars, char_t* pos = NULL)
 
-    ASSERT(!String().findNoCase(np));
-    ASSERT(!String().findNoCase(STR("a")));
-    ASSERT_EXCEPTION(Exception, String().findNoCase(np, STR("")));
+    {
+        String s;
+        ASSERT(!s.findNoCase(np));
+        ASSERT(!s.findNoCase(STR("a")));
+        ASSERT_EXCEPTION(Exception, s.findNoCase(np, ep));
+    }
 
     {
         String s(STR("ABCDABCD"));
@@ -873,11 +981,14 @@ void testString()
         ASSERT(!s.findNoCase(np));
     }
 
-    // const char_t* findNoCase(unichar_t ch, const char_t* pos = NULL) const
+    // char_t* findNoCase(unichar_t ch, char_t* pos = NULL)
 
-    ASSERT_EXCEPTION(Exception, String().findNoCase(zc));
-    ASSERT(!String().findNoCase('a'));
-    ASSERT_EXCEPTION(Exception, String().findNoCase('a', STR("")));
+    {
+        String s;
+        ASSERT_EXCEPTION(Exception, s.findNoCase(zc));
+        ASSERT(!s.findNoCase('a'));
+        ASSERT_EXCEPTION(Exception, s.findNoCase('a', ep));
+    }
 
     {
         String s(STR("ABCABC"));
@@ -888,6 +999,142 @@ void testString()
 
         ASSERT_EXCEPTION(Exception, s.findNoCase('a', s.chars() - 1));
         ASSERT_EXCEPTION(Exception, s.findNoCase('a', s.chars() + s.length() + 1));
+    }
+
+    // char_t* find(const String& str, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.find(String()));
+        ASSERT(!cs.find(String(STR("a"))));
+        ASSERT_EXCEPTION(Exception, cs.find(String(), ep));
+    }
+
+    {
+        String s(STR("abcdabcd"));
+        const String& cs = s;
+        ASSERT(cs.find(String(STR("bc"))) == cs.charPosition(1));
+        ASSERT(cs.find(String(STR("bc")), cs.charPosition(2)) == cs.charPosition(5));
+        ASSERT(!cs.find(String(STR("bc")), cs.charPosition(6)));
+        ASSERT(!cs.find(String(STR("xy"))));
+
+        ASSERT_EXCEPTION(Exception, cs.find(String(), cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.find(String(), cs.chars() + cs.length() + 1));
+        ASSERT(!cs.find(String()));
+    }
+
+    // char_t* find(const char_t* chars, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.find(np));
+        ASSERT(!cs.find(STR("a")));
+        ASSERT_EXCEPTION(Exception, cs.find(np, ep));
+    }
+
+    {
+        String s(STR("abcdabcd"));
+        const String& cs = s;
+        ASSERT(cs.find(STR("bc")) == cs.charPosition(1));
+        ASSERT(cs.find(STR("bc"), cs.charPosition(2)) == cs.charPosition(5));
+        ASSERT(!cs.find(STR("bc"), cs.charPosition(6)));
+        ASSERT(!cs.find(STR("xy")));
+
+        ASSERT_EXCEPTION(Exception, cs.find(np, cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.find(np, cs.chars() + cs.length() + 1));
+        ASSERT(!cs.find(np));
+    }
+
+    // char_t* find(unichar_t ch, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT_EXCEPTION(Exception, cs.find(zc));
+        ASSERT(!cs.find('a'));
+        ASSERT_EXCEPTION(Exception, cs.find('a', ep));
+    }
+
+    {
+        String s(STR("abcabc"));
+        const String& cs = s;
+        ASSERT(cs.find('b') == cs.charPosition(1));
+        ASSERT(cs.find('b', cs.charPosition(2)) == cs.charPosition(4));
+        ASSERT(!cs.find('b', cs.charPosition(5)));
+        ASSERT(!cs.find('x'));
+
+        ASSERT_EXCEPTION(Exception, cs.find('a', cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.find('a', cs.chars() + cs.length() + 1));
+    }
+
+    // char_t* findNoCase(const String& str, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.findNoCase(String()));
+        ASSERT(!cs.findNoCase(String(STR("a"))));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(String(), ep));
+    }
+
+    {
+        String s(STR("ABCDABCD"));
+        const String& cs = s;
+        ASSERT(cs.findNoCase(String(STR("bc"))) == cs.charPosition(1));
+        ASSERT(cs.findNoCase(String(STR("bc")), cs.charPosition(2)) == cs.charPosition(5));
+        ASSERT(!cs.findNoCase(String(STR("bc")), cs.charPosition(6)));
+        ASSERT(!cs.findNoCase(String(STR("xy"))));
+
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(String(), cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(String(), cs.chars() + cs.length() + 1));
+        ASSERT(!cs.findNoCase(String()));
+    }
+
+    // char_t* findNoCase(const char_t* chars, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT(!cs.findNoCase(np));
+        ASSERT(!cs.findNoCase(STR("a")));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(np, ep));
+    }
+
+    {
+        String s(STR("ABCDABCD"));
+        const String& cs = s;
+        ASSERT(cs.findNoCase(STR("bc")) == cs.charPosition(1));
+        ASSERT(cs.findNoCase(STR("bc"), cs.charPosition(2)) == cs.charPosition(5));
+        ASSERT(!cs.findNoCase(STR("bc"), cs.charPosition(6)));
+        ASSERT(!cs.findNoCase(STR("xy")));
+
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(np, cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(np, cs.chars() + cs.length() + 1));
+        ASSERT(!cs.findNoCase(np));
+    }
+
+    // char_t* findNoCase(unichar_t ch, char_t* pos = NULL)
+
+    {
+        String s;
+        const String& cs = s;
+        ASSERT_EXCEPTION(Exception, cs.findNoCase(zc));
+        ASSERT(!cs.findNoCase('a'));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase('a', ep));
+    }
+
+    {
+        String s(STR("ABCABC"));
+        const String& cs = s;
+        ASSERT(cs.findNoCase('b') == cs.charPosition(1));
+        ASSERT(cs.findNoCase('b', cs.charPosition(2)) == cs.charPosition(4));
+        ASSERT(!cs.findNoCase('b', cs.charPosition(5)));
+        ASSERT(!cs.findNoCase('x'));
+
+        ASSERT_EXCEPTION(Exception, cs.findNoCase('a', cs.chars() - 1));
+        ASSERT_EXCEPTION(Exception, cs.findNoCase('a', cs.chars() + cs.length() + 1));
     }
 
     // bool startsWith(const String& str) const
@@ -1200,9 +1447,9 @@ void testString()
     // void appendFormat(const char_t* format, va_list args)
 
     {
-        String s(STR("val = "));
-        s.appendFormat(STR("%d"), 123);
-        ASSERT(s == STR("val = 123"));
+        String s(STR("result: "));
+        s.appendFormat(STR("val = %d"), 123);
+        ASSERT(s == STR("result: val = 123"));
     }
 
     // void insert(char_t* pos, const String& str)
@@ -1241,14 +1488,14 @@ void testString()
 
     {
         String s1(STR("a")), s2(STR("b"));
-        s1.insert(s1.chars() + 1, s2);
+        s1.insert(s1.charPosition(1), s2);
         ASSERT(s1 == STR("ab"));
         ASSERT(s1.capacity() == 6);
     }
 
     {
         String s1(STR("ab")), s2(STR("c"));
-        s1.insert(s1.chars() + 1, s2);
+        s1.insert(s1.charPosition(1), s2);
         ASSERT(s1 == STR("acb"));
         ASSERT(s1.capacity() == 8);
     }
@@ -1257,12 +1504,12 @@ void testString()
         String s1, s2(STR("c"));
         s1.ensureCapacity(10);
         s1 = STR("ab");
-        s1.insert(s1.chars() + 1, s2);
+        s1.insert(s1.charPosition(1), s2);
         ASSERT(s1 == STR("acb"));
         ASSERT(s1.capacity() == 10);
     }
 
-    // void insert(char_t* pos, const String& str)
+    // void insert(char_t* pos, const char_t* chars)
 
     {
         String s(STR("a"));
@@ -1298,14 +1545,14 @@ void testString()
 
     {
         String s(STR("a"));
-        s.insert(s.chars() + 1, STR("b"));
+        s.insert(s.charPosition(1), STR("b"));
         ASSERT(s == STR("ab"));
         ASSERT(s.capacity() == 6);
     }
 
     {
         String s(STR("ab"));
-        s.insert(s.chars() + 1, STR("c"));
+        s.insert(s.charPosition(1), STR("c"));
         ASSERT(s == STR("acb"));
         ASSERT(s.capacity() == 8);
     }
@@ -1314,12 +1561,12 @@ void testString()
         String s;
         s.ensureCapacity(10);
         s = STR("ab");
-        s.insert(s.chars() + 1, STR("c"));
+        s.insert(s.charPosition(1), STR("c"));
         ASSERT(s == STR("acb"));
         ASSERT(s.capacity() == 10);
     }
 
-    // void insert(char_t* pos, unichar_t ch, int len)
+    // void insert(char_t* pos, unichar_t ch, int len = 1)
 
     {
         String s(STR("a"));
@@ -1352,21 +1599,21 @@ void testString()
 
     {
         String s(STR("a"));
-        s.insert(s.chars() + 1, 'b');
+        s.insert(s.charPosition(1), 'b');
         ASSERT(s == STR("ab"));
         ASSERT(s.capacity() == 6);
     }
 
     {
         String s(STR("ab"));
-        s.insert(s.chars() + 1, 'c');
+        s.insert(s.charPosition(1), 'c');
         ASSERT(s == STR("acb"));
         ASSERT(s.capacity() == 8);
     }
 
     {
         String s(STR("ab"));
-        s.insert(s.chars() + 1, 'c', 2);
+        s.insert(s.charPosition(1), 'c', 2);
         ASSERT(s == STR("accb"));
         ASSERT(s.capacity() == 10);
     }
@@ -1375,12 +1622,12 @@ void testString()
         String s;
         s.ensureCapacity(10);
         s = STR("ab");
-        s.insert(s.chars() + 1, 'c');
+        s.insert(s.charPosition(1), 'c');
         ASSERT(s == STR("acb"));
         ASSERT(s.capacity() == 10);
     }
 
-    // void erase(char_t* pos, int len)
+    // erase(char_t* pos, int len = -1)
 
     {
         String s(STR("a"));
@@ -1411,14 +1658,21 @@ void testString()
 
     {
         String s(STR("abc"));
-        s.erase(s.chars() + 2, 1);
+        s.erase(s.charPosition(2), 1);
         ASSERT(s == STR("ab"));
         ASSERT(s.capacity() == 4);
     }
 
     {
         String s(STR("abc"));
-        s.erase(s.chars() + 1);
+        s.erase(s.charPosition(1), 1);
+        ASSERT(s == STR("ac"));
+        ASSERT(s.capacity() == 4);
+    }
+
+    {
+        String s(STR("abc"));
+        s.erase(s.charPosition(1));
         ASSERT(s == STR("a"));
         ASSERT(s.capacity() == 4);
     }
@@ -1570,7 +1824,7 @@ void testString()
         ASSERT(s.capacity() == 6);
     }
 
-    // void replace(char_t* pos, const String& str, int len)
+    // void replace(char_t* pos, const String& str, int len = -1)
 
     {
         String s(STR("a"));
@@ -1579,15 +1833,32 @@ void testString()
     }
 
     {
-        String s;
-        s.replace(s.chars(), String(STR("abc")));
-        ASSERT(s.length() == 0);
-        ASSERT(s.capacity() == 0);
+        String s(STR("abc"));
+        ASSERT_EXCEPTION(Exception, s.replace(s.chars(), s));
     }
 
     {
-        String s(STR("abc"));
-        ASSERT_EXCEPTION(Exception, s.replace(s.chars(), s));
+        String s;
+        s.replace(s.chars(), String(STR("a")));
+        ASSERT(s == STR("a"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("a"));
+        s.replace(s.chars(), String());
+        ASSERT(s == STR(""));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("a"));
+        s.replace(s.chars(), String(STR("b")));
+        ASSERT(s == STR("b"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
     }
 
     {
@@ -1599,16 +1870,24 @@ void testString()
     }
 
     {
-        String s(STR("a"));
-        s.replace(s.chars(), String(STR("b")), 1);
-        ASSERT(s == STR("b"));
+        String s(STR("ab"));
+        s.replace(s.charPosition(1), String(), 1);
+        ASSERT(s == STR("a"));
         ASSERT(s.length() == 1);
-        ASSERT(s.capacity() == 2);
+        ASSERT(s.capacity() == 3);
     }
 
     {
         String s(STR("abcd"));
-        s.replace(s.chars() + 1, String(STR("x")), 2);
+        s.replace(s.charPosition(1), String(), 2);
+        ASSERT(s == STR("ad"));
+        ASSERT(s.length() == 2);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.charPosition(1), String(STR("x")), 2);
         ASSERT(s == STR("axd"));
         ASSERT(s.length() == 3);
         ASSERT(s.capacity() == 5);
@@ -1616,7 +1895,7 @@ void testString()
 
     {
         String s(STR("abcd"));
-        s.replace(s.chars() + 1, String(STR("xyz")), 2);
+        s.replace(s.charPosition(1), String(STR("xyz")), 2);
         ASSERT(s == STR("axyzd"));
         ASSERT(s.length() == 5);
         ASSERT(s.capacity() == 6);
@@ -1624,29 +1903,13 @@ void testString()
 
     {
         String s(STR("abcd"));
-        s.replace(s.chars(), String(STR("x")), 2);
-        ASSERT(s == STR("xcd"));
-        ASSERT(s.length() == 3);
-        ASSERT(s.capacity() == 5);
-    }
-
-    {
-        String s(STR("abcd"));
-        s.replace(s.chars() + 2, String(STR("x")), 2);
+        s.replace(s.charPosition(2), String(STR("x")));
         ASSERT(s == STR("abx"));
         ASSERT(s.length() == 3);
         ASSERT(s.capacity() == 5);
     }
 
-    {
-        String s(STR("abc"));
-        s.replace(s.chars() + 2, String(STR("xyz")));
-        ASSERT(s == STR("abxyz"));
-        ASSERT(s.length() == 5);
-        ASSERT(s.capacity() == 6);
-    }
-
-    // replace(char_t* pos, const char_t* chars, int len)
+    // void replace(char_t* pos, const char_t* chars, int len = -1) 
 
     {
         String s(STR("a"));
@@ -1655,23 +1918,32 @@ void testString()
     }
 
     {
-        String s;
-        s.replace(s.chars(), STR("abc"));
-        ASSERT(s.length() == 0);
-        ASSERT(s.capacity() == 0);
-    }
-
-    {
         String s(STR("abc"));
         ASSERT_EXCEPTION(Exception, s.replace(s.chars(), s.chars()));
     }
 
     {
-        String s(STR("ab"));
-        s.replace(s.chars(), NULL, 1);
+        String s;
+        s.replace(s.chars(), STR("a"));
+        ASSERT(s == STR("a"));
+        ASSERT(s.length() == 1);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("a"));
+        s.replace(s.chars(), STR(""));
+        ASSERT(s == STR(""));
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 2);
+    }
+
+    {
+        String s(STR("a"));
+        s.replace(s.chars(), STR("b"));
         ASSERT(s == STR("b"));
         ASSERT(s.length() == 1);
-        ASSERT(s.capacity() == 3);
+        ASSERT(s.capacity() == 2);
     }
 
     {
@@ -1683,16 +1955,24 @@ void testString()
     }
 
     {
-        String s(STR("a"));
-        s.replace(s.chars(), STR("b"), 1);
-        ASSERT(s == STR("b"));
+        String s(STR("ab"));
+        s.replace(s.charPosition(1), STR(""), 1);
+        ASSERT(s == STR("a"));
         ASSERT(s.length() == 1);
-        ASSERT(s.capacity() == 2);
+        ASSERT(s.capacity() == 3);
     }
 
     {
         String s(STR("abcd"));
-        s.replace(s.chars() + 1, STR("x"), 2);
+        s.replace(s.charPosition(1), STR(""), 2);
+        ASSERT(s == STR("ad"));
+        ASSERT(s.length() == 2);
+        ASSERT(s.capacity() == 5);
+    }
+
+    {
+        String s(STR("abcd"));
+        s.replace(s.charPosition(1), STR("x"), 2);
         ASSERT(s == STR("axd"));
         ASSERT(s.length() == 3);
         ASSERT(s.capacity() == 5);
@@ -1700,7 +1980,7 @@ void testString()
 
     {
         String s(STR("abcd"));
-        s.replace(s.chars() + 1, STR("xyz"), 2);
+        s.replace(s.charPosition(1), STR("xyz"), 2);
         ASSERT(s == STR("axyzd"));
         ASSERT(s.length() == 5);
         ASSERT(s.capacity() == 6);
@@ -1708,26 +1988,10 @@ void testString()
 
     {
         String s(STR("abcd"));
-        s.replace(s.chars(), STR("x"), 2);
-        ASSERT(s == STR("xcd"));
-        ASSERT(s.length() == 3);
-        ASSERT(s.capacity() == 5);
-    }
-
-    {
-        String s(STR("abcd"));
-        s.replace(s.chars() + 2, STR("x"), 2);
+        s.replace(s.charPosition(2), STR("x"));
         ASSERT(s == STR("abx"));
         ASSERT(s.length() == 3);
         ASSERT(s.capacity() == 5);
-    }
-
-    {
-        String s(STR("abc"));
-        s.replace(s.chars() + 2, STR("xyz"));
-        ASSERT(s == STR("abxyz"));
-        ASSERT(s.length() == 5);
-        ASSERT(s.capacity() == 6);
     }
 
     // void replace(const String& searchStr, const String& replaceStr)
@@ -1830,6 +2094,10 @@ void testString()
         String s(STR("abc"));
         s.replace(STR("b"), STR(""));
         ASSERT(s == STR("ac"));
+    }
+
+    {
+        String s(STR("abc"));
         s.replace(STR("b"), np);
         ASSERT(s == STR("ac"));
     }  
@@ -2058,6 +2326,14 @@ void testString()
     // char_t* release()
 
     {
+        String s;
+        char_t* p = s.release();
+        ASSERT(!p);
+        ASSERT(!s.chars());
+        ASSERT(s.length() == 0);
+        ASSERT(s.capacity() == 0);
+    }
+    {
         String s(STR("a"));
         char_t* p = s.release();
         ASSERT(strCompare(p, STR("a")) == 0);
@@ -2069,9 +2345,12 @@ void testString()
 
     // String concat(_Args&&... args)
 
+    ASSERT(String::concat(STR("")) == STR(""));
     ASSERT(String::concat(STR("a")) == STR("a"));
     ASSERT(String::concat(String(STR("a"))) == STR("a"));
     ASSERT(String::concat(STR("a"), STR("b")) == STR("ab"));
+    ASSERT(String::concat(STR("a"), STR("")) == STR("a"));
+    ASSERT(String::concat(STR("a"), STR(""), STR("b")) == STR("ab"));
     ASSERT(String::concat(STR("a"), String(STR("b"))) == STR("ab"));
     ASSERT(String::concat(String(STR("a")), STR("b")) == STR("ab"));
     ASSERT(String::concat(String(STR("a")), String(STR("b"))) == STR("ab"));
@@ -2152,75 +2431,75 @@ void testStringIterator()
 {
     {
         String s;
-        String::ConstIterator it(s);
+        auto iter = s.constIterator();
 
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(!iter.moveNext());
+        ASSERT(!iter.movePrev());
     }
 
     {
         String s(CHARS);
-        String::ConstIterator it(s);
+        auto iter = s.constIterator();
 
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0x24);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0xa2);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0x20ac);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0x10348);
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0x24);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0xa2);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0x20ac);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0x10348);
+        ASSERT(!iter.moveNext());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         String s(CHARS);
-        String::ConstIterator it(s);
+        auto iter = s.constIterator();
 
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 0x10348);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 0x20ac);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 0xa2);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 0x24);
-        ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 0x10348);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 0x20ac);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 0xa2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 0x24);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         String s(CHARS);
-        String::ConstIterator it(s);
+        auto iter = s.constIterator();
 
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0x24);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0xa2);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 0x24);
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0x24);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0xa2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 0x24);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         String s(CHARS);
-        String::ConstIterator it(s);
+        auto iter = s.constIterator();
 
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0x24);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0xa2);
-        it.reset();
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 0x24);
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0x24);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0xa2);
+        iter.reset();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 0x24);
     }
 }
 
@@ -2279,61 +2558,56 @@ void testArray()
 
     // Array(int size, const _Type* values)
 
+    ASSERT_EXCEPTION(Exception, Array<int>(-1, np));
+    ASSERT_EXCEPTION(Exception, Array<int>(0, ep));
+    ASSERT_EXCEPTION(Exception, Array<int>(1, np));
+
     {
-        ASSERT_EXCEPTION(Exception, Array<int>(-1, np));
-        ASSERT_EXCEPTION(Exception, Array<int>(0, ep));
-        ASSERT_EXCEPTION(Exception, Array<int>(1, np));
+        Array<int> a(0, np);
+        ASSERT(a.size() == 0);
+        ASSERT(a.capacity() == 0);
+        ASSERT(!a.values());
+    }
 
-        {
-            Array<int> a(0, np);
-            ASSERT(a.size() == 0);
-            ASSERT(a.capacity() == 0);
-            ASSERT(!a.values());
-        }
-
-        {
-            Array<int> a(1, ep);
-            ASSERT(a.size() == 1);
-            ASSERT(a.capacity() == 1);
-            ASSERT(a.values() != ep);
-            ASSERT(a[0] == *ep);
-        }
+    {
+        Array<int> a(3, ep);
+        ASSERT(a.size() == 3);
+        ASSERT(a.capacity() == 3);
+        ASSERT(a.values() != ep);
+        ASSERT(compareSequence(a, ep));
     }
 
     // Array(const Array<_Type>& other)
 
     {
         Array<int> a1, a2(a1);
-
         ASSERT(a2.size() == 0);
         ASSERT(a2.capacity() == 0);
         ASSERT(!a2.values());
     }
 
     {
-        Array<int> a1(1), a2(a1);
-
-        ASSERT(a2.size() == 1);
-        ASSERT(a2.capacity() == 1);
+        Array<int> a1(3, ep), a2(a1);
+        ASSERT(a2.size() == 3);
+        ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
-        ASSERT(a2[0] == 0);
-
+        ASSERT(compareSequence(a2, ep));
         ASSERT(a1.values() != a2.values());
     }
 
     // Array(Array<_Type>&& other)
 
     {
-        Array<int> a1(1), a2(static_cast<Array<int>&&>(a1));
+        Array<int> a1(3, ep), a2(static_cast<Array<int>&&>(a1));
 
         ASSERT(a1.size() == 0);
         ASSERT(a1.capacity() == 0);
         ASSERT(!a1.values());
 
-        ASSERT(a2.size() == 1);
-        ASSERT(a2.capacity() == 1);
+        ASSERT(a2.size() == 3);
+        ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
-        ASSERT(a2[0] == 0);
+        ASSERT(compareSequence(a2, ep));
     }
 
     // Array<_Type>& operator=(const Array<_Type>& other)
@@ -2341,23 +2615,27 @@ void testArray()
     {
         Array<int> a1(3, ep), a2;
         a2 = a1;
+        ASSERT(a2.size() == 3);
+        ASSERT(a2.capacity() == 3);
+        ASSERT(a2.values());
         ASSERT(compareSequence(a2, ep));
+        ASSERT(a1.values() != a2.values());
     }
 
     // Array<_Type>& operator=(Array<_Type>&& other)
 
     {
-        Array<int> a1(1), a2;
+        Array<int> a1(3, ep), a2;
         a2 = static_cast<Array<int>&&>(a1);
 
         ASSERT(a1.size() == 0);
         ASSERT(a1.capacity() == 0);
         ASSERT(!a1.values());
 
-        ASSERT(a2.size() == 1);
-        ASSERT(a2.capacity() == 1);
+        ASSERT(a2.size() == 3);
+        ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
-        ASSERT(a2[0] == 0);
+        ASSERT(compareSequence(a2, ep));
     }
 
     // _Type& operator[](int index)
@@ -2383,6 +2661,8 @@ void testArray()
 
     {
         Array<int> a(3, ep);
+        ASSERT_EXCEPTION(Exception, a.value(-1));
+        ASSERT_EXCEPTION(Exception, a.value(3));
         ASSERT(a.value(0) == 1);
         ASSERT(a.value(1) == 2);
         ASSERT(a.value(2) == 3);
@@ -2393,6 +2673,8 @@ void testArray()
     {
         Array<int> a(3, ep);
         const Array<int>& ca = a;
+        ASSERT_EXCEPTION(Exception, ca.value(-1));
+        ASSERT_EXCEPTION(Exception, ca.value(3));
         ASSERT(ca.value(0) == 1);
         ASSERT(ca.value(1) == 2);
         ASSERT(ca.value(2) == 3);
@@ -2470,6 +2752,8 @@ void testArray()
 
     // void ensureCapacity(int capacity)
 
+    ASSERT_EXCEPTION(Exception, Array<int>().ensureCapacity(-1));
+
     {
         Array<int> a(3, ep);
         ASSERT(a.capacity() == 3);
@@ -2483,6 +2767,14 @@ void testArray()
         ASSERT(a.capacity() == 3);
         a.ensureCapacity(5);
         ASSERT(a.capacity() == 5);
+        ASSERT(compareSequence(a, ep));
+    }
+
+    {
+        Array<int> a(3, ep);
+        ASSERT(a.capacity() == 3);
+        a.ensureCapacity(0);
+        ASSERT(a.capacity() == 3);
         ASSERT(compareSequence(a, ep));
     }
 
@@ -2507,6 +2799,8 @@ void testArray()
 
     // void resize(int size)
 
+    ASSERT_EXCEPTION(Exception, Array<int>().resize(-1));
+
     {
         Array<int> a;
         a.resize(1);
@@ -2518,6 +2812,9 @@ void testArray()
     {
         Array<int> a(3, ep);
         a.resize(4);
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
+        ASSERT(a[2] == 3);
         ASSERT(a[3] == 0);
         ASSERT(a.size() == 4);
         ASSERT(a.capacity() == 4);
@@ -2532,7 +2829,16 @@ void testArray()
         ASSERT(a.capacity() == 3);
     }
 
+    {
+        Array<int> a(3, ep);
+        a.resize(0);
+        ASSERT(a.size() == 0);
+        ASSERT(a.capacity() == 3);
+    }
+
     // void resize(int size, const _Type& value)
+
+    ASSERT_EXCEPTION(Exception, Array<int>().resize(-1, 123));
 
     {
         Array<int> a;
@@ -2545,6 +2851,9 @@ void testArray()
     {
         Array<int> a(3, ep);
         a.resize(4, 123);
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
+        ASSERT(a[2] == 3);
         ASSERT(a[3] == 123);
         ASSERT(a.size() == 4);
         ASSERT(a.capacity() == 4);
@@ -2556,6 +2865,13 @@ void testArray()
         ASSERT(a[0] == 1);
         ASSERT(a[1] == 2);
         ASSERT(a.size() == 2);
+        ASSERT(a.capacity() == 3);
+    }
+
+    {
+        Array<int> a(3, ep);
+        a.resize(0, 123);
+        ASSERT(a.size() == 0);
         ASSERT(a.capacity() == 3);
     }
 
@@ -2601,9 +2917,7 @@ void testArray()
 
     {
         Array<int> a(3, ep);
-        a.assign(a.size(), a.values());
-        ASSERT(a.size() == 3);
-        ASSERT(compareSequence(a, ep));
+        ASSERT_EXCEPTION(Exception, a.assign(a.size(), a.values()));
     }
 
     {
@@ -2616,9 +2930,9 @@ void testArray()
     {
         Array<int> a;
         a.assign(3, ep);
-        ASSERT(compareSequence(a, ep));
         ASSERT(a.size() == 3);
         ASSERT(a.capacity() == 3);
+        ASSERT(compareSequence(a, ep));
     }
 
     {
@@ -2640,34 +2954,28 @@ void testArray()
 
     {
         Array<int> a(3, ep);
-        a.assign(a);
-        ASSERT(a.size() == 3);
-        ASSERT(compareSequence(a, ep));
+        ASSERT_EXCEPTION(Exception, a.assign(a));
     }
 
     {
-        Array<int> a1, a2(1);
+        Array<int> a1, a2(3, ep);
         a2.assign(a1);
-
         ASSERT(a2.size() == 0);
-        ASSERT(a2.capacity() == 1);
+        ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
     }
 
     {
-        Array<int> a1(1), a2;
+        Array<int> a1(3, ep), a2;
         a2.assign(a1);
-
-        ASSERT(a2.size() == 1);
-        ASSERT(a2.capacity() == 1);
-        ASSERT(a2.values());
-        ASSERT(a2[0] == 0);
+        ASSERT(a2.size() == 3);
+        ASSERT(a2.capacity() == 3);
+        ASSERT(compareSequence(a2, ep));
     }
 
     {
         Array<int> a1(1), a2(3, ep);
         a2.assign(a1);
-
         ASSERT(a2.size() == 1);
         ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
@@ -2804,7 +3112,8 @@ void testArray()
     {
         Array<int> a(3, ep);
         a.remove(0);
-        ASSERT(a.front() == 2);
+        ASSERT(a[0] == 2);
+        ASSERT(a[1] == 3);
         ASSERT(a.size() == 2);
         ASSERT(a.capacity() == 3);
     }
@@ -2812,7 +3121,8 @@ void testArray()
     {
         Array<int> a(3, ep);
         a.remove(2);
-        ASSERT(a.back() == 2);
+        ASSERT(a[0] == 1);
+        ASSERT(a[1] == 2);
         ASSERT(a.size() == 2);
         ASSERT(a.capacity() == 3);
     }
@@ -2820,6 +3130,7 @@ void testArray()
     {
         Array<int> a(3, ep);
         a.remove(1);
+        ASSERT(a[0] == 1);
         ASSERT(a[1] == 3);
         ASSERT(a.size() == 2);
         ASSERT(a.capacity() == 3);
@@ -2832,6 +3143,7 @@ void testArray()
         a.clear();
         ASSERT(a.size() == 0);
         ASSERT(a.capacity() == 0);
+        ASSERT(!a.values());
     }
 
     {
@@ -2839,6 +3151,7 @@ void testArray()
         a.clear();
         ASSERT(a.size() == 0);
         ASSERT(a.capacity() == 3);
+        ASSERT(a.values());
     }
     
     // void reset()
@@ -2862,8 +3175,7 @@ void testArray()
     // Array<_Type> acquire(int size, _Type* values)
 
     {
-        int* e = Memory::allocate<int>(3);
-        memcpy(e, elem, sizeof(elem));
+        int* e = Memory::createArrayCopy(3, 3, ep);
         Array<int> a = Array<int>::acquire(3, e);
         ASSERT(a.values() == e);
         ASSERT(compareSequence(a, ep));
@@ -2903,9 +3215,12 @@ void testArray()
     {
         Array<UniquePtr<int>> a;
         a.ensureCapacity(2);
+        ASSERT(a.capacity() == 2);
         a.pushBack(createUnique<int>(1));
         a.shrinkToLength();
+        ASSERT(a.capacity() == 1);
         a.resize(3);
+        ASSERT(a.capacity() == 3);
     }
 
     {
@@ -2913,6 +3228,15 @@ void testArray()
         a.insert(0, createUnique<int>(1));
         a.insert(0, createUnique<int>(2));
         a.popBack();
+        ASSERT(*a.back() == 2);
+    }
+
+    {
+        Array<UniquePtr<int>> a;
+        a.pushBack(createUnique<int>(1));
+        a.pushBack(createUnique<int>(2));
+        a.remove(0);
+        ASSERT(*a.front() == 2);
     }
 
     {
@@ -2920,6 +3244,7 @@ void testArray()
         a.pushBack(createUnique<int>(1));
         a.pushBack(createUnique<int>(2));
         a.clear();
+        ASSERT(a.empty());
     }
 }
 
@@ -2930,64 +3255,130 @@ void testArrayIterator()
 
     {
         Array<int> a;
-        Array<int>::Iterator it(a);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = a.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(!iter.moveNext());
+        ASSERT(!iter.movePrev());
     }
 
     {
         Array<int> a(3, ep);
-        Array<int>::Iterator it(a);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 1);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 2);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 3);
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = a.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 3);
+        ASSERT(!iter.moveNext());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         Array<int> a(3, ep);
-        Array<int>::Iterator it(a);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 3);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 2);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 1);
-        ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = a.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 3);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 1);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         Array<int> a(3, ep);
-        Array<int>::Iterator it(a);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 1);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 2);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 1);
-        ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = a.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 1);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         Array<int> a(3, ep);
-        Array<int>::Iterator it(a);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 1);
-        it.reset();
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = a.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        iter.reset();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+    }
+
+    {
+        Array<int> a;
+        auto iter = a.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(!iter.moveNext());
+        ASSERT(!iter.movePrev());
+    }
+
+    {
+        Array<int> a(3, ep);
+        auto iter = a.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 3);
+        ASSERT(!iter.moveNext());
+        ASSERT_EXCEPTION(Exception, iter.value());
+    }
+
+    {
+        Array<int> a(3, ep);
+        auto iter = a.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 3);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 1);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
+    }
+
+    {
+        Array<int> a(3, ep);
+        auto iter = a.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 1);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
+    }
+
+    {
+        Array<int> a(3, ep);
+        auto iter = a.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        iter.reset();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
     }
 }
 
@@ -3237,6 +3628,21 @@ void testList()
         ASSERT(!cl.find(0));
     }
 
+    // void assign(int size, const _Type& value)
+
+    {
+        List<int> l;
+        l.assign(0, 123);
+        ASSERT(l.empty());
+    }
+
+    {
+        List<int> l;
+        l.assign(1, 123);
+        ASSERT(!l.empty());
+        ASSERT(l.front()->value == 123);
+    }
+    
     // void assign(int size, const _Type* values)
 
     {
@@ -3465,6 +3871,7 @@ void testList()
          l.pushBack(createUnique<int>(1));
          l.insertBefore(l.front(), createUnique<int>(2));
          l.popFront();
+         ASSERT(*l.back()->value == 1);
     }
 
     {
@@ -3472,6 +3879,7 @@ void testList()
          l.pushFront(createUnique<int>(1));
          l.insertAfter(l.back(), createUnique<int>(2));
          l.popBack();
+         ASSERT(*l.back()->value == 1);
     }
 
     {
@@ -3479,6 +3887,7 @@ void testList()
          l.pushBack(createUnique<int>(1));
          l.pushBack(createUnique<int>(2));
          l.remove(l.front());
+         ASSERT(*l.back()->value == 2);
     }
 
     {
@@ -3486,6 +3895,7 @@ void testList()
          l.pushBack(createUnique<int>(1));
          l.pushBack(createUnique<int>(2));
          l.clear();
+         ASSERT(l.empty());
     }
 }
 
@@ -3496,64 +3906,130 @@ void testListIterator()
 
     {
         List<int> l;
-        List<int>::Iterator it(l);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = l.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(!iter.moveNext());
+        ASSERT(!iter.movePrev());
     }
 
     {
         List<int> l(3, ep);
-        List<int>::Iterator it(l);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 1);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 2);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 3);
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = l.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 3);
+        ASSERT(!iter.moveNext());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         List<int> l(3, ep);
-        List<int>::Iterator it(l);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 3);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 2);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 1);
-        ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = l.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 3);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 1);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         List<int> l(3, ep);
-        List<int>::Iterator it(l);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 1);
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 2);
-        ASSERT(it.movePrev());
-        ASSERT(it.value() == 1);
-        ASSERT(!it.movePrev());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = l.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 1);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 
     {
         List<int> l(3, ep);
-        List<int>::Iterator it(l);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT(it.value() == 1);
-        it.reset();
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = l.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        iter.reset();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+    }
+
+    {
+        List<int> l;
+        auto iter = l.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(!iter.moveNext());
+        ASSERT(!iter.movePrev());
+    }
+
+    {
+        List<int> l(3, ep);
+        auto iter = l.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 3);
+        ASSERT(!iter.moveNext());
+        ASSERT_EXCEPTION(Exception, iter.value());
+    }
+
+    {
+        List<int> l(3, ep);
+        auto iter = l.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 3);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 1);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
+    }
+
+    {
+        List<int> l(3, ep);
+        auto iter = l.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        ASSERT(iter.movePrev());
+        ASSERT(iter.value() == 1);
+        ASSERT(!iter.movePrev());
+        ASSERT_EXCEPTION(Exception, iter.value());
+    }
+
+    {
+        List<int> l(3, ep);
+        auto iter = l.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 2);
+        iter.reset();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT(iter.value() == 1);
     }
 }
 
@@ -3567,6 +4043,7 @@ void testMap()
         Map<int, int> m;
         ASSERT(m.size() == 0);
         ASSERT(m.numBuckets() == 0);
+        ASSERT(m.maxLoadFactor() == 0.75f);
         ASSERT(m.empty());
     }
 
@@ -3574,6 +4051,7 @@ void testMap()
         Map<int, int> m(10);
         ASSERT(m.size() == 0);
         ASSERT(m.numBuckets() == 10);
+        ASSERT(m.maxLoadFactor() == 0.75f);
         ASSERT(m.empty());
     }
 
@@ -3583,17 +4061,19 @@ void testMap()
         Map<int, int> m1, m2(m1);
         ASSERT(m2.size() == 0);
         ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(m2.empty());
     }
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
         Map<int, int> m2(m1);
         ASSERT(m1.size() == 1);
         ASSERT(m1.numBuckets() == 1);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // Map(Map<_Key, _Value>&& other)
@@ -3603,27 +4083,31 @@ void testMap()
 
         ASSERT(m1.size() == 0);
         ASSERT(m1.numBuckets() == 0);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(m1.empty());
 
         ASSERT(m2.size() == 0);
         ASSERT(m2.numBuckets() == 0);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(m2.empty());
     }
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
 
         Map<int, int> m2(static_cast<Map<int, int>&&>(m1));
 
         ASSERT(m1.size() == 0);
         ASSERT(m1.numBuckets() == 0);
+        ASSERT(m1.maxLoadFactor() == 0.75f);
         ASSERT(m1.empty());
 
         ASSERT(m2.size() == 1);
         ASSERT(m2.numBuckets() == 1);
+        ASSERT(m2.maxLoadFactor() == 0.75f);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // _Value& operator[](const _Key& key)
@@ -3632,7 +4116,7 @@ void testMap()
     {
         Map<int, int> m;
         int k1 = 1, k2 = 2;
-        int v1 = 1, v2 = 2, v3 = 3;
+        int v1 = 10, v2 = 20, v3 = 30;
 
         m[k1] = v1;
         ASSERT(m.size() == 1);
@@ -3660,24 +4144,24 @@ void testMap()
     {
         Map<int, int> m;
 
-        m[1] = 1;
+        m[1] = 10;
         ASSERT(m.size() == 1);
         ASSERT(m.numBuckets() == 1);
         ASSERT(!m.empty());
-        ASSERT(m[1] == 1);
+        ASSERT(m[1] == 10);
 
-        m[1] = 2;
+        m[1] = 20;
         ASSERT(m.size() == 1);
         ASSERT(m.numBuckets() == 3);
         ASSERT(!m.empty());
-        ASSERT(m[1] == 2);
+        ASSERT(m[1] == 20);
 
-        m[2] = 3;
+        m[2] = 30;
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
         ASSERT(!m.empty());
-        ASSERT(m[1] == 2);
-        ASSERT(m[2] == 3);
+        ASSERT(m[1] == 20);
+        ASSERT(m[2] == 30);
     }
 
     // const _Value& operator[](const _Key& key) const
@@ -3685,10 +4169,10 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
+        m.insert(1, 10);
 
         const Map<int, int>& cm = m;
-        ASSERT(cm[1] == 1);
+        ASSERT(cm[1] == 10);
         ASSERT_EXCEPTION(Exception, cm[2]);
     }
 
@@ -3696,13 +4180,13 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
         Map<int, int> m2;
         m2 = m1;
         ASSERT(m1.size() == 1);
         ASSERT(m1.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // Map<_Key, _Value>& operator=(Map<_Key, _Value>&& other)
@@ -3722,7 +4206,7 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
 
         Map<int, int> m2;
         m2 = static_cast<Map<int, int>&&>(m1);
@@ -3734,7 +4218,7 @@ void testMap()
         ASSERT(m2.size() == 1);
         ASSERT(m2.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // int size() const
@@ -3752,7 +4236,7 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
+        m.insert(1, 10);
 
         ASSERT(m.size() == 1);
         ASSERT(m.numBuckets() == 1);
@@ -3762,8 +4246,8 @@ void testMap()
             
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
 
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
@@ -3771,12 +4255,22 @@ void testMap()
         ASSERT(m.loadFactor() == 2.0f / 3.0f);
     }
 
+    // float maxLoadFactor() const
+    // void maxLoadFactor(float loadFactor)
+
+    {
+        Map<int, int> m;
+        ASSERT_EXCEPTION(Exception, m.maxLoadFactor(0));
+        m.maxLoadFactor(0.5f);
+        ASSERT(m.maxLoadFactor() == 0.5f);
+    }
+
     // _Value* find(const _Key& key)
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        ASSERT(*m.find(1) == 1);
+        m.insert(1, 10);
+        ASSERT(*m.find(1) == 10);
         ASSERT(!m.find(2));
     }
 
@@ -3784,10 +4278,10 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
+        m.insert(1, 10);
 
         const Map<int, int>& cm = m;
-        ASSERT(*cm.find(1) == 1);
+        ASSERT(*cm.find(1) == 10);
         ASSERT(!cm.find(2));
     }
 
@@ -3803,20 +4297,20 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 1);
+        m1.insert(1, 10);
         Map<int, int> m2;
         m2.assign(m1);
         ASSERT(m1.size() == 1);
         ASSERT(m1.numBuckets() == 1);
         ASSERT(!m2.empty());
-        ASSERT(m2[1] == 1);
+        ASSERT(m2[1] == 10);
     }
 
     // void insert(const _Key& key, const _Value& value)
 
     {
         Map<int, int> m;
-        int k = 1, v = 1;
+        int k = 1, v = 10;
         m.insert(k, v);
         ASSERT(m[k] == v);
     }
@@ -3825,15 +4319,15 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        ASSERT(m[1] == 1);
+        m.insert(1, 10);
+        ASSERT(m[1] == 10);
     }
 
     // bool remove(const _Key& key)
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
+        m.insert(1, 10);
         m.remove(1);
         ASSERT(m.empty());
     }
@@ -3842,8 +4336,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
         m.clear();
         ASSERT(m.empty());
     }
@@ -3864,8 +4358,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
 
@@ -3876,8 +4370,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
 
@@ -3889,26 +4383,19 @@ void testMap()
     // UniquePtr
 
     {
-        Map<UniquePtr<int>, UniquePtr<int>> m1(10);
-        m1[createUnique<int>(1)] = createUnique<int>(1);
-        Map<UniquePtr<int>, UniquePtr<int>> m2(
-            static_cast<Map<UniquePtr<int>, UniquePtr<int>>&&>(m1));
-    }
-
-    {
         Map<UniquePtr<int>, UniquePtr<int>> m;
-        m[createUnique<int>(1)] = createUnique<int>(1);
-        ASSERT(*m.find(createUnique<int>(1)) == 1);
+        m[createUnique<int>(1)] = createUnique<int>(10);
+        ASSERT(**m.find(createUnique<int>(1)) == 10);
         const Map<UniquePtr<int>, UniquePtr<int>>& cm = m;
-        ASSERT(*cm[createUnique<int>(1)] == 1);
-        ASSERT(*cm.find(createUnique<int>(1)) == 1);
+        ASSERT(*cm[createUnique<int>(1)] == 10);
+        ASSERT(**cm.find(createUnique<int>(1)) == 10);
     }
 
     {
         Map<UniquePtr<int>, UniquePtr<int>> m;
-        m.insert(createUnique<int>(1), createUnique<int>(1));
-        m.insert(createUnique<int>(1), createUnique<int>(2));
-        m.insert(createUnique<int>(2), createUnique<int>(2));
+        m.insert(createUnique<int>(1), createUnique<int>(10));
+        m.insert(createUnique<int>(1), createUnique<int>(20));
+        m.insert(createUnique<int>(2), createUnique<int>(20));
         ASSERT(m.size() == 2);
         ASSERT(m.remove(createUnique<int>(1)));
         ASSERT(!m.remove(createUnique<int>(3)));
@@ -3917,8 +4404,8 @@ void testMap()
 
     {
         Map<UniquePtr<int>, UniquePtr<int>> m;
-        m.insert(createUnique<int>(1), createUnique<int>(1));
-        m.insert(createUnique<int>(2), createUnique<int>(2));
+        m.insert(createUnique<int>(1), createUnique<int>(10));
+        m.insert(createUnique<int>(2), createUnique<int>(20));
         m.rehash(10);
         m.clear();
     }
@@ -3928,46 +4415,94 @@ void testMapIterator()
 {
     {
         Map<int, int> m;
-        Map<int, int>::Iterator it(m);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = m.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(!iter.moveNext());
     }
 
     {
         Map<int, int> m;
-        m.insert(0, 0);
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
+        m.insert(3, 30);
 
-        Map<int, int>::Iterator it(m);
-        bool flg[3] = { false };
+        auto iter = m.iterator();
+        int sum1 = 0, sum2 = 0;
 
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        flg[it.value().key] = true;
-        ASSERT(it.moveNext());
-        flg[it.value().key] = true;
-        ASSERT(it.moveNext());
-        flg[it.value().key] = true;
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        sum1 += iter.value().key;
+        sum2 += iter.value().value;
+        ASSERT(iter.moveNext());
+        sum1 += iter.value().key;
+        sum2 += iter.value().value;
+        ASSERT(iter.moveNext());
+        sum1 += iter.value().key;
+        sum2 += iter.value().value;
+        ASSERT(!iter.moveNext());
+        ASSERT_EXCEPTION(Exception, iter.value());
 
-        ASSERT(flg[0] && flg[1] && flg[2]);
+        ASSERT(sum1 == 6 && sum2 == 60);
     }
 
     {
         Map<int, int> m;
-        m.insert(0, 0);
-        m.insert(1, 1);
-        m.insert(2, 2);
+        m.insert(1, 10);
+        m.insert(2, 20);
+        m.insert(3, 30);
 
-        Map<int, int>::Iterator it(m);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT_NO_EXCEPTION(it.value());
-        it.reset();
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = m.iterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT_NO_EXCEPTION(iter.value());
+        iter.reset();
+        ASSERT_EXCEPTION(Exception, iter.value());
+    }
+
+    {
+        Map<int, int> m;
+        auto iter = m.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(!iter.moveNext());
+    }
+
+    {
+        Map<int, int> m;
+        m.insert(1, 10);
+        m.insert(2, 20);
+        m.insert(3, 30);
+
+        auto iter = m.constIterator();
+        int sum1 = 0, sum2 = 0;
+
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        sum1 += iter.value().key;
+        sum2 += iter.value().value;
+        ASSERT(iter.moveNext());
+        sum1 += iter.value().key;
+        sum2 += iter.value().value;
+        ASSERT(iter.moveNext());
+        sum1 += iter.value().key;
+        sum2 += iter.value().value;
+        ASSERT(!iter.moveNext());
+        ASSERT_EXCEPTION(Exception, iter.value());
+
+        ASSERT(sum1 == 6 && sum2 == 60);
+    }
+
+    {
+        Map<int, int> m;
+        m.insert(1, 10);
+        m.insert(2, 20);
+        m.insert(3, 30);
+
+        auto iter = m.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT_NO_EXCEPTION(iter.value());
+        iter.reset();
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 }
 
@@ -3981,6 +4516,7 @@ void testSet()
         Set<int> s;
         ASSERT(s.size() == 0);
         ASSERT(s.numBuckets() == 0);
+        ASSERT(s.maxLoadFactor() == 0.75f);
         ASSERT(s.empty());
     }
 
@@ -3988,6 +4524,7 @@ void testSet()
         Set<int> s(10);
         ASSERT(s.size() == 0);
         ASSERT(s.numBuckets() == 10);
+        ASSERT(s.maxLoadFactor() == 0.75f);
         ASSERT(s.empty());
     }
 
@@ -3997,6 +4534,7 @@ void testSet()
         Set<int> s1, s2(s1);
         ASSERT(s2.size() == 0);
         ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(s2.empty());
     }
 
@@ -4004,8 +4542,9 @@ void testSet()
         Set<int> s1;
         s1.insert(1);
         Set<int> s2(s1);
-        ASSERT(s1.size() == 1);
-        ASSERT(s1.numBuckets() == 1);
+        ASSERT(s2.size() == 1);
+        ASSERT(s2.numBuckets() == 1);
+        ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(!s2.empty());
         ASSERT(s2.find(1));
     }
@@ -4017,10 +4556,12 @@ void testSet()
 
         ASSERT(s1.size() == 0);
         ASSERT(s1.numBuckets() == 0);
+        ASSERT(s1.maxLoadFactor() == 0.75f);
         ASSERT(s1.empty());
 
         ASSERT(s2.size() == 0);
         ASSERT(s2.numBuckets() == 0);
+        ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(s2.empty());
     }
 
@@ -4032,10 +4573,12 @@ void testSet()
 
         ASSERT(s1.size() == 0);
         ASSERT(s1.numBuckets() == 0);
+        ASSERT(s1.maxLoadFactor() == 0.75f);
         ASSERT(s1.empty());
 
         ASSERT(s2.size() == 1);
         ASSERT(s2.numBuckets() == 1);
+        ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(!s2.empty());
         ASSERT(s2.find(1));
     }
@@ -4119,6 +4662,16 @@ void testSet()
         ASSERT(s.loadFactor() == 2.0f / 3.0f);
     }
 
+    // float maxLoadFactor() const
+    // void maxLoadFactor(float loadFactor)
+
+    {
+        Set<int> s;
+        ASSERT_EXCEPTION(Exception, s.maxLoadFactor(0));
+        s.maxLoadFactor(0.5f);
+        ASSERT(s.maxLoadFactor() == 0.5f);
+    }
+
     // const _Type* find(const _Type& value) const
 
     {
@@ -4168,7 +4721,7 @@ void testSet()
         ASSERT(s.find(1));
     }
 
-    // _Type&& remove()
+    // _Type remove()
 
     ASSERT_EXCEPTION(Exception, Set<int>().remove());
 
@@ -4183,7 +4736,8 @@ void testSet()
     {
         Set<int> s;
         s.insert(1);
-        s.remove(1);
+        ASSERT(!s.remove(2));
+        ASSERT(s.remove(1));
         ASSERT(s.empty());
     }
 
@@ -4238,12 +4792,6 @@ void testSet()
     // UniquePtr
 
     {
-        Set<UniquePtr<int>> s1(10);
-        s1.insert(createUnique<int>(1));
-        Set<UniquePtr<int>> s2(static_cast<Set<UniquePtr<int>>&&>(s1));
-    }
-
-    {
         Set<UniquePtr<int>> s;
         s.insert(createUnique<int>(1));
         ASSERT(s.find(createUnique<int>(1)));
@@ -4259,6 +4807,7 @@ void testSet()
     {
         Set<UniquePtr<int>> s;
         s.insert(createUnique<int>(1));
+        ASSERT(!s.remove(createUnique<int>(2)));
         ASSERT(s.remove(createUnique<int>(1)));
     }
 
@@ -4275,46 +4824,45 @@ void testSetIterator()
 {
     {
         Set<int> s;
-        Set<int>::ConstIterator it(s);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = s.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(!iter.moveNext());
     }
 
     {
         Set<int> s;
-        s.insert(0);
         s.insert(1);
         s.insert(2);
+        s.insert(3);
 
-        Set<int>::ConstIterator it(s);
-        bool flg[3] = { false };
+        auto iter = s.constIterator();
+        int sum = 0;
 
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        flg[it.value()] = true;
-        ASSERT(it.moveNext());
-        flg[it.value()] = true;
-        ASSERT(it.moveNext());
-        flg[it.value()] = true;
-        ASSERT(!it.moveNext());
-        ASSERT_EXCEPTION(Exception, it.value());
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        sum += iter.value();
+        ASSERT(iter.moveNext());
+        sum += iter.value();
+        ASSERT(iter.moveNext());
+        sum += iter.value();
+        ASSERT(!iter.moveNext());
+        ASSERT_EXCEPTION(Exception, iter.value());
 
-        ASSERT(flg[0] && flg[1] && flg[2]);
+        ASSERT(sum == 6);
     }
 
     {
         Set<int> s;
-        s.insert(0);
         s.insert(1);
         s.insert(2);
+        s.insert(3);
 
-        Set<int>::ConstIterator it(s);
-        ASSERT_EXCEPTION(Exception, it.value());
-        ASSERT(it.moveNext());
-        ASSERT_NO_EXCEPTION(it.value());
-        it.reset();
-        ASSERT_EXCEPTION(Exception, it.value());
+        auto iter = s.constIterator();
+        ASSERT_EXCEPTION(Exception, iter.value());
+        ASSERT(iter.moveNext());
+        ASSERT_NO_EXCEPTION(iter.value());
+        iter.reset();
+        ASSERT_EXCEPTION(Exception, iter.value());
     }
 }
 
@@ -4336,48 +4884,184 @@ void testFoundation()
 
 void testFile()
 {
-    String s = STR("qwerty");
-    int v = 12345;
+#ifdef CHAR_ENCODING_UTF8
+    const char_t* str = "\x24\xc2\xa2\n\xe2\x82\xac\xf0\x90\x8d\x88\n";
+#else
+    const char_t* str = u"\x0024\x00a2\n\x20ac\xd800\xdf48\n";
+#endif
+    
+    byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
+    byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
+    byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
+    byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
+    byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
 
+    // File()
+    // File(const String& fileName, FileMode openMode = FILE_MODE_OPEN_EXISTING)
+    // bool isOpen() const
+    // bool open(const String& fileName, FileMode openMode = FILE_MODE_OPEN_EXISTING)
+    // void close()
+        
     {
         File f;
         ASSERT(!f.isOpen());
-    }
-
-    {
-        File f(STR("test.txt"), FILE_MODE_CREATE_ALWAYS);
+        ASSERT(f.open(STR("test.txt")));
         ASSERT(f.isOpen());
-        f.writeString(s);
+        ASSERT_EXCEPTION(Exception, f.open(STR("test.txt")));
+        f.close();
+        ASSERT(!f.isOpen());
     }
-
+    
     {
         File f(STR("test.txt"));
-        int size = sizeof(char_t) * s.length();
-        ASSERT(f.size() == size);
-        String s2 = f.readString();
-        ASSERT(s == s2);
-    }
-
-    {
-        File f;
-        ASSERT(f.open(STR("test.dat"), FILE_MODE_CREATE_ALWAYS));
         ASSERT(f.isOpen());
-        ByteArray b(4, reinterpret_cast<uint8_t*>(&v));
-        f.writeBytes(b);
+        ASSERT_EXCEPTION(Exception, f.open(STR("test.txt")));
         f.close();
         ASSERT(!f.isOpen());
     }
+    
+    ASSERT_EXCEPTION(Exception, File(STR("no_such_file"), FILE_MODE_OPEN_EXISTING));
+    
+    {
+        File f;
+        ASSERT(!f.open(STR("no_such_file"), FILE_MODE_OPEN_EXISTING));
+    }
+    
+    // template<typename _Type>
+    // void write(const Array<_Type>& data)
+    // int64_t size() const
+    
+    {
+        File f;
+        ASSERT_EXCEPTION(Exception, f.write(Array<byte_t>()));
+        ASSERT_EXCEPTION(Exception, f.size());
+    }
+    
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        Array<byte_t> bytes(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX);
+        f.write(bytes);
+        ASSERT(f.size() == bytes.size());
+    }
+    
+    // template<typename _Type>
+    // Array<_Type> read()
 
     {
         File f;
-        ASSERT(f.open(STR("test.dat")));
-        ASSERT(f.isOpen());
-        int size = sizeof(int);
-        ASSERT(f.size() == size);
-        ByteArray b = f.readBytes();
-        ASSERT(*reinterpret_cast<int*>(b.values()) == v);
-        f.close();
-        ASSERT(!f.isOpen());
+        ASSERT_EXCEPTION(Exception, f.read<byte_t>());
+    }
+    
+    {
+        File f(STR("test.txt"));
+        ByteArray bytes = f.read<byte_t>();
+        ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
+    }        
+        
+    // String readString(TextEncoding& encoding, bool& bom, bool& crLf)
+    
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.write(Array<byte_t>(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX));
+        
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = f.readString(encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF8);
+        ASSERT(!bom);
+        ASSERT(!crLf);
+        
+    }
+    
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.write(Array<byte_t>(sizeof(BYTES_UTF8_BOM_UNIX), BYTES_UTF8_BOM_UNIX));
+        
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = f.readString(encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF8);
+        ASSERT(bom);
+        ASSERT(!crLf);
+        
+    }
+    
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.write(Array<byte_t>(sizeof(BYTES_UTF16_LE_WIN), BYTES_UTF16_LE_WIN));
+        
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = f.readString(encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
+        ASSERT(bom);
+        ASSERT(crLf);        
+    }
+    
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.write(Array<byte_t>(sizeof(BYTES_UTF16_LE_UNIX), BYTES_UTF16_LE_UNIX));
+        
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = f.readString(encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
+        ASSERT(bom);
+        ASSERT(!crLf);        
+    }
+    
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.write(Array<byte_t>(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX));
+        
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = f.readString(encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF16_BE);
+        ASSERT(bom);
+        ASSERT(!crLf);        
+    }
+    
+    // void writeString(const String& str, TextEncoding encoding, bool bom, bool crLf)
+    
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.writeString(str, TEXT_ENCODING_UTF8, false, false);
+        ByteArray bytes = f.read<byte_t>();
+        ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.writeString(str, TEXT_ENCODING_UTF8, true, false);
+        ByteArray bytes = f.read<byte_t>();
+        ASSERT(memcmp(bytes.values(), BYTES_UTF8_BOM_UNIX, sizeof(BYTES_UTF8_BOM_UNIX)) == 0);
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.writeString(str, TEXT_ENCODING_UTF16_LE, true, true);
+        ByteArray bytes = f.read<byte_t>();
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_WIN, sizeof(BYTES_UTF16_LE_WIN)) == 0);
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.writeString(str, TEXT_ENCODING_UTF16_LE, true, false);
+        ByteArray bytes = f.read<byte_t>();
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_UNIX, sizeof(BYTES_UTF16_LE_UNIX)) == 0);
+    }
+    
+    {
+        File f(STR("test.txt"), FILE_MODE_CREATE);
+        f.writeString(str, TEXT_ENCODING_UTF16_BE, true, false);
+        ByteArray bytes = f.read<byte_t>();
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_BE_UNIX, sizeof(BYTES_UTF16_BE_UNIX)) == 0);
     }
 }
 
@@ -4387,7 +5071,7 @@ void testConsole()
 
     int width, height;
     Console::getSize(width, height);
-    Console::writeLineFormatted(STR("console size: %dx%d"), width, height);
+    Console::writeFormatted(STR("console size: %dx%d"), width, height);
     Console::setCursorPosition(height - 3, 2);
     Console::write(STR("press ENTER to hide cursor"));
     Console::readChar();
@@ -4445,10 +5129,12 @@ void testConsoleWrite()
 
 void testConsoleReadChar()
 {
+    Console::writeLine(STR("Type characters followed by ENTER (q to exit)"));
+
     while (true)
     {
-        char_t ch = Console::readChar();
-        Console::writeLine(ch);
+        unichar_t ch = Console::readChar();
+        Console::write(ch);
         if (ch == 'q')
             break;
     }
@@ -4456,6 +5142,8 @@ void testConsoleReadChar()
 
 void testConsoleReadLine()
 {
+    Console::writeLine(STR("Type characters followed by ENTER (quit to exit)"));
+
     while (true)
     {
         String line = Console::readLine();
@@ -4467,7 +5155,8 @@ void testConsoleReadLine()
 
 void testConsoleReadKeys()
 {
-    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
+    Console::writeLine(STR("Press any key or key combination (ESC to exit)"));
+    Console::setLineMode(false);
 
     while (true)
     {
@@ -4488,7 +5177,7 @@ void testConsoleReadKeys()
             {
             case KEY_ESC:
                 Console::writeLine(STR("KEY_ESC"));
-                Console::setMode(CONSOLE_MODE_DEFAULT);
+                Console::setLineMode(true);
                 return;
             case KEY_TAB:
                 Console::writeLine(STR("KEY_TAB"));
@@ -4577,7 +5266,7 @@ void testConsoleReadKeys()
     }
 }
 
-#ifndef PLATFORM_WINDOWS
+#ifdef PLATFORM_UNIX
 
 void testKeys()
 {
@@ -4588,7 +5277,7 @@ void testKeys()
     pfd.events = POLLIN;
     pfd.revents = 0;
 
-    Console::setMode(CONSOLE_MODE_NONCANONICAL | CONSOLE_MODE_NOTBUFFERED);
+    Console::setLineMode(false);
 
     while (true)
     {
@@ -4600,34 +5289,109 @@ void testKeys()
             read(STDIN_FILENO, chars, len);
 
             for (int i = 0; i < len; ++i)
-                printf("%x ", (unsigned)chars[i]);
+                printf("%x ", static_cast<uint8_t>(chars[i]));
 
             for (int i = 0; i < len; ++i)
                 if (isprint(chars[i]))
                     putchar(chars[i]);
                 else
-                    printf("\\x%x", (unsigned)chars[i]);
+                    printf("\\x%x", static_cast<uint8_t>(chars[i]));
 
             printf("\n");
         }
     }
 
-    Console::setMode(CONSOLE_MODE_DEFAULT);
+    Console::setLineMode(true);
 }
 
 #endif
+
+void printPlatformInfo()
+{
+    Console::write(STR("architecture:"));
+
+#ifdef ARCH_32BIT
+    Console::write(STR(" 32 bit"));
+#endif
+#ifdef ARCH_64BIT
+    Console::write(STR(" 64 bit"));
+#endif
+
+#ifdef ARCH_INTEL
+    Console::writeLine(STR(" Intel"));
+#endif
+#ifdef ARCH_ARM
+    Console::writeLine(STR(" ARM"));
+#endif
+#ifdef ARCH_SPARC
+    Console::writeLine(STR(" SPARC"));
+#endif
+#ifdef ARCH_POWER
+    Console::writeLine(STR(" Power"));
+#endif
+
+    Console::write(STR("platform:"));
+#ifdef PLATFORM_WINDOWS
+    Console::write(STR(" Windows"));
+#endif
+#ifdef PLATFORM_APPLE
+    Console::write(STR(" Apple"));
+#endif
+#ifdef PLATFORM_LINUX
+    Console::write(STR(" Linux"));
+#endif
+#ifdef PLATFORM_SOLARIS
+    Console::write(STR(" Solaris"));
+#endif
+#ifdef PLATFORM_AIX
+    Console::write(STR(" AIX"));
+#endif
+#ifdef PLATFORM_ANROID
+    Console::write(STR(" Android"));
+#endif
+#ifdef PLATFORM_UNIX
+    Console::writeLine(STR(" UNIX"));
+#else
+    Console::writeLine();
+#endif
+
+    Console::write(STR("compiler:"));
+#ifdef COMPILER_INTEL_CPP
+    Console::write(STR(" Intel C++"));
+#endif
+#ifdef COMPILER_CLANG
+    Console::write(STR(" clang"));
+#endif
+#ifdef COMPILER_VISUAL_CPP
+    Console::write(STR(" Visual C++"));
+#endif
+#ifdef COMPILER_GCC
+    Console::write(STR(" gcc"));
+#endif
+#ifdef COMPILER_SOLARIS_STUDIO
+    Console::write(STR(" Solaris Studio"));
+#endif
+#ifdef COMPILER_XL_CPP
+    Console::write(STR(" IBM XL C/C++"));
+#endif
+    Console::writeLineFormatted(STR(" version %d"), COMPILER_VERSION);
+}
 
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        testFoundation();
-        // testFile();
-        // testConsole();
-        // testConsoleWrite();
-        // testConsoleReadChar();
-        // testConsoleReadLine();
-        // testConsoleReadKeys();
+        Console::initialize();
+        Console::setLineMode(true);
+        printPlatformInfo();
+
+		//testFoundation();
+        //testFile();
+        testConsole();
+        testConsoleWrite();
+        testConsoleReadChar();
+        testConsoleReadLine();
+        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {

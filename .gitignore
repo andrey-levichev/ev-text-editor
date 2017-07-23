@@ -10,11 +10,13 @@ eve.solstudio
 eve.xlc
 tags
 test.txt
+test.dat
 Debug
 Release
 .vs
 .DS_Store
 .suo
 cmake-build-*
-
-eve/test.dat
+DerivedData
+xcuserdata
+xcdebugger

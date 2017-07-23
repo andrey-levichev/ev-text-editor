@@ -1,5 +1,47 @@
 #include <console.h>
 
+#ifdef PLATFORM_WINDOWS
+
+void printLine(const char_t* str)
+{
+    _putws(reinterpret_cast<const wchar_t*>(str));
+}
+
+void print(const char_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    wprintf(reinterpret_cast<const wchar_t*>(format), args);
+    va_end(args);
+}
+
+void printArgs(const char_t* format, va_list args)
+{
+    vwprintf(reinterpret_cast<const wchar_t*>(format), args);
+}
+
+#else
+
+void printLine(const char_t* str)
+{
+    puts(str);
+}
+
+void print(const char_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    printf(format, args);
+    va_end(args);
+}
+
+void printArgs(const char_t* format, va_list args)
+{
+    vprintf(format, args);
+}
+
+#endif
+
 // Console
 
 #ifdef PLATFORM_WINDOWS
@@ -10,21 +52,29 @@ Array<char> Console::_input(10);
 
 Array<Key> Console::_keys;
 
-void Console::setMode(int mode)
+void Console::initialize()
 {
-    if (mode & CONSOLE_MODE_NOTBUFFERED)
-        ASSERT(setvbuf(stdout, NULL, _IONBF, 0) == 0);
-    else
-        ASSERT(setvbuf(stdout, NULL, _IOFBF, BUFSIZ) == 0);
+    setlocale(LC_ALL, "");
 
 #ifdef PLATFORM_WINDOWS
-
-    ASSERT(_setmode(_fileno(stdout), 
-            mode & CONSOLE_MODE_UNICODE ? _O_U16TEXT : _O_TEXT) >= 0);
-
+    ASSERT(_setmode(_fileno(stdin), _O_U16TEXT) >= 0);
+    ASSERT(_setmode(_fileno(stdout), _O_U16TEXT) >= 0);
 #else
+    setvbuf(stdout, NULL, _IONBF, 0);
+#endif
+}
 
-    if (mode & CONSOLE_MODE_NONCANONICAL)
+void Console::setLineMode(bool lineMode)
+{
+#ifndef PLATFORM_WINDOWS
+    if (lineMode)
+    {
+        termios ta;
+        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
+        ta.c_lflag |= ECHO | ICANON;
+        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
+    }
+    else
     {
         termios ta;
         ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
@@ -33,14 +83,6 @@ void Console::setMode(int mode)
         ta.c_cc[VMIN] = 1;
         ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
     }
-    else
-    {
-        termios ta;
-        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
-        ta.c_lflag |= ECHO | ICANON;
-        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
-    }
-
 #endif
 }
 
@@ -55,12 +97,14 @@ void Console::write(const char_t* chars)
     write(chars, strLen(chars));
 }
 
-void Console::write(char_t ch, int len)
+void Console::write(unichar_t ch, int len)
 {
     ASSERT(len >= 0);
-    char_t* chars = ALLOCATE_STACK(char_t, len);
+
+    int l = UTF_CHAR_LENGTH(ch) * len;
+    char_t* chars = ALLOCATE_STACK(char_t, l);
     strSet(chars, ch, len);
-    write(chars, len);
+    write(chars, l);
 }
 
 void Console::writeLine(const String& str)
@@ -76,7 +120,7 @@ void Console::writeLine(const char_t* chars)
     writeLine();
 }
 
-void Console::writeLine(char_t ch, int len)
+void Console::writeLine(unichar_t ch, int len)
 {
     ASSERT(len >= 0);
     write(ch, len);
@@ -99,12 +143,55 @@ void Console::write(int line, int column, const char_t* chars)
     write(line, column, chars, strLen(chars));
 }
 
-void Console::write(int line, int column, char_t ch, int len)
+void Console::write(int line, int column, unichar_t ch, int len)
 {
     ASSERT(len >= 0);
-    char_t* chars = ALLOCATE_STACK(char_t, len);
+
+    int l = UTF_CHAR_LENGTH(ch) * len;
+    char_t* chars = ALLOCATE_STACK(char_t, l);
     strSet(chars, ch, len);
-    write(line, column, chars, len);
+    write(line, column, chars, l);
+}
+
+void Console::write(const char_t* chars, int len)
+{
+    ASSERT(chars);
+    ASSERT(len >= 0);
+
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(WriteConsole(handle, chars, len, &written, NULL));
+#else
+    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
+#endif
+}
+
+void Console::write(int line, int column, const char_t* chars, int len)
+{
+    ASSERT(line > 0);
+    ASSERT(column > 0);
+    ASSERT(chars);
+    ASSERT(len >= 0);
+
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+    COORD pos;
+    pos.X = column - 1;
+    pos.Y = line - 1;
+    
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(WriteConsoleOutputCharacter(handle, 
+        reinterpret_cast<const wchar_t*>(chars), len, pos, &written));
+#else
+    setCursorPosition(line, column);
+    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
+#endif
 }
 
 void Console::writeFormatted(const char_t* format, ...)
@@ -131,31 +218,74 @@ void Console::writeLineFormatted(const char_t* format, ...)
     va_start(args, format);
     printArgs(format, args);
     va_end(args);
-    putChar('\n');
+    write('\n');
 }
 
 void Console::writeLineFormatted(const char_t* format, va_list args)
 {
     ASSERT(format);
     printArgs(format, args);
-    putChar('\n');
+    write('\n');
 }
 
-char_t Console::readChar()
+char32_t Console::readChar()
 {
-    getchar_t ch = getChar();
-    return ch == CHAR_EOF ? 0 : ch;
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    ASSERT(handle);
+
+    wchar_t ch;
+    ASSERT(ReadConsole(handle, &ch, 1, &written, NULL));
+    
+    if (ch == '\r')
+        ASSERT(ReadConsole(handle, &ch, 1, &written, NULL));
+    
+    return ch;
+#else
+    int ch = getchar();
+    if (ch == EOF)
+        return 0;
+
+    uint8_t ch1 = ch;
+
+    if (ch1 < 0x80)
+    {
+        return ch1;
+    }
+    else if (ch1 < 0xe0)
+    {
+        uint8_t ch2 = getchar();
+        return ((ch1 & 0x1f) << 6) | (ch2 & 0x3f);
+    }
+    else if (ch1 < 0xf0)
+    {
+        uint8_t ch2 = getchar();
+        uint8_t ch3 = getchar();
+        return ((ch1 & 0x0f) << 12) | 
+            ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
+    }
+    else
+    {
+        uint8_t ch2 = getchar();
+        uint8_t ch3 = getchar();
+        uint8_t ch4 = getchar();
+        return ((ch1 & 0x07) << 18) | 
+            ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
+    }
+#endif
 }
 
 String Console::readLine()
 {
     String line;
-    getchar_t ch = getChar();
+    unichar_t ch = readChar();
 
-    while (!(ch == '\n' || ch == CHAR_EOF))
+    while (ch && ch != '\n')
     {
         line += ch;
-        ch = getChar();
+        ch = readChar();
     }
 
     return line;
@@ -232,23 +362,19 @@ void Console::getSize(int& width, int& height)
 
 void Console::clear()
 {
-    ASSERT(::write(STDOUT_FILENO, "\x1b[2J", 4) >= 0);
-    setCursorPosition(1, 1);
+    printf("\x1b[2J\x1b[1;1H");
 }
 
 void Console::showCursor(bool show)
 {
-    ASSERT(::write(STDOUT_FILENO, show ? "\x1b[?25h" : "\x1b[?25l", 6) >= 0);
+    printf(show ? "\x1b[?25h" : "\x1b[?25l");
 }
 
 void Console::setCursorPosition(int line, int column)
 {
     ASSERT(line > 0);
     ASSERT(column > 0);
-
-    char_t cmd[30];
-    ASSERT(sprintf(cmd, "\x1b[%d;%dH", line, column) >= 0);
-    ASSERT(::write(STDOUT_FILENO, cmd, strlen(cmd)) >= 0);
+    printf("\x1b[%d;%dH", line, column);
 }
 
 #endif
@@ -397,7 +523,7 @@ const Array<Key>& Console::readKeys()
         if (len > 0)
         {
             _input[len] = 0;
-            const char_t* p = _input.values();
+            const char* p = _input.values();
 
             while (*p)
             {
@@ -436,17 +562,13 @@ const Array<Key>& Console::readKeys()
                     else if (*p)
                     {
                         key.alt = true;
-                        readRegularKey(*p, key);
-                        ++p;
+                        p = readRegularKey(p, key);
                     }
                     else
                         key.code = KEY_ESC;
                 }
                 else
-                {
-                    readRegularKey(*p, key);
-                    ++p;
-                }
+                    p = readRegularKey(p, key);
 
                 _keys.pushBack(key);
             }
@@ -458,51 +580,14 @@ const Array<Key>& Console::readKeys()
     return _keys;
 }
 
-void Console::write(const char_t* chars, int len)
-{
-    ASSERT(chars);
-    ASSERT(len >= 0);
-
-#ifdef PLATFORM_WINDOWS
-    DWORD written;
-
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle);
-
-    ASSERT(WriteConsole(handle, chars, len, &written, NULL));
-#else
-    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
-#endif
-}
-
-void Console::write(int line, int column, const char_t* chars, int len)
-{
-    ASSERT(line > 0);
-    ASSERT(column > 0);
-    ASSERT(chars);
-    ASSERT(len >= 0);
-
-#ifdef PLATFORM_WINDOWS
-    DWORD written;
-    COORD pos;
-    pos.X = column - 1;
-    pos.Y = line - 1;
-    
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle);
-
-    ASSERT(WriteConsoleOutputCharacter(handle, 
-        reinterpret_cast<const wchar_t*>(chars), len, pos, &written));
-#else
-    setCursorPosition(line, column);
-    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
-#endif
-}
-
 #ifdef PLATFORM_UNIX
 
-void Console::readRegularKey(char_t ch, Key& key)
+const char* Console::readRegularKey(const char* p, Key& key)
 {
+    ASSERT(p);
+
+    unichar_t ch;
+    p += UTF_CHAR_TO_UNICODE(p, ch);
     key.ch = ch;
 
     if (ch == '\t')
@@ -511,13 +596,15 @@ void Console::readRegularKey(char_t ch, Key& key)
         key.code = KEY_ENTER;
     else if (ch == 0x7f)
         key.code = KEY_BACKSPACE;
-    else if (iscntrl(ch))
+    else if (iswcntrl(ch))
         key.ctrl = true;
     else
-        key.shift = isupper(ch);
+        key.shift = charIsUpper(ch);
+
+    return p;
 }
 
-const char_t* Console::readSpecialKey(const char_t* p, Key& key)
+const char* Console::readSpecialKey(const char* p, Key& key)
 {
     ASSERT(p);
 

@@ -11,16 +11,16 @@ class Text : public String
 {
 public:
     Text() :
-        _position(0)
+        _position(NULL)
     {
     }
 
-    int& position()
+    char_t*& position()
     {
         return _position;
     }
 
-    const int& position() const
+    const char_t* position() const
     {
         return _position;
     }
@@ -45,7 +45,7 @@ public:
     bool deleteWordForward();
     bool deleteWordBack();
 
-    String copyDeleteText(int pos, bool copy);
+    String copyDeleteText(char_t* pos, bool copy);
     void pasteText(const String& text, bool lineSelection);
 
     char_t* findChar(char_t ch) const;
@@ -61,7 +61,7 @@ protected:
     static bool isIdent(char_t ch);
 
 protected:
-    int _position;
+    char_t* _position;
 };
 
 // Editor
@@ -78,7 +78,7 @@ protected:
     void positionToLineColumn();
     void lineColumnToPosition();
 
-    void updateScreen();
+    void updateScreen(bool redrawAll = false);
     bool processKey();
 
     void openFile();
@@ -89,17 +89,23 @@ protected:
 
 protected:
     Text _text;
+    TextEncoding _encoding;
+    bool _bom;
+    bool _crLf;
+    
     String _buffer;
     String _pattern;
 
-    String _screen;
+    CharArray _screen;
+    CharArray _window;
     String _filename;
+    String _status;
 
     int _width, _height, _screenHeight;
     int _top, _left;
 
     int _line, _column, _preferredColumn;
-    int _selection;
+    char_t* _selection;
     bool _lineSelection;
 };
 

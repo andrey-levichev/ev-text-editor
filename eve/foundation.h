@@ -8,8 +8,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
+#include <wctype.h>
 #include <ctype.h>
 #include <math.h>
+#include <locale.h>
 
 // 32/64 bit
 
@@ -156,20 +158,23 @@ typedef unsigned char32_t;
 // string support
 
 typedef char32_t unichar_t;
+typedef unsigned char byte_t;
 
 #ifdef PLATFORM_WINDOWS
 
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
 #define STR(arg) u##arg
-#define CHAR_EOF WEOF
+#define CHAR(arg) U##arg
+#define PUTS _putws
+
 typedef char16_t char_t;
-typedef wint_t getchar_t;
 
 #else
 
 #define CHAR_ENCODING_UTF8
 #define MAIN main
+#define PUTS puts
 
 #ifdef COMPILER_XL_CPP
 #define STR(arg) arg
@@ -177,9 +182,9 @@ typedef wint_t getchar_t;
 #define STR(arg) u8##arg
 #endif
 
-#define CHAR_EOF EOF
+#define CHAR(arg) U##arg
+
 typedef char char_t;
-typedef int getchar_t;
 
 #endif
 
@@ -209,30 +214,29 @@ double strToDouble(const char_t* str, char_t** end);
 bool charIsSpace(unichar_t ch);
 bool charIsPrint(unichar_t ch);
 bool charIsAlphaNum(unichar_t ch);
+bool charIsUpper(unichar_t ch);
+bool charIsLower(unichar_t ch);
 unichar_t charToLower(unichar_t ch);
 unichar_t charToUpper(unichar_t ch);
 
-void print(const char_t* str);
-void printFormatted(const char_t* format, ...);
-void printString(char_t* str, const char_t* format, ...);
-void printArgs(const char_t* format, va_list args);
-void printArgsAlloc(char_t** str, const char_t* format, va_list args);
-void printAlloc(char_t** str, const char_t* format, ...);
-
-void putChar(unichar_t ch);
-unichar_t getChar();
+void formatString(char_t* str, const char_t* format, ...);
+void formatAllocStringArgs(char_t** str, const char_t* format, va_list args);
+void formatAllocString(char_t** str, const char_t* format, ...);
 
 // Unicode support
 
-int utf8CharToUtf32(const char* in, char32_t& ch);
-int utf32CharToUtf8(char32_t ch, char* out);
-int utf16CharToUtf32(const char16_t* in, char32_t& ch);
-int utf32CharToUtf16(char32_t ch, char16_t* out);
+int utf8CharToUnicode(const char* in, char32_t& ch);
+int unicodeCharToUtf8(char32_t ch, char* out);
 
-void utf8StringToUtf32(const char* in, char32_t* out);
-void utf32StringToUtf8(const char32_t* in, char* out);
-void utf16StringToUtf32(const char16_t* in, char32_t* out);
-void utf32StringToUtf16(const char32_t* in, char16_t* out);
+int utf16CharToUnicode(const char16_t* in, char32_t& ch);
+int unicodeCharToUtf16(char32_t ch, char16_t* out);
+
+void utf8StringToUnicode(const char* in, char32_t* out);
+void unicodeStringToUtf8(const char32_t* in, char* out);
+
+void utf16StringToUnicode(const char16_t* in, char32_t* out);
+void unicodeStringToUtf16(const char32_t* in, char16_t* out);
+
 void utf8StringToUtf16(const char* in, char16_t* out);
 void utf16StringToUtf8(const char16_t* in, char* out);
 
@@ -254,8 +258,8 @@ int utf16StringLength(const char16_t* str);
 
 #ifdef PLATFORM_WINDOWS
 
-#define UTF_CHAR_TO_UNICODE utf16CharToUtf32
-#define UNICODE_CHAR_TO_UTF utf32CharToUtf16 
+#define UTF_CHAR_TO_UNICODE utf16CharToUnicode
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf16 
 #define UTF_CHAR_AT utf16CharAt
 #define UTF_CHAR_FORWARD utf16CharForward
 #define UTF_CHAR_BACK utf16CharBack
@@ -264,8 +268,8 @@ int utf16StringLength(const char16_t* str);
 
 #else
 
-#define UTF_CHAR_TO_UNICODE utf8CharToUtf32
-#define UNICODE_CHAR_TO_UTF utf32CharToUtf8 
+#define UTF_CHAR_TO_UNICODE utf8CharToUnicode
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf8 
 #define UTF_CHAR_AT utf8CharAt
 #define UTF_CHAR_FORWARD utf8CharForward
 #define UTF_CHAR_BACK utf8CharBack
@@ -273,6 +277,46 @@ int utf16StringLength(const char16_t* str);
 #define UTF_STRING_LENGTH utf8StringLength
 
 #endif
+
+// byte swap
+
+inline uint16_t swapBytes(uint16_t value)
+{
+    return (value << 8) | (value >> 8 );
+}
+
+inline uint32_t swapBytes(uint32_t value)
+{
+    value = ((value << 8) & 0xff00ff00) | ((value >> 8) & 0xff00ff); 
+    return (value << 16) | (value >> 16);
+}
+
+inline uint64_t swapBytes(uint64_t value)
+{
+    value = ((value << 8) & 0xff00ff00ff00ff00ull) | 
+        ((value >> 8) & 0x00ff00ff00ff00ffull);
+    value = ((value << 16) & 0xffff0000ffff0000ull) | 
+        ((value >> 16) & 0x0000ffff0000ffffull);
+    return (value << 32) | (value >> 32);
+}
+
+inline void swapBytes(uint16_t* values, int len)
+{
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
+
+inline void swapBytes(uint32_t* values, int len)
+{
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
+
+inline void swapBytes(uint64_t* values, int len)
+{
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
 
 // assert macros
 
@@ -287,7 +331,7 @@ int utf16StringLength(const char16_t* str);
 #define ASSERT_MSG(condition, message) \
     do { \
         if (!(condition)) { \
-            print(STR("assertion failed in ") \
+            PUTS(STR("assertion failed in ") \
                 STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message); \
             abort(); \
         } \
@@ -1151,6 +1195,13 @@ public:
         return strCompareNoCase(str(), chars ? chars : STR(""));
     }
 
+    char_t* find(const String& str, char_t* pos = NULL);
+    char_t* find(const char_t* chars, char_t* pos = NULL);
+    char_t* find(unichar_t ch, char_t* pos = NULL);
+    char_t* findNoCase(const String& str, char_t* pos = NULL);
+    char_t* findNoCase(const char_t* chars, char_t* pos = NULL);
+    char_t* findNoCase(unichar_t ch, char_t* pos = NULL);
+    
     const char_t* find(const String& str, const char_t* pos = NULL) const;
     const char_t* find(const char_t* chars, const char_t* pos = NULL) const;
     const char_t* find(unichar_t ch, const char_t* pos = NULL) const;
@@ -1181,16 +1232,16 @@ public:
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
 
-    void insert(char_t* pos, const String& str);
-    void insert(char_t* pos, const char_t* chars);
-    void insert(char_t* pos, unichar_t ch, int len = 1);
+    char_t* insert(char_t* pos, const String& str);
+    char_t* insert(char_t* pos, const char_t* chars);
+    char_t* insert(char_t* pos, unichar_t ch, int len = 1);
     
     void erase(char_t* pos, int len = -1);
     void erase(const String& str);
     void erase(const char_t* chars);
     
-    void replace(char_t* pos, const String& str, int len = -1);
-    void replace(char_t* pos, const char_t* chars, int len = -1);
+    char_t* replace(char_t* pos, const String& str, int len = -1);
+    char_t* replace(char_t* pos, const char_t* chars, int len = -1);
     void replace(const String& searchStr, const String& replaceStr);
     void replace(const char_t* searchChars, const char_t* replaceChars);
    
@@ -1774,47 +1825,43 @@ public:
 
     void assign(int size, const _Type* values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
-
-        if (_values != values)
+        ASSERT((size == 0 && !values) || (size > 0 && values && values != _values));
+        
+        if (size <= _capacity)
         {
-            if (size <= _capacity)
-            {
-                clear();
+            clear();
 
-                while (_size < size)
-                {
-                    Memory::construct<_Type>(_values + _size, values[_size]);
-                    ++_size;
-                }
-            }
-            else
+            while (_size < size)
             {
-                Array<_Type> tmp(size, values);
-                swap(*this, tmp);
+                Memory::construct<_Type>(_values + _size, values[_size]);
+                ++_size;
             }
+        }
+        else
+        {
+            Array<_Type> tmp(size, values);
+            swap(*this, tmp);
         }
     }
 
     void assign(const Array<_Type>& other)
     {
-        if (this != &other)
+        ASSERT(this != &other);
+        
+        if (other._size <= _capacity)
         {
-            if (other._size <= _capacity)
-            {
-                clear();
+            clear();
 
-                while (_size < other._size)
-                {
-                    Memory::construct<_Type>(_values + _size, other[_size]);
-                    ++_size;
-                }
-            }
-            else
+            while (_size < other._size)
             {
-                Array<_Type> tmp(other);
-                swap(*this, tmp);
+                Memory::construct<_Type>(_values + _size, other[_size]);
+                ++_size;
             }
+        }
+        else
+        {
+            Array<_Type> tmp(other);
+            swap(*this, tmp);
         }
     }
     
@@ -1947,8 +1994,9 @@ protected:
     _Type* _values;
 };
 
-typedef Array<uint8_t> ByteArray;
+typedef Array<byte_t> ByteArray;
 typedef Array<char_t> CharArray;
+typedef Array<unichar_t> UniCharArray;
 
 // ListNode
 
@@ -2243,6 +2291,12 @@ public:
         return NULL;
     }
 
+    void assign(int size, const _Type& value)
+    {
+        List<_Type> tmp(size, value);
+        swap(*this, tmp);
+    }
+
     void assign(int size, const _Type* values)
     {
         List<_Type> tmp(size, values);
@@ -2489,7 +2543,7 @@ protected:
 template<typename _Key, typename _Value>
 struct KeyValue
 {
-    _Key key;
+    const _Key key;
     _Value value;
 
     KeyValue(const _Key& key) :
@@ -2519,7 +2573,7 @@ struct KeyValue
     }
 
     KeyValue(KeyValue<_Key, _Value>&& other) :
-        key(static_cast<_Key&&>(other.key)), 
+        key(const_cast<_Key&&>(other.key)), 
         value(static_cast<_Value&&>(other.value))
     {
     }
@@ -2664,8 +2718,6 @@ template<typename _Key, typename _Value>
 class Map
 {
 public:
-    static const float MAX_LOAD_FACTOR;
-
     template<typename, typename>
     friend class MapIterator;
 
@@ -2677,13 +2729,17 @@ public:
 
 public:
     Map(int numBuckets = 0) : 
-        _keyValues(numBuckets), _size(0)
+        _keyValues(numBuckets),
+        _size(0),
+        _maxLoadFactor(0.75f)
     {
         ASSERT(numBuckets >= 0);
     }
 
     Map(const Map<_Key, _Value>& other) :
-        _keyValues(other._keyValues), _size(other._size)
+        _keyValues(other._keyValues),
+        _size(other._size),
+        _maxLoadFactor(other._maxLoadFactor)
     {
     }
 
@@ -2692,6 +2748,7 @@ public:
     {
         _size = other._size;
         other._size = 0;
+        _maxLoadFactor = other._maxLoadFactor;
     }
 
     _Value& operator[](const _Key& key)
@@ -2742,6 +2799,17 @@ public:
         return static_cast<float>(_size) / _keyValues.size();
     }
 
+    float maxLoadFactor() const
+    {
+        return _maxLoadFactor;
+    }
+
+    void maxLoadFactor(float loadFactor)
+    {
+        ASSERT(loadFactor > 0);
+        _maxLoadFactor = loadFactor;
+    }
+
     Iterator iterator()
     {
         return Iterator(*this);
@@ -2754,8 +2822,8 @@ public:
 
     _Value& value(const _Key& key)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
+        if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         auto& kvList = getBucket(key);
 
@@ -2773,8 +2841,8 @@ public:
 
     _Value& value(_Key&& key)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
+        if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         auto& kvList = getBucket(key);
 
@@ -2839,8 +2907,8 @@ public:
 
     void insert(const _Key& key, const _Value& value)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
+        if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         auto& kvList = getBucket(key);
 
@@ -2859,8 +2927,8 @@ public:
 
     void insert(_Key&& key, _Value&& value)
     {
-        if (_keyValues.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_keyValues.size() * 2 + 1);
+        if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         auto& kvList = getBucket(key);
 
@@ -2914,7 +2982,7 @@ public:
         for (int i = 0; i < _keyValues.size(); ++i)
         {
             for (auto kvNode = _keyValues[i].front(); kvNode; kvNode = kvNode->next)
-                tmp.insert(static_cast<_Key&&>(kvNode->value.key), 
+                tmp.insert(const_cast<_Key&&>(kvNode->value.key), 
                     static_cast<_Value&&>(kvNode->value.value));
         }
 
@@ -2947,10 +3015,8 @@ protected:
 protected:
     Array<List<KeyValue<_Key, _Value>>> _keyValues;
     int _size;
+    float _maxLoadFactor;
 };
-
-template<typename _Key, typename _Value>
-const float Map<_Key, _Value>::MAX_LOAD_FACTOR = 0.75f;
 
 // ConstSetIterator
 
@@ -3026,8 +3092,6 @@ template<typename _Type>
 class Set
 {
 public:
-    static const float MAX_LOAD_FACTOR;
-
     template<typename>
     friend class ConstSetIterator;
 
@@ -3035,13 +3099,17 @@ public:
 
 public:
     Set(int numBuckets = 0) : 
-        _values(numBuckets), _size(0)
+        _values(numBuckets),
+        _size(0),
+        _maxLoadFactor(0.75f)
     {
         ASSERT(numBuckets >= 0);
     }
 
     Set(const Set<_Type>& other) :
-        _values(other._values), _size(other._size)
+        _values(other._values),
+        _size(other._size),
+        _maxLoadFactor(other._maxLoadFactor)
     {
     }
 
@@ -3050,6 +3118,7 @@ public:
     {
         _size = other._size;
         other._size = 0;
+        _maxLoadFactor = other._maxLoadFactor;
     }
 
     Set<_Type>& operator=(const Set<_Type>& other)
@@ -3090,6 +3159,17 @@ public:
         return static_cast<float>(_size) / _values.size();
     }
 
+    float maxLoadFactor() const
+    {
+        return _maxLoadFactor;
+    }
+
+    void maxLoadFactor(float loadFactor)
+    {
+        ASSERT(loadFactor > 0);
+        _maxLoadFactor = loadFactor;
+    }
+
     const _Type* find(const _Type& value) const
     {
         const List<_Type>& vList = getBucket(value);
@@ -3111,8 +3191,8 @@ public:
 
     void insert(const _Type& value)
     {
-        if (_values.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_values.size() * 2 + 1);
+        if (_values.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         List<_Type>& vList = getBucket(value);
 
@@ -3128,8 +3208,8 @@ public:
 
     void insert(_Type&& value)
     {
-        if (_values.empty() || loadFactor() > MAX_LOAD_FACTOR)
-            rehash(_values.size() * 2 + 1);
+        if (_values.empty() || loadFactor() > _maxLoadFactor)
+            rehash(_size * 2 / _maxLoadFactor + 1);
 
         List<_Type>& vList = getBucket(value);
 
@@ -3225,10 +3305,8 @@ protected:
 protected:
     Array<List<_Type>> _values;
     int _size;
+    float _maxLoadFactor;
 };
-
-template<typename _Type>
-const float Set<_Type>::MAX_LOAD_FACTOR = 0.75f;
 
 #endif
 
