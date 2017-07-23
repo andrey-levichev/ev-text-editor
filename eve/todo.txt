@@ -66,3 +66,39 @@ split/join, tokenizer
 conversion to binary/hex
 simple parsing a la scanf
 simple regular expressions
+
+keys:
+f1-f4
+1b 4f 50 \x1b OP
+1b 4f 51 \x1b OQ
+1b 4f 52 \x1b OR
+1b 4f 53 \x1b OS
+alt+del
+1b 28 \x1b (
+ctrl+alt+del
+1b 1b 5b 33 3b 35 7e \x1b \x1b [3;5~
+alt+left/right
+1b 62 \x1b b
+1b 66 \x1b f
+alt+function keys
+1b 5b 31 37 7e \x1b [17~
+1b 5b 31 38 7e \x1b [18~
+1b 5b 31 39 7e \x1b [19~
+1b 5b 32 30 7e \x1b [20~
+1b 5b 32 31 7e \x1b [21~
+1b 5b 32 33 7e \x1b [23~
+1b 5b 32 34 7e \x1b [24~
+1b 5b 32 35 7e \x1b [25~
+1b 5b 32 36 7e \x1b [26~
+1b 5b 32 38 7e \x1b [28~
+1b 5b 32 39 7e \x1b [29~
+1b 5b 33 31 7e \x1b [31~
+
+macOS keys not sent to the app:
+f11, f12
+shift+f1,f2,f3,f4,f11,f12
+insert, home, end, pgup, pgdn
+ctrl+c, ctrl+o, ctrl+q, ctrl+s, ctrl+v, ctrl+y, ctrl+z, ctrl+\
+ctrl+special key except ctrl+del
+command+key
+

@@ -11,7 +11,7 @@
 		97785FB31DEB6ECD002A31FB /* foundation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FAC1DEB6ECD002A31FB /* foundation.cpp */; };
 		97785FB41DEB6ECD002A31FB /* file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FAE1DEB6ECD002A31FB /* file.cpp */; };
 		97785FB61DEB6ECD002A31FB /* console.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FB21DEB6ECD002A31FB /* console.cpp */; };
-		979317841F242B65003E8AC5 /* eve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FB01DEB6ECD002A31FB /* eve.cpp */; };
+		97C39FD81F244788000FBF96 /* test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97785FA71DEB6EC3002A31FB /* test.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -149,8 +149,8 @@
 				97785FB31DEB6ECD002A31FB /* foundation.cpp in Sources */,
 				97785FB41DEB6ECD002A31FB /* file.cpp in Sources */,
 				97785FB61DEB6ECD002A31FB /* console.cpp in Sources */,
+				97C39FD81F244788000FBF96 /* test.cpp in Sources */,
 				97785FAA1DEB6EC3002A31FB /* makefile in Sources */,
-				979317841F242B65003E8AC5 /* eve.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

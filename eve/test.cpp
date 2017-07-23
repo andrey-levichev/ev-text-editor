@@ -5295,7 +5295,7 @@ void testKeys()
                 if (isprint(chars[i]))
                     putchar(chars[i]);
                 else
-                    printf("\\x%x", static_cast<uint8_t>(chars[i]));
+                    printf("\\x%x ", static_cast<uint8_t>(chars[i]));
 
             printf("\n");
         }
@@ -5384,9 +5384,10 @@ int MAIN(int argc, const char_t** argv)
         Console::initialize();
         Console::setLineMode(true);
         printPlatformInfo();
+        testKeys();
 
-		testFoundation();
-        testFile();
+//        testFoundation();
+//        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
