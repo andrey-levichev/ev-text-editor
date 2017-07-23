@@ -5332,7 +5332,7 @@ void printPlatformInfo()
 
     Console::write(STR("platform:"));
 #ifdef PLATFORM_WINDOWS
-    Console::writeLine(STR(" Windows"));
+    Console::write(STR(" Windows"));
 #endif
 #ifdef PLATFORM_APPLE
     Console::write(STR(" Apple"));
@@ -5363,7 +5363,7 @@ void printPlatformInfo()
     Console::write(STR(" clang"));
 #endif
 #ifdef COMPILER_VISUAL_CPP
-    Console::write(STR(" Visual C__"));
+    Console::write(STR(" Visual C++"));
 #endif
 #ifdef COMPILER_GCC
     Console::write(STR(" gcc"));
@@ -5385,13 +5385,13 @@ int MAIN(int argc, const char_t** argv)
         Console::setLineMode(true);
         printPlatformInfo();
 
-//        testFoundation();
-//        testFile();
+		//testFoundation();
+        //testFile();
         testConsole();
-//        testConsoleWrite();
-//        testConsoleReadChar();
-//        testConsoleReadLine();
-//        testConsoleReadKeys();
+        testConsoleWrite();
+        testConsoleReadChar();
+        testConsoleReadLine();
+        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {
