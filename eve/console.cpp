@@ -718,7 +718,9 @@ const char* Console::readSpecialKey(const char* p, Key& key)
             key.code = KEY_DELETE;
     }
     else if (*p == 0x34)
+    {
         key.code = KEY_END;
+    }
     else if (*p == 0x35)
     {
         if (*(p + 1) == 0x3b)
@@ -781,12 +783,35 @@ const char* Console::readSpecialKey(const char* p, Key& key)
         read7e = false;
         key.code = KEY_HOME;
     }
+    else if (*p == 0x5b)
+    {
+        ++p;
+        read7e = false;
+
+        if (*p == 0x41)
+            key.code = KEY_F1;
+        else if (*p == 0x42)
+            key.code = KEY_F2;
+        else if (*p == 0x43)
+            key.code = KEY_F3;
+        else if (*p == 0x44)
+            key.code = KEY_F4;
+        else if (*p == 0x45)
+            key.code = KEY_F5;
+        else
+            return p;
+    }
     else
         return p;
 
     ++p;
-    if (read7e && *p == 0x7e)
-        ++p;
+    if (read7e)
+    {
+        if (*p == 0x7e)
+            ++p;
+        else
+            throw Exception(STR("0x7e expected in input stream"));
+    }
 
     return p;
 }

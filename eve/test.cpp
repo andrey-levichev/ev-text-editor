@@ -5384,7 +5384,7 @@ int MAIN(int argc, const char_t** argv)
         Console::initialize();
         Console::setLineMode(true);
         printPlatformInfo();
-        testKeys();
+//        testKeys();
 
 //        testFoundation();
 //        testFile();
@@ -5392,7 +5392,7 @@ int MAIN(int argc, const char_t** argv)
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-//        testConsoleReadKeys();
+        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {

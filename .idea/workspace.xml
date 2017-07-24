@@ -13,8 +13,6 @@
   <component name="ChangeListManager">
     <list default="true" id="40eb2cb8-8c2b-4643-88bf-7d930228fa0e" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="$PROJECT_DIR$/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/eve/test.cpp" afterPath="$PROJECT_DIR$/eve/test.cpp" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -356,7 +354,7 @@
       <workItem from="1497147458779" duration="651000" />
       <workItem from="1497148259456" duration="38000" />
       <workItem from="1498427562195" duration="31000" />
-      <workItem from="1500777292450" duration="654000" />
+      <workItem from="1500777292450" duration="687000" />
     </task>
     <task id="LOCAL-00001" summary="basic support for running in gnome terminal">
       <created>1480888944494</created>
@@ -372,11 +370,18 @@
       <option name="project" value="LOCAL" />
       <updated>1500777460350</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="clion project changes">
+      <created>1500777966057</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1500777966057</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15358000" />
+    <option name="totallyTimeSpent" value="15391000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="518" y="102" width="2620" height="1950" extended-state="0" />
@@ -440,7 +445,8 @@
     <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="basic support for running in gnome terminal" />
     <MESSAGE value="clion workspace changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="clion workspace changes" />
+    <MESSAGE value="clion project changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="clion project changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
