@@ -10,34 +10,42 @@
 class Text : public String
 {
 public:
-    Text() :
-        _position(NULL)
+    Text()
     {
+        ensureCapacity(1);
+        _position = _chars;
     }
 
-    char_t*& position()
+    void position(char_t* pos)
+    {
+        ASSERT(_chars <= pos && pos <= _chars + _length);
+        _position = pos;
+    }
+
+    char_t* position() const
     {
         return _position;
     }
 
-    const char_t* position() const
+    void assign(const String& str)
     {
-        return _position;
+        String::assign(str);
+        _position = _chars;
     }
 
-    bool charForward();
-    bool charBack();
+    bool moveForward();
+    bool moveBack();
 
-    bool wordForward();
-    bool wordBack();
+    bool moveWordForward();
+    bool moveWordBack();
 
-    bool toStart();
-    bool toEnd();
+    bool moveToStart();
+    bool moveToEnd();
 
-    bool toLineStart();
-    bool toLineEnd();
+    bool moveToLineStart();
+    bool moveToLineEnd();
 
-    void insertChar(char_t ch);
+    void insertChar(unichar_t ch);
 
     bool deleteCharForward();
     bool deleteCharBack();
@@ -48,20 +56,21 @@ public:
     String copyDeleteText(char_t* pos, bool copy);
     void pasteText(const String& text, bool lineSelection);
 
-    char_t* findChar(char_t ch) const;
-    char_t* findCharBack(char_t ch) const;
-    char_t* findLine(int line) const;
+    char_t* findCurrentLineStart();
+    char_t* findCurrentLineEnd();
+    char_t* findLine(int line);
 
     bool findNext(const String& pattern);
-    String currentWord() const;
+    String currentWord();
 
     void trimTrailingWhitespace();
 
 protected:
-    static bool isIdent(char_t ch);
+    static bool isIdent(unichar_t ch);
 
 protected:
     char_t* _position;
+    String _indent;
 };
 
 // Editor

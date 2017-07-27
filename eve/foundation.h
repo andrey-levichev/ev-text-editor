@@ -355,12 +355,14 @@ inline void swapBytes(uint64_t* values, int len)
     do { \
         try { \
             __VA_ARGS__; \
-            ASSERT_FAIL(STR("expected ") STR(#exception)); \
         } \
-        catch (exception&) {} \
+        catch (exception&) { \
+            break; \
+        } \
         catch (...) { \
             ASSERT_FAIL(STR("expected ") STR(#exception)); \
         } \
+        ASSERT_FAIL(STR("expected ") STR(#exception)); \
     } while(false)
 
 #define ASSERT_NO_EXCEPTION(...) \
@@ -375,16 +377,17 @@ inline void swapBytes(uint64_t* values, int len)
     do { \
         try { \
             __VA_ARGS__; \
-            ASSERT_FAIL(STR("expected ") STR(#exception)); \
         } \
         catch (exception& ex) \
         { \
             ASSERT_MSG(strFind(ex.message(), msg), \
                 STR(#exception) STR(" doesn't contain expected message")); \
+            break; \
         } \
         catch (...) { \
             ASSERT_FAIL(STR("expected ") STR(#exception)); \
         } \
+        ASSERT_FAIL(STR("expected ") STR(#exception)); \
     } while(false)
 
 #else
@@ -1073,8 +1076,8 @@ public:
     }
 
     String(const String& other);
-    String(const char_t* pos, int len = -1);
-    String(unichar_t ch, int len = 1);
+    String(const char_t* chars, int len = -1);
+    String(unichar_t ch, int n = 1);
 
     String(String&& other);
 
@@ -1170,10 +1173,7 @@ public:
     const char_t* charForward(const char_t* pos, int n = 1) const;
     const char_t* charBack(const char_t* pos, int n = 1) const;
 
-    String substr(const char_t* pos, int len = -1) const
-    {
-        return String(pos, len);
-    }
+    String substr(const char_t* pos, int len = -1) const;
 
     int compare(const String& str) const
     {
@@ -1222,28 +1222,28 @@ public:
     void shrinkToLength();
 
     void assign(const String& other);
-    void assign(const char_t* chars);
-    void assign(unichar_t ch, int len = 1);
+    void assign(const char_t* chars, int len = -1);
+    void assign(unichar_t ch, int n = 1);
 
     void append(const String& str);
-    void append(const char_t* chars);
-    void append(unichar_t ch, int len = 1);
+    void append(const char_t* chars, int len = -1);
+    void append(unichar_t ch, int n = 1);
 
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
 
     char_t* insert(char_t* pos, const String& str);
-    char_t* insert(char_t* pos, const char_t* chars);
-    char_t* insert(char_t* pos, unichar_t ch, int len = 1);
+    char_t* insert(char_t* pos, const char_t* chars, int len = -1);
+    char_t* insert(char_t* pos, unichar_t ch, int n = 1);
     
     void erase(char_t* pos, int len = -1);
-    void erase(const String& str);
-    void erase(const char_t* chars);
+    void eraseString(const String& str);
+    void eraseString(const char_t* chars);
     
     char_t* replace(char_t* pos, const String& str, int len = -1);
     char_t* replace(char_t* pos, const char_t* chars, int len = -1);
-    void replace(const String& searchStr, const String& replaceStr);
-    void replace(const char_t* searchChars, const char_t* replaceChars);
+    void replaceString(const String& searchStr, const String& replaceStr);
+    void replaceString(const char_t* searchChars, const char_t* replaceChars);
    
     void trim();
     void trimRight();
