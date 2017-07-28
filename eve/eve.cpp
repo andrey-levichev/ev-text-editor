@@ -379,22 +379,30 @@ void Text::trimTrailingWhitespace()
     {
         unichar_t ch = charAt(p);
 
-        if (charIsSpace(ch))
+        if (ch == '\n' || ch == 0)
+        {
+            if (whitespace)
+            {
+                trimmed.append(start, whitespace - start);
+                start = p;
+                whitespace = NULL;
+            }
+        }
+        else if (charIsSpace(ch))
         {
             if (!whitespace)
                 whitespace = p;
         }
-        else if (ch == '\n' || !ch)
-        {
-            trimmed.append(start, whitespace - start);
-            start = p;
-            whitespace = NULL;
-        }
         else
             whitespace = NULL;
+
+        if (*p)
+            p = charForward(p);
+        else
+            break;
     }
 
-    assign(trimmed);
+    swap(*this, trimmed);
     _position = _chars;
 }
 

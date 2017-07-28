@@ -1425,8 +1425,6 @@ char_t* String::insert(char_t* pos, const char_t* chars, int len)
 
             if (len < 0)
                 len = strLen(chars);
-            else
-                ASSERT(pos + len >= _chars && pos + len <= _chars + _length);
 
             int capacity = _length + len + 1;
             if (capacity > _capacity)
