@@ -241,6 +241,8 @@ String Text::copyDeleteText(char_t* pos, bool copy)
     {
         start = findCurrentLineStart();
         end = findCurrentLineEnd();
+        if (charAt(end) == '\n')
+            end = charForward(end);
     }
     
     if (start < end)
