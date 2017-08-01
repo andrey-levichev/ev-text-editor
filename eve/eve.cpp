@@ -145,7 +145,7 @@ void Text::insertChar(unichar_t ch)
         ch = charAt(p);
         while (charIsSpace(ch))
         {
-            _indent.append(ch);
+            _indent += ch;
             p = charForward(p);
             ch = charAt(p);
         }
@@ -217,32 +217,34 @@ bool Text::deleteWordBack()
     return false;
 }
 
-String Text::copyDeleteText(char_t* pos, bool copy)
+String Text::copyDeleteText(int pos, bool copy)
 {
-    ASSERT(!pos || (pos >= _chars && pos <= _chars + _length));
+    ASSERT(pos < 0 || (pos >= 0 && pos <= _length));
 
     char_t* start;
     char_t* end;
 
-    if (pos)
-    {
-        if (pos < _position)
-        {
-            start = pos;
-            end = _position;
-        }
-        else
-        {
-            start = _position;
-            end = pos;
-        }
-    }
-    else
+    if (pos < 0)
     {
         start = findCurrentLineStart();
         end = findCurrentLineEnd();
         if (charAt(end) == '\n')
             end = charForward(end);
+    }
+    else
+    {
+        char_t* p = _chars + pos;
+
+        if (p < _position)
+        {
+            start = p;
+            end = _position;
+        }
+        else
+        {
+            start = _position;
+            end = p;
+        }
     }
     
     if (start < end)
@@ -420,9 +422,8 @@ Editor::Editor(const char_t* filename) :
     _top(1), _left(1),
     _line(1), _column(1),
     _preferredColumn(1),
-    _selection(NULL),
+    _selection(-1),
     _lineSelection(false)
-
 {
     Console::setLineMode(false);
 
@@ -455,17 +456,19 @@ void Editor::positionToLineColumn()
 
     while (*p && p < q)
     {
-        if (*p == '\n')
+        unichar_t ch = _text.charAt(p);
+
+        if (ch == '\n')
         {
             ++_line;
             _column = 1;
         }
-        else if (*p == '\t')
+        else if (ch == '\t')
             _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
         else
             ++_column;
 
-        ++p;
+        p = _text.charForward(p);
     }
 
     _preferredColumn = _column;
@@ -476,21 +479,25 @@ void Editor::lineColumnToPosition()
     char_t* p = _text.chars();
     int preferredLine = _line;
     _line = 1; _column = 1;
+    unichar_t ch;
 
     while (*p && _line < preferredLine)
     {
-        if (*p++ == '\n')
+        ch = _text.charAt(p);
+        if (ch == '\n')
             ++_line;
+
+        p = _text.charForward(p);
     }
 
-    while (*p && *p != '\n' && _column < _preferredColumn)
+    while (*p && ch != '\n' && _column < _preferredColumn)
     {
-        if (*p == '\t')
+        if (ch == '\t')
             _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
         else
             ++_column;
 
-        ++p;
+        p = _text.charForward(p);
     }
 
     _text.position(p);
@@ -509,73 +516,64 @@ void Editor::updateScreen(bool redrawAll)
         _left = _column - _width + 1;
 
     char_t* p = _text.findLine(_top);
-    char_t* q = _window.values();
     int len = _left + _width - 1;
+    unichar_t ch;
+
+    _window.clear();
 
     for (int j = 1; j <= _height; ++j)
     {
         for (int i = 1; i <= len; ++i)
         {
-            char_t ch;
+            ch = _text.charAt(p);
 
-            if (*p == '\t')
+            if (ch == '\t')
             {
                 ch = ' ';
                 if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
-                    ++p;
+                    p = _text.charForward(p);
             }
-            else if (*p && *p != '\n')
-                ch = *p++;
+            else if (ch && ch != '\n')
+                p = _text.charForward(p);
             else
                 ch = ' ';
 
             if (i >= _left)
-                *q++ = ch;
+                _window.pushBack(ch);
         }
 
-        if (*p == '\n')
-            ++p;
+        ch = _text.charAt(p);
+
+        if (ch == '\n')
+            p = _text.charForward(p);
         else
         {
-            while (*p && *p != '\n')
-                ++p;
+            while (ch && ch != '\n')
+            {
+                p = _text.charForward(p);
+                ch = _text.charAt(p);
+            }
 
-            if (*p == '\n')
-                ++p;
+            if (ch == '\n')
+                p = _text.charForward(p);
         }
-    }
-
-    _status = _filename;
-    _status += _encoding == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
-    _status += _crLf ? STR("  CR LF") : STR("  LF");
-    _status.appendFormat(STR("  %d"), _text.length());
-    _status.appendFormat(STR("  %d, %d"), _line, _column);
-    
-    if (_status.length() <= _width)
-        _status.insert(_status.chars(), ' ', _width - _status.length());
-    else
-    {
-        if (_width >= 3)
-            _status.replace(_status.chars(), STR("..."), _status.length() - _width + 3);
-        else
-            _status.assign(' ', _width);
     }
 
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(false);
 #endif
 
-    int i = 0, j = 0;
-    bool matching = true;
-    int nchars = _width * _height;
-
     if (redrawAll)
     {
-        Console::write(1, 1, _window.values(), nchars);
+        Console::write(1, 1, _window.values(), _window.size());
     }
     else
     {
-        for (; j < nchars; ++j)
+        int i = 0, j = 0;
+        int len = min(_window.size(), _screen.size());
+        bool matching = true;
+
+        for (; j < len; ++j)
         {
             if (_window[j] == _screen[j])
             {
@@ -604,7 +602,25 @@ void Editor::updateScreen(bool redrawAll)
 
     swap(_window, _screen);
 
-    Console::write(_screenHeight, 1, _status);
+    _status = _filename;
+    _status += _encoding == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
+    _status += _crLf ? STR("  CRLF") : STR("  LF");
+    _status.appendFormat(STR("  %d, %d"), _line, _column);
+
+    len = _status.charLength();
+    
+    if (len <= _width)
+    {
+        Console::write(_screenHeight, 1, ' ', _width - len);
+        Console::write(_screenHeight, _width - len + 1, _status);
+    }
+    else
+    {
+        Console::write(_screenHeight, 1, STR("..."), 3);
+        Console::write(_screenHeight, 4, _status.charBack(
+                _status.chars() + _status.length(), _width - 3));
+    }
+
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
 
 #ifndef PLATFORM_WINDOWS
@@ -639,7 +655,7 @@ bool Editor::processKey()
                     update = true;
                 }
             }
-            else if (key.code == KEY_TAB || key.ch == 0x14) // ^+Tab or ^T
+            else if (key.code == KEY_TAB || key.ch == 0x14) // ^Tab or ^T
             {
                 _text.insertChar(0x14);
                 positionToLineColumn();
@@ -715,7 +731,7 @@ bool Editor::processKey()
             else if (key.ch == 'd')
             {
                 _buffer = _text.copyDeleteText(_selection, false);
-                _lineSelection = !_selection;
+                _lineSelection = _selection < 0;
 
                 if (!_buffer.empty())
                 {
@@ -727,7 +743,7 @@ bool Editor::processKey()
             else if (key.ch == 'c')
             {
                 _buffer = _text.copyDeleteText(_selection, true);
-                _lineSelection = !_selection;
+                _lineSelection = _selection < 0;
             }
             else if (key.ch == 'p')
             {
@@ -746,7 +762,7 @@ bool Editor::processKey()
             }
             else if (key.ch == 'm')
             {
-                _selection = _text.position();
+                _selection = _text.positionIndex();
             }
             else if (key.ch == 'f')
             {
@@ -865,7 +881,7 @@ bool Editor::processKey()
     }
 
     if (modified)
-        _selection = NULL;
+        _selection = -1;
 
     if (update)
         updateScreen();
@@ -877,21 +893,21 @@ void Editor::openFile()
 {
 	File file;
 
-	if (file.open(_filename))
+	if (file.open(_filename, FILE_MODE_OPEN_EXISTING))
 		_text.assign(file.readString(_encoding, _bom, _crLf));
 	else
 		_text.clear();
 
     _line = 1; _column = 1;
     _preferredColumn = 1;
-    _selection = NULL;
+    _selection = -1;
 }
 
 void Editor::saveFile()
 {
     _text.trimTrailingWhitespace();
     lineColumnToPosition();
-    _selection = NULL;
+    _selection = -1;
 
 	File file(_filename, FILE_MODE_CREATE);
 	file.writeString(_text, _encoding, _bom, _crLf);
@@ -901,38 +917,26 @@ String Editor::getCommand(const char_t* prompt)
 {
     ASSERT(prompt);
 
-    String command;
-    String cmdLine;
-    
-    int width = _width - strLen(prompt);
-    if (width < 2)
-        throw Exception(STR("window is too narrow"));
+    int promptLength = strLen(prompt);
+    String cmdLine = prompt;
 
     while (true)
     {
-        cmdLine.clear();
-        cmdLine += prompt;
+        int pos, len = cmdLine.charLength();
 
-        int pos;
-        if (command.length() < width)
+        if (len < _width)
         {
-            cmdLine += command;
-            pos = cmdLine.length() + 1;
-
-#ifdef PLATFORM_WINDOWS
-            cmdLine.append(' ', width - command.length());
-#else
-            cmdLine += STR("\x1b[K");
-#endif
+            pos = len + 1;
+            Console::write(_screenHeight, 1, cmdLine);
+            Console::write(_screenHeight, len + 1, ' ', _width - len);
         }
         else
         {
-            cmdLine += command.chars() + command.length() - width + 1;
-            cmdLine += ' ';
             pos = _width;
+            Console::write(_screenHeight, 1, 
+                cmdLine.charBack(cmdLine.chars() + cmdLine.length(), _width - 1));
         }
 
-        Console::write(_screenHeight, 1, cmdLine);
         Console::setCursorPosition(_screenHeight, pos);
 
         const Array<Key>& keys = Console::readKeys();
@@ -943,7 +947,7 @@ String Editor::getCommand(const char_t* prompt)
 
             if (key.code == KEY_ENTER)
             {
-                return command;
+                return cmdLine.substr(cmdLine.chars() + promptLength);
             }
             else if (key.code == KEY_ESC)
             {
@@ -951,15 +955,12 @@ String Editor::getCommand(const char_t* prompt)
             }
             else if (key.code == KEY_BACKSPACE)
             {
-                if (command.length() > 0)
-                {
-                    char_t* pos = command.chars() + command.length();
-                    command.erase(command.charBack(pos), 1);
-                }
+                if (cmdLine.length() > promptLength)
+                    cmdLine.erase(cmdLine.charBack(cmdLine.chars() + cmdLine.length()));
             }
             else if (charIsPrint(key.ch))
             {
-                command += key.ch;
+                cmdLine += key.ch;
             }
         }
     }

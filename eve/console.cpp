@@ -91,19 +91,30 @@ void Console::write(const String& str)
     write(str.str(), str.length());
 }
 
-void Console::write(const char_t* chars)
+void Console::write(const char_t* chars, int len)
 {
     ASSERT(chars);
-    write(chars, strLen(chars));
+    int l = len < 0 ? strLen(chars) : len;
+
+#ifdef PLATFORM_WINDOWS
+    DWORD written;
+
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    ASSERT(WriteConsole(handle, chars, l, &written, NULL));
+#else
+    ASSERT(::write(STDOUT_FILENO, chars, l) >= 0);
+#endif
 }
 
-void Console::write(unichar_t ch, int len)
+void Console::write(unichar_t ch, int n)
 {
-    ASSERT(len >= 0);
+    ASSERT(n >= 0);
 
-    int l = UTF_CHAR_LENGTH(ch) * len;
+    int l = UTF_CHAR_LENGTH(ch) * n;
     char_t* chars = ALLOCATE_STACK(char_t, l);
-    strSet(chars, ch, len);
+    strSet(chars, ch, n);
     write(chars, l);
 }
 
@@ -113,17 +124,15 @@ void Console::writeLine(const String& str)
     writeLine();
 }
 
-void Console::writeLine(const char_t* chars)
+void Console::writeLine(const char_t* chars, int len)
 {
-    ASSERT(chars);
-    write(chars, strLen(chars));
+    write(chars, len);
     writeLine();
 }
 
-void Console::writeLine(unichar_t ch, int len)
+void Console::writeLine(unichar_t ch, int n)
 {
-    ASSERT(len >= 0);
-    write(ch, len);
+    write(ch, n);
     writeLine();
 }
 
@@ -137,45 +146,13 @@ void Console::write(int line, int column, const String& str)
     write(line, column, str.str(), str.length());
 }
 
-void Console::write(int line, int column, const char_t* chars)
-{
-    ASSERT(chars);
-    write(line, column, chars, strLen(chars));
-}
-
-void Console::write(int line, int column, unichar_t ch, int len)
-{
-    ASSERT(len >= 0);
-
-    int l = UTF_CHAR_LENGTH(ch) * len;
-    char_t* chars = ALLOCATE_STACK(char_t, l);
-    strSet(chars, ch, len);
-    write(line, column, chars, l);
-}
-
-void Console::write(const char_t* chars, int len)
-{
-    ASSERT(chars);
-    ASSERT(len >= 0);
-
-#ifdef PLATFORM_WINDOWS
-    DWORD written;
-
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle);
-
-    ASSERT(WriteConsole(handle, chars, len, &written, NULL));
-#else
-    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
-#endif
-}
-
 void Console::write(int line, int column, const char_t* chars, int len)
 {
     ASSERT(line > 0);
     ASSERT(column > 0);
     ASSERT(chars);
-    ASSERT(len >= 0);
+
+    int l = len < 0 ? strLen(chars) : len;
 
 #ifdef PLATFORM_WINDOWS
     DWORD written;
@@ -187,11 +164,21 @@ void Console::write(int line, int column, const char_t* chars, int len)
     ASSERT(handle);
 
     ASSERT(WriteConsoleOutputCharacter(handle, 
-        reinterpret_cast<const wchar_t*>(chars), len, pos, &written));
+        reinterpret_cast<const wchar_t*>(chars), l, pos, &written));
 #else
     setCursorPosition(line, column);
-    ASSERT(::write(STDOUT_FILENO, chars, len) >= 0);
+    ASSERT(::write(STDOUT_FILENO, chars, l) >= 0);
 #endif
+}
+
+void Console::write(int line, int column, unichar_t ch, int n)
+{
+    ASSERT(n >= 0);
+
+    int l = UTF_CHAR_LENGTH(ch) * n;
+    char_t* chars = ALLOCATE_STACK(char_t, l);
+    strSet(chars, ch, n);
+    write(line, column, chars, l);
 }
 
 void Console::writeFormatted(const char_t* format, ...)

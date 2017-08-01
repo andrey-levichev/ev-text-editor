@@ -27,6 +27,11 @@ public:
         return _position;
     }
 
+    int positionIndex() const
+    {
+        return _position - _chars;
+    }
+
     void assign(const String& str)
     {
         String::assign(str);
@@ -53,7 +58,7 @@ public:
     bool deleteWordForward();
     bool deleteWordBack();
 
-    String copyDeleteText(char_t* pos, bool copy);
+    String copyDeleteText(int pos, bool copy);
     void pasteText(const String& text, bool lineSelection);
 
     char_t* findCurrentLineStart();
@@ -114,7 +119,7 @@ protected:
     int _top, _left;
 
     int _line, _column, _preferredColumn;
-    char_t* _selection;
+    int _selection;
     bool _lineSelection;
 };
 

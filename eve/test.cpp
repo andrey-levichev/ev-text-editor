@@ -5185,16 +5185,19 @@ void testConsoleWrite()
 
     Console::write(String(STR("aaa")));
     Console::write(STR("bbb"));
+    Console::write(STR("bbb"), 3);
     Console::write('c', 3);
 
     Console::writeLine();
     Console::writeLine(String(STR("ddd")));
     Console::writeLine(STR("eee"));
+    Console::writeLine(STR("eee"), 3);
     Console::writeLine('f', 3);
 
     Console::write(10, 10, String(STR("ggg")));
     Console::write(11, 10, STR("iii"));
-    Console::write(12, 10, 'j', 3);
+    Console::write(12, 10, STR("iii"), 3);
+    Console::write(13, 10, 'j', 3);
 
     Console::writeFormatted(STR("%d"), 111);
     writeFormatted(STR("%d"), 222);

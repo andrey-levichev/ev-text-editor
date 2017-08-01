@@ -11,7 +11,10 @@ research utf-8 support in windows and macos
 handle invalid unicode sequences?
 manipulating Text with String functions must not be allowed
 reduce number of allocations
-selection pointer will become invalidated
+don't add chars to string one by one
+ch vs *p
+front/back for string?
+index to position for string?
 * foundation improvements
 prohibit write access to container data via pointer?
 acquire with capacity?

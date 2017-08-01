@@ -155,6 +155,20 @@ typedef unsigned char32_t;
 #include <alloca.h>
 #endif
 
+// min/max
+
+template<typename _Type>
+const _Type& min(const _Type& left, const _Type& right)
+{
+    return left < right ? left : right;
+}
+
+template<typename _Type>
+const _Type& max(const _Type& left, const _Type& right)
+{
+    return left > right ? left : right;
+}
+
 // string support
 
 typedef char32_t unichar_t;

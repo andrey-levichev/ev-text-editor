@@ -68,21 +68,18 @@ public:
     static void setLineMode(bool lineMode);
 
     static void write(const String& str);
-    static void write(const char_t* chars);
-    static void write(unichar_t ch, int len = 1);
+    static void write(const char_t* chars, int len = -1);
+    static void write(unichar_t ch, int n = 1);
 
     static void writeLine(const String& str);
-    static void writeLine(const char_t* chars);
-    static void writeLine(unichar_t ch, int len = 1);
+    static void writeLine(const char_t* chars, int len = -1);
+    static void writeLine(unichar_t ch, int n = 1);
     static void writeLine();
 
     static void write(int line, int column, const String& str);
-    static void write(int line, int column, const char_t* chars);
-    static void write(int line, int column, unichar_t ch, int len = 1);
+    static void write(int line, int column, const char_t* chars, int len = -1);
+    static void write(int line, int column, unichar_t ch, int n = 1);
 
-    static void write(const char_t* chars, int len);
-    static void write(int line, int column, const char_t* chars, int len);
-    
     static void writeFormatted(const char_t* format, ...);
     static void writeFormatted(const char_t* format, va_list args);
 
