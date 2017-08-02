@@ -509,58 +509,24 @@ char32_t utf8CharAt(const char* pos)
     return ch;
 }
 
-char* utf8CharForward(char* pos, int n)
+const char* utf8CharForward(const char* pos)
 {
-    while (*pos && n--)
+    do
     {
-        do
-        {
-            ++pos;
-        }
-        while ((*pos & 0xc0) == 0x80);
+        ++pos;
     }
+    while ((*pos & 0xc0) == 0x80);
 
     return pos;
 }
 
-const char* utf8CharForward(const char* pos, int n)
+const char* utf8CharBack(const char* pos)
 {
-    while (*pos && n--)
+    do
     {
-        do
-        {
-            ++pos;
-        }
-        while ((*pos & 0xc0) == 0x80);
+        --pos;
     }
-
-    return pos;
-}
-
-char* utf8CharBack(char* pos, char* start, int n)
-{
-    while (pos > start && n--)
-    {
-        do
-        {
-            --pos;
-        }
-        while ((*pos & 0xc0) == 0x80);
-    }
-
-    return pos;
-}
-
-const char* utf8CharBack(const char* pos, const char* start, int n)
-{
-    while (pos > start && n--)
-    {
-        do
-        {
-            --pos;
-        }
-        while ((*pos & 0xc0) == 0x80);
-    }
+    while ((*pos & 0xc0) == 0x80);
 
     return pos;
 }
@@ -581,13 +547,10 @@ int utf8StringLength(const char* str)
 {
     int len = 0;
 
-    if (str)
+    while (*str)
     {
-        while (*str)
-        {
-            str = utf8CharForward(str);
-            ++len;
-        }
+        str = utf8CharForward(str);
+        ++len;
     }
 
     return len;
@@ -600,52 +563,21 @@ char32_t utf16CharAt(const char16_t* pos)
     return ch;
 }
 
-char16_t* utf16CharForward(char16_t* pos, int n)
+const char16_t* utf16CharForward(const char16_t* pos)
 {
-    while (*pos && n--)
-    {
-        if ((*pos & 0xfc00) == 0xd800)
-            pos += 2;
-        else
-            ++pos;
-    }
+    if ((*pos & 0xfc00) == 0xd800)
+        pos += 2;
+    else
+        ++pos;
 
     return pos;
 }
 
-const char16_t* utf16CharForward(const char16_t* pos, int n)
+const char16_t* utf16CharBack(const char16_t* pos)
 {
-    while (*pos && n--)
-    {
-        if ((*pos & 0xfc00) == 0xd800)
-            pos += 2;
-        else
-            ++pos;
-    }
-
-    return pos;
-}
-
-char16_t* utf16CharBack(char16_t* pos, char16_t* start, int n)
-{
-    while (pos > start && n--)
-    {
+    --pos;
+    if ((*pos & 0xfc00) == 0xdc00)
         --pos;
-        if ((*pos & 0xfc00) == 0xdc00)
-            --pos;
-    }
-
-    return pos;
-}
-
-const char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n)
-{
-    while (pos > start && n--)
-    {
-        --pos;
-        if ((*pos & 0xfc00) == 0xdc00)
-            --pos;
-    }
 
     return pos;
 }
@@ -662,13 +594,10 @@ int utf16StringLength(const char16_t* str)
 {
     int len = 0;
 
-    if (str)
+    while (*str)
     {
-        while (*str)
-        {
-            str = utf16CharForward(str);
-            ++len;
-        }
+        str = utf16CharForward(str);
+        ++len;
     }
 
     return len;
@@ -767,108 +696,48 @@ String::String(String&& other)
     other._chars = NULL;
 }
 
-unichar_t String::charAt(const char_t* pos) const
+unichar_t String::charAt(int pos) const
 {
-    if (_chars)
-    {
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-        return UTF_CHAR_AT(pos);
-    }
-    else
-    {
-        ASSERT(!pos);
-        return 0;
-    }
+    ASSERT(pos >= 0 && pos <= _length);
+    return _chars ? UTF_CHAR_AT(_chars + pos) : 0;
 }
 
-char_t* String::charPosition(int n)
+int String::charForward(int pos) const
 {
-    ASSERT(n >= 0 && n <= _length);
-    if (_chars)
-        return UTF_CHAR_FORWARD(_chars, n);
+    ASSERT(pos >= 0 && pos <= _length);
+
+    if (pos < _length - 1)
+        return UTF_CHAR_FORWARD(_chars + pos) - _chars;
     else
-        return NULL;
+        return -1;
 }
 
-char_t* String::charForward(char_t* pos, int n)
+int String::charBack(int pos) const
 {
-    if (_chars)
-    {
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-        ASSERT(n >= 0);
-        return UTF_CHAR_FORWARD(pos, n);
-    }
+    ASSERT(pos >= 0 && pos <= _length);
+
+    if (pos > 0)
+        return UTF_CHAR_BACK(_chars + pos) - _chars;
     else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
+        return -1;
 }
 
-char_t* String::charBack(char_t* pos, int n)
+int String::charPosition(int pos, int n) const
 {
-    if (_chars)
-    {
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-        ASSERT(n >= 0);
-        return UTF_CHAR_BACK(pos, _chars, n);
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
+    ASSERT(pos >= 0 && pos <= _length);
+    return -1;
 }
 
-const char_t* String::charPosition(int n) const
+String String::substr(int pos, int len) const
 {
-    ASSERT(n >= 0 && n <= _length);
-    if (_chars)
-        return UTF_CHAR_FORWARD(_chars, n);
-    else
-        return NULL;
-}
-
-const char_t* String::charForward(const char_t* pos, int n) const
-{
-    if (_chars)
-    {
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-        ASSERT(n >= 0);
-        return UTF_CHAR_FORWARD(pos, n);
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
-}
-
-const char_t* String::charBack(const char_t* pos, int n) const
-{
-    if (_chars)
-    {
-        ASSERT(pos >= _chars && pos <= _chars + _length);
-        ASSERT(n >= 0);
-        return UTF_CHAR_BACK(pos, _chars, n);
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
-}
-
-String String::substr(const char_t* pos, int len) const
-{
-    ASSERT(pos >= _chars && pos <= _chars + _length);
+    ASSERT(pos >= 0 && pos <= _length);
     
     if (_length > 0)
     {
         if (len >= 0)
-            ASSERT(pos + len >= _chars && pos + len <= _chars + _length);
+            ASSERT(pos + len >= 0 && pos + len <= _length);
 
-        return String(pos, len);
+        return String(_chars + pos, len);
     }
     else
     {
@@ -877,282 +746,100 @@ String String::substr(const char_t* pos, int len) const
     }
 }
 
-char_t* String::find(const String& str, char_t* pos)
+int String::find(const String& str, int pos) const
 {
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
+    ASSERT(pos >= 0 && pos <= _length);
 
-        if (str._chars)
-            return strFind(pos, str._chars);
-        else
-            return NULL;
-    }
-    else
+    if (_length > 0 && str._length > 0)
     {
-        ASSERT(!pos);
-        return NULL;
+        const char* p = strFind(_chars + pos, str._chars);
+        if (p)
+            return p - _chars;
     }
+
+    return -1;
 }
 
-char_t* String::find(const char_t* chars, char_t* pos)
+int String::find(const char_t* chars, int pos) const
 {
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
+    ASSERT(pos >= 0 && pos <= _length);
 
-        if (chars)
-            return strFind(pos, chars);
-        else
-            return NULL;
-    }
-    else
+    if (_length > 0 && chars && *chars)
     {
-        ASSERT(!pos);
-        return NULL;
+        const char* p = strFind(_chars + pos, chars);
+        if (p)
+            return p - _chars;
     }
+
+    return -1;
 }
 
-char_t* String::find(unichar_t ch, char_t* pos)
+int String::find(unichar_t ch, int pos) const
 {
-    ASSERT (ch != 0);
+    ASSERT(ch != 0);
+    ASSERT(pos >= 0 && pos <= _length);
 
-    if (_chars)
+    if (_length > 0)
     {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
-
-        while (*pos)
+        do
         {
             if (charAt(pos) == ch)
                 return pos;
             pos = charForward(pos);
         }
+        while (pos >= 0);
+    }
 
-        return NULL;
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
+    return -1;
 }
 
-char_t* String::findNoCase(const String& str, char_t* pos)
+int String::findNoCase(const String& str, int pos) const
 {
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
+    ASSERT(pos >= 0 && pos <= _length);
 
-        if (str._chars)
-            return strFindNoCase(pos, str._chars);
-        else
-            return NULL;
-    }
-    else
+    if (_length > 0 && str._length > 0)
     {
-        ASSERT(!pos);
-        return NULL;
+        const char* p = strFindNoCase(_chars + pos, str._chars);
+        if (p)
+            return p - _chars;
     }
+
+    return -1;
 }
 
-char_t* String::findNoCase(const char_t* chars, char_t* pos)
+int String::findNoCase(const char_t* chars, int pos) const
 {
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
+    ASSERT(pos >= 0 && pos <= _length);
 
-        if (chars)
-            return strFindNoCase(pos, chars);
-        else
-            return NULL;
-    }
-    else
+    if (_length > 0 && chars && *chars)
     {
-        ASSERT(!pos);
-        return NULL;
+        const char* p = strFindNoCase(_chars + pos, chars);
+        if (p)
+            return p - _chars;
     }
+
+    return -1;
 }
 
-char_t* String::findNoCase(unichar_t ch, char_t* pos)
+int String::findNoCase(unichar_t ch, int pos) const
 {
-    ASSERT (ch != 0);
+    ASSERT(ch != 0);
+    ASSERT(pos >= 0 && pos <= _length);
 
-    if (_chars)
+    if (_length > 0)
     {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
-
         ch = charToLower(ch);
-        while (*pos)
+
+        do
         {
             if (charToLower(charAt(pos)) == ch)
                 return pos;
             pos = charForward(pos);
         }
-
-        return NULL;
+        while (pos >= 0);
     }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
-}
 
-const char_t* String::find(const String& str, const char_t* pos) const
-{
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
-
-        if (str._chars)
-            return strFind(pos, str._chars);
-        else
-            return NULL;
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
-}
-
-const char_t* String::find(const char_t* chars, const char_t* pos) const
-{
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
-
-        if (chars)
-            return strFind(pos, chars);
-        else
-            return NULL;
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
-}
-
-const char_t* String::find(unichar_t ch, const char_t* pos) const
-{
-    ASSERT (ch != 0);
-
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
-
-        while (*pos)
-        {
-            if (charAt(pos) == ch)
-                return pos;
-            pos = charForward(pos);
-        }
-
-        return NULL;
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
-}
-
-const char_t* String::findNoCase(const String& str, const char_t* pos) const
-{
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
-
-        if (str._chars)
-            return strFindNoCase(pos, str._chars);
-        else
-            return NULL;
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
-}
-
-const char_t* String::findNoCase(const char_t* chars, const char_t* pos) const
-{
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
-
-        if (chars)
-            return strFindNoCase(pos, chars);
-        else
-            return NULL;
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
-}
-
-const char_t* String::findNoCase(unichar_t ch, const char_t* pos) const
-{
-    ASSERT (ch != 0);
-
-    if (_chars)
-    {
-        if (pos)
-            ASSERT(pos >= _chars && pos <= _chars + _length);
-        else
-            pos = _chars;
-
-        ch = charToLower(ch);
-        while (*pos)
-        {
-            if (charToLower(charAt(pos)) == ch)
-                return pos;
-            pos = charForward(pos);
-        }
-
-        return NULL;
-    }
-    else
-    {
-        ASSERT(!pos);
-        return NULL;
-    }
+    return -1;
 }
 
 bool String::startsWith(const String& str) const
@@ -1197,12 +884,12 @@ bool String::endsWith(const char_t* chars) const
 
 bool String::contains(const String& str) const
 {
-    return find(str) != NULL;
+    return find(str) >= 0;
 }
 
 bool String::contains(const char_t* chars) const
 {
-    return find(chars) != NULL;
+    return find(chars) >= 0;
 }
 
 void String::ensureCapacity(int capacity)
@@ -1360,9 +1047,9 @@ void String::appendFormat(const char_t* format, va_list args)
     *this += String::format(format, args);
 }
 
-char_t* String::insert(char_t* pos, const String& str)
+void String::insert(int pos, const String& str)
 {
-    ASSERT(pos >= _chars && pos <= _chars + _length);
+    ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
     {
@@ -1372,26 +1059,20 @@ char_t* String::insert(char_t* pos, const String& str)
 
             int capacity = _length + str._length + 1;
             if (capacity > _capacity)
-            {
-                int i = pos - _chars;
                 ensureCapacity(capacity * 2);
-                pos = _chars + i;
-            }
 
-            strMove(pos + str._length, pos, _chars + _length - pos + 1);
-            strCopyLen(pos, str._chars, str._length);
+            strMove(_chars + pos + str._length, _chars + pos, _length - pos + 1);
+            strCopyLen(_chars + pos, str._chars, str._length);
             _length += str._length;
         }
     }
     else
         assign(str);
-
-    return pos;
 }
 
-char_t* String::insert(char_t* pos, const char_t* chars, int len)
+void String::insert(int pos, const char_t* chars, int len)
 {
-    ASSERT(pos >= _chars && pos <= _chars + _length);
+    ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
     {
@@ -1404,14 +1085,10 @@ char_t* String::insert(char_t* pos, const char_t* chars, int len)
 
             int capacity = _length + len + 1;
             if (capacity > _capacity)
-            {
-                int i = pos - _chars;
                 ensureCapacity(capacity * 2);
-                pos = _chars + i;
-            }
 
-            strMove(pos + len, pos, _chars + _length - pos + 1);
-            strCopyLen(pos, chars, len);
+            strMove(_chars + pos + len, _chars + pos, _length - pos + 1);
+            strCopyLen(_chars + pos, chars, len);
             _length += len;
         }
         else
@@ -1419,13 +1096,11 @@ char_t* String::insert(char_t* pos, const char_t* chars, int len)
     }
     else
         assign(chars, len);
-    
-    return pos;
 }
 
-char_t* String::insert(char_t* pos, unichar_t ch, int n)
+void String::insert(int pos, unichar_t ch, int n)
 {
-    ASSERT(pos >= _chars && pos <= _chars + _length);
+    ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
     {
@@ -1438,38 +1113,32 @@ char_t* String::insert(char_t* pos, unichar_t ch, int n)
 
             int capacity = _length + l + 1;
             if (capacity > _capacity)
-            {
-                int i = pos - _chars;
                 ensureCapacity(capacity * 2);
-                pos = _chars + i;
-            }
 
-            strMove(pos + l, pos, _chars + _length - pos + 1);
-            strSet(pos, ch, n);
+            strMove(_chars + pos + l, _chars + pos, _length - pos + 1);
+            strSet(_chars + pos, ch, n);
             _length += l;
         }
     }
     else
         assign(ch, n);
-
-    return pos;
 }
 
-void String::erase(char_t* pos, int len)
+void String::erase(int pos, int len)
 {
-    ASSERT(pos >= _chars && pos <= _chars + _length);
+    ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
     {
         if (len < 0)
         {
-            *pos = 0;
-            _length = pos - _chars;
+            *(_chars + pos) = 0;
+            _length = pos;
         }
         else if (len > 0)
         {
-            ASSERT(pos + len >= _chars && pos + len <= _chars + _length);
-            strMove(pos, pos + len, _chars + _length - pos - len + 1);
+            ASSERT(pos + len >= 0 && pos + len <= _length);
+            strMove(_chars + pos, _chars + pos + len, _length - pos - len + 1);
             _length -= len;
         }
     }
@@ -1557,9 +1226,9 @@ void String::eraseString(const char_t* chars)
     }
 }
 
-char_t* String::replace(char_t* pos, const String& str, int len)
+void String::replace(int pos, const String& str, int len)
 {
-    ASSERT(pos >= _chars && pos <= _chars + _length);
+    ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
     {
@@ -1568,24 +1237,22 @@ char_t* String::replace(char_t* pos, const String& str, int len)
             ASSERT(this != &str);
 
             if (len < 0)
-                len = _chars + _length - pos;
+                len = _length - pos;
             else
-                ASSERT(pos + len >= _chars && pos + len <= _chars + _length);
+                ASSERT(pos + len >= 0 && pos + len <= _length);
 
             int newLen = _length - len + str._length;
 
             if (newLen > 0)
             {
-                int i = pos - _chars;
                 ensureCapacity(newLen + 1);
-                pos = _chars + i;
 
-                strMove(pos + str._length, pos + len, _chars + _length - pos - len + 1);
-                strCopyLen(pos, str._chars, str._length);
+                strMove(_chars + pos + str._length, _chars + pos + len, _length - pos - len + 1);
+                strCopyLen(_chars + pos, str._chars, str._length);
                 _length = newLen;
             }
             else
-                *this = str;
+                assign(str);
         }
         else
             erase(pos, len);
@@ -1595,13 +1262,11 @@ char_t* String::replace(char_t* pos, const String& str, int len)
         ASSERT(len <= 0);
         assign(str);
     }
-    
-    return pos;
 }
 
-char_t* String::replace(char_t* pos, const char_t* chars, int len)
+void String::replace(int pos, const char_t* chars, int len)
 {
-    ASSERT(pos >= _chars && pos <= _chars + _length);
+    ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
     {
@@ -1610,25 +1275,23 @@ char_t* String::replace(char_t* pos, const char_t* chars, int len)
             ASSERT(_chars != chars);
 
             if (len < 0)
-                len = _chars + _length - pos;
+                len = _length - pos;
             else
-                ASSERT(pos + len >= _chars && pos + len <= _chars + _length);
+                ASSERT(pos + len >= 0 && pos + len <= _length);
 
             int replaceLen = strLen(chars);
             int newLen = _length - len + replaceLen;
 
             if (newLen > 0)
             {
-                int i = pos - _chars;
                 ensureCapacity(newLen + 1);
-                pos = _chars + i;
 
-                strMove(pos + replaceLen, pos + len, _chars + _length - pos - len + 1);
-                strCopyLen(pos, chars, replaceLen);
+                strMove(_chars + pos + replaceLen, _chars + pos + len, _length - pos - len + 1);
+                strCopyLen(_chars + pos, chars, replaceLen);
                 _length = newLen;
             }
             else
-                *this = chars;
+                assign(chars);
         }
         else
             erase(pos, len);
@@ -1638,8 +1301,6 @@ char_t* String::replace(char_t* pos, const char_t* chars, int len)
         ASSERT(len <= 0);
         assign(chars);
     }
-    
-    return pos;
 }
 
 void String::replaceString(const String& searchStr, const String& replaceStr)
@@ -1754,7 +1415,7 @@ void String::trim()
 
         while (p < q)
         {
-            int l = UTF_CHAR_TO_UNICODE(UTF_CHAR_BACK(q, p), ch);
+            int l = UTF_CHAR_TO_UNICODE(UTF_CHAR_BACK(q), ch);
             if (charIsSpace(ch))
                 q -= l;
             else
@@ -1783,7 +1444,7 @@ void String::trimRight()
         
         while (p < q)
         {
-            int l = UTF_CHAR_TO_UNICODE(UTF_CHAR_BACK(q, p), ch);
+            int l = UTF_CHAR_TO_UNICODE(UTF_CHAR_BACK(q), ch);
             if (charIsSpace(ch))
                 q -= l;
             else
@@ -2085,7 +1746,11 @@ unichar_t ConstStringIterator::value() const
 
 bool ConstStringIterator::moveNext()
 {
-    _pos = _pos ? UTF_CHAR_FORWARD(_pos) : _str.str();
+    if (!_pos)
+        _pos = _str.str();
+
+    if (*_pos)
+        _pos = UTF_CHAR_FORWARD(_pos);
 
     if (*_pos)
         return true;
@@ -2102,14 +1767,13 @@ bool ConstStringIterator::movePrev()
         _pos = _str.str() + _str.length();
 
     if (_pos > _str.str())
-    {
-        _pos = UTF_CHAR_BACK(_pos, _str.str());
+        _pos = UTF_CHAR_BACK(_pos);
+
+    if (*_pos)
         return true;
-    }
     else
     {
         _pos = NULL;
         return false;
     }
 }
-

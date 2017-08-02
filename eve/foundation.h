@@ -255,18 +255,16 @@ void utf8StringToUtf16(const char* in, char16_t* out);
 void utf16StringToUtf8(const char16_t* in, char* out);
 
 char32_t utf8CharAt(const char* pos);
-char* utf8CharForward(char* pos, int n = 1);
-const char* utf8CharForward(const char* pos, int n = 1);
-char* utf8CharBack(char* pos, char* start, int n = 1);
-const char* utf8CharBack(const char* pos, const char* start, int n = 1);
+const char* utf8CharForward(const char* pos);
+const char* utf8CharBack(const char* pos);
+
 int utf8CharLength(char32_t ch);
 int utf8StringLength(const char* str);
 
 char32_t utf16CharAt(const char16_t* pos);
-char16_t* utf16CharForward(char16_t* pos, int n = 1);
-const char16_t* utf16CharForward(const char16_t* pos, int n = 1);
-char16_t* utf16CharBack(char16_t* pos, char16_t* start, int n = 1);
-const char16_t* utf16CharBack(const char16_t* pos, const char16_t* start, int n = 1);
+const char16_t* utf16CharForward(const char16_t* pos);
+const char16_t* utf16CharBack(const char16_t* pos);
+
 int utf16CharLength(char32_t ch);
 int utf16StringLength(const char16_t* str);
 
@@ -1156,17 +1154,12 @@ public:
     {
         return _chars ? _chars : STR("");
     }
-    
-    char_t* chars()
-    {
-        return _chars;
-    }
-    
+
     const char_t* chars() const
     {
         return _chars;
     }
-
+    
     bool empty() const
     {
         return _length == 0;
@@ -1177,17 +1170,12 @@ public:
         return ConstIterator(*this);
     }
 
-    unichar_t charAt(const char_t* pos) const;
+    unichar_t charAt(int pos) const;
+    int charForward(int pos) const;
+    int charBack(int pos) const;
+    int charPosition(int pos, int n) const;
 
-    char_t* charPosition(int n);
-    char_t* charForward(char_t* pos, int n = 1);
-    char_t* charBack(char_t* pos, int n = 1);
-
-    const char_t* charPosition(int n) const;
-    const char_t* charForward(const char_t* pos, int n = 1) const;
-    const char_t* charBack(const char_t* pos, int n = 1) const;
-
-    String substr(const char_t* pos, int len = -1) const;
+    String substr(int pos, int len = -1) const;
 
     int compare(const String& str) const
     {
@@ -1209,19 +1197,12 @@ public:
         return strCompareNoCase(str(), chars ? chars : STR(""));
     }
 
-    char_t* find(const String& str, char_t* pos = NULL);
-    char_t* find(const char_t* chars, char_t* pos = NULL);
-    char_t* find(unichar_t ch, char_t* pos = NULL);
-    char_t* findNoCase(const String& str, char_t* pos = NULL);
-    char_t* findNoCase(const char_t* chars, char_t* pos = NULL);
-    char_t* findNoCase(unichar_t ch, char_t* pos = NULL);
-    
-    const char_t* find(const String& str, const char_t* pos = NULL) const;
-    const char_t* find(const char_t* chars, const char_t* pos = NULL) const;
-    const char_t* find(unichar_t ch, const char_t* pos = NULL) const;
-    const char_t* findNoCase(const String& str, const char_t* pos = NULL) const;
-    const char_t* findNoCase(const char_t* chars, const char_t* pos = NULL) const;
-    const char_t* findNoCase(unichar_t ch, const char_t* pos = NULL) const;
+    int find(const String& str, int pos = 0) const;
+    int find(const char_t* chars, int pos = 0) const;
+    int find(unichar_t ch, int pos = 0) const;
+    int findNoCase(const String& str, int pos = 0) const;
+    int findNoCase(const char_t* chars, int pos = 0) const;
+    int findNoCase(unichar_t ch, int pos = 0) const;
     
     bool startsWith(const String& str) const;
     bool startsWith(const char_t* chars) const;
@@ -1246,16 +1227,16 @@ public:
     void appendFormat(const char_t* format, ...);
     void appendFormat(const char_t* format, va_list args);
 
-    char_t* insert(char_t* pos, const String& str);
-    char_t* insert(char_t* pos, const char_t* chars, int len = -1);
-    char_t* insert(char_t* pos, unichar_t ch, int n = 1);
+    void insert(int pos, const String& str);
+    void insert(int pos, const char_t* chars, int len = -1);
+    void insert(int pos, unichar_t ch, int n = 1);
     
-    void erase(char_t* pos, int len = -1);
+    void erase(int pos, int len = -1);
     void eraseString(const String& str);
     void eraseString(const char_t* chars);
     
-    char_t* replace(char_t* pos, const String& str, int len = -1);
-    char_t* replace(char_t* pos, const char_t* chars, int len = -1);
+    void replace(int pos, const String& str, int len = -1);
+    void replace(int pos, const char_t* chars, int len = -1);
     void replaceString(const String& searchStr, const String& replaceStr);
     void replaceString(const char_t* searchChars, const char_t* replaceChars);
    

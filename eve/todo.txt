@@ -13,8 +13,7 @@ manipulating Text with String functions must not be allowed
 reduce number of allocations
 don't add chars to string one by one
 ch vs *p
-front/back for string?
-index to position for string?
+chars vs length > 0
 * foundation improvements
 prohibit write access to container data via pointer?
 acquire with capacity?
