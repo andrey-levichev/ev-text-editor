@@ -13,29 +13,24 @@ public:
     Text()
     {
         ensureCapacity(1);
-        _position = _chars;
+        _position = 0;
     }
 
-    void position(char_t* pos)
+    void position(int pos)
     {
-        ASSERT(_chars <= pos && pos <= _chars + _length);
+        ASSERT(pos <= 0 && pos <= _length);
         _position = pos;
     }
 
-    char_t* position() const
+    int position() const
     {
         return _position;
-    }
-
-    int positionIndex() const
-    {
-        return _position - _chars;
     }
 
     void assign(const String& str)
     {
         String::assign(str);
-        _position = _chars;
+        _position = 0;
     }
 
     bool moveForward();
@@ -61,9 +56,9 @@ public:
     String copyDeleteText(int pos, bool copy);
     void pasteText(const String& text, bool lineSelection);
 
-    char_t* findCurrentLineStart();
-    char_t* findCurrentLineEnd();
-    char_t* findLine(int line);
+    int findCurrentLineStart();
+    int findCurrentLineEnd();
+    int findLine(int line);
 
     bool findNext(const String& pattern);
     String currentWord();
@@ -74,7 +69,7 @@ protected:
     static bool isIdent(unichar_t ch);
 
 protected:
-    char_t* _position;
+    int _position;
     String _indent;
 };
 

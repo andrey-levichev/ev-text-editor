@@ -7,7 +7,7 @@ const char_t* tab = STR("    ");
 
 bool Text::moveForward()
 {
-    if (_position < _chars + _length)
+    if (_position < _length)
     {
         _position = charForward(_position);
         return true;
@@ -18,7 +18,7 @@ bool Text::moveForward()
 
 bool Text::moveBack()
 {
-    if (_position > _chars)
+    if (_position > 0)
     {
         _position = charBack(_position);
         return true;
@@ -29,14 +29,14 @@ bool Text::moveBack()
 
 bool Text::moveWordForward()
 {
-    char_t* start = _position;
+    int start = _position;
 
-    if (*_position)
+    if (_position < _length)
     {
         unichar_t prevChar = charAt(_position);
         _position = charForward(_position);
 
-        while (*_position)
+        while (_position < _length)
         {
             unichar_t ch = charAt(_position);
             if (charIsSpace(prevChar) && !charIsSpace(ch))
@@ -52,16 +52,16 @@ bool Text::moveWordForward()
 
 bool Text::moveWordBack()
 {
-    char_t* start = _position;
+    int start = _position;
 
-    if (_position > _chars)
+    if (_position > 0)
     {
         _position = charBack(_position);
 
-        if (_position > _chars)
+        if (_position > 0)
         {
             unichar_t prevChar = charAt(_position);
-            char_t* prevPos = _position;
+            int prevPos = _position;
 
             do
             {
@@ -77,7 +77,7 @@ bool Text::moveWordBack()
                 prevChar = ch;
                 prevPos = _position;
             }
-            while (_position > _chars);
+            while (_position > 0);
         }
     }
 
@@ -86,9 +86,9 @@ bool Text::moveWordBack()
 
 bool Text::moveToStart()
 {
-    if (_position > _chars)
+    if (_position > 0)
     {
-        _position = _chars;
+        _position = 0;
         return true;
     }
 
@@ -97,9 +97,9 @@ bool Text::moveToStart()
 
 bool Text::moveToEnd()
 {
-    if (_position < _chars + _length)
+    if (_position < _length)
     {
-        _position = _chars + _length;
+        _position = _length;
         return true;
     }
 
@@ -108,7 +108,7 @@ bool Text::moveToEnd()
 
 bool Text::moveToLineStart()
 {
-    char_t* p = findCurrentLineStart();
+    int p = findCurrentLineStart();
 
     if (p < _position)
     {
@@ -121,7 +121,7 @@ bool Text::moveToLineStart()
 
 bool Text::moveToLineEnd()
 {
-    char_t* p = findCurrentLineEnd();
+    int p = findCurrentLineEnd();
 
     if (p > _position)
     {
@@ -138,7 +138,7 @@ void Text::insertChar(unichar_t ch)
 
     if (ch == '\n') // new line
     {
-        char_t* p = findCurrentLineStart();
+        int p = findCurrentLineStart();
         _indent.assign('\n');
         unichar_t ch;
 
@@ -150,25 +150,29 @@ void Text::insertChar(unichar_t ch)
             ch = charAt(p);
         }
 
-        _position = insert(_position, _indent) + _indent.length();
+        insert(_position, _indent);
+        _position += _indent.length();
     }
     else if (ch == '\t') // tab
     {
-        _position = charForward(insert(_position, tab), TAB_SIZE);
+        insert(_position, tab);
+        _position = charForward(_position, TAB_SIZE);
     }
     else if (ch == 0x14) // real tab
     {
-        _position = charForward(insert(_position, '\t'));
+        insert(_position, '\t');
+        _position = charForward(_position);
     }
     else
     {
-        _position = charForward(insert(_position, ch));
+        insert(_position, ch);
+        _position = charForward(_position);
     }
 }
 
 bool Text::deleteCharForward()
 {
-    if (_position < _position + _length)
+    if (_position < _length)
     {
         erase(_position, charForward(_position) - _position);
         return true;
@@ -179,9 +183,9 @@ bool Text::deleteCharForward()
 
 bool Text::deleteCharBack()
 {
-    if (_position > _chars)
+    if (_position > 0)
     {
-        char_t* prev = _position;
+        int prev = _position;
         _position = charBack(_position);
         erase(_position, prev - _position);
         return true;
@@ -192,7 +196,7 @@ bool Text::deleteCharBack()
 
 bool Text::deleteWordForward()
 {
-    char_t* prev = _position;
+    int prev = _position;
 
     if (moveWordForward())
     {
@@ -206,7 +210,7 @@ bool Text::deleteWordForward()
 
 bool Text::deleteWordBack()
 {
-    char_t* prev = _position;
+    int prev = _position;
 
     if (moveWordBack())
     {
@@ -221,8 +225,8 @@ String Text::copyDeleteText(int pos, bool copy)
 {
     ASSERT(pos < 0 || (pos >= 0 && pos <= _length));
 
-    char_t* start;
-    char_t* end;
+    int start;
+    int end;
 
     if (pos < 0)
     {
@@ -233,17 +237,15 @@ String Text::copyDeleteText(int pos, bool copy)
     }
     else
     {
-        char_t* p = _chars + pos;
-
-        if (p < _position)
+        if (pos < _position)
         {
-            start = p;
+            start = pos;
             end = _position;
         }
         else
         {
             start = _position;
-            end = p;
+            end = pos;
         }
     }
     
@@ -266,21 +268,19 @@ String Text::copyDeleteText(int pos, bool copy)
 void Text::pasteText(const String& text, bool lineSelection)
 {
     if (lineSelection)
-    {
-        char_t* p = findCurrentLineStart();
-        _position = insert(p, text) + text.length();
-    }
+        insert(findCurrentLineStart(), text);
     else
-        _position = insert(_position, text) + text.length();
+        insert(_position, text);
+    _position += text.length();
 }
 
-char_t* Text::findCurrentLineStart()
+int Text::findCurrentLineStart()
 {
-    char_t* p = _position;
+    int p = _position;
 
-    while (p > _chars)
+    while (p > 0)
     {
-        char* q = charBack(p);
+        int q = charBack(p);
         if (charAt(q) == '\n')
             break;
         p = q;
@@ -289,11 +289,11 @@ char_t* Text::findCurrentLineStart()
     return p;
 }
 
-char_t* Text::findCurrentLineEnd()
+int Text::findCurrentLineEnd()
 {
-    char_t* p = _position;
+    int p = _position;
 
-    while (*p)
+    while (p < _length)
     {
         if (charAt(p) == '\n')
             break;
@@ -303,12 +303,12 @@ char_t* Text::findCurrentLineEnd()
     return p;
 }
 
-char_t* Text::findLine(int line)
+int Text::findLine(int line)
 {
     ASSERT(line > 0);
-    char_t* p = _chars;
+    int p = 0;
 
-    while (*p && line > 1)
+    while (p < _length && line > 1)
     {
         if (charAt(p) == '\n')
             --line;
@@ -322,20 +322,20 @@ bool Text::findNext(const String& pattern)
 {
     if (!pattern.empty())
     {
-        char_t* pos;
+        int p;
 
-        if (_position < _chars + _length)
+        if (_position < _length)
         {
-            pos = find(pattern, charForward(_position));
-            if (!pos)
-                pos = find(pattern);
+            p = find(pattern, charForward(_position));
+            if (p < 0)
+                p = find(pattern);
         }
         else
-			pos = find(pattern);
+			p = find(pattern);
 
-		if (pos && pos != _position)
+		if (p >= 0 && p != _position)
 		{
-			_position = pos;
+			_position = p;
             return true;
         }
     }
@@ -345,20 +345,20 @@ bool Text::findNext(const String& pattern)
 
 String Text::currentWord()
 {
-    char_t* start = _position;
+    int start = _position;
 
     if (isIdent(charAt(start)))
     {
-        while (start > _chars)
+        while (start > 0)
         {
-            char* p = charBack(start);
+            int p = charBack(start);
             if (!isIdent(charAt(p)))
                 break;
             start = p;
         }
 
-        char_t* end = charForward(_position);
-        while (*end)
+        int end = charForward(_position);
+        while (end < _length)
         {
             if (!isIdent(charAt(end)))
                 break;
@@ -374,10 +374,7 @@ String Text::currentWord()
 void Text::trimTrailingWhitespace()
 {
     String trimmed;
-
-    char_t* p = _chars;
-    char_t* start = p;
-    char_t* whitespace = NULL;
+    int p = 0, start = 0, whitespace = 0;
 
     while (true)
     {
@@ -389,7 +386,7 @@ void Text::trimTrailingWhitespace()
             {
                 trimmed.append(start, whitespace - start);
                 start = p;
-                whitespace = NULL;
+                whitespace = 0;
             }
         }
         else if (charIsSpace(ch))
@@ -398,16 +395,16 @@ void Text::trimTrailingWhitespace()
                 whitespace = p;
         }
         else
-            whitespace = NULL;
+            whitespace = 0;
 
-        if (*p)
+        if (p < _length)
             p = charForward(p);
         else
             break;
     }
 
     swap(*this, trimmed);
-    _position = _chars;
+    _position = 0;
 }
 
 bool Text::isIdent(unichar_t ch)
@@ -450,11 +447,10 @@ void Editor::run()
 
 void Editor::positionToLineColumn()
 {
-    char_t* p = _text.str();
-    char_t* q = _text.position();
+    int p = 0;
     _line = 1, _column = 1;
 
-    while (*p && p < q)
+    while (p < _text.position())
     {
         unichar_t ch = _text.charAt(p);
 
@@ -476,12 +472,12 @@ void Editor::positionToLineColumn()
 
 void Editor::lineColumnToPosition()
 {
-    char_t* p = _text.str();
+    int p = 0;
     int preferredLine = _line;
     _line = 1; _column = 1;
     unichar_t ch;
 
-    while (*p && _line < preferredLine)
+    while (p < _text.length() && _line < preferredLine)
     {
         ch = _text.charAt(p);
         if (ch == '\n')
@@ -490,7 +486,7 @@ void Editor::lineColumnToPosition()
         p = _text.charForward(p);
     }
 
-    while (*p && ch != '\n' && _column < _preferredColumn)
+    while (p < _text.length() && ch != '\n' && _column < _preferredColumn)
     {
         if (ch == '\t')
             _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
@@ -515,7 +511,7 @@ void Editor::updateScreen(bool redrawAll)
     else if (_column >= _left + _width)
         _left = _column - _width + 1;
 
-    char_t* p = _text.findLine(_top);
+    int p = _text.findLine(_top);
     int len = _left + _width - 1;
     unichar_t ch;
 
@@ -618,7 +614,7 @@ void Editor::updateScreen(bool redrawAll)
     {
         Console::write(_screenHeight, 1, STR("..."), 3);
         Console::write(_screenHeight, 4, _status.charBack(
-                _status.str() + _status.length(), _width - 3));
+                _status.length(), _width - 3));
     }
 
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
@@ -762,7 +758,7 @@ bool Editor::processKey()
             }
             else if (key.ch == 'm')
             {
-                _selection = _text.positionIndex();
+                _selection = _text.position();
             }
             else if (key.ch == 'f')
             {
@@ -922,22 +918,22 @@ String Editor::getCommand(const char_t* prompt)
 
     while (true)
     {
-        int pos, len = cmdLine.charLength();
+        int p, len = cmdLine.charLength();
 
         if (len < _width)
         {
-            pos = len + 1;
+            p = len + 1;
             Console::write(_screenHeight, 1, cmdLine);
             Console::write(_screenHeight, len + 1, ' ', _width - len);
         }
         else
         {
-            pos = _width;
+            p = _width;
             Console::write(_screenHeight, 1, 
-                cmdLine.charBack(cmdLine.str() + cmdLine.length(), _width - 1));
+                cmdLine.charBack(cmdLine.length(), _width - 1));
         }
 
-        Console::setCursorPosition(_screenHeight, pos);
+        Console::setCursorPosition(_screenHeight, p);
 
         const Array<Key>& keys = Console::readKeys();
 
@@ -947,7 +943,7 @@ String Editor::getCommand(const char_t* prompt)
 
             if (key.code == KEY_ENTER)
             {
-                return cmdLine.substr(cmdLine.str() + promptLength);
+                return cmdLine.substr(promptLength);
             }
             else if (key.code == KEY_ESC)
             {
@@ -956,7 +952,7 @@ String Editor::getCommand(const char_t* prompt)
             else if (key.code == KEY_BACKSPACE)
             {
                 if (cmdLine.length() > promptLength)
-                    cmdLine.erase(cmdLine.charBack(cmdLine.str() + cmdLine.length()));
+                    cmdLine.erase(cmdLine.charBack(cmdLine.length()));
             }
             else if (charIsPrint(key.ch))
             {

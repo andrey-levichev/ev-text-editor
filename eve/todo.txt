@@ -15,6 +15,7 @@ don't add chars to string one by one
 ch vs *p
 chars vs length > 0
 merge charAt into charForward/charBack?
+bring back INVALID_POSITION?
 * foundation improvements
 prohibit write access to container data via pointer?
 acquire with capacity?
