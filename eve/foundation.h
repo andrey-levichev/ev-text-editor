@@ -1142,7 +1142,7 @@ public:
 
     int charLength() const
     {
-        return UTF_STRING_LENGTH(_chars);
+        return _chars ? UTF_STRING_LENGTH(_chars) : 0;
     }
 
     int capacity() const
@@ -1155,11 +1155,6 @@ public:
         return _chars ? _chars : STR("");
     }
 
-    const char_t* chars() const
-    {
-        return _chars;
-    }
-    
     bool empty() const
     {
         return _length == 0;
@@ -1171,9 +1166,8 @@ public:
     }
 
     unichar_t charAt(int pos) const;
-    int charForward(int pos) const;
-    int charBack(int pos) const;
-    int charPosition(int pos, int n) const;
+    int charForward(int pos, int n = 1) const;
+    int charBack(int pos, int n = 1) const;
 
     String substr(int pos, int len = -1) const;
 

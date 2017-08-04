@@ -702,29 +702,43 @@ unichar_t String::charAt(int pos) const
     return _chars ? UTF_CHAR_AT(_chars + pos) : 0;
 }
 
-int String::charForward(int pos) const
+int String::charForward(int pos, int n) const
 {
     ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(n >= 0);
 
-    if (pos < _length - 1)
-        return UTF_CHAR_FORWARD(_chars + pos) - _chars;
-    else
-        return -1;
+    if (_chars)
+    {
+        const char* p = _chars + pos;
+
+        while (*p && n--)
+            p = UTF_CHAR_FORWARD(p);
+
+        if (*p)
+            return p - _chars;
+    }
+
+    return -1;
 }
 
-int String::charBack(int pos) const
+int String::charBack(int pos, int n) const
 {
     ASSERT(pos >= 0 && pos <= _length);
+    ASSERT(n >= 0);
 
-    if (pos > 0)
-        return UTF_CHAR_BACK(_chars + pos) - _chars;
-    else
-        return -1;
-}
+    if (_chars)
+    {
+        const char* p = _chars + pos;
 
-int String::charPosition(int pos, int n) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
+        if (p > _chars)
+        {
+            while (p > _chars && n--)
+                p = UTF_CHAR_BACK(p);
+
+            return p - _chars;
+        }
+    }
+
     return -1;
 }
 
@@ -1746,11 +1760,7 @@ unichar_t ConstStringIterator::value() const
 
 bool ConstStringIterator::moveNext()
 {
-    if (!_pos)
-        _pos = _str.str();
-
-    if (*_pos)
-        _pos = UTF_CHAR_FORWARD(_pos);
+    _pos = _pos ? UTF_CHAR_FORWARD(_pos) : _str.str();
 
     if (*_pos)
         return true;
@@ -1767,10 +1777,10 @@ bool ConstStringIterator::movePrev()
         _pos = _str.str() + _str.length();
 
     if (_pos > _str.str())
+    {
         _pos = UTF_CHAR_BACK(_pos);
-
-    if (*_pos)
         return true;
+    }
     else
     {
         _pos = NULL;

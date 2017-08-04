@@ -450,7 +450,7 @@ void Editor::run()
 
 void Editor::positionToLineColumn()
 {
-    char_t* p = _text.chars();
+    char_t* p = _text.str();
     char_t* q = _text.position();
     _line = 1, _column = 1;
 
@@ -476,7 +476,7 @@ void Editor::positionToLineColumn()
 
 void Editor::lineColumnToPosition()
 {
-    char_t* p = _text.chars();
+    char_t* p = _text.str();
     int preferredLine = _line;
     _line = 1; _column = 1;
     unichar_t ch;
@@ -618,7 +618,7 @@ void Editor::updateScreen(bool redrawAll)
     {
         Console::write(_screenHeight, 1, STR("..."), 3);
         Console::write(_screenHeight, 4, _status.charBack(
-                _status.chars() + _status.length(), _width - 3));
+                _status.str() + _status.length(), _width - 3));
     }
 
     Console::setCursorPosition(_line - _top + 1, _column - _left + 1);
@@ -934,7 +934,7 @@ String Editor::getCommand(const char_t* prompt)
         {
             pos = _width;
             Console::write(_screenHeight, 1, 
-                cmdLine.charBack(cmdLine.chars() + cmdLine.length(), _width - 1));
+                cmdLine.charBack(cmdLine.str() + cmdLine.length(), _width - 1));
         }
 
         Console::setCursorPosition(_screenHeight, pos);
@@ -947,7 +947,7 @@ String Editor::getCommand(const char_t* prompt)
 
             if (key.code == KEY_ENTER)
             {
-                return cmdLine.substr(cmdLine.chars() + promptLength);
+                return cmdLine.substr(cmdLine.str() + promptLength);
             }
             else if (key.code == KEY_ESC)
             {
@@ -956,7 +956,7 @@ String Editor::getCommand(const char_t* prompt)
             else if (key.code == KEY_BACKSPACE)
             {
                 if (cmdLine.length() > promptLength)
-                    cmdLine.erase(cmdLine.charBack(cmdLine.chars() + cmdLine.length()));
+                    cmdLine.erase(cmdLine.charBack(cmdLine.str() + cmdLine.length()));
             }
             else if (charIsPrint(key.ch))
             {
