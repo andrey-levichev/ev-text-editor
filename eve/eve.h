@@ -18,7 +18,7 @@ public:
 
     void position(int pos)
     {
-        ASSERT(pos <= 0 && pos <= _length);
+        ASSERT(pos >= 0 && pos <= _length);
         _position = pos;
     }
 

@@ -702,46 +702,7 @@ unichar_t String::charAt(int pos) const
     return _chars ? UTF_CHAR_AT(_chars + pos) : 0;
 }
 
-bool String::charForward(int& pos, unichar_t& ch) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-
-    if (_chars)
-    {
-        const char* p = _chars + pos;
-
-        if (*p)
-        {
-            p += UTF_CHAR_TO_UNICODE(p, ch);
-            pos = p - _chars;
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool String::charBack(int& pos, unichar_t& ch) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-
-    if (_chars)
-    {
-        const char* p = _chars + pos;
-
-        if (p > _chars)
-        {
-            p = UTF_CHAR_BACK(p);
-            UTF_CHAR_TO_UNICODE(p, ch);
-            pos = p - _chars;
-            return  true;
-        }
-    }
-
-    return false;
-}
-
-int String::skipForward(int pos, int n) const
+int String::charForward(int pos, int n) const
 {
     ASSERT(pos >= 0 && pos <= _length);
     ASSERT(n >= 0);
@@ -756,14 +717,13 @@ int String::skipForward(int pos, int n) const
             --n;
         }
 
-        if (*p && n == 0)
-            return p - _chars;
+        return p - _chars;
     }
 
-    return -1;
+    return 0;
 }
 
-int String::skipBack(int pos, int n) const
+int String::charBack(int pos, int n) const
 {
     ASSERT(pos >= 0 && pos <= _length);
     ASSERT(n >= 0);
@@ -778,11 +738,10 @@ int String::skipBack(int pos, int n) const
             --n;
         }
 
-        if (*p && n == 0)
-            return p - _chars;
+        return p - _chars;
     }
 
-    return -1;
+    return 0;
 }
 
 String String::substr(int pos, int len) const
@@ -838,13 +797,12 @@ int String::find(unichar_t ch, int pos) const
 
     if (_length > 0)
     {
-        do
+        while (pos < _length)
         {
             if (charAt(pos) == ch)
                 return pos;
-            pos = skipForward(pos);
+            pos = charForward(pos);
         }
-        while (pos >= 0);
     }
 
     return -1;
@@ -887,13 +845,12 @@ int String::findNoCase(unichar_t ch, int pos) const
     {
         ch = charToLower(ch);
 
-        do
+        while (pos < _length)
         {
             if (charToLower(charAt(pos)) == ch)
                 return pos;
-            pos = skipForward(pos);
+            pos = charForward(pos);
         }
-        while (pos >= 0);
     }
 
     return -1;

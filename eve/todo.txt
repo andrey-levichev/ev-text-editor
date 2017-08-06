@@ -10,10 +10,10 @@ support utf-8 on windows and utf-16 on linux?
 research utf-8 support in windows and macos
 handle invalid unicode sequences?
 manipulating Text with String functions must not be allowed
-reduce number of allocations
-don't add chars to string one by one
+reduce number of allocations, don't add chars to string one by one
 ch vs *p
 chars vs length > 0
+don't use -1 for invalid position, it messes up loops
 * foundation improvements
 prohibit write access to container data via pointer?
 acquire with capacity?

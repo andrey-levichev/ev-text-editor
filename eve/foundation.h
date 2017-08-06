@@ -1166,10 +1166,8 @@ public:
     }
 
     unichar_t charAt(int pos) const;
-    bool charForward(int& pos, unichar_t& ch) const;
-    bool charBack(int& pos, unichar_t& ch) const;
-    int skipForward(int pos, int n = 1) const;
-    int skipBack(int pos, int n = 1) const;
+    int charForward(int pos, int n = 1) const;
+    int charBack(int pos, int n = 1) const;
 
     String substr(int pos, int len = -1) const;
 
