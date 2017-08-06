@@ -10,8 +10,8 @@ set(SOURCE_FILES
     eve/file.h
     eve/foundation.cpp
     eve/foundation.h
-    eve/eve.cpp
-    eve/eve.h
+    eve/test.cpp
+    eve/test.h
     eve/todo.txt)
 
 include_directories(eve)

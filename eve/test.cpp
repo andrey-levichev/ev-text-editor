@@ -651,14 +651,152 @@ void testString()
         ASSERT(s.empty());
     }
 
-    // unichar_t charAt(int pos) const
-    // int charForward(int pos, int n = 1) const
-    // int charBack(int pos, int n = 1) const
+    // bool charForward(int& pos, unichar_t& ch) const
+    // bool charBack(int& pos, unichar_t& ch) const
 
     {
-        ASSERT(String().charAt(0) == 0);
-        ASSERT(String().charForward(0) < 0);
-        ASSERT(String().charBack(0) < 0);
+        String s;
+        int pos;
+        unichar_t  ch;
+
+        pos = 0; ASSERT(!s.charForward(pos, ch));
+        pos = 0; ASSERT(!s.charBack(pos, ch));
+    }
+
+    {
+        String s;
+        s.ensureCapacity(10);
+        ASSERT(s == STR(""));
+        int pos;
+        unichar_t  ch;
+
+        pos = 0; ASSERT(!s.charForward(pos, ch));
+        pos = 0; ASSERT(!s.charBack(pos, ch));
+    }
+
+    {
+        String s(STR("a"));
+        int pos;
+        unichar_t  ch;
+
+        pos = 0; ASSERT(s.charForward(pos, ch) && pos == 1 && ch == 'a');
+        pos = 0; ASSERT(!s.charBack(pos, ch));
+        pos = 1; ASSERT(!s.charForward(pos, ch));
+        pos = 1; ASSERT(s.charBack(pos, ch) && pos == 0 && ch == 'a');
+    }
+
+    {
+        String s(CHARS);
+        int pos, m1 = -1, lp1 = s.length() + 1;
+        unichar_t  ch;
+
+        ASSERT_EXCEPTION(Exception, s.charForward(m1, ch));
+        ASSERT_EXCEPTION(Exception, s.charForward(lp1, ch));
+        ASSERT_EXCEPTION(Exception, s.charBack(m1, ch));
+        ASSERT_EXCEPTION(Exception, s.charBack(lp1, ch));
+
+        pos = 0;
+        ASSERT(s.charForward(pos, ch) && ch == 0x24);
+        ASSERT(pos == 1);
+        ASSERT(s.charForward(pos, ch) && ch == 0xa2);
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(pos == 2);
+#else
+        ASSERT(pos == 3);
+#endif
+        ASSERT(s.charForward(pos, ch) && ch == 0x20ac);
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(pos == 3);
+#else
+        ASSERT(pos == 6);
+#endif
+        ASSERT(s.charForward(pos, ch) && ch == 0x10348);
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(pos == 5);
+#else
+        ASSERT(pos == 10);
+#endif
+        ASSERT(!s.charForward(pos, ch));
+
+        pos = s.length();
+        ASSERT(s.charBack(pos, ch) && ch == 0x10348);
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(pos == 3);
+#else
+        ASSERT(pos == 6);
+#endif
+        ASSERT(s.charBack(pos, ch) && ch == 0x20ac);
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(pos == 2);
+#else
+        ASSERT(pos == 3);
+#endif
+        ASSERT(s.charBack(pos, ch) && ch == 0xa2);
+        ASSERT(pos == 1);
+        ASSERT(s.charBack(pos, ch) && ch == 0x24);
+        ASSERT(pos == 0);
+        ASSERT(!s.charBack(pos, ch));
+    }
+
+    // unichar_t charAt(int pos) const
+    // int skipForward(int pos, int n = 1) const
+    // int skipBack(int pos, int n = 1) const
+
+    {
+        String s;
+        ASSERT(s.charAt(0) == 0);
+        ASSERT(s.skipForward(0) < 0);
+        ASSERT(s.skipBack(0) < 0);
+    }
+
+    {
+        String s;
+        s.ensureCapacity(10);
+        ASSERT(s == STR(""));
+
+        ASSERT(s.charAt(0) == 0);
+        ASSERT(s.skipForward(0, 0) < 0);
+        ASSERT(s.skipForward(0, 1) < 0);
+        ASSERT(s.skipBack(0, 0) < 0);
+        ASSERT(s.skipBack(0, 1) < 0);
+    }
+
+    {
+        String s(STR("a"));
+
+        ASSERT(s.charAt(0) == 'a');
+        ASSERT(s.charAt(1) == 0);
+
+        ASSERT(s.skipForward(0, 0) == 0);
+        ASSERT(s.skipForward(0, 1) < 0);
+        ASSERT(s.skipForward(1, 0) < 0);
+        ASSERT(s.skipForward(1, 1) < 0);
+
+        ASSERT(s.skipBack(0, 0) == 0);
+        ASSERT(s.skipBack(0, 1) < 0);
+        ASSERT(s.skipBack(1, 0) < 0);
+        ASSERT(s.skipBack(1, 1) == 0);
+    }
+
+    {
+        String s(CHARS);
+
+        ASSERT(s.skipForward(1, 0) == 1);
+        ASSERT(s.skipBack(1, 0) == 1);
+
+#ifdef CHAR_ENCODING_UTF16
+        ASSERT(s.skipForward(0, 3) == 3);
+#else
+        ASSERT(s.skipForward(0, 3) == 6);
+#endif
+        ASSERT(s.skipBack(s.length(), 3) == 1);
+
+        ASSERT(s.skipForward(0, 4) < 0);
+        ASSERT(s.skipBack(s.length(), 4) == 0);
+        ASSERT(s.skipBack(s.length(), 5) < 0);
+
+        ASSERT(s.skipForward(0, 10) < 0);
+        ASSERT(s.skipBack(s.length(), 10) < 0);
     }
 
     {
@@ -666,69 +804,56 @@ void testString()
 
         ASSERT_EXCEPTION(Exception, s.charAt(-1));
         ASSERT_EXCEPTION(Exception, s.charAt(s.length() + 1));
-        ASSERT_EXCEPTION(Exception, s.charForward(-1));
-        ASSERT_EXCEPTION(Exception, s.charForward(s.length() + 1));
-        ASSERT_EXCEPTION(Exception, s.charBack(-1));
-        ASSERT_EXCEPTION(Exception, s.charBack(s.length() + 1));
+        ASSERT_EXCEPTION(Exception, s.skipForward(-1));
+        ASSERT_EXCEPTION(Exception, s.skipForward(s.length() + 1));
+        ASSERT_EXCEPTION(Exception, s.skipBack(-1));
+        ASSERT_EXCEPTION(Exception, s.skipBack(s.length() + 1));
 
         int pos = 0;
         ASSERT(s.charAt(pos) == 0x24);
-        pos = s.charForward(pos);
+        pos = s.skipForward(pos);
         ASSERT(pos == 1);
         ASSERT(s.charAt(pos) == 0xa2);
-        pos = s.charForward(pos);
+        pos = s.skipForward(pos);
 #ifdef CHAR_ENCODING_UTF16
         ASSERT(pos == 2);
 #else
         ASSERT(pos == 3);
 #endif
         ASSERT(s.charAt(pos) == 0x20ac);
-        pos = s.charForward(pos);
+        pos = s.skipForward(pos);
 #ifdef CHAR_ENCODING_UTF16
         ASSERT(pos == 3);
 #else
         ASSERT(pos == 6);
 #endif
         ASSERT(s.charAt(pos) == 0x10348);
-        pos = s.charForward(pos);
+        pos = s.skipForward(pos);
         ASSERT(pos < 0);
 
         pos = s.length();
-        pos = s.charBack(pos);
+        pos = s.skipBack(pos);
 #ifdef CHAR_ENCODING_UTF16
         ASSERT(pos == 3);
 #else
         ASSERT(pos == 6);
 #endif
         ASSERT(s.charAt(pos) == 0x10348);
-        pos = s.charBack(pos);
+        pos = s.skipBack(pos);
 #ifdef CHAR_ENCODING_UTF16
         ASSERT(pos == 2);
 #else
         ASSERT(pos == 3);
 #endif
         ASSERT(s.charAt(pos) == 0x20ac);
-        pos = s.charBack(pos);
+        pos = s.skipBack(pos);
         ASSERT(pos == 1);
         ASSERT(s.charAt(pos) == 0xa2);
-        pos = s.charBack(pos);
+        pos = s.skipBack(pos);
         ASSERT(pos == 0);
         ASSERT(s.charAt(pos) == 0x24);
-        pos = s.charBack(pos);
+        pos = s.skipBack(pos);
         ASSERT(pos < 0);
-
-        ASSERT(s.charForward(1, 0) == 1);
-        ASSERT(s.charBack(1, 0) == 1);
-
-#ifdef CHAR_ENCODING_UTF16
-        ASSERT(s.charForward(0, 3) == 3);
-#else
-        ASSERT(s.charForward(0, 3) == 6);
-#endif
-        ASSERT(s.charBack(s.length(), 3) == 1);
-
-        ASSERT(s.charForward(0, 10) < 0);
-        ASSERT(s.charBack(s.length(), 10) < 0);
     }
 
     // String substr(int pos, int len = -1) const
