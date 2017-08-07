@@ -510,6 +510,10 @@ inline int hash(const _Type1& val1, const _Type2& val2)
     return 33 * hash(val1) + hash(val2);
 }
 
+// misc
+
+#define INVALID_POSITION -1
+
 // Exception
 
 class Exception
@@ -1572,9 +1576,6 @@ protected:
 template<typename _Type>
 class Array
 {
-public:
-    static const int INVALID_POSITION = -1;
-
 public:
     template<typename>
     friend class ArrayIterator;

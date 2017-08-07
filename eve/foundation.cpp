@@ -773,7 +773,7 @@ int String::find(const String& str, int pos) const
             return p - _chars;
     }
 
-    return -1;
+    return INVALID_POSITION;
 }
 
 int String::find(const char_t* chars, int pos) const
@@ -787,7 +787,7 @@ int String::find(const char_t* chars, int pos) const
             return p - _chars;
     }
 
-    return -1;
+    return INVALID_POSITION;
 }
 
 int String::find(unichar_t ch, int pos) const
@@ -805,7 +805,7 @@ int String::find(unichar_t ch, int pos) const
         }
     }
 
-    return -1;
+    return INVALID_POSITION;
 }
 
 int String::findNoCase(const String& str, int pos) const
@@ -819,7 +819,7 @@ int String::findNoCase(const String& str, int pos) const
             return p - _chars;
     }
 
-    return -1;
+    return INVALID_POSITION;
 }
 
 int String::findNoCase(const char_t* chars, int pos) const
@@ -833,7 +833,7 @@ int String::findNoCase(const char_t* chars, int pos) const
             return p - _chars;
     }
 
-    return -1;
+    return INVALID_POSITION;
 }
 
 int String::findNoCase(unichar_t ch, int pos) const
@@ -853,7 +853,7 @@ int String::findNoCase(unichar_t ch, int pos) const
         }
     }
 
-    return -1;
+    return INVALID_POSITION;
 }
 
 bool String::startsWith(const String& str) const

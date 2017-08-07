@@ -841,57 +841,57 @@ void testString()
 
     {
         String s;
-        ASSERT(s.find(String()) < 0);
-        ASSERT(s.find(String(STR("a"))) < 0);
+        ASSERT(s.find(String()) == INVALID_POSITION);
+        ASSERT(s.find(String(STR("a"))) == INVALID_POSITION);
     }
 
     {
         String s(STR("abcdabcd"));
         ASSERT(s.find(String(STR("bc"))) == 1);
         ASSERT(s.find(String(STR("bc")), 2) == 5);
-        ASSERT(s.find(String(STR("bc")), 6) < 0);
-        ASSERT(s.find(String(STR("xy"))) < 0);
+        ASSERT(s.find(String(STR("bc")), 6) == INVALID_POSITION);
+        ASSERT(s.find(String(STR("xy"))) == INVALID_POSITION);
 
         ASSERT_EXCEPTION(Exception, s.find(String(), -1));
         ASSERT_EXCEPTION(Exception, s.find(String(), s.length() + 1));
-        ASSERT(s.find(String()) < 0);
+        ASSERT(s.find(String()) == INVALID_POSITION);
     }
 
     // int find(const char_t* chars, int pos = 0) const
 
     {
         String s;
-        ASSERT(s.find(np) < 0);
-        ASSERT(s.find(STR("")) < 0);
-        ASSERT(s.find(STR("a")) < 0);
+        ASSERT(s.find(np) == INVALID_POSITION);
+        ASSERT(s.find(STR("")) == INVALID_POSITION);
+        ASSERT(s.find(STR("a")) == INVALID_POSITION);
     }
 
     {
         String s(STR("abcdabcd"));
         ASSERT(s.find(STR("bc")) == 1);
         ASSERT(s.find(STR("bc"), 2) == 5);
-        ASSERT(s.find(STR("bc"), 6) < 0);
-        ASSERT(s.find(STR("xy")) < 0);
+        ASSERT(s.find(STR("bc"), 6) == INVALID_POSITION);
+        ASSERT(s.find(STR("xy")) == INVALID_POSITION);
 
         ASSERT_EXCEPTION(Exception, s.find(STR(""), -1));
         ASSERT_EXCEPTION(Exception, s.find(STR(""), s.length() + 1));
-        ASSERT(s.find(np) < 0);
-        ASSERT(s.find(STR("")) < 0);
+        ASSERT(s.find(np) == INVALID_POSITION);
+        ASSERT(s.find(STR("")) == INVALID_POSITION);
     }
 
     // int find(unichar_t ch, int pos = 0) const
 
     {
         String s;
-        ASSERT(s.find('a') < 0);
+        ASSERT(s.find('a') == INVALID_POSITION);
     }
 
     {
         String s(STR("abcabc"));
         ASSERT(s.find('b') == 1);
         ASSERT(s.find('b', 2) == 4);
-        ASSERT(s.find('b', 5) < 0);
-        ASSERT(s.find('x') < 0);
+        ASSERT(s.find('b', 5) == INVALID_POSITION);
+        ASSERT(s.find('x') == INVALID_POSITION);
 
         ASSERT_EXCEPTION(Exception, s.find(zc));
         ASSERT_EXCEPTION(Exception, s.find('a', -1));
@@ -902,57 +902,57 @@ void testString()
 
     {
         String s;
-        ASSERT(s.findNoCase(String()) < 0);
-        ASSERT(s.findNoCase(String(STR("a"))) < 0);
+        ASSERT(s.findNoCase(String()) == INVALID_POSITION);
+        ASSERT(s.findNoCase(String(STR("a"))) == INVALID_POSITION);
     }
 
     {
         String s(STR("ABCDABCD"));
         ASSERT(s.findNoCase(String(STR("bc"))) == 1);
         ASSERT(s.findNoCase(String(STR("bc")), 2) == 5);
-        ASSERT(s.findNoCase(String(STR("bc")), 6) < 0);
-        ASSERT(s.findNoCase(String(STR("xy"))) < 0);
+        ASSERT(s.findNoCase(String(STR("bc")), 6) == INVALID_POSITION);
+        ASSERT(s.findNoCase(String(STR("xy"))) == INVALID_POSITION);
 
         ASSERT_EXCEPTION(Exception, s.findNoCase(String(), -1));
         ASSERT_EXCEPTION(Exception, s.findNoCase(String(), s.length() + 1));
-        ASSERT(s.findNoCase(String()) < 0);
+        ASSERT(s.findNoCase(String()) == INVALID_POSITION);
     }
 
     // int findNoCase(const char_t* chars, int pos = 0) const
 
     {
         String s;
-        ASSERT(s.findNoCase(np) < 0);
-        ASSERT(s.findNoCase(STR("")) < 0);
-        ASSERT(s.findNoCase(STR("a")) < 0);
+        ASSERT(s.findNoCase(np) == INVALID_POSITION);
+        ASSERT(s.findNoCase(STR("")) == INVALID_POSITION);
+        ASSERT(s.findNoCase(STR("a")) == INVALID_POSITION);
     }
 
     {
         String s(STR("ABCDABCD"));
         ASSERT(s.findNoCase(STR("bc")) == 1);
         ASSERT(s.findNoCase(STR("bc"), 2) == 5);
-        ASSERT(s.findNoCase(STR("bc"), 6) < 0);
-        ASSERT(s.findNoCase(STR("xy")) < 0);
+        ASSERT(s.findNoCase(STR("bc"), 6) == INVALID_POSITION);
+        ASSERT(s.findNoCase(STR("xy")) == INVALID_POSITION);
 
         ASSERT_EXCEPTION(Exception, s.findNoCase(STR(""), -1));
         ASSERT_EXCEPTION(Exception, s.findNoCase(STR(""), s.length() + 1));
-        ASSERT(s.findNoCase(np) < 0);
-        ASSERT(s.findNoCase(STR("")) < 0);
+        ASSERT(s.findNoCase(np) == INVALID_POSITION);
+        ASSERT(s.findNoCase(STR("")) == INVALID_POSITION);
     }
 
     // int findNoCase(unichar_t ch, int pos = 0) const
 
     {
         String s;
-        ASSERT(s.findNoCase('a') < 0);
+        ASSERT(s.findNoCase('a') == INVALID_POSITION);
     }
 
     {
         String s(STR("ABCABC"));
         ASSERT(s.findNoCase('b') == 1);
         ASSERT(s.findNoCase('b', 2) == 4);
-        ASSERT(s.findNoCase('b', 5) < 0);
-        ASSERT(s.findNoCase('x') < 0);
+        ASSERT(s.findNoCase('b', 5) == INVALID_POSITION);
+        ASSERT(s.findNoCase('x') == INVALID_POSITION);
 
         ASSERT_EXCEPTION(Exception, s.findNoCase(zc));
         ASSERT_EXCEPTION(Exception, s.findNoCase('a', -1));
@@ -2633,13 +2633,13 @@ void testArray()
 
     {
         Array<int> a;
-        ASSERT(a.find(0) < 0);
+        ASSERT(a.find(0) == INVALID_POSITION);
     }
 
     {
         Array<int> a(3, ep);
         ASSERT(a.find(2) == 1);
-        ASSERT(a.find(0) < 0);
+        ASSERT(a.find(0) == INVALID_POSITION);
     }
 
     // void ensureCapacity(int capacity)
@@ -3100,7 +3100,7 @@ void testArray()
         a.pushBack(createUnique<int>(2));
         ASSERT(*a[0] == 1);
         ASSERT(*a[1] == 2);
-        ASSERT(a.find(createUnique<int>(0)) < 0);
+        ASSERT(a.find(createUnique<int>(0)) == INVALID_POSITION);
         ASSERT(a.find(createUnique<int>(2)) == 1);
     }
 

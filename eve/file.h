@@ -58,7 +58,7 @@ public:
         Array<_Type> data(bytesSize / sizeof(_Type));
 
 #ifdef PLATFORM_WINDOWS
-        LARGE_INTEGER offset = { 0 };
+        LARGE_INTEGER offset = { { 0 } };
         ASSERT(SetFilePointerEx(_handle, offset, NULL, FILE_BEGIN));
         
         if (ReadFile(_handle, data.values(), bytesSize, &bytesRead, NULL))
@@ -93,7 +93,7 @@ public:
 #ifdef PLATFORM_WINDOWS        
         DWORD bytesSize = size * sizeof(_Type), bytesWritten;
         
-        LARGE_INTEGER offset = { 0 };
+        LARGE_INTEGER offset = { { 0 } };
         ASSERT(SetFilePointerEx(_handle, offset, NULL, FILE_BEGIN));
         
         if (WriteFile(_handle, data, bytesSize, &bytesWritten, NULL))
