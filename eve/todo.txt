@@ -1,4 +1,5 @@
 bugs & misc:
+* research about runtime checking by compiler and library
 * consider changing naming convention
 * handle SIGWINCH to detect terminal size changes
 * many keys don't work in Linux, macOS, xterm

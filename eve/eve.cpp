@@ -384,7 +384,7 @@ void Text::trimTrailingWhitespace()
         {
             if (whitespace)
             {
-                trimmed.append(start, whitespace - start);
+                trimmed.append(_chars + start, whitespace - start);
                 start = p;
                 whitespace = 0;
             }
@@ -400,7 +400,10 @@ void Text::trimTrailingWhitespace()
         if (p < _length)
             p = charForward(p);
         else
+        {
+            trimmed.append(_chars + start, p - start);
             break;
+        }
     }
 
     swap(*this, trimmed);
@@ -415,6 +418,15 @@ bool Text::isIdent(unichar_t ch)
 // Editor
 
 Editor::Editor(const char_t* filename) :
+#ifdef PLATFORM_WINDOWS
+    _encoding(TEXT_ENCODING_UTF16_LE),
+    _bom(true),
+    _crLf(true),
+#else
+    _encoding(TEXT_ENCODING_UTF8),
+    _bom(false),
+    _crLf(false),
+#endif
     _filename(filename),
     _top(1), _left(1),
     _line(1), _column(1),
@@ -893,7 +905,18 @@ void Editor::openFile()
 	if (file.open(_filename, FILE_MODE_OPEN_EXISTING))
 		_text.assign(file.readString(_encoding, _bom, _crLf));
 	else
+    {
+#ifdef PLATFORM_WINDOWS
+        _encoding = TEXT_ENCODING_UTF16_LE;
+        _bom = true;
+        _crLf = true;
+#else
+        _encoding = TEXT_ENCODING_UTF8;
+        _bom = false;
+        _crLf = false;
+#endif
 		_text.clear();
+    }
 
     _line = 1; _column = 1;
     _preferredColumn = 1;

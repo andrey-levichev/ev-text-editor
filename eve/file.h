@@ -85,8 +85,7 @@ public:
     template<typename _Type>
     void write(int size, const _Type* data)
     {
-        ASSERT(size >= 0);
-        ASSERT(data);
+        ASSERT((data && size > 0) || (!data && size == 0));
         
         if (_handle == INVALID_HANDLE_VALUE)
             throw Exception(STR("file not open"));

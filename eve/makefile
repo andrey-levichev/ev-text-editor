@@ -3,10 +3,10 @@ HEADERS=foundation.h console.h file.h eve.h
 SOURCES=foundation.cpp console.cpp file.cpp eve.cpp
 RM=$(if $(OS),del,rm)
 
-all: $(TARGET).gcc
+all: $(TARGET).mingw.exe
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
-	cl /nologo /std:c++latest /utf-8 /EHsc /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
+	cl /nologo /std:c++latest /utf-8 /EHsc /RTCsu /MT /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
 		/I. /DDEBUG /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
 		/D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS /link /out:$@
 

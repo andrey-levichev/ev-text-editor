@@ -173,7 +173,6 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
         }
         else
         {
-            ASSERT(bom);
             char16_t ch = 0xfeff;
             bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch)));
             bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch) + 1));
