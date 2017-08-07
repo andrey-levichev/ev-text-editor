@@ -475,15 +475,15 @@ void Editor::lineColumnToPosition()
     int p = 0;
     int preferredLine = _line;
     _line = 1; _column = 1;
-    unichar_t ch;
+    unichar_t ch = _text.charAt(p);
 
     while (p < _text.length() && _line < preferredLine)
     {
-        ch = _text.charAt(p);
         if (ch == '\n')
             ++_line;
 
         p = _text.charForward(p);
+		ch = _text.charAt(p);
     }
 
     while (p < _text.length() && ch != '\n' && _column < _preferredColumn)
@@ -494,6 +494,7 @@ void Editor::lineColumnToPosition()
             ++_column;
 
         p = _text.charForward(p);
+		ch = _text.charAt(p);
     }
 
     _text.position(p);

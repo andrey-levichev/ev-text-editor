@@ -709,7 +709,7 @@ int String::charForward(int pos, int n) const
 
     if (_chars)
     {
-        const char* p = _chars + pos;
+        const char_t* p = _chars + pos;
 
         while (*p && n > 0)
         {
@@ -730,7 +730,7 @@ int String::charBack(int pos, int n) const
 
     if (_chars)
     {
-        const char* p = _chars + pos;
+        const char_t* p = _chars + pos;
 
         while (p > _chars && n > 0)
         {
@@ -768,7 +768,7 @@ int String::find(const String& str, int pos) const
 
     if (_length > 0 && str._length > 0)
     {
-        const char* p = strFind(_chars + pos, str._chars);
+        const char_t* p = strFind(_chars + pos, str._chars);
         if (p)
             return p - _chars;
     }
@@ -782,7 +782,7 @@ int String::find(const char_t* chars, int pos) const
 
     if (_length > 0 && chars && *chars)
     {
-        const char* p = strFind(_chars + pos, chars);
+        const char_t* p = strFind(_chars + pos, chars);
         if (p)
             return p - _chars;
     }
@@ -814,7 +814,7 @@ int String::findNoCase(const String& str, int pos) const
 
     if (_length > 0 && str._length > 0)
     {
-        const char* p = strFindNoCase(_chars + pos, str._chars);
+        const char_t* p = strFindNoCase(_chars + pos, str._chars);
         if (p)
             return p - _chars;
     }
@@ -828,7 +828,7 @@ int String::findNoCase(const char_t* chars, int pos) const
 
     if (_length > 0 && chars && *chars)
     {
-        const char* p = strFindNoCase(_chars + pos, chars);
+        const char_t* p = strFindNoCase(_chars + pos, chars);
         if (p)
             return p - _chars;
     }

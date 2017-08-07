@@ -138,6 +138,9 @@ typedef unsigned char32_t;
 #include <io.h>
 #include <fcntl.h>
 
+#undef min
+#undef max
+
 #else
 
 #include <termios.h>
