@@ -2,7 +2,7 @@ bugs & misc:
 * research about runtime checking by compiler and library
 * consider changing naming convention
 * handle SIGWINCH to detect terminal size changes
-* many keys don't work in Linux, macOS, xterm
+* some keys don't work in Linux, macOS, xterm
 rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
 * support unicode input and newline differences
@@ -25,6 +25,7 @@ support for zero chars in string?
 replace smart pointers with smart references
 rename the types to make int 64 bit?
 string constructor that accepts ascii strings
+log memory allocations
 
 basic features:
 * search/replace

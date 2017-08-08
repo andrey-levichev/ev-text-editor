@@ -439,8 +439,8 @@ Editor::Editor(const char_t* filename) :
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
 
-    _screen.resize(_width * _height);
-    _window.resize(_width * _height);
+    _screen.ensureCapacity(_width * _height);
+    _window.ensureCapacity(_width * _height);
 }
 
 Editor::~Editor()
@@ -567,6 +567,8 @@ void Editor::updateScreen(bool redrawAll)
                 p = _text.charForward(p);
         }
     }
+
+    ASSERT(_window.size() == _width * _height);
 
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(false);

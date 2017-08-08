@@ -99,22 +99,26 @@ void File::close()
 String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
 {
     ByteArray bytes = read<byte_t>();
+    int bomOffset = 0;
     
     if (bytes.size() >= 2 && bytes[0] == 0xfe && bytes[1] == 0xff)
     {
         encoding = TEXT_ENCODING_UTF16_BE;
         bom = true;
+        bomOffset = 2;
     }
     else if (bytes.size() >= 2 && bytes[0] == 0xff && bytes[1] == 0xfe)
     {
         encoding = TEXT_ENCODING_UTF16_LE;
         bom = true;
+        bomOffset = 2;
     }
     else if (bytes.size() >= 3 && bytes[0] == 0xef &&
         bytes[1] == 0xbb && bytes[2] == 0xbf)
     {
         encoding = TEXT_ENCODING_UTF8;
         bom = true;
+        bomOffset = 3;
     }
     else
     {
@@ -133,14 +137,26 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
         swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
 #endif
     
-    byte_t* p = bytes.values();
-    byte_t* e = p + bytes.size();
-    
-    if (bom)
-        p += encoding == TEXT_ENCODING_UTF8 ? 3 : 2;
-    
-    String str;
+    byte_t* p = bytes.values() + bomOffset;
+    byte_t* e = bytes.values() + bytes.size();
+    int len = 0;
     unichar_t ch;
+    
+    while (p < e)
+    {
+        if (encoding == TEXT_ENCODING_UTF8)
+            p += utf8CharToUnicode(reinterpret_cast<char*>(p), ch);
+        else
+            p += utf16CharToUnicode(reinterpret_cast<char16_t*>(p), ch) * 2;
+        
+        if (ch != '\r')
+            len += UTF_CHAR_LENGTH(ch);
+    }
+
+    String str;
+    str.ensureCapacity(len + 1);
+
+    p = bytes.values() + bomOffset;
     crLf = false;
     
     while (p < e)
@@ -153,15 +169,41 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
         if (ch == '\r')
             crLf = true;
         else
-            str.append(ch);
+            str += ch;
     }
     
+    ASSERT(str.length() == len);
     return str;
 }
 
 void File::writeString(const String& str, TextEncoding encoding, bool bom, bool crLf)
 {
+    const char_t* p = str.str();
+    const char_t* e = p + str.length();
+    int len = bom ? (encoding == TEXT_ENCODING_UTF8 ? 3 : 2) : 0;
+    unichar_t ch;
+    
+    while (p < e)
+    {
+        p += UTF_CHAR_TO_UNICODE(p, ch);
+
+        if (encoding == TEXT_ENCODING_UTF8)
+        {
+            if (ch == '\n' && crLf)
+                ++len;
+            len += utf8CharLength(ch);
+        }
+        else
+        {
+            if (ch == '\n' && crLf)
+                len += 2;
+            len += utf16CharLength(ch) * 2;
+        }
+    }
+
+    p = str.str();
     ByteArray bytes;
+    bytes.ensureCapacity(len);
     
     if (bom)
     {
@@ -178,10 +220,6 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
             bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch) + 1));
         }
     }
-    
-    const char_t* p = str.str();
-    const char_t* e = p + str.length();
-    unichar_t ch;
     
     while (p < e)
     {
@@ -200,6 +238,7 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
         swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
 #endif
 
+    ASSERT(bytes.size() == len);
     write(bytes);
 }
 

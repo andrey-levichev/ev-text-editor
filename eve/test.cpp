@@ -5279,7 +5279,7 @@ int MAIN(int argc, const char_t** argv)
         Console::initialize();
         Console::setLineMode(true);
         printPlatformInfo();
-
+        
         testFoundation();
 //        testFile();
 //        testConsole();
