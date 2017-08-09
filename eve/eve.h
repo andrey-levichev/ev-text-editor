@@ -10,20 +10,7 @@
 class Document
 {
 public:
-    Document() :
-        _position(0),
-#ifdef PLATFORM_WINDOWS
-        _encoding(TEXT_ENCODING_UTF16_LE),
-        _bom(true),
-        _crLf(true)
-#else
-        _encoding(TEXT_ENCODING_UTF8),
-        _bom(false),
-        _crLf(false)
-#endif
-    {
-        _text.ensureCapacity(1);
-    }
+    Document();
 
     int length() const
     {
@@ -81,6 +68,24 @@ public:
         return _crLf;
     }
 
+    int line() const
+    {
+        return _line;
+    }
+    
+    int column() const
+    {
+        return _column;
+    }
+
+    int selection() const
+    {
+        return _selection;
+    }
+
+    bool moveUp();
+    bool moveDown();
+
     bool moveForward();
     bool moveBack();
 
@@ -93,6 +98,9 @@ public:
     bool moveToLineStart();
     bool moveToLineEnd();
 
+    bool moveLinesUp(int lines);
+    bool moveLinesDown(int lines);
+
     void insertChar(unichar_t ch);
 
     bool deleteCharForward();
@@ -101,17 +109,21 @@ public:
     bool deleteWordForward();
     bool deleteWordBack();
 
-    String copyDeleteText(int pos, bool copy);
+    void markSelection();
+    String copyDeleteText(bool copy);
     void pasteText(const String& text, bool lineSelection);
 
-    int findCurrentLineStart();
-    int findCurrentLineEnd();
-    int findLine(int line);
+    int findCurrentLineStart() const;
+    int findCurrentLineEnd() const;
+    int findLine(int line) const;
 
     bool findNext(const String& pattern);
-    String currentWord();
+    String currentWord() const;
 
     void trimTrailingWhitespace();
+
+    void positionToLineColumn();
+    void lineColumnToPosition();
 
     void open(const String& filename);
     void save();
@@ -122,11 +134,15 @@ protected:
 protected:
     String _text;
     int _position;
+    bool _modified;
 
     String _filename;
     TextEncoding _encoding;
     bool _bom;
     bool _crLf;
+
+    int _line, _column, _preferredColumn;
+    int _selection;
 
     String _indent;
 };
@@ -139,15 +155,19 @@ public:
     Editor();
     ~Editor();
 
-    void openDocument(const char_t* filename);
-    void saveDocument();
+    void openDocument(const char_t* filename)
+    {
+        _document.open(filename);
+    }
+
+    void saveDocument()
+    {
+        _document.save();
+    }
 
     void run();
 
 protected:
-    void positionToLineColumn();
-    void lineColumnToPosition();
-
     void updateScreen(bool redrawAll = false);
     bool processKey();
 
@@ -158,6 +178,8 @@ protected:
     Document _document;
     
     String _buffer;
+    bool _lineSelection;
+
     String _pattern;
 
     CharArray _screen;
@@ -166,10 +188,6 @@ protected:
 
     int _width, _height, _screenHeight;
     int _top, _left;
-
-    int _line, _column, _preferredColumn;
-    int _selection;
-    bool _lineSelection;
 };
 
 #endif
