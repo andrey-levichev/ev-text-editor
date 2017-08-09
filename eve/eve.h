@@ -5,20 +5,59 @@
 #include <console.h>
 #include <file.h>
 
-// Text
+// Document
 
-class Text : public String
+class Document
 {
 public:
-    Text()
+    Document() :
+        _position(0),
+#ifdef PLATFORM_WINDOWS
+        _encoding(TEXT_ENCODING_UTF16_LE),
+        _bom(true),
+        _crLf(true)
+#else
+        _encoding(TEXT_ENCODING_UTF8),
+        _bom(false),
+        _crLf(false)
+#endif
     {
-        ensureCapacity(1);
-        _position = 0;
+        _text.ensureCapacity(1);
+    }
+
+    int length() const
+    {
+        return _text.length();
+    }
+
+    int charLength() const
+    {
+        return _text.charLength();
+    }
+
+    const char_t* chars() const
+    {
+        return _text.chars();
+    }
+
+    unichar_t charAt(int pos) const
+    {
+        return _text.charAt(pos);
+    }
+
+    int charForward(int pos, int n = 1) const
+    {
+        return _text.charForward(pos, n);
+    }
+
+    int charBack(int pos, int n = 1) const
+    {
+        return _text.charBack(pos, n);
     }
 
     void position(int pos)
     {
-        ASSERT(pos >= 0 && pos <= _length);
+        ASSERT(pos >= 0 && pos <= _text.length());
         _position = pos;
     }
 
@@ -27,10 +66,19 @@ public:
         return _position;
     }
 
-    void assign(const String& str)
+    const String& filename() const
     {
-        String::assign(str);
-        _position = 0;
+        return _filename;
+    }
+
+    TextEncoding encoding() const
+    {
+        return _encoding;
+    }
+
+    bool crlf() const
+    {
+        return _crLf;
     }
 
     bool moveForward();
@@ -65,11 +113,21 @@ public:
 
     void trimTrailingWhitespace();
 
+    void open(const String& filename);
+    void save();
+
 protected:
     static bool isIdent(unichar_t ch);
 
 protected:
+    String _text;
     int _position;
+
+    String _filename;
+    TextEncoding _encoding;
+    bool _bom;
+    bool _crLf;
+
     String _indent;
 };
 
@@ -78,8 +136,11 @@ protected:
 class Editor
 {
 public:
-    Editor(const char_t* filename);
+    Editor();
     ~Editor();
+
+    void openDocument(const char_t* filename);
+    void saveDocument();
 
     void run();
 
@@ -90,24 +151,17 @@ protected:
     void updateScreen(bool redrawAll = false);
     bool processKey();
 
-    void openFile();
-    void saveFile();
-
     String getCommand(const char_t* prompt);
     void buildProject();
 
 protected:
-    Text _text;
-    TextEncoding _encoding;
-    bool _bom;
-    bool _crLf;
+    Document _document;
     
     String _buffer;
     String _pattern;
 
     CharArray _screen;
     CharArray _window;
-    String _filename;
     String _status;
 
     int _width, _height, _screenHeight;

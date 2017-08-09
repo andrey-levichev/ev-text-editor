@@ -646,7 +646,7 @@ void testString()
         ASSERT(s.length() == 0);
         ASSERT(s.charLength() == 0);
         ASSERT(s.capacity() == 0);
-        ASSERT(strCompare(s.str(), STR("")) == 0);
+        ASSERT(strCompare(s.chars(), STR("")) == 0);
         ASSERT(s == STR(""));
         ASSERT(s.empty());
     }
@@ -1107,7 +1107,7 @@ void testString()
 
     {
         String s(STR("a"));
-        ASSERT_EXCEPTION(Exception, s.assign(s.str()));
+        ASSERT_EXCEPTION(Exception, s.assign(s.chars()));
         ASSERT(s == STR("a"));
     }
 
@@ -1216,7 +1216,7 @@ void testString()
 
     {
         String s(STR("a"));
-        ASSERT_EXCEPTION(Exception, s.append(s.str()));
+        ASSERT_EXCEPTION(Exception, s.append(s.chars()));
     }
 
     {
@@ -1358,7 +1358,7 @@ void testString()
 
     {
         String s(STR("a"));
-        ASSERT_EXCEPTION(Exception, s.insert(0, s.str()));
+        ASSERT_EXCEPTION(Exception, s.insert(0, s.chars()));
     }
 
     {
@@ -1644,7 +1644,7 @@ void testString()
 
     {
         String s(STR("abc"));
-        ASSERT_EXCEPTION(Exception, s.eraseString(s.str()));
+        ASSERT_EXCEPTION(Exception, s.eraseString(s.chars()));
     }
 
     {
@@ -1801,7 +1801,7 @@ void testString()
 
     {
         String s(STR("abc"));
-        ASSERT_EXCEPTION(Exception, s.replace(0, s.str()));
+        ASSERT_EXCEPTION(Exception, s.replace(0, s.chars()));
     }
 
     {
@@ -1996,8 +1996,8 @@ void testString()
 
     {
         String s(STR("a"));
-        ASSERT_EXCEPTION(Exception, s.replaceString(s.str(), STR("a")));
-        ASSERT_EXCEPTION(Exception, s.replaceString(STR("a"), s.str()));
+        ASSERT_EXCEPTION(Exception, s.replaceString(s.chars(), STR("a")));
+        ASSERT_EXCEPTION(Exception, s.replaceString(STR("a"), s.chars()));
     }
 
     {
@@ -2199,7 +2199,7 @@ void testString()
         char_t* p = Memory::allocate<char_t>(1);
         strCopy(p, STR(""));
         String s = String::acquire(p);
-        ASSERT(s.str() == p);
+        ASSERT(s.chars() == p);
         ASSERT(s == STR(""));
         ASSERT(s.length() == 0);
         ASSERT(s.capacity() == 1);
@@ -2209,7 +2209,7 @@ void testString()
         char_t* p = Memory::allocate<char_t>(2);
         strCopy(p, STR("a"));
         String s = String::acquire(p);
-        ASSERT(s.str() == p);
+        ASSERT(s.chars() == p);
         ASSERT(s == STR("a"));
         ASSERT(s.length() == 1);
         ASSERT(s.capacity() == 2);

@@ -3,11 +3,11 @@
 const int TAB_SIZE = 4;
 const char_t* tab = STR("    ");
 
-// Text
+// Document
 
-bool Text::moveForward()
+bool Document::moveForward()
 {
-    if (_position < _length)
+    if (_position < _text.length())
     {
         _position = charForward(_position);
         return true;
@@ -16,7 +16,7 @@ bool Text::moveForward()
     return false;
 }
 
-bool Text::moveBack()
+bool Document::moveBack()
 {
     if (_position > 0)
     {
@@ -27,16 +27,16 @@ bool Text::moveBack()
     return false;
 }
 
-bool Text::moveWordForward()
+bool Document::moveWordForward()
 {
     int start = _position;
 
-    if (_position < _length)
+    if (_position < _text.length())
     {
         unichar_t prevChar = charAt(_position);
         _position = charForward(_position);
 
-        while (_position < _length)
+        while (_position < _text.length())
         {
             unichar_t ch = charAt(_position);
             if (charIsSpace(prevChar) && !charIsSpace(ch))
@@ -50,7 +50,7 @@ bool Text::moveWordForward()
     return _position > start;
 }
 
-bool Text::moveWordBack()
+bool Document::moveWordBack()
 {
     int start = _position;
 
@@ -84,7 +84,7 @@ bool Text::moveWordBack()
     return _position < start;
 }
 
-bool Text::moveToStart()
+bool Document::moveToStart()
 {
     if (_position > 0)
     {
@@ -95,18 +95,18 @@ bool Text::moveToStart()
     return false;
 }
 
-bool Text::moveToEnd()
+bool Document::moveToEnd()
 {
-    if (_position < _length)
+    if (_position < _text.length())
     {
-        _position = _length;
+        _position = _text.length();
         return true;
     }
 
     return false;
 }
 
-bool Text::moveToLineStart()
+bool Document::moveToLineStart()
 {
     int p = findCurrentLineStart();
 
@@ -119,7 +119,7 @@ bool Text::moveToLineStart()
         return false;
 }
 
-bool Text::moveToLineEnd()
+bool Document::moveToLineEnd()
 {
     int p = findCurrentLineEnd();
 
@@ -132,7 +132,7 @@ bool Text::moveToLineEnd()
         return false;
 }
 
-void Text::insertChar(unichar_t ch)
+void Document::insertChar(unichar_t ch)
 {
     ASSERT(ch != 0);
 
@@ -150,57 +150,57 @@ void Text::insertChar(unichar_t ch)
             ch = charAt(p);
         }
 
-        insert(_position, _indent);
+        _text.insert(_position, _indent);
         _position += _indent.length();
     }
     else if (ch == '\t') // tab
     {
-        insert(_position, tab);
+        _text.insert(_position, tab);
         _position = charForward(_position, TAB_SIZE);
     }
     else if (ch == 0x14) // real tab
     {
-        insert(_position, '\t');
+        _text.insert(_position, '\t');
         _position = charForward(_position);
     }
     else
     {
-        insert(_position, ch);
+        _text.insert(_position, ch);
         _position = charForward(_position);
     }
 }
 
-bool Text::deleteCharForward()
+bool Document::deleteCharForward()
 {
-    if (_position < _length)
+    if (_position < _text.length())
     {
-        erase(_position, charForward(_position) - _position);
+        _text.erase(_position, charForward(_position) - _position);
         return true;
     }
 
     return false;
 }
 
-bool Text::deleteCharBack()
+bool Document::deleteCharBack()
 {
     if (_position > 0)
     {
         int prev = _position;
         _position = charBack(_position);
-        erase(_position, prev - _position);
+        _text.erase(_position, prev - _position);
         return true;
     }
 
     return false;
 }
 
-bool Text::deleteWordForward()
+bool Document::deleteWordForward()
 {
     int prev = _position;
 
     if (moveWordForward())
     {
-        erase(prev, _position - prev);
+        _text.erase(prev, _position - prev);
         _position = prev;
         return true;
     }
@@ -208,22 +208,22 @@ bool Text::deleteWordForward()
     return false;
 }
 
-bool Text::deleteWordBack()
+bool Document::deleteWordBack()
 {
     int prev = _position;
 
     if (moveWordBack())
     {
-        erase(_position, prev - _position);
+        _text.erase(_position, prev - _position);
         return true;
     }
 
     return false;
 }
 
-String Text::copyDeleteText(int pos, bool copy)
+String Document::copyDeleteText(int pos, bool copy)
 {
-    ASSERT(pos < 0 || (pos >= 0 && pos <= _length));
+    ASSERT(pos < 0 || (pos >= 0 && pos <= _text.length()));
 
     int start;
     int end;
@@ -251,12 +251,12 @@ String Text::copyDeleteText(int pos, bool copy)
     
     if (start < end)
     {
-        String text = substr(start, end - start);
+        String text = _text.substr(start, end - start);
 
         if (!copy)
         {
             _position = start;
-            erase(start, end - start);
+            _text.erase(start, end - start);
         }
 
         return text;
@@ -265,16 +265,16 @@ String Text::copyDeleteText(int pos, bool copy)
     return String();
 }
 
-void Text::pasteText(const String& text, bool lineSelection)
+void Document::pasteText(const String& text, bool lineSelection)
 {
     if (lineSelection)
-        insert(findCurrentLineStart(), text);
+        _text.insert(findCurrentLineStart(), text);
     else
-        insert(_position, text);
+        _text.insert(_position, text);
     _position += text.length();
 }
 
-int Text::findCurrentLineStart()
+int Document::findCurrentLineStart()
 {
     int p = _position;
 
@@ -289,11 +289,11 @@ int Text::findCurrentLineStart()
     return p;
 }
 
-int Text::findCurrentLineEnd()
+int Document::findCurrentLineEnd()
 {
     int p = _position;
 
-    while (p < _length)
+    while (p < _text.length())
     {
         if (charAt(p) == '\n')
             break;
@@ -303,12 +303,12 @@ int Text::findCurrentLineEnd()
     return p;
 }
 
-int Text::findLine(int line)
+int Document::findLine(int line)
 {
     ASSERT(line > 0);
     int p = 0;
 
-    while (p < _length && line > 1)
+    while (p < _text.length() && line > 1)
     {
         if (charAt(p) == '\n')
             --line;
@@ -318,20 +318,20 @@ int Text::findLine(int line)
     return p;
 }
 
-bool Text::findNext(const String& pattern)
+bool Document::findNext(const String& pattern)
 {
     if (!pattern.empty())
     {
         int p;
 
-        if (_position < _length)
+        if (_position < _text.length())
         {
-            p = find(pattern, charForward(_position));
+            p = _text.find(pattern, charForward(_position));
             if (p < 0)
-                p = find(pattern);
+                p = _text.find(pattern);
         }
         else
-			p = find(pattern);
+			p = _text.find(pattern);
 
 		if (p >= 0 && p != _position)
 		{
@@ -343,7 +343,7 @@ bool Text::findNext(const String& pattern)
     return false;
 }
 
-String Text::currentWord()
+String Document::currentWord()
 {
     int start = _position;
 
@@ -358,20 +358,20 @@ String Text::currentWord()
         }
 
         int end = charForward(_position);
-        while (end < _length)
+        while (end < _text.length())
         {
             if (!isIdent(charAt(end)))
                 break;
             end = charForward(end);
         }
 
-        return substr(start, end - start);
+        return _text.substr(start, end - start);
     }
 
     return String();
 }
 
-void Text::trimTrailingWhitespace()
+void Document::trimTrailingWhitespace()
 {
     String trimmed;
     int p = 0, start = 0, whitespace = 0;
@@ -384,7 +384,7 @@ void Text::trimTrailingWhitespace()
         {
             if (whitespace)
             {
-                trimmed.append(_chars + start, whitespace - start);
+                trimmed.append(chars() + start, whitespace - start);
                 start = p;
                 whitespace = 0;
             }
@@ -397,37 +397,57 @@ void Text::trimTrailingWhitespace()
         else
             whitespace = 0;
 
-        if (p < _length)
+        if (p < _text.length())
             p = charForward(p);
         else
         {
-            trimmed.append(_chars + start, p - start);
+            trimmed.append(chars() + start, p - start);
             break;
         }
     }
 
-    swap(*this, trimmed);
+    swap(trimmed, _text);
     _position = 0;
 }
 
-bool Text::isIdent(unichar_t ch)
+void Document::open(const String& filename)
+{
+	File file;
+
+	if (file.open(filename, FILE_MODE_OPEN_EXISTING))
+		_text.assign(file.readString(_encoding, _bom, _crLf));
+	else
+    {
+#ifdef PLATFORM_WINDOWS
+        _encoding = TEXT_ENCODING_UTF16_LE;
+        _bom = true;
+        _crLf = true;
+#else
+        _encoding = TEXT_ENCODING_UTF8;
+        _bom = false;
+        _crLf = false;
+#endif
+		_text.clear();
+    }
+
+    _position = 0;
+}
+
+void Document::save()
+{
+    trimTrailingWhitespace();
+	File file(_filename, FILE_MODE_CREATE);
+	file.writeString(_text, _encoding, _bom, _crLf);
+}
+
+bool Document::isIdent(unichar_t ch)
 {
     return charIsAlphaNum(ch) || ch == '_';
 }
 
 // Editor
 
-Editor::Editor(const char_t* filename) :
-#ifdef PLATFORM_WINDOWS
-    _encoding(TEXT_ENCODING_UTF16_LE),
-    _bom(true),
-    _crLf(true),
-#else
-    _encoding(TEXT_ENCODING_UTF8),
-    _bom(false),
-    _crLf(false),
-#endif
-    _filename(filename),
+Editor::Editor() :
     _top(1), _left(1),
     _line(1), _column(1),
     _preferredColumn(1),
@@ -449,9 +469,23 @@ Editor::~Editor()
     Console::clear();
 }
 
+void Editor::openDocument(const char_t* filename)
+{
+    _document.open(filename);
+    _line = 1; _column = 1;
+    _preferredColumn = 1;
+    _selection = -1;
+}
+
+void Editor::saveDocument()
+{
+    _document.save();
+    lineColumnToPosition();
+    _selection = -1;
+}
+
 void Editor::run()
 {
-    openFile();
     updateScreen(true);
 
     while (processKey());
@@ -462,9 +496,9 @@ void Editor::positionToLineColumn()
     int p = 0;
     _line = 1, _column = 1;
 
-    while (p < _text.position())
+    while (p < _document.position())
     {
-        unichar_t ch = _text.charAt(p);
+        unichar_t ch = _document.charAt(p);
 
         if (ch == '\n')
         {
@@ -476,7 +510,7 @@ void Editor::positionToLineColumn()
         else
             ++_column;
 
-        p = _text.charForward(p);
+        p = _document.charForward(p);
     }
 
     _preferredColumn = _column;
@@ -487,29 +521,29 @@ void Editor::lineColumnToPosition()
     int p = 0;
     int preferredLine = _line;
     _line = 1; _column = 1;
-    unichar_t ch = _text.charAt(p);
+    unichar_t ch = _document.charAt(p);
 
-    while (p < _text.length() && _line < preferredLine)
+    while (p < _document.length() && _line < preferredLine)
     {
         if (ch == '\n')
             ++_line;
 
-        p = _text.charForward(p);
-		ch = _text.charAt(p);
+        p = _document.charForward(p);
+		ch = _document.charAt(p);
     }
 
-    while (p < _text.length() && ch != '\n' && _column < _preferredColumn)
+    while (p < _document.length() && ch != '\n' && _column < _preferredColumn)
     {
         if (ch == '\t')
             _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
         else
             ++_column;
 
-        p = _text.charForward(p);
-		ch = _text.charAt(p);
+        p = _document.charForward(p);
+		ch = _document.charAt(p);
     }
 
-    _text.position(p);
+    _document.position(p);
 }
 
 void Editor::updateScreen(bool redrawAll)
@@ -524,7 +558,7 @@ void Editor::updateScreen(bool redrawAll)
     else if (_column >= _left + _width)
         _left = _column - _width + 1;
 
-    int p = _text.findLine(_top);
+    int p = _document.findLine(_top);
     int len = _left + _width - 1;
     unichar_t ch;
 
@@ -534,16 +568,16 @@ void Editor::updateScreen(bool redrawAll)
     {
         for (int i = 1; i <= len; ++i)
         {
-            ch = _text.charAt(p);
+            ch = _document.charAt(p);
 
             if (ch == '\t')
             {
                 ch = ' ';
                 if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
-                    p = _text.charForward(p);
+                    p = _document.charForward(p);
             }
             else if (ch && ch != '\n')
-                p = _text.charForward(p);
+                p = _document.charForward(p);
             else
                 ch = ' ';
 
@@ -551,20 +585,20 @@ void Editor::updateScreen(bool redrawAll)
                 _window.pushBack(ch);
         }
 
-        ch = _text.charAt(p);
+        ch = _document.charAt(p);
 
         if (ch == '\n')
-            p = _text.charForward(p);
+            p = _document.charForward(p);
         else
         {
             while (ch && ch != '\n')
             {
-                p = _text.charForward(p);
-                ch = _text.charAt(p);
+                p = _document.charForward(p);
+                ch = _document.charAt(p);
             }
 
             if (ch == '\n')
-                p = _text.charForward(p);
+                p = _document.charForward(p);
         }
     }
 
@@ -613,9 +647,9 @@ void Editor::updateScreen(bool redrawAll)
 
     swap(_window, _screen);
 
-    _status = _filename;
-    _status += _encoding == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
-    _status += _crLf ? STR("  CRLF") : STR("  LF");
+    _status = _document.filename();
+    _status += _document.encoding() == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
+    _status += _document.crlf() ? STR("  CRLF") : STR("  LF");
     _status.appendFormat(STR("  %d, %d"), _line, _column);
 
     len = _status.charLength();
@@ -652,7 +686,7 @@ bool Editor::processKey()
         {
             if (key.code == KEY_RIGHT)
             {
-                if (_text.moveWordForward())
+                if (_document.moveWordForward())
                 {
                     positionToLineColumn();
                     update = true;
@@ -660,7 +694,7 @@ bool Editor::processKey()
             }
             else if (key.code == KEY_LEFT)
             {
-                if (_text.moveWordBack())
+                if (_document.moveWordBack())
                 {
                     positionToLineColumn();
                     update = true;
@@ -668,7 +702,7 @@ bool Editor::processKey()
             }
             else if (key.code == KEY_TAB || key.ch == 0x14) // ^Tab or ^T
             {
-                _text.insertChar(0x14);
+                _document.insertChar(0x14);
                 positionToLineColumn();
                 modified = true;
                 update = true;
@@ -678,7 +712,7 @@ bool Editor::processKey()
         {
             if (key.code == KEY_DELETE)
             {
-                if (_text.deleteWordForward())
+                if (_document.deleteWordForward())
                 {
                     positionToLineColumn();
                     modified = true;
@@ -687,7 +721,7 @@ bool Editor::processKey()
             }
             else if (key.code == KEY_BACKSPACE)
             {
-                if (_text.deleteWordBack())
+                if (_document.deleteWordBack())
                 {
                     positionToLineColumn();
                     modified = true;
@@ -696,7 +730,7 @@ bool Editor::processKey()
             }
             else if (key.code == KEY_HOME)
             {
-                if (_text.moveToStart())
+                if (_document.moveToStart())
                 {
                     positionToLineColumn();
                     update = true;
@@ -704,7 +738,7 @@ bool Editor::processKey()
             }
             else if (key.code == KEY_END)
             {
-                if (_text.moveToEnd())
+                if (_document.moveToEnd())
                 {
                     positionToLineColumn();
                     update = true;
@@ -731,17 +765,17 @@ bool Editor::processKey()
             }
             else if (key.ch == 's')
             {
-                saveFile();
+                saveDocument();
                 update = true;
             }
             else if (key.ch == 'x')
             {
-                saveFile();
+                saveDocument();
                 return false;
             }
             else if (key.ch == 'd')
             {
-                _buffer = _text.copyDeleteText(_selection, false);
+                _buffer = _document.copyDeleteText(_selection, false);
                 _lineSelection = _selection < 0;
 
                 if (!_buffer.empty())
@@ -753,14 +787,14 @@ bool Editor::processKey()
             }
             else if (key.ch == 'c')
             {
-                _buffer = _text.copyDeleteText(_selection, true);
+                _buffer = _document.copyDeleteText(_selection, true);
                 _lineSelection = _selection < 0;
             }
             else if (key.ch == 'p')
             {
                 if (!_buffer.empty())
                 {
-                    _text.pasteText(_buffer, _lineSelection);
+                    _document.pasteText(_buffer, _lineSelection);
                     positionToLineColumn();
                     modified = true;
                     update = true;
@@ -773,21 +807,21 @@ bool Editor::processKey()
             }
             else if (key.ch == 'm')
             {
-                _selection = _text.position();
+                _selection = _document.position();
             }
             else if (key.ch == 'f')
             {
                 _pattern = getCommand(STR("find: "));
 
-                if (_text.findNext(_pattern))
+                if (_document.findNext(_pattern))
                     positionToLineColumn();
                 update = true;
             }
             else if (key.ch == 'w')
             {
-                _pattern = _text.currentWord();
+                _pattern = _document.currentWord();
 
-                if (_text.findNext(_pattern))
+                if (_document.findNext(_pattern))
                 {
                     positionToLineColumn();
                     update = true;
@@ -795,7 +829,7 @@ bool Editor::processKey()
             }
             else if (key.ch == 'n')
             {
-                if (_text.findNext(_pattern))
+                if (_document.findNext(_pattern))
                 {
                     positionToLineColumn();
                     update = true;
@@ -804,7 +838,7 @@ bool Editor::processKey()
         }
         else if (key.code == KEY_BACKSPACE)
         {
-            if (_text.deleteCharBack())
+            if (_document.deleteCharBack())
             {
                 positionToLineColumn();
                 modified = true;
@@ -813,7 +847,7 @@ bool Editor::processKey()
         }
         else if (key.code == KEY_DELETE)
         {
-            if (_text.deleteCharForward())
+            if (_document.deleteCharForward())
             {
                 positionToLineColumn();
                 modified = true;
@@ -837,7 +871,7 @@ bool Editor::processKey()
         }
         else if (key.code == KEY_RIGHT)
         {
-            if (_text.moveForward())
+            if (_document.moveForward())
             {
                 positionToLineColumn();
                 update = true;
@@ -845,7 +879,7 @@ bool Editor::processKey()
         }
         else if (key.code == KEY_LEFT)
         {
-            if (_text.moveBack())
+            if (_document.moveBack())
             {
                 positionToLineColumn();
                 update = true;
@@ -853,7 +887,7 @@ bool Editor::processKey()
         }
         else if (key.code == KEY_HOME)
         {
-            if (_text.moveToLineStart())
+            if (_document.moveToLineStart())
             {
                 positionToLineColumn();
                 update = true;
@@ -861,7 +895,7 @@ bool Editor::processKey()
         }
         else if (key.code == KEY_END)
         {
-            if (_text.moveToLineEnd())
+            if (_document.moveToLineEnd())
             {
                 positionToLineColumn();
                 update = true;
@@ -884,7 +918,7 @@ bool Editor::processKey()
         }
         else if (key.ch == '\n' || key.ch == '\t' || charIsPrint(key.ch))
         {
-            _text.insertChar(key.ch);
+            _document.insertChar(key.ch);
             positionToLineColumn();
             modified = true;
             update = true;
@@ -898,41 +932,6 @@ bool Editor::processKey()
         updateScreen();
 
     return true;
-}
-
-void Editor::openFile()
-{
-	File file;
-
-	if (file.open(_filename, FILE_MODE_OPEN_EXISTING))
-		_text.assign(file.readString(_encoding, _bom, _crLf));
-	else
-    {
-#ifdef PLATFORM_WINDOWS
-        _encoding = TEXT_ENCODING_UTF16_LE;
-        _bom = true;
-        _crLf = true;
-#else
-        _encoding = TEXT_ENCODING_UTF8;
-        _bom = false;
-        _crLf = false;
-#endif
-		_text.clear();
-    }
-
-    _line = 1; _column = 1;
-    _preferredColumn = 1;
-    _selection = -1;
-}
-
-void Editor::saveFile()
-{
-    _text.trimTrailingWhitespace();
-    lineColumnToPosition();
-    _selection = -1;
-
-	File file(_filename, FILE_MODE_CREATE);
-	file.writeString(_text, _encoding, _bom, _crLf);
 }
 
 String Editor::getCommand(const char_t* prompt)
@@ -993,7 +992,7 @@ void Editor::buildProject()
     Console::setLineMode(true);
     Console::clear();
 
-    saveFile();
+    saveDocument();
     system("gmake");
 
     Console::writeLine(STR("Press any key to continue..."));
@@ -1008,38 +1007,39 @@ int MAIN(int argc, const char_t** argv)
 {
     Console::initialize();
     
-    if (argc != 2)
-    {
-        Console::writeLine(STR("usage: eve filename\n\n"
-            "keys:\n"
-            "arrows - move cursor\n"
-            "ctrl+left/right - word back/forward\n"
-            "home/end - start/end of line\n"
-            "alt+home/end - start/end of file\n"
-            "pgup/pgdn - page up/down\n"
-            "alt+pgup/pgdn - half page up/down\n"
-            "del - delete character at cursor position\n"
-            "backspace - delete character to the left of cursor position\n"
-            "alt+del - delete word at cursor position\n"
-            "alt+backspace - delete word to the left of cursor position\n"
-            "alt+M - mark selection start\n"
-            "alt+D - delete line/selection\n"
-            "alt+C - copy line/selection\n"
-            "alt+P - paste line/selection\n"
-            "alt+F - find\n"
-            "alt+W - find word at cursor\n"
-            "alt+N - find again\n"
-            "alt+B - build with make\n"
-            "alt+S - save\n"
-            "alt+X - quit and save\n"
-            "alt+Q - quit without saving\n\n"));
-
-        return 1;
-    }
-
     try
     {
-        Editor editor(argv[1]);
+        if (argc < 2)
+        {
+            Console::writeLine(STR("usage: eve filename ...\n\n"
+                "keys:\n"
+                "arrows - move cursor\n"
+                "ctrl+left/right - word back/forward\n"
+                "home/end - start/end of line\n"
+                "alt+home/end - start/end of file\n"
+                "pgup/pgdn - page up/down\n"
+                "alt+pgup/pgdn - half page up/down\n"
+                "del - delete character at cursor position\n"
+                "backspace - delete character to the left of cursor position\n"
+                "alt+del - delete word at cursor position\n"
+                "alt+backspace - delete word to the left of cursor position\n"
+                "alt+M - mark selection start\n"
+                "alt+D - delete line/selection\n"
+                "alt+C - copy line/selection\n"
+                "alt+P - paste line/selection\n"
+                "alt+F - find\n"
+                "alt+W - find word at cursor\n"
+                "alt+N - find again\n"
+                "alt+B - build with make\n"
+                "alt+S - save\n"
+                "alt+X - quit and save\n"
+                "alt+Q - quit without saving\n\n"));
+
+            return 1;
+        }
+
+        Editor editor;
+        editor.openDocument(argv[1]);
         editor.run();
     }
     catch (Exception& ex)

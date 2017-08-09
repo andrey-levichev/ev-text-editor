@@ -1589,7 +1589,7 @@ int String::toInt() const
 
 int32_t String::toInt32() const
 {
-    const char_t* s = str();
+    const char_t* s = chars();
     char_t* e;
     
     int32_t val = strToLong(s, &e, 10);
@@ -1601,7 +1601,7 @@ int32_t String::toInt32() const
 
 uint32_t String::toUInt32() const
 {
-    const char_t* s = str();
+    const char_t* s = chars();
     char_t* e;
     
     uint32_t val = strToULong(s, &e, 10);
@@ -1613,7 +1613,7 @@ uint32_t String::toUInt32() const
 
 int64_t String::toInt64() const
 {
-    const char_t* s = str();
+    const char_t* s = chars();
     char_t* e;
     
     int64_t val = strToLLong(s, &e, 10);
@@ -1625,7 +1625,7 @@ int64_t String::toInt64() const
 
 uint64_t String::toUInt64() const
 {
-    const char_t* s = str();
+    const char_t* s = chars();
     char_t* e;
     
     uint64_t val = strToULLong(s, &e, 10);
@@ -1637,7 +1637,7 @@ uint64_t String::toUInt64() const
 
 float String::toFloat() const
 {
-    const char_t* s = str();
+    const char_t* s = chars();
     char_t* e;
     
     float val = strToFloat(s, &e);
@@ -1649,7 +1649,7 @@ float String::toFloat() const
 
 double String::toDouble() const
 {
-    const char_t* s = str();
+    const char_t* s = chars();
     char_t* e;
     
     double val = strToDouble(s, &e);
@@ -1760,7 +1760,7 @@ unichar_t ConstStringIterator::value() const
 
 bool ConstStringIterator::moveNext()
 {
-    _pos = _pos ? UTF_CHAR_FORWARD(_pos) : _str.str();
+    _pos = _pos ? UTF_CHAR_FORWARD(_pos) : _str.chars();
 
     if (*_pos)
         return true;
@@ -1774,9 +1774,9 @@ bool ConstStringIterator::moveNext()
 bool ConstStringIterator::movePrev()
 {
     if (!_pos)
-        _pos = _str.str() + _str.length();
+        _pos = _str.chars() + _str.length();
 
-    if (_pos > _str.str())
+    if (_pos > _str.chars())
     {
         _pos = UTF_CHAR_BACK(_pos);
         return true;

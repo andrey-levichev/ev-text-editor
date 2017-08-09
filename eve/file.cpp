@@ -52,7 +52,7 @@ bool File::open(const String& fileName, FileMode openMode)
         break;
     }
     
-    _handle = CreateFile(reinterpret_cast<const wchar_t*>(fileName.str()), 
+    _handle = CreateFile(reinterpret_cast<const wchar_t*>(fileName.chars()), 
         GENERIC_READ | GENERIC_WRITE, 0, NULL, 
         mode, FILE_ATTRIBUTE_NORMAL, NULL);
 #else
@@ -76,7 +76,7 @@ bool File::open(const String& fileName, FileMode openMode)
         break;
     }
     
-    _handle = ::open(fileName.str(), O_RDWR | mode, 
+    _handle = ::open(fileName.chars(), O_RDWR | mode, 
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 #endif
     
@@ -178,7 +178,7 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
 
 void File::writeString(const String& str, TextEncoding encoding, bool bom, bool crLf)
 {
-    const char_t* p = str.str();
+    const char_t* p = str.chars();
     const char_t* e = p + str.length();
     int len = bom ? (encoding == TEXT_ENCODING_UTF8 ? 3 : 2) : 0;
     unichar_t ch;
@@ -201,7 +201,7 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
         }
     }
 
-    p = str.str();
+    p = str.chars();
     ByteArray bytes;
     bytes.ensureCapacity(len);
     

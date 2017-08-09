@@ -88,7 +88,7 @@ void Console::setLineMode(bool lineMode)
 
 void Console::write(const String& str)
 {
-    write(str.str(), str.length());
+    write(str.chars(), str.length());
 }
 
 void Console::write(const char_t* chars, int len)
@@ -143,7 +143,7 @@ void Console::writeLine()
 
 void Console::write(int line, int column, const String& str)
 {
-    write(line, column, str.str(), str.length());
+    write(line, column, str.chars(), str.length());
 }
 
 void Console::write(int line, int column, const char_t* chars, int len)
