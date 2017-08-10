@@ -1,8 +1,8 @@
 bugs & misc:
 * research about runtime checking by compiler and library
-* consider changing naming convention
 * handle SIGWINCH to detect terminal size changes
 * some keys don't work in Linux, macOS, xterm
+alt+[ and alt+O don't work
 rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
 * unicode support

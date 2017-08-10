@@ -12,45 +12,19 @@ class Document
 public:
     Document();
 
-    int length() const
+    const String& text() const
     {
-        return _text.length();
-    }
-
-    int charLength() const
-    {
-        return _text.charLength();
-    }
-
-    const char_t* chars() const
-    {
-        return _text.chars();
-    }
-
-    unichar_t charAt(int pos) const
-    {
-        return _text.charAt(pos);
-    }
-
-    int charForward(int pos, int n = 1) const
-    {
-        return _text.charForward(pos, n);
-    }
-
-    int charBack(int pos, int n = 1) const
-    {
-        return _text.charBack(pos, n);
-    }
-
-    void position(int pos)
-    {
-        ASSERT(pos >= 0 && pos <= _text.length());
-        _position = pos;
+        return _text;
     }
 
     int position() const
     {
         return _position;
+    }
+
+    bool modified() const
+    {
+        return _modified;
     }
 
     const String& filename() const
@@ -76,6 +50,16 @@ public:
     int column() const
     {
         return _column;
+    }
+
+    int top() const
+    {
+        return _top;
+    }
+
+    int left() const
+    {
+        return _left;
     }
 
     int selection() const
@@ -113,22 +97,24 @@ public:
     String copyDeleteText(bool copy);
     void pasteText(const String& text, bool lineSelection);
 
-    int findCurrentLineStart() const;
-    int findCurrentLineEnd() const;
+    void lineColumnToTopLeft(int width, int height);
     int findLine(int line) const;
 
     bool findNext(const String& pattern);
     String currentWord() const;
 
-    void trimTrailingWhitespace();
-
-    void positionToLineColumn();
-    void lineColumnToPosition();
-
     void open(const String& filename);
     void save();
 
 protected:
+    int findCurrentLineStart() const;
+    int findCurrentLineEnd() const;
+
+    void positionToLineColumn();
+    void lineColumnToPosition();
+
+    void trimTrailingWhitespace();
+
     static bool isIdent(unichar_t ch);
 
 protected:
@@ -142,6 +128,7 @@ protected:
     bool _crLf;
 
     int _line, _column, _preferredColumn;
+    int _top, _left;
     int _selection;
 
     String _indent;
@@ -155,15 +142,8 @@ public:
     Editor();
     ~Editor();
 
-    void openDocument(const char_t* filename)
-    {
-        _document.open(filename);
-    }
-
-    void saveDocument()
-    {
-        _document.save();
-    }
+    void openDocument(const char_t* filename);
+    void saveDocuments();
 
     void run();
 
@@ -175,7 +155,8 @@ protected:
     void buildProject();
 
 protected:
-    Document _document;
+    List<Document> _documents;
+    ListNode<Document>* _document;
     
     String _buffer;
     bool _lineSelection;
@@ -187,7 +168,6 @@ protected:
     String _status;
 
     int _width, _height, _screenHeight;
-    int _top, _left;
 };
 
 #endif

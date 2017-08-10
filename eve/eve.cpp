@@ -19,6 +19,7 @@ Document::Document() :
 #endif
     _line(1), _column(1),
     _preferredColumn(1),
+    _top(1), _left(1),
     _selection(-1)
 {
     _text.ensureCapacity(1);
@@ -49,7 +50,7 @@ bool Document::moveForward()
 {
     if (_position < _text.length())
     {
-        _position = charForward(_position);
+        _position = _text.charForward(_position);
         positionToLineColumn();
         return true;
     }
@@ -61,7 +62,7 @@ bool Document::moveBack()
 {
     if (_position > 0)
     {
-        _position = charBack(_position);
+        _position = _text.charBack(_position);
         positionToLineColumn();
         return true;
     }
@@ -75,17 +76,17 @@ bool Document::moveWordForward()
 
     if (_position < _text.length())
     {
-        unichar_t prevChar = charAt(_position);
-        _position = charForward(_position);
+        unichar_t prevChar = _text.charAt(_position);
+        _position = _text.charForward(_position);
 
         while (_position < _text.length())
         {
-            unichar_t ch = charAt(_position);
+            unichar_t ch = _text.charAt(_position);
             if (charIsSpace(prevChar) && !charIsSpace(ch))
                 break;
 
             prevChar = ch;
-            _position = charForward(_position);
+            _position = _text.charForward(_position);
         }
     }
 
@@ -104,18 +105,18 @@ bool Document::moveWordBack()
 
     if (_position > 0)
     {
-        _position = charBack(_position);
+        _position = _text.charBack(_position);
 
         if (_position > 0)
         {
-            unichar_t prevChar = charAt(_position);
+            unichar_t prevChar = _text.charAt(_position);
             int prevPos = _position;
 
             do
             {
-                _position = charBack(_position);
+                _position = _text.charBack(_position);
 
-                unichar_t ch = charAt(_position);
+                unichar_t ch = _text.charAt(_position);
                 if (charIsSpace(ch) && !charIsSpace(prevChar))
                 {
                     _position = prevPos;
@@ -226,12 +227,12 @@ void Document::insertChar(unichar_t ch)
         _indent.assign('\n');
         unichar_t ch;
 
-        ch = charAt(p);
+        ch = _text.charAt(p);
         while (charIsSpace(ch))
         {
             _indent += ch;
-            p = charForward(p);
-            ch = charAt(p);
+            p = _text.charForward(p);
+            ch = _text.charAt(p);
         }
 
         _text.insert(_position, _indent);
@@ -240,17 +241,17 @@ void Document::insertChar(unichar_t ch)
     else if (ch == '\t') // tab
     {
         _text.insert(_position, tab);
-        _position = charForward(_position, TAB_SIZE);
+        _position = _text.charForward(_position, TAB_SIZE);
     }
     else if (ch == 0x14) // real tab
     {
         _text.insert(_position, '\t');
-        _position = charForward(_position);
+        _position = _text.charForward(_position);
     }
     else
     {
         _text.insert(_position, ch);
-        _position = charForward(_position);
+        _position = _text.charForward(_position);
     }
 
     positionToLineColumn();
@@ -262,7 +263,7 @@ bool Document::deleteCharForward()
 {
     if (_position < _text.length())
     {
-        _text.erase(_position, charForward(_position) - _position);
+        _text.erase(_position, _text.charForward(_position) - _position);
 
         positionToLineColumn();
         _modified = true;
@@ -279,7 +280,7 @@ bool Document::deleteCharBack()
     if (_position > 0)
     {
         int prev = _position;
-        _position = charBack(_position);
+        _position = _text.charBack(_position);
         _text.erase(_position, prev - _position);
 
         positionToLineColumn();
@@ -343,8 +344,8 @@ String Document::copyDeleteText(bool copy)
     {
         start = findCurrentLineStart();
         end = findCurrentLineEnd();
-        if (charAt(end) == '\n')
-            end = charForward(end);
+        if (_text.charAt(end) == '\n')
+            end = _text.charForward(end);
     }
     else
     {
@@ -393,35 +394,6 @@ void Document::pasteText(const String& text, bool lineSelection)
     _selection = -1;
 }
 
-int Document::findCurrentLineStart() const
-{
-    int p = _position;
-
-    while (p > 0)
-    {
-        int q = charBack(p);
-        if (charAt(q) == '\n')
-            break;
-        p = q;
-    }
-
-    return p;
-}
-
-int Document::findCurrentLineEnd() const
-{
-    int p = _position;
-
-    while (p < _text.length())
-    {
-        if (charAt(p) == '\n')
-            break;
-        p = charForward(p);
-    }
-
-    return p;
-}
-
 int Document::findLine(int line) const
 {
     ASSERT(line > 0);
@@ -429,9 +401,9 @@ int Document::findLine(int line) const
 
     while (p < _text.length() && line > 1)
     {
-        if (charAt(p) == '\n')
+        if (_text.charAt(p) == '\n')
             --line;
-        p = charForward(p);
+        p = _text.charForward(p);
     }
 
     return p;
@@ -445,7 +417,7 @@ bool Document::findNext(const String& pattern)
 
         if (_position < _text.length())
         {
-            p = _text.find(pattern, charForward(_position));
+            p = _text.find(pattern, _text.charForward(_position));
             if (p < 0)
                 p = _text.find(pattern);
         }
@@ -467,122 +439,28 @@ String Document::currentWord() const
 {
     int start = _position;
 
-    if (isIdent(charAt(start)))
+    if (isIdent(_text.charAt(start)))
     {
         while (start > 0)
         {
-            int p = charBack(start);
-            if (!isIdent(charAt(p)))
+            int p = _text.charBack(start);
+            if (!isIdent(_text.charAt(p)))
                 break;
             start = p;
         }
 
-        int end = charForward(_position);
+        int end = _text.charForward(_position);
         while (end < _text.length())
         {
-            if (!isIdent(charAt(end)))
+            if (!isIdent(_text.charAt(end)))
                 break;
-            end = charForward(end);
+            end = _text.charForward(end);
         }
 
         return _text.substr(start, end - start);
     }
 
     return String();
-}
-
-void Document::trimTrailingWhitespace()
-{
-    String trimmed;
-    int p = 0, start = 0, whitespace = 0;
-
-    while (true)
-    {
-        unichar_t ch = charAt(p);
-
-        if (ch == '\n' || ch == 0)
-        {
-            if (whitespace)
-            {
-                trimmed.append(chars() + start, whitespace - start);
-                start = p;
-                whitespace = 0;
-            }
-        }
-        else if (charIsSpace(ch))
-        {
-            if (!whitespace)
-                whitespace = p;
-        }
-        else
-            whitespace = 0;
-
-        if (p < _text.length())
-            p = charForward(p);
-        else
-        {
-            trimmed.append(chars() + start, p - start);
-            break;
-        }
-    }
-
-    swap(trimmed, _text);
-    _position = 0;
-}
-
-void Document::positionToLineColumn()
-{
-    int p = 0;
-    _line = 1, _column = 1;
-
-    while (p < _position)
-    {
-        unichar_t ch = charAt(p);
-
-        if (ch == '\n')
-        {
-            ++_line;
-            _column = 1;
-        }
-        else if (ch == '\t')
-            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-        else
-            ++_column;
-
-        p = charForward(p);
-    }
-
-    _preferredColumn = _column;
-}
-
-void Document::lineColumnToPosition()
-{
-    int p = 0;
-    int preferredLine = _line;
-    _line = 1; _column = 1;
-    unichar_t ch = charAt(p);
-
-    while (p < _text.length() && _line < preferredLine)
-    {
-        if (ch == '\n')
-            ++_line;
-
-        p = charForward(p);
-		ch = charAt(p);
-    }
-
-    while (p < _text.length() && ch != '\n' && _column < _preferredColumn)
-    {
-        if (ch == '\t')
-            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-        else
-            ++_column;
-
-        p = charForward(p);
-		ch = charAt(p);
-    }
-
-    _position = p;
 }
 
 void Document::open(const String& filename)
@@ -605,6 +483,7 @@ void Document::open(const String& filename)
 		_text.clear();
     }
 
+    _filename = filename;
     _position = 0;
     _modified = false; 
     _line = 1; _column = 1;
@@ -623,6 +502,142 @@ void Document::save()
     _selection = -1;
 }
 
+int Document::findCurrentLineStart() const
+{
+    int p = _position;
+
+    while (p > 0)
+    {
+        int q = _text.charBack(p);
+        if (_text.charAt(q) == '\n')
+            break;
+        p = q;
+    }
+
+    return p;
+}
+
+int Document::findCurrentLineEnd() const
+{
+    int p = _position;
+
+    while (p < _text.length())
+    {
+        if (_text.charAt(p) == '\n')
+            break;
+        p = _text.charForward(p);
+    }
+
+    return p;
+}
+
+void Document::positionToLineColumn()
+{
+    int p = 0;
+    _line = 1, _column = 1;
+
+    while (p < _position)
+    {
+        unichar_t ch = _text.charAt(p);
+
+        if (ch == '\n')
+        {
+            ++_line;
+            _column = 1;
+        }
+        else if (ch == '\t')
+            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+        else
+            ++_column;
+
+        p = _text.charForward(p);
+    }
+
+    _preferredColumn = _column;
+}
+
+void Document::lineColumnToPosition()
+{
+    int p = 0;
+    int preferredLine = _line;
+    _line = 1; _column = 1;
+    unichar_t ch = _text.charAt(p);
+
+    while (p < _text.length() && _line < preferredLine)
+    {
+        if (ch == '\n')
+            ++_line;
+
+        p = _text.charForward(p);
+		ch = _text.charAt(p);
+    }
+
+    while (p < _text.length() && ch != '\n' && _column < _preferredColumn)
+    {
+        if (ch == '\t')
+            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+        else
+            ++_column;
+
+        p = _text.charForward(p);
+		ch = _text.charAt(p);
+    }
+
+    _position = p;
+}
+
+void Document::lineColumnToTopLeft(int width, int height)
+{
+    if (_line < _top)
+        _top = _line;
+    else if (_line >= _top + height)
+        _top = _line - height + 1;
+
+    if (_column < _left)
+        _left = _column;
+    else if (_column >= _left + width)
+        _left = _column - width + 1;
+}
+
+void Document::trimTrailingWhitespace()
+{
+    String trimmed;
+    int p = 0, start = 0, whitespace = 0;
+
+    while (true)
+    {
+        unichar_t ch = _text.charAt(p);
+
+        if (ch == '\n' || ch == 0)
+        {
+            if (whitespace)
+            {
+                trimmed.append(_text.chars() + start, whitespace - start);
+                start = p;
+                whitespace = 0;
+            }
+        }
+        else if (charIsSpace(ch))
+        {
+            if (!whitespace)
+                whitespace = p;
+        }
+        else
+            whitespace = 0;
+
+        if (p < _text.length())
+            p = _text.charForward(p);
+        else
+        {
+            trimmed.append(_text.chars() + start, p - start);
+            break;
+        }
+    }
+
+    swap(trimmed, _text);
+    _position = 0;
+}
+
 bool Document::isIdent(unichar_t ch)
 {
     return charIsAlphaNum(ch) || ch == '_';
@@ -631,8 +646,8 @@ bool Document::isIdent(unichar_t ch)
 // Editor
 
 Editor::Editor() :
-    _lineSelection(false),
-    _top(1), _left(1)
+    _document(NULL),
+    _lineSelection(false)
 {
     Console::setLineMode(false);
 
@@ -649,8 +664,22 @@ Editor::~Editor()
     Console::clear();
 }
 
+void Editor::openDocument(const char_t* filename)
+{
+    _documents.pushBack(Document());
+    _document = _documents.back();
+    _document->value.open(filename);
+}
+
+void Editor::saveDocuments()
+{
+    for (auto node = _documents.front(); node; node = node->next)
+        node->value.save();
+}
+
 void Editor::run()
 {
+    _document = _documents.front();
     updateScreen(true);
 
     while (processKey());
@@ -658,59 +687,56 @@ void Editor::run()
 
 void Editor::updateScreen(bool redrawAll)
 {
-    if (_document.line() < _top)
-        _top = _document.line();
-    else if (_document.line() >= _top + _height)
-        _top = _document.line() - _height + 1;
-
-    if (_document.column() < _left)
-        _left = _document.column();
-    else if (_document.column() >= _left + _width)
-        _left = _document.column() - _width + 1;
-
-    int p = _document.findLine(_top);
-    int len = _left + _width - 1;
-    unichar_t ch;
-
-    _window.clear();
-
-    for (int j = 1; j <= _height; ++j)
+    if (_document)
     {
-        for (int i = 1; i <= len; ++i)
+        _window.clear();
+        _document->value.lineColumnToTopLeft(_width, _height);
+
+        int p = _document->value.findLine(_document->value.top());
+        int left = _document->value.left();
+        int len = left + _width - 1;
+        unichar_t ch;
+
+        for (int j = 1; j <= _height; ++j)
         {
-            ch = _document.charAt(p);
-
-            if (ch == '\t')
+            for (int i = 1; i <= len; ++i)
             {
-                ch = ' ';
-                if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
-                    p = _document.charForward(p);
+                ch = _document->value.text().charAt(p);
+
+                if (ch == '\t')
+                {
+                    ch = ' ';
+                    if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
+                        p = _document->value.text().charForward(p);
+                }
+                else if (ch && ch != '\n')
+                    p = _document->value.text().charForward(p);
+                else
+                    ch = ' ';
+
+                if (i >= left)
+                    _window.pushBack(ch);
             }
-            else if (ch && ch != '\n')
-                p = _document.charForward(p);
-            else
-                ch = ' ';
 
-            if (i >= _left)
-                _window.pushBack(ch);
-        }
-
-        ch = _document.charAt(p);
-
-        if (ch == '\n')
-            p = _document.charForward(p);
-        else
-        {
-            while (ch && ch != '\n')
-            {
-                p = _document.charForward(p);
-                ch = _document.charAt(p);
-            }
+            ch = _document->value.text().charAt(p);
 
             if (ch == '\n')
-                p = _document.charForward(p);
+                p = _document->value.text().charForward(p);
+            else
+            {
+                while (ch && ch != '\n')
+                {
+                    p = _document->value.text().charForward(p);
+                    ch = _document->value.text().charAt(p);
+                }
+
+                if (ch == '\n')
+                    p = _document->value.text().charForward(p);
+            }
         }
     }
+    else
+        _window.assign(_width * _height, ' ');
 
     ASSERT(_window.size() == _width * _height);
 
@@ -757,28 +783,33 @@ void Editor::updateScreen(bool redrawAll)
 
     swap(_window, _screen);
 
-    _status = _document.filename();
-    _status += _document.encoding() == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
-    _status += _document.crlf() ? STR("  CRLF") : STR("  LF");
-    _status.appendFormat(STR("  %d, %d"), _document.line(), _document.column());
-
-    len = _status.charLength();
-    
-    if (len <= _width)
+    if (_document)
     {
-        Console::write(_screenHeight, 1, ' ', _width - len);
-        Console::write(_screenHeight, _width - len + 1, _status);
+        _status = _document->value.filename();
+        _status += _document->value.encoding() == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
+        _status += _document->value.crlf() ? STR("  CRLF") : STR("  LF");
+        _status.appendFormat(STR("  %d, %d"), _document->value.line(), _document->value.column());
+
+        int len = _status.charLength();
+
+        if (len <= _width)
+        {
+            Console::write(_screenHeight, 1, ' ', _width - len);
+            Console::write(_screenHeight, _width - len + 1, _status);
+        }
+        else
+        {
+            Console::write(_screenHeight, 1, STR("..."), 3);
+            Console::write(_screenHeight, 4, _status.charBack(
+                    _status.length(), _width - 3));
+        }
+
+        Console::setCursorPosition(
+            _document->value.line() - _document->value.top() + 1, 
+            _document->value.column() - _document->value.left() + 1);
     }
     else
-    {
-        Console::write(_screenHeight, 1, STR("..."), 3);
-        Console::write(_screenHeight, 4, _status.charBack(
-                _status.length(), _width - 3));
-    }
-
-    Console::setCursorPosition(
-        _document.line() - _top + 1, 
-        _document.column() - _left + 1);
+        Console::setCursorPosition(1, 1);
 
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(true);
@@ -794,151 +825,180 @@ bool Editor::processKey()
     {
         Key key = keys[i];
 
-        if (key.ctrl)
+        if (_document)
         {
-            if (key.code == KEY_RIGHT)
+            if (key.ctrl)
             {
-                update = _document.moveWordForward();
-            }
-            else if (key.code == KEY_LEFT)
-            {
-                update = _document.moveWordBack();
-            }
-            else if (key.code == KEY_TAB || key.ch == 0x14) // ^Tab or ^T
-            {
-                _document.insertChar(0x14);
-                update = true;
-            }
-        }
-        else if (key.alt)
-        {
-            if (key.code == KEY_DELETE)
-            {
-                update = _document.deleteWordForward();
-            }
-            else if (key.code == KEY_BACKSPACE)
-            {
-                update = _document.deleteWordBack();
-            }
-            else if (key.code == KEY_HOME)
-            {
-                update = _document.moveToStart();
-            }
-            else if (key.code == KEY_END)
-            {
-                update = _document.moveToEnd();
-            }
-            else if (key.code == KEY_PGUP)
-            {
-                update = _document.moveLinesUp(_height / 2);
-            }
-            else if (key.code == KEY_PGDN)
-            {
-                update = _document.moveLinesDown(_height / 2);
-            }
-            else if (key.ch == 'q')
-            {
-                return false;
-            }
-            else if (key.ch == 's')
-            {
-                saveDocument();
-                update = true;
-            }
-            else if (key.ch == 'x')
-            {
-                saveDocument();
-                return false;
-            }
-            else if (key.ch == 'd')
-            {
-                _buffer = _document.copyDeleteText(false);
-                _lineSelection = _document.selection() < 0;
-
-                if (!_buffer.empty())
-                    update = true;
-            }
-            else if (key.ch == 'c')
-            {
-                _buffer = _document.copyDeleteText(true);
-                _lineSelection = _document.selection() < 0;
-            }
-            else if (key.ch == 'p')
-            {
-                if (!_buffer.empty())
+                if (key.code == KEY_RIGHT)
                 {
-                    _document.pasteText(_buffer, _lineSelection);
+                    update = _document->value.moveWordForward();
+                }
+                else if (key.code == KEY_LEFT)
+                {
+                    update = _document->value.moveWordBack();
+                }
+                else if (key.code == KEY_TAB || key.ch == 0x14) // ^Tab or ^T
+                {
+                    _document->value.insertChar(0x14);
                     update = true;
                 }
             }
-            else if (key.ch == 'b')
+            else if (key.alt)
             {
-                buildProject();
-                return true;
+                if (key.code == KEY_DELETE)
+                {
+                    update = _document->value.deleteWordForward();
+                }
+                else if (key.code == KEY_BACKSPACE)
+                {
+                    update = _document->value.deleteWordBack();
+                }
+                else if (key.code == KEY_HOME)
+                {
+                    update = _document->value.moveToStart();
+                }
+                else if (key.code == KEY_END)
+                {
+                    update = _document->value.moveToEnd();
+                }
+                else if (key.code == KEY_PGUP)
+                {
+                    update = _document->value.moveLinesUp(_height / 2);
+                }
+                else if (key.code == KEY_PGDN)
+                {
+                    update = _document->value.moveLinesDown(_height / 2);
+                }
+                else if (key.ch == ',')
+                {
+                    if (_document->prev)
+                    {
+                        _document = _document->prev;
+                        updateScreen(true);
+                    }
+                }
+                else if (key.ch == '.')
+                {
+                    if (_document->next)
+                    {
+                        _document = _document->next;
+                        updateScreen(true);
+                    }
+                }
+                else if (key.ch == 'q')
+                {
+                    return false;
+                }
+                else if (key.ch == 's')
+                {
+                    _document->value.save();
+                    update = true;
+                }
+                else if (key.ch == 'x')
+                {
+                    saveDocuments();
+                    return false;
+                }
+                else if (key.ch == 'd')
+                {
+                    _buffer = _document->value.copyDeleteText(false);
+                    _lineSelection = _document->value.selection() < 0;
+
+                    if (!_buffer.empty())
+                        update = true;
+                }
+                else if (key.ch == 'c')
+                {
+                    _buffer = _document->value.copyDeleteText(true);
+                    _lineSelection = _document->value.selection() < 0;
+                }
+                else if (key.ch == 'p')
+                {
+                    if (!_buffer.empty())
+                    {
+                        _document->value.pasteText(_buffer, _lineSelection);
+                        update = true;
+                    }
+                }
+                else if (key.ch == 'b')
+                {
+                    buildProject();
+                    return true;
+                }
+                else if (key.ch == 'm')
+                {
+                    _document->value.markSelection();
+                }
+                else if (key.ch == 'f')
+                {
+                    _pattern = getCommand(STR("find: "));
+                    update = _document->value.findNext(_pattern);
+                }
+                else if (key.ch == 'w')
+                {
+                    _pattern = _document->value.currentWord();
+                    update = _document->value.findNext(_pattern);
+                }
+                else if (key.ch == 'n')
+                {
+                    update = _document->value.findNext(_pattern);
+                }
             }
-            else if (key.ch == 'm')
+            else if (key.code == KEY_BACKSPACE)
             {
-                _document.markSelection();
+                update = _document->value.deleteCharBack();
             }
-            else if (key.ch == 'f')
+            else if (key.code == KEY_DELETE)
             {
-                _pattern = getCommand(STR("find: "));
-                update = _document.findNext(_pattern);
+                update = _document->value.deleteCharForward();
             }
-            else if (key.ch == 'w')
+            else if (key.code == KEY_UP)
             {
-                _pattern = _document.currentWord();
-                update = _document.findNext(_pattern);
+                update = _document->value.moveUp();
             }
-            else if (key.ch == 'n')
+            else if (key.code == KEY_DOWN)
             {
-                update = _document.findNext(_pattern);
+                update = _document->value.moveDown();
+            }
+            else if (key.code == KEY_RIGHT)
+            {
+                update = _document->value.moveForward();
+            }
+            else if (key.code == KEY_LEFT)
+            {
+                update = _document->value.moveBack();
+            }
+            else if (key.code == KEY_HOME)
+            {
+                update = _document->value.moveToLineStart();
+            }
+            else if (key.code == KEY_END)
+            {
+                update = _document->value.moveToLineEnd();
+            }
+            else if (key.code == KEY_PGUP)
+            {
+                update = _document->value.moveLinesUp(_height - 1);
+            }
+            else if (key.code == KEY_PGDN)
+            {
+                update = _document->value.moveLinesDown(_height - 1);
+            }
+            else if (key.ch == '\n' || key.ch == '\t' || charIsPrint(key.ch))
+            {
+                _document->value.insertChar(key.ch);
+                update = true;
             }
         }
-        else if (key.code == KEY_BACKSPACE)
+        else
         {
-            update = _document.deleteCharBack();
-        }
-        else if (key.code == KEY_DELETE)
-        {
-            update = _document.deleteCharForward();
-        }
-        else if (key.code == KEY_UP)
-        {
-            update = _document.moveUp();
-        }
-        else if (key.code == KEY_DOWN)
-        {
-            update = _document.moveDown();
-        }
-        else if (key.code == KEY_RIGHT)
-        {
-            update = _document.moveForward();
-        }
-        else if (key.code == KEY_LEFT)
-        {
-            update = _document.moveBack();
-        }
-        else if (key.code == KEY_HOME)
-        {
-            update = _document.moveToLineStart();
-        }
-        else if (key.code == KEY_END)
-        {
-            update = _document.moveToLineEnd();
-        }
-        else if (key.code == KEY_PGUP)
-        {
-            update = _document.moveLinesUp(_height - 1);
-        }
-        else if (key.code == KEY_PGDN)
-        {
-            update = _document.moveLinesDown(_height - 1);
-        }
-        else if (key.ch == '\n' || key.ch == '\t' || charIsPrint(key.ch))
-        {
-            _document.insertChar(key.ch);
-            update = true;
+            if (key.alt)
+            {
+                if (key.ch == 'q')
+                {
+                    return false;
+                }
+            }
         }
     }
 
@@ -1006,7 +1066,7 @@ void Editor::buildProject()
     Console::setLineMode(true);
     Console::clear();
 
-    saveDocument();
+    saveDocuments();
     system("gmake");
 
     Console::writeLine(STR("Press any key to continue..."));
@@ -1053,7 +1113,10 @@ int MAIN(int argc, const char_t** argv)
         }
 
         Editor editor;
-        editor.openDocument(argv[1]);
+
+        for (int i = 1; i < argc; ++i)
+            editor.openDocument(argv[i]);
+
         editor.run();
     }
     catch (Exception& ex)
