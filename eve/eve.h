@@ -84,6 +84,7 @@ public:
 
     bool moveLinesUp(int lines);
     bool moveLinesDown(int lines);
+    bool moveToLine(int line);
 
     void insertChar(unichar_t ch);
 
@@ -102,6 +103,7 @@ public:
 
     bool findNext(const String& pattern);
     String currentWord() const;
+    void replace(const String& searchStr, const String& replaceStr);
 
     void open(const String& filename);
     void save();
@@ -152,6 +154,8 @@ protected:
     bool processKey();
 
     String getCommand(const char_t* prompt);
+    void processCommand();
+
     void buildProject();
 
 protected:
@@ -161,7 +165,8 @@ protected:
     String _buffer;
     bool _lineSelection;
 
-    String _pattern;
+    String _command;
+    String _searchStr, _replaceStr;
 
     CharArray _screen;
     CharArray _window;

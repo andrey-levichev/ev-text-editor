@@ -217,6 +217,18 @@ bool Document::moveLinesDown(int lines)
     return _position != prev;
 }
 
+bool Document::moveToLine(int line)
+{
+    ASSERT(line > 0);
+
+    _line = line;
+
+    int prev = _position;
+    lineColumnToPosition();
+
+    return _position != prev;
+}
+
 void Document::insertChar(unichar_t ch)
 {
     ASSERT(ch != 0);
@@ -461,6 +473,12 @@ String Document::currentWord() const
     }
 
     return String();
+}
+
+void Document::replace(const String& searchStr, const String& replaceStr)
+{
+    _text.replaceString(searchStr, replaceStr);
+    lineColumnToPosition();
 }
 
 void Document::open(const String& filename)
@@ -929,19 +947,26 @@ bool Editor::processKey()
                 {
                     _document->value.markSelection();
                 }
-                else if (key.ch == 'f')
-                {
-                    _pattern = getCommand(STR("find: "));
-                    update = _document->value.findNext(_pattern);
-                }
                 else if (key.ch == 'w')
                 {
-                    _pattern = _document->value.currentWord();
-                    update = _document->value.findNext(_pattern);
+                    _searchStr = _document->value.currentWord();
+                    update = _document->value.findNext(_searchStr);
                 }
-                else if (key.ch == 'n')
+                else if (key.ch == 'f')
                 {
-                    update = _document->value.findNext(_pattern);
+                    update = _document->value.findNext(_searchStr);
+                }
+                else if (key.ch == '/')
+                {
+                    try
+                    {
+                        processCommand();
+                        update = true;
+                    }
+                    catch (Exception& ex)
+                    {
+                        Console::write(_screenHeight, 1, ex.message());
+                    }
                 }
             }
             else if (key.code == KEY_BACKSPACE)
@@ -1061,6 +1086,73 @@ String Editor::getCommand(const char_t* prompt)
     }
 }
 
+void Editor::processCommand()
+{
+    _command = getCommand(STR(":"));
+
+    if (!_command.empty())
+    {
+        int pos = 0;
+        unichar_t ch = _command.charAt(pos);
+
+        if (ch == 'f')
+        {
+            pos = _command.charForward(pos);
+            if (_command.charAt(pos) == ' ')
+            {
+                pos = _command.charForward(pos);
+                _searchStr = _command.substr(pos);
+                _document->value.findNext(_searchStr);
+                return;
+            }
+        }
+        else if (ch == 'r')
+        {
+            pos = _command.charForward(pos);
+            if (_command.charAt(pos) == ' ')
+            {
+                pos = _command.charForward(pos);
+
+                if (pos < _command.length())
+                {
+                    int sep = _command.find(' ', pos);
+                    if (sep == INVALID_POSITION)
+                    {
+                        _searchStr = _command.substr(pos);
+                        _replaceStr.clear();
+                    }
+                    else
+                    {
+                        _searchStr = _command.substr(pos, sep - pos);
+                        _replaceStr = _command.substr(sep + 1);
+                    }
+
+                    _document->value.replace(_searchStr, _replaceStr);
+                    return;
+                }
+            }
+        }
+        else if (ch == 'g')
+        {
+            pos = _command.charForward(pos);
+            if (_command.charAt(pos) == ' ')
+            {
+                pos = _command.charForward(pos);
+                int line = _command.substr(pos).toInt();
+
+                if (line > 0)
+                    _document->value.moveToLine(line);
+                else
+                    throw Exception(STR("invalid line number"));
+
+                return;
+            }
+        }
+    }
+
+    throw Exception(STR("invalid command"));
+}
+
 void Editor::buildProject()
 {
     Console::setLineMode(true);
@@ -1101,12 +1193,12 @@ int MAIN(int argc, const char_t** argv)
                 "alt+D - delete line/selection\n"
                 "alt+C - copy line/selection\n"
                 "alt+P - paste line/selection\n"
-                "alt+F - find\n"
                 "alt+W - find word at cursor\n"
-                "alt+N - find again\n"
+                "alt+F - find again\n"
+                "alt+/ - enter command\n"
                 "alt+B - build with make\n"
                 "alt+S - save\n"
-                "alt+X - quit and save\n"
+                "alt+X - save all and quit\n"
                 "alt+Q - quit without saving\n\n"));
 
             return 1;

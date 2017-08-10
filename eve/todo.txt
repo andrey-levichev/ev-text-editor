@@ -22,6 +22,7 @@ replace smart pointers with smart references
 rename the types to make int 64 bit?
 string constructor that accepts ascii strings
 log memory allocations
+move assignment is called when string is assigned an r-value wiping out string storage
 
 basic features:
 * search/replace
