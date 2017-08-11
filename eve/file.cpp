@@ -4,7 +4,7 @@
 
 File::File() :
     _handle(INVALID_HANDLE_VALUE)
-{    
+{
 }
 
 File::File(const String& fileName, FileMode openMode) :
@@ -28,9 +28,9 @@ bool File::open(const String& fileName, FileMode openMode)
 {
     if (_handle != INVALID_HANDLE_VALUE)
         throw Exception(STR("file already open"));
-    
+
     int mode;
-    
+
 #ifdef PLATFORM_WINDOWS
     switch (openMode)
     {
@@ -51,9 +51,9 @@ bool File::open(const String& fileName, FileMode openMode)
         mode = TRUNCATE_EXISTING;
         break;
     }
-    
-    _handle = CreateFile(reinterpret_cast<const wchar_t*>(fileName.chars()), 
-        GENERIC_READ | GENERIC_WRITE, 0, NULL, 
+
+    _handle = CreateFile(reinterpret_cast<const wchar_t*>(fileName.chars()),
+        GENERIC_READ | GENERIC_WRITE, 0, NULL,
         mode, FILE_ATTRIBUTE_NORMAL, NULL);
 #else
     switch (openMode)
@@ -75,11 +75,11 @@ bool File::open(const String& fileName, FileMode openMode)
         mode = O_TRUNC;
         break;
     }
-    
-    _handle = ::open(fileName.chars(), O_RDWR | mode, 
+
+    _handle = ::open(fileName.chars(), O_RDWR | mode,
         S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 #endif
-    
+
     return _handle != INVALID_HANDLE_VALUE;
 }
 
@@ -93,14 +93,14 @@ void File::close()
         ASSERT(::close(_handle) == 0);
 #endif
         _handle = INVALID_HANDLE_VALUE;
-    }        
+    }
 }
 
 String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
 {
     ByteArray bytes = read<byte_t>();
     int bomOffset = 0;
-    
+
     if (bytes.size() >= 2 && bytes[0] == 0xfe && bytes[1] == 0xff)
     {
         encoding = TEXT_ENCODING_UTF16_BE;
@@ -125,7 +125,7 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
         encoding = TEXT_ENCODING_UTF8;
         bom = false;
     }
-    
+
     if (encoding != TEXT_ENCODING_UTF8 && bytes.size() % 2 != 0)
         throw Exception(STR("text in UTF-16 encoding has odd number of bytes"));
 
@@ -136,19 +136,19 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
     if (encoding == TEXT_ENCODING_UTF16_LE)
         swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
 #endif
-    
+
     byte_t* p = bytes.values() + bomOffset;
     byte_t* e = bytes.values() + bytes.size();
     int len = 0;
     unichar_t ch;
-    
+
     while (p < e)
     {
         if (encoding == TEXT_ENCODING_UTF8)
             p += utf8CharToUnicode(reinterpret_cast<char*>(p), ch);
         else
             p += utf16CharToUnicode(reinterpret_cast<char16_t*>(p), ch) * 2;
-        
+
         if (ch != '\r')
             len += UTF_CHAR_LENGTH(ch);
     }
@@ -158,20 +158,20 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
 
     p = bytes.values() + bomOffset;
     crLf = false;
-    
+
     while (p < e)
     {
         if (encoding == TEXT_ENCODING_UTF8)
             p += utf8CharToUnicode(reinterpret_cast<char*>(p), ch);
         else
             p += utf16CharToUnicode(reinterpret_cast<char16_t*>(p), ch) * 2;
-        
+
         if (ch == '\r')
             crLf = true;
         else
             str += ch;
     }
-    
+
     ASSERT(str.length() == len);
     return str;
 }
@@ -182,7 +182,7 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
     const char_t* e = p + str.length();
     int len = bom ? (encoding == TEXT_ENCODING_UTF8 ? 3 : 2) : 0;
     unichar_t ch;
-    
+
     while (p < e)
     {
         p += UTF_CHAR_TO_UNICODE(p, ch);
@@ -204,7 +204,7 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
     p = str.chars();
     ByteArray bytes;
     bytes.ensureCapacity(len);
-    
+
     if (bom)
     {
         if (encoding == TEXT_ENCODING_UTF8)
@@ -220,16 +220,16 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
             bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch) + 1));
         }
     }
-    
+
     while (p < e)
     {
         p += UTF_CHAR_TO_UNICODE(p, ch);
-        
+
         if (ch == '\n' && crLf)
             appendChar(bytes, encoding, '\r');
         appendChar(bytes, encoding, ch);
     }
-    
+
 #ifdef ARCH_LITTLE_ENDIAN
     if (encoding == TEXT_ENCODING_UTF16_BE)
         swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
@@ -262,12 +262,12 @@ void File::appendChar(ByteArray& bytes, TextEncoding encoding, unichar_t ch)
 {
     byte_t s[4];
     int n;
-    
+
     if (encoding == TEXT_ENCODING_UTF8)
         n = unicodeCharToUtf8(ch, reinterpret_cast<char*>(s));
     else
         n = unicodeCharToUtf16(ch, reinterpret_cast<char16_t*>(s)) * 2;
-    
+
     for (int i = 0; i < n; ++i)
         bytes.pushBack(s[i]);
 }

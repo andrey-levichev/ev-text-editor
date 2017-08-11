@@ -36,53 +36,53 @@ int strLen(const char_t* str)
 char_t* strCopy(char_t* destStr, const char_t* srcStr)
 {
     return reinterpret_cast<char_t*>(
-        wcscpy(reinterpret_cast<wchar_t*>(destStr), 
+        wcscpy(reinterpret_cast<wchar_t*>(destStr),
             reinterpret_cast<const wchar_t*>(srcStr)));
 }
 
 int strCompare(const char_t* left, const char_t* right)
 {
-    return wcscmp(reinterpret_cast<const wchar_t*>(left), 
+    return wcscmp(reinterpret_cast<const wchar_t*>(left),
         reinterpret_cast<const wchar_t*>(right));
 }
 
 int strCompareLen(const char_t* left, const char_t* right, int len)
 {
-    return wcsncmp(reinterpret_cast<const wchar_t*>(left), 
+    return wcsncmp(reinterpret_cast<const wchar_t*>(left),
         reinterpret_cast<const wchar_t*>(right), len);
 }
 
 int strCompareNoCase(const char_t* left, const char_t* right)
 {
-    return _wcsicmp(reinterpret_cast<const wchar_t*>(left), 
+    return _wcsicmp(reinterpret_cast<const wchar_t*>(left),
         reinterpret_cast<const wchar_t*>(right));
 }
 
 int strCompareLenNoCase(const char_t* left, const char_t* right, int len)
 {
-    return _wcsnicmp(reinterpret_cast<const wchar_t*>(left), 
+    return _wcsnicmp(reinterpret_cast<const wchar_t*>(left),
         reinterpret_cast<const wchar_t*>(right), len);
 }
 
 char_t* strFind(char_t* str, const char_t* searchStr)
 {
     return reinterpret_cast<char_t*>(
-        wcsstr(reinterpret_cast<wchar_t*>(str), 
+        wcsstr(reinterpret_cast<wchar_t*>(str),
             reinterpret_cast<const wchar_t*>(searchStr)));
 }
 
 const char_t* strFind(const char_t* str, const char_t* searchStr)
 {
     return reinterpret_cast<const char_t*>(
-        wcsstr(reinterpret_cast<const wchar_t*>(str), 
+        wcsstr(reinterpret_cast<const wchar_t*>(str),
             reinterpret_cast<const wchar_t*>(searchStr)));
 }
 
 char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 {
-    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, 
-        FIND_FROMSTART | LINGUISTIC_IGNORECASE, 
-        reinterpret_cast<const wchar_t*>(str), -1, 
+    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT,
+        FIND_FROMSTART | LINGUISTIC_IGNORECASE,
+        reinterpret_cast<const wchar_t*>(str), -1,
         reinterpret_cast<const wchar_t*>(searchStr),
         -1, NULL, NULL, NULL, 0);
 
@@ -91,9 +91,9 @@ char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 
 const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
 {
-    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, 
-        FIND_FROMSTART | LINGUISTIC_IGNORECASE, 
-        reinterpret_cast<const wchar_t*>(str), -1, 
+    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT,
+        FIND_FROMSTART | LINGUISTIC_IGNORECASE,
+        reinterpret_cast<const wchar_t*>(str), -1,
         reinterpret_cast<const wchar_t*>(searchStr),
         -1, NULL, NULL, NULL, 0);
 
@@ -102,37 +102,37 @@ const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
 
 long strToLong(const char_t* str, char_t** end, int base)
 {
-    return wcstol(reinterpret_cast<const wchar_t*>(str), 
+    return wcstol(reinterpret_cast<const wchar_t*>(str),
         reinterpret_cast<wchar_t**>(end), base);
 }
 
 unsigned long strToULong(const char_t* str, char_t** end, int base)
 {
-    return wcstoul(reinterpret_cast<const wchar_t*>(str), 
+    return wcstoul(reinterpret_cast<const wchar_t*>(str),
         reinterpret_cast<wchar_t**>(end), base);
 }
 
 long long strToLLong(const char_t* str, char_t** end, int base)
 {
-    return wcstoll(reinterpret_cast<const wchar_t*>(str), 
+    return wcstoll(reinterpret_cast<const wchar_t*>(str),
         reinterpret_cast<wchar_t**>(end), base);
 }
 
 unsigned long long strToULLong(const char_t* str, char_t** end, int base)
 {
-    return wcstoull(reinterpret_cast<const wchar_t*>(str), 
+    return wcstoull(reinterpret_cast<const wchar_t*>(str),
         reinterpret_cast<wchar_t**>(end), base);
 }
 
 float strToFloat(const char_t* str, char_t** end)
 {
-    return wcstof(reinterpret_cast<const wchar_t*>(str), 
+    return wcstof(reinterpret_cast<const wchar_t*>(str),
         reinterpret_cast<wchar_t**>(end));
 }
 
 double strToDouble(const char_t* str, char_t** end)
 {
-    return wcstod(reinterpret_cast<const wchar_t*>(str), 
+    return wcstod(reinterpret_cast<const wchar_t*>(str),
         reinterpret_cast<wchar_t**>(end));
 }
 
@@ -140,7 +140,7 @@ void formatString(char_t* str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    vswprintf(reinterpret_cast<wchar_t*>(str), 
+    vswprintf(reinterpret_cast<wchar_t*>(str),
         reinterpret_cast<const wchar_t*>(format), args);
     va_end(args);
 }
@@ -156,7 +156,7 @@ void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
     if (len > 0)
     {
         *str = Memory::allocate<char_t>(len + 1);
-        _vsnwprintf(reinterpret_cast<wchar_t*>(*str), 
+        _vsnwprintf(reinterpret_cast<wchar_t*>(*str),
             len + 1, reinterpret_cast<const wchar_t*>(format), args);
     }
     else
@@ -365,7 +365,7 @@ int utf8CharToUnicode(const char* in, char32_t& ch)
     {
         uint8_t ch2 = *in++;
         uint8_t ch3 = *in++;
-        ch = ((ch1 & 0x0f) << 12) | 
+        ch = ((ch1 & 0x0f) << 12) |
             ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
         return 3;
     }
@@ -374,7 +374,7 @@ int utf8CharToUnicode(const char* in, char32_t& ch)
         uint8_t ch2 = *in++;
         uint8_t ch3 = *in++;
         uint8_t ch4 = *in++;
-        ch = ((ch1 & 0x07) << 18) | 
+        ch = ((ch1 & 0x07) << 18) |
             ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
         return 4;
     }
@@ -422,7 +422,7 @@ int utf16CharToUnicode(const char16_t* in, char32_t& ch)
     else
     {
         char16_t ch2 = *in++;
-        ch = ((((ch1 & 0x03c0) >> 6) + 1) << 16) | 
+        ch = ((((ch1 & 0x03c0) >> 6) + 1) << 16) |
             ((ch1 & 0x003f) << 10) | (ch2 & 0x03ff);
         return 2;
     }
@@ -437,7 +437,7 @@ int unicodeCharToUtf16(char32_t ch, char16_t* out)
     }
     else
     {
-        *out++ = 0xd800 | 
+        *out++ = 0xd800 |
             ((((ch & 0x1f0000) >> 16) - 1) << 6) | ((ch & 0x00fc00) >> 10);
         *out++ = 0xdc00 | (ch & 0x03ff);
         return 2;
@@ -747,7 +747,7 @@ int String::charBack(int pos, int n) const
 String String::substr(int pos, int len) const
 {
     ASSERT(pos >= 0 && pos <= _length);
-    
+
     if (_length > 0)
     {
         if (len >= 0)
@@ -1017,7 +1017,7 @@ void String::append(const char_t* chars, int len)
 
         if (len < 0)
             len = strLen(chars);
-        
+
         int capacity = _length + len + 1;
         if (capacity > _capacity)
             ensureCapacity(capacity * 2);
@@ -1186,7 +1186,7 @@ void String::eraseString(const String& str)
                     from = _chars;
                     while ((found = strFind(from, str._chars)) != NULL)
                     {
-                        strMove(found, found + str._length, 
+                        strMove(found, found + str._length,
                             _chars + _length - found - str._length + 1);
 
                         from = found;
@@ -1455,7 +1455,7 @@ void String::trimRight()
     {
         char_t* q = _chars + _length;
         unichar_t ch;
-        
+
         while (p < q)
         {
             int l = UTF_CHAR_TO_UNICODE(UTF_CHAR_BACK(q), ch);
@@ -1566,7 +1566,7 @@ char_t* String::release()
     _length = 0;
     _capacity = 0;
     _chars = NULL;
-    
+
     return chars;
 }
 
@@ -1591,7 +1591,7 @@ int32_t String::toInt32() const
 {
     const char_t* s = chars();
     char_t* e;
-    
+
     int32_t val = strToLong(s, &e, 10);
     if (s < e && *e == '\0')
         return val;
@@ -1603,7 +1603,7 @@ uint32_t String::toUInt32() const
 {
     const char_t* s = chars();
     char_t* e;
-    
+
     uint32_t val = strToULong(s, &e, 10);
     if (s < e && *e == '\0')
         return val;
@@ -1615,7 +1615,7 @@ int64_t String::toInt64() const
 {
     const char_t* s = chars();
     char_t* e;
-    
+
     int64_t val = strToLLong(s, &e, 10);
     if (s < e && *e == '\0')
         return val;
@@ -1627,7 +1627,7 @@ uint64_t String::toUInt64() const
 {
     const char_t* s = chars();
     char_t* e;
-    
+
     uint64_t val = strToULLong(s, &e, 10);
     if (s < e && *e == '\0')
         return val;
@@ -1639,7 +1639,7 @@ float String::toFloat() const
 {
     const char_t* s = chars();
     char_t* e;
-    
+
     float val = strToFloat(s, &e);
     if (s < e && *e == '\0')
         return val;
@@ -1651,7 +1651,7 @@ double String::toDouble() const
 {
     const char_t* s = chars();
     char_t* e;
-    
+
     double val = strToDouble(s, &e);
     if (s < e && *e == '\0')
         return val;

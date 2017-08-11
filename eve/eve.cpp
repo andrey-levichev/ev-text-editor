@@ -372,7 +372,7 @@ String Document::copyDeleteText(bool copy)
             end = _selection;
         }
     }
-    
+
     if (start < end)
     {
         String text = _text.substr(start, end - start);
@@ -503,7 +503,7 @@ void Document::open(const String& filename)
 
     _filename = filename;
     _position = 0;
-    _modified = false; 
+    _modified = false;
     _line = 1; _column = 1;
     _preferredColumn = 1;
     _selection = -1;
@@ -823,7 +823,7 @@ void Editor::updateScreen(bool redrawAll)
         }
 
         Console::setCursorPosition(
-            _document->value.line() - _document->value.top() + 1, 
+            _document->value.line() - _document->value.top() + 1,
             _document->value.column() - _document->value.left() + 1);
     }
     else
@@ -919,16 +919,16 @@ bool Editor::processKey()
                 }
                 else if (key.ch == 'd')
                 {
-                    _buffer = _document->value.copyDeleteText(false);
                     _lineSelection = _document->value.selection() < 0;
+                    _buffer = _document->value.copyDeleteText(false);
 
                     if (!_buffer.empty())
                         update = true;
                 }
                 else if (key.ch == 'c')
                 {
-                    _buffer = _document->value.copyDeleteText(true);
                     _lineSelection = _document->value.selection() < 0;
+                    _buffer = _document->value.copyDeleteText(true);
                 }
                 else if (key.ch == 'p')
                 {
@@ -1053,8 +1053,8 @@ String Editor::getCommand(const char_t* prompt)
         else
         {
             p = _width;
-            Console::write(_screenHeight, 1, 
-                cmdLine.charBack(cmdLine.length(), _width - 1));
+            Console::write(_screenHeight, 1,
+                cmdLine.chars() + cmdLine.charBack(cmdLine.length(), _width - 1), _width - 1);
         }
 
         Console::setCursorPosition(_screenHeight, p);
@@ -1090,7 +1090,9 @@ void Editor::processCommand()
 {
     _command = getCommand(STR(":"));
 
-    if (!_command.empty())
+    if (_command.empty())
+        return;
+    else
     {
         int pos = 0;
         unichar_t ch = _command.charAt(pos);
@@ -1172,7 +1174,7 @@ void Editor::buildProject()
 int MAIN(int argc, const char_t** argv)
 {
     Console::initialize();
-    
+
     try
     {
         if (argc < 2)

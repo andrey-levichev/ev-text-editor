@@ -159,11 +159,11 @@ void Console::write(int line, int column, const char_t* chars, int len)
     COORD pos;
     pos.X = column - 1;
     pos.Y = line - 1;
-    
+
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(WriteConsoleOutputCharacter(handle, 
+    ASSERT(WriteConsoleOutputCharacter(handle,
         reinterpret_cast<const wchar_t*>(chars), l, pos, &written));
 #else
     setCursorPosition(line, column);
@@ -225,10 +225,10 @@ char32_t Console::readChar()
 
     wchar_t ch;
     ASSERT(ReadConsole(handle, &ch, 1, &written, NULL));
-    
+
     if (ch == '\r')
         ASSERT(ReadConsole(handle, &ch, 1, &written, NULL));
-    
+
     return ch;
 #else
     int ch = getchar();
@@ -250,7 +250,7 @@ char32_t Console::readChar()
     {
         uint8_t ch2 = getchar();
         uint8_t ch3 = getchar();
-        return ((ch1 & 0x0f) << 12) | 
+        return ((ch1 & 0x0f) << 12) |
             ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
     }
     else
@@ -258,7 +258,7 @@ char32_t Console::readChar()
         uint8_t ch2 = getchar();
         uint8_t ch3 = getchar();
         uint8_t ch4 = getchar();
-        return ((ch1 & 0x07) << 18) | 
+        return ((ch1 & 0x07) << 18) |
             ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
     }
 #endif
@@ -301,10 +301,10 @@ void Console::clear()
     ASSERT(handle);
 
     ASSERT(GetConsoleScreenBufferInfo(handle, &csbi));
-    
+
     COORD pos = { 0, 0 };
     DWORD size = csbi.dwSize.X * csbi.dwSize.Y, written;
-    
+
     ASSERT(FillConsoleOutputCharacter(handle, ' ', size, pos, &written));
     ASSERT(FillConsoleOutputAttribute(handle, csbi.wAttributes, size, pos, &written));
     ASSERT(SetConsoleCursorPosition(handle, pos));
@@ -374,12 +374,12 @@ const Array<Key>& Console::readKeys()
 
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
     ASSERT(handle);
-    
+
     if (WaitForSingleObject(handle, INFINITE) == WAIT_OBJECT_0)
     {
         DWORD numInputRec = 0;
         ASSERT(GetNumberOfConsoleInputEvents(handle, &numInputRec));
-        
+
         _input.resize(numInputRec);
         ASSERT(ReadConsoleInput(handle, _input.values(), numInputRec, &numInputRec));
 
@@ -489,7 +489,7 @@ const Array<Key>& Console::readKeys()
             }
         }
     }
-    
+
     return _keys;
 
 #else

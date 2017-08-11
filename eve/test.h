@@ -12,19 +12,19 @@ void printPlatformInfo();
 class Test
 {
 public:
-    Test() : 
+    Test() :
         _val(0)
     {
         Console::writeLineFormatted(STR("%p: Test::Test(): %d"), this, _val);
     }
 
-    Test(int val) : 
+    Test(int val) :
         _val(val)
     {
         Console::writeLineFormatted(STR("%p: Test::Test(int): %d"), this, _val);
     }
 
-    Test(const Test& other) : 
+    Test(const Test& other) :
         _val(other._val)
     {
         Console::writeLineFormatted(STR("%p: Test::Test(const Test&): %d"), this, _val);
@@ -56,17 +56,17 @@ public:
         Console::writeLineFormatted(STR("%p: Test::operator=(Test&&): %d"), this, _val);
         return *this;
     }
-    
+
     int val() const
     {
         return _val;
     }
-    
+
     int& val()
     {
         return _val;
     }
-    
+
     friend void swap(Test& left, Test& right)
     {
         swap(left._val, right._val);
@@ -76,17 +76,17 @@ public:
     {
         return left._val == right._val;
     }
-    
+
     friend bool operator!=(const Test& left, const Test& right)
     {
         return left._val != right._val;
     }
-    
+
     friend int hash(const Test& val)
     {
         return val._val;
     }
-    
+
 protected:
     int _val;
 };

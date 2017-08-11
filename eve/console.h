@@ -53,7 +53,7 @@ struct Key
     bool shift;
 
     Key() :
-        code(KEY_NONE), ch(0), 
+        code(KEY_NONE), ch(0),
         ctrl(false), alt(false), shift(false)
     {
     }

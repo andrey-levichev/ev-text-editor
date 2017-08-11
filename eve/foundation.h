@@ -274,7 +274,7 @@ int utf16StringLength(const char16_t* str);
 #ifdef PLATFORM_WINDOWS
 
 #define UTF_CHAR_TO_UNICODE utf16CharToUnicode
-#define UNICODE_CHAR_TO_UTF unicodeCharToUtf16 
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf16
 #define UTF_CHAR_AT utf16CharAt
 #define UTF_CHAR_FORWARD utf16CharForward
 #define UTF_CHAR_BACK utf16CharBack
@@ -284,7 +284,7 @@ int utf16StringLength(const char16_t* str);
 #else
 
 #define UTF_CHAR_TO_UNICODE utf8CharToUnicode
-#define UNICODE_CHAR_TO_UTF unicodeCharToUtf8 
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf8
 #define UTF_CHAR_AT utf8CharAt
 #define UTF_CHAR_FORWARD utf8CharForward
 #define UTF_CHAR_BACK utf8CharBack
@@ -302,15 +302,15 @@ inline uint16_t swapBytes(uint16_t value)
 
 inline uint32_t swapBytes(uint32_t value)
 {
-    value = ((value << 8) & 0xff00ff00) | ((value >> 8) & 0xff00ff); 
+    value = ((value << 8) & 0xff00ff00) | ((value >> 8) & 0xff00ff);
     return (value << 16) | (value >> 16);
 }
 
 inline uint64_t swapBytes(uint64_t value)
 {
-    value = ((value << 8) & 0xff00ff00ff00ff00ull) | 
+    value = ((value << 8) & 0xff00ff00ff00ff00ull) |
         ((value >> 8) & 0x00ff00ff00ff00ffull);
-    value = ((value << 16) & 0xffff0000ffff0000ull) | 
+    value = ((value << 16) & 0xffff0000ffff0000ull) |
         ((value >> 16) & 0x0000ffff0000ffffull);
     return (value << 32) | (value >> 32);
 }
@@ -351,9 +351,9 @@ inline void swapBytes(uint64_t* values, int len)
             abort(); \
         } \
     } while (false)
-    
+
 #else
-    
+
 #define ASSERT_MSG(condition, message) \
     do { \
         if (!(condition)) \
@@ -853,7 +853,7 @@ public:
     {
         return left._ptr != right._ptr;
     }
-    
+
     template<typename _T>
     friend int hash(const UniquePtr<_T>& val);
 
@@ -1001,7 +1001,7 @@ public:
     {
         return left._sharedPtr != right._sharedPtr;
     }
-    
+
     template<typename _T>
     friend int hash(const SharedPtr<_T>& val);
 
@@ -1123,7 +1123,7 @@ public:
         swap(*this, tmp);
         return *this;
     }
-    
+
     String& operator+=(const String& str)
     {
         append(str);
@@ -1204,16 +1204,16 @@ public:
     int findNoCase(const String& str, int pos = 0) const;
     int findNoCase(const char_t* chars, int pos = 0) const;
     int findNoCase(unichar_t ch, int pos = 0) const;
-    
+
     bool startsWith(const String& str) const;
     bool startsWith(const char_t* chars) const;
-    
+
     bool endsWith(const String& str) const;
     bool endsWith(const char_t* chars) const;
-    
+
     bool contains(const String& str) const;
     bool contains(const char_t* chars) const;
-    
+
     void ensureCapacity(int capacity);
     void shrinkToLength();
 
@@ -1231,16 +1231,16 @@ public:
     void insert(int pos, const String& str);
     void insert(int pos, const char_t* chars, int len = -1);
     void insert(int pos, unichar_t ch, int n = 1);
-    
+
     void erase(int pos, int len = -1);
     void eraseString(const String& str);
     void eraseString(const char_t* chars);
-    
+
     void replace(int pos, const String& str, int len = -1);
     void replace(int pos, const char_t* chars, int len = -1);
     void replaceString(const String& searchStr, const String& replaceStr);
     void replaceString(const char_t* searchChars, const char_t* replaceChars);
-   
+
     void trim();
     void trimRight();
     void trimLeft();
@@ -1249,12 +1249,12 @@ public:
 
     void clear();
     void reset();
-    
+
     static String acquire(char_t* chars)
     {
         return String(chars);
     }
-    
+
     char_t* release();
 
     template<typename... _Args>
@@ -1263,7 +1263,7 @@ public:
         char_t* chars = concatInternal(0, args...);
         return String(chars);
     }
-    
+
     // conversion from string
 
     bool toBool() const;
@@ -1286,12 +1286,12 @@ public:
     static String from(unsigned long long value);
     static String from(float value, int precision);
     static String from(double value, int precision);
-    
+
     // formatting
 
     static String format(const char_t* format, ...);
     static String format(const char_t* format, va_list args);
-    
+
     friend void swap(String& left, String& right)
     {
         swap(left._length, right._length);
@@ -1306,7 +1306,7 @@ public:
 
 protected:
     explicit String(char_t* chars);
-    
+
     template<typename... _Args>
     static char_t* concatInternal(int totalLen, const char_t* chars, _Args&&... args)
     {
@@ -1315,16 +1315,16 @@ protected:
         strCopyLen(destChars + totalLen, chars, len);
         return destChars;
     }
-    
+
     static char_t* concatInternal(int totalLen, const char_t* chars)
     {
         int len = strLen(chars);
         char_t* destChars = Memory::allocate<char_t>(totalLen + len + 1);
-        destChars[totalLen + len] = 0;        
+        destChars[totalLen + len] = 0;
         strCopyLen(destChars + totalLen, chars, len);
         return destChars;
     }
-    
+
     template<typename... _Args>
     static char_t* concatInternal(int totalLen, const String& str, _Args&&... args)
     {
@@ -1338,21 +1338,21 @@ protected:
         else
             return concatInternal(totalLen, args...);
     }
-    
+
     static char_t* concatInternal(int totalLen, const String& str)
     {
         if (str._chars)
         {
             int len = strLen(str._chars);
             char_t* destChars = Memory::allocate<char_t>(totalLen + len + 1);
-            destChars[totalLen + len] = 0;        
+            destChars[totalLen + len] = 0;
             strCopyLen(destChars + totalLen, str._chars, len);
             return destChars;
         }
         else
         {
             char_t* destChars = Memory::allocate<char_t>(totalLen + 1);
-            destChars[totalLen] = 0;        
+            destChars[totalLen] = 0;
             return destChars;
         }
     }
@@ -1481,7 +1481,7 @@ template<typename _Type>
 class ArrayIterator
 {
 public:
-    ArrayIterator(Array<_Type>& array) : 
+    ArrayIterator(Array<_Type>& array) :
         _array(array), _index(-1)
     {
     }
@@ -1529,7 +1529,7 @@ template<typename _Type>
 class ConstArrayIterator
 {
 public:
-    ConstArrayIterator(const Array<_Type>& array) : 
+    ConstArrayIterator(const Array<_Type>& array) :
         _array(array), _index(-1)
     {
     }
@@ -1587,7 +1587,7 @@ public:
     typedef ConstArrayIterator<_Type> ConstIterator;
 
 public:
-    Array() : 
+    Array() :
         _size(0), _capacity(0), _values(NULL)
     {
     }
@@ -1595,25 +1595,25 @@ public:
     Array(int size)
     {
         ASSERT(size >= 0);
-        
+
         _size = size;
         _capacity = size;
         _values = Memory::createArrayFill<_Type>(size, size);
     }
-    
+
     Array(int size, const _Type& value)
     {
         ASSERT(size >= 0);
-        
+
         _size = size;
         _capacity = size;
         _values = Memory::createArrayFill<_Type>(size, size, value);
     }
-    
+
     Array(int size, const _Type* values)
     {
         ASSERT((size == 0 && !values) || (size > 0 && values));
-        
+
         _size = size;
         _capacity = size;
         _values = Memory::createArrayCopy(size, size, values);
@@ -1625,13 +1625,13 @@ public:
         _capacity = other._size;
         _values = Memory::createArrayCopy(other._size, other._size, other._values);
     }
-    
+
     Array(Array<_Type>&& other)
     {
         _size = other._size;
         _capacity = other._capacity;
         _values = other._values;
-        
+
         other._size = 0;
         other._capacity = 0;
         other._values = NULL;
@@ -1681,7 +1681,7 @@ public:
     {
         return _size;
     }
-    
+
     int capacity() const
     {
         return _capacity;
@@ -1691,7 +1691,7 @@ public:
     {
         return _size == 0;
     }
-    
+
     _Type* values()
     {
         return _values;
@@ -1752,7 +1752,7 @@ public:
         if (capacity > _capacity)
             reallocate(capacity);
     }
-    
+
     void shrinkToLength()
     {
         if (_capacity > _size)
@@ -1819,7 +1819,7 @@ public:
     void assign(int size, const _Type* values)
     {
         ASSERT((size == 0 && !values) || (size > 0 && values && values != _values));
-        
+
         if (size <= _capacity)
         {
             clear();
@@ -1840,7 +1840,7 @@ public:
     void assign(const Array<_Type>& other)
     {
         ASSERT(this != &other);
-        
+
         if (other._size <= _capacity)
         {
             clear();
@@ -1857,7 +1857,7 @@ public:
             swap(*this, tmp);
         }
     }
-    
+
     void popBack()
     {
         ASSERT(_size > 0);
@@ -1865,7 +1865,7 @@ public:
         Memory::destruct(_values + _size - 1);
         --_size;
     }
-    
+
     void pushBack(const _Type& value)
     {
         if (_size >= _capacity)
@@ -1874,7 +1874,7 @@ public:
         Memory::construct<_Type>(_values + _size, value);
         ++_size;
     }
-    
+
     void pushBack(_Type&& value)
     {
         if (_size >= _capacity)
@@ -1883,11 +1883,11 @@ public:
         Memory::construct<_Type>(_values + _size, static_cast<_Type&&>(value));
         ++_size;
     }
-    
+
     void insert(int index, const _Type& value)
     {
         ASSERT(index >= 0 && index <= _size);
-        
+
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
@@ -1898,11 +1898,11 @@ public:
 
         ++_size;
     }
-    
+
     void insert(int index, _Type&& value)
     {
         ASSERT(index >= 0 && index <= _size);
-        
+
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
 
@@ -1913,11 +1913,11 @@ public:
 
         ++_size;
     }
-    
+
     void remove(int index)
     {
         ASSERT(index >= 0 && index < _size);
-        
+
         --_size;
 
         for (int i = index; i < _size; ++i)
@@ -1931,7 +1931,7 @@ public:
         Memory::destructArray(_size, _values);
         _size = 0;
     }
-    
+
     void reset()
     {
         Memory::destroyArray(_size, _values);
@@ -1940,19 +1940,19 @@ public:
         _capacity = 0;
         _values = NULL;
     }
-    
+
     static Array<_Type> acquire(int size, _Type* values)
     {
         return Array<_Type>(size, size, values);
     }
-    
+
     _Type* release()
     {
         _Type* values = _values;
         _size = 0;
         _capacity = 0;
         _values = NULL;
-        
+
         return values;
     }
 
@@ -2020,7 +2020,7 @@ template<typename _Type>
 class ListIterator
 {
 public:
-    ListIterator(List<_Type>& list) : 
+    ListIterator(List<_Type>& list) :
         _list(list), _node(NULL)
     {
     }
@@ -2067,7 +2067,7 @@ template<typename _Type>
 class ConstListIterator
 {
 public:
-    ConstListIterator(const List<_Type>& list) : 
+    ConstListIterator(const List<_Type>& list) :
         _list(list), _node(NULL)
     {
     }
@@ -2255,7 +2255,7 @@ public:
     {
         return _back;
     }
-    
+
     Iterator iterator()
     {
         return Iterator(*this);
@@ -2555,7 +2555,7 @@ struct KeyValue
     }
 
     KeyValue(_Key&& key, _Value&& value) :
-        key(static_cast<_Key&&>(key)), 
+        key(static_cast<_Key&&>(key)),
         value(static_cast<_Value&&>(value))
     {
     }
@@ -2566,7 +2566,7 @@ struct KeyValue
     }
 
     KeyValue(KeyValue<_Key, _Value>&& other) :
-        key(const_cast<_Key&&>(other.key)), 
+        key(const_cast<_Key&&>(other.key)),
         value(static_cast<_Value&&>(other.value))
     {
     }
@@ -2581,7 +2581,7 @@ template<typename _Key, typename _Value>
 class MapIterator
 {
 public:
-    MapIterator(Map<_Key, _Value>& map) : 
+    MapIterator(Map<_Key, _Value>& map) :
         _map(map), _index(0), _node(NULL)
     {
     }
@@ -2646,7 +2646,7 @@ template<typename _Key, typename _Value>
 class ConstMapIterator
 {
 public:
-    ConstMapIterator(const Map<_Key, _Value>& map) : 
+    ConstMapIterator(const Map<_Key, _Value>& map) :
         _map(map), _index(0), _node(NULL)
     {
     }
@@ -2721,7 +2721,7 @@ public:
     typedef ConstMapIterator<_Key, _Value> ConstIterator;
 
 public:
-    Map(int numBuckets = 0) : 
+    Map(int numBuckets = 0) :
         _keyValues(numBuckets),
         _size(0),
         _maxLoadFactor(0.75f)
@@ -2936,7 +2936,7 @@ public:
 
         kvList.pushBack(KeyValue<_Key, _Value>(
             static_cast<_Key&&>(key), static_cast<_Value&&>(value)));
-            
+
         ++_size;
     }
 
@@ -2975,7 +2975,7 @@ public:
         for (int i = 0; i < _keyValues.size(); ++i)
         {
             for (auto kvNode = _keyValues[i].front(); kvNode; kvNode = kvNode->next)
-                tmp.insert(const_cast<_Key&&>(kvNode->value.key), 
+                tmp.insert(const_cast<_Key&&>(kvNode->value.key),
                     static_cast<_Value&&>(kvNode->value.value));
         }
 
@@ -3020,7 +3020,7 @@ template<typename _Type>
 class ConstSetIterator
 {
 public:
-    ConstSetIterator(const Set<_Type>& set) : 
+    ConstSetIterator(const Set<_Type>& set) :
         _set(set), _index(0), _node(NULL)
     {
     }
@@ -3091,7 +3091,7 @@ public:
     typedef ConstSetIterator<_Type> ConstIterator;
 
 public:
-    Set(int numBuckets = 0) : 
+    Set(int numBuckets = 0) :
         _values(numBuckets),
         _size(0),
         _maxLoadFactor(0.75f)

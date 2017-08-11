@@ -105,7 +105,7 @@ void testUniquePtr()
         UniquePtr<Test> p2 = static_cast<UniquePtr<Test>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
-    } 
+    }
 
     // UniquePtr& operator=(UniquePtr<_Type>&& other)
 
@@ -226,7 +226,7 @@ void testSharedPtr()
 
         ASSERT(p1 && p1.ptr() == p);
         ASSERT(p1.refCount() == 1);
-    } 
+    }
 
     // SharedPtr(SharedPtr<_Type>&& other)
 
@@ -239,7 +239,7 @@ void testSharedPtr()
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
-    } 
+    }
 
     // SharedPtr<_Type>& operator=(const SharedPtr<_Type>& other)
 
@@ -258,7 +258,7 @@ void testSharedPtr()
 
         ASSERT(p1 && p1.ptr() == p);
         ASSERT(p1.refCount() == 1);
-    } 
+    }
 
     // SharedPtr<_Type>& operator=(SharedPtr<_Type>&& other)
 
@@ -584,7 +584,7 @@ void testString()
     }
 
     // String& operator=(const String& other);
-    
+
     {
         String s;
         s = String(STR("abc"));
@@ -592,7 +592,7 @@ void testString()
     }
 
     // String& operator=(const char_t* chars);
- 
+
     {
         String s;
         s = STR("abc");
@@ -1899,12 +1899,12 @@ void testString()
         s.replaceString(String(), String(STR("a")));
         ASSERT(s == STR("abc"));
     }
-     
+
     {
         String s(STR("abc"));
         s.replaceString(String(STR("b")), String());
         ASSERT(s == STR("ac"));
-    }  
+    }
 
     {
         String s(STR("a"));
@@ -1981,7 +1981,7 @@ void testString()
         s.replaceString(np,  STR("a"));
         ASSERT(s == STR("abc"));
     }
-     
+
     {
         String s(STR("abc"));
         s.replaceString(STR("b"), STR(""));
@@ -1992,7 +1992,7 @@ void testString()
         String s(STR("abc"));
         s.replaceString(STR("b"), np);
         ASSERT(s == STR("ac"));
-    }  
+    }
 
     {
         String s(STR("a"));
@@ -2258,7 +2258,7 @@ void testString()
     ASSERT(String(STR("123")).toUInt64() == 123);
     ASSERT(String(STR("123.45")).toFloat() == 123.45f);
     ASSERT(String(STR("123.45")).toDouble() == 123.45);
-    
+
     ASSERT_EXCEPTION(Exception, String(STR("abc")).toBool());
     ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt());
     ASSERT_EXCEPTION(Exception, String(STR("abc")).toInt32());
@@ -2284,7 +2284,7 @@ void testString()
     // String format(const char_t* format, ...)
     // String format(const char_t* format, va_list args)
 
-    ASSERT(String::format(STR("str = %s, int = %d, float = %g"), 
+    ASSERT(String::format(STR("str = %s, int = %d, float = %g"),
             STR("abc"), 123, 123.45) == STR("str = abc, int = 123, float = 123.45"));
 
     // String operator+(const String& left, const String& right)
@@ -3045,7 +3045,7 @@ void testArray()
         ASSERT(a.capacity() == 3);
         ASSERT(a.values());
     }
-    
+
     // void reset()
 
     {
@@ -3063,7 +3063,7 @@ void testArray()
         ASSERT(a.capacity() == 0);
         ASSERT(!a.values());
     }
-   
+
     // Array<_Type> acquire(int size, _Type* values)
 
     {
@@ -3534,7 +3534,7 @@ void testList()
         ASSERT(!l.empty());
         ASSERT(l.front()->value == 123);
     }
-    
+
     // void assign(int size, const _Type* values)
 
     {
@@ -3969,7 +3969,7 @@ void testMap()
     }
 
     // Map(Map<_Key, _Value>&& other)
-   
+
     {
         Map<int, int> m1, m2(static_cast<Map<int, int>&&>(m1));
 
@@ -4135,7 +4135,7 @@ void testMap()
         ASSERT(!m.empty());
         ASSERT(m.loadFactor() == 1);
     }
-            
+
     {
         Map<int, int> m;
         m.insert(1, 10);
@@ -4442,7 +4442,7 @@ void testSet()
     }
 
     // Set(Set<_Type>&& other)
-   
+
     {
         Set<int> s1, s2(static_cast<Set<int>&&>(s1));
 
@@ -4542,7 +4542,7 @@ void testSet()
         ASSERT(!s.empty());
         ASSERT(s.loadFactor() == 1);
     }
-            
+
     {
         Set<int> s;
         s.insert(1);
@@ -4781,7 +4781,7 @@ void testFile()
 #else
     const char_t* str = u"\x0024\x00a2\n\x20ac\xd800\xdf48\n";
 #endif
-    
+
     byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
     byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
     byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
@@ -4793,7 +4793,7 @@ void testFile()
     // bool isOpen() const
     // bool open(const String& fileName, FileMode openMode = FILE_MODE_OPEN_EXISTING)
     // void close()
-        
+
     {
         File f;
         ASSERT(!f.isOpen());
@@ -4803,7 +4803,7 @@ void testFile()
         f.close();
         ASSERT(!f.isOpen());
     }
-    
+
     {
         File f(STR("test.txt"));
         ASSERT(f.isOpen());
@@ -4811,31 +4811,31 @@ void testFile()
         f.close();
         ASSERT(!f.isOpen());
     }
-    
+
     ASSERT_EXCEPTION(Exception, File(STR("no_such_file"), FILE_MODE_OPEN_EXISTING));
-    
+
     {
         File f;
         ASSERT(!f.open(STR("no_such_file"), FILE_MODE_OPEN_EXISTING));
     }
-    
+
     // template<typename _Type>
     // void write(const Array<_Type>& data)
     // int64_t size() const
-    
+
     {
         File f;
         ASSERT_EXCEPTION(Exception, f.write(Array<byte_t>()));
         ASSERT_EXCEPTION(Exception, f.size());
     }
-    
+
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         Array<byte_t> bytes(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX);
         f.write(bytes);
         ASSERT(f.size() == bytes.size());
     }
-    
+
     // template<typename _Type>
     // Array<_Type> read()
 
@@ -4843,19 +4843,19 @@ void testFile()
         File f;
         ASSERT_EXCEPTION(Exception, f.read<byte_t>());
     }
-    
+
     {
         File f(STR("test.txt"));
         ByteArray bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
-    }        
-        
+    }
+
     // String readString(TextEncoding& encoding, bool& bom, bool& crLf)
-    
+
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.write(Array<byte_t>(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX));
-        
+
         TextEncoding encoding;
         bool bom, crLf;
         String s = f.readString(encoding, bom, crLf);
@@ -4863,13 +4863,13 @@ void testFile()
         ASSERT(encoding == TEXT_ENCODING_UTF8);
         ASSERT(!bom);
         ASSERT(!crLf);
-        
+
     }
-    
+
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.write(Array<byte_t>(sizeof(BYTES_UTF8_BOM_UNIX), BYTES_UTF8_BOM_UNIX));
-        
+
         TextEncoding encoding;
         bool bom, crLf;
         String s = f.readString(encoding, bom, crLf);
@@ -4877,50 +4877,50 @@ void testFile()
         ASSERT(encoding == TEXT_ENCODING_UTF8);
         ASSERT(bom);
         ASSERT(!crLf);
-        
+
     }
-    
+
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.write(Array<byte_t>(sizeof(BYTES_UTF16_LE_WIN), BYTES_UTF16_LE_WIN));
-        
+
         TextEncoding encoding;
         bool bom, crLf;
         String s = f.readString(encoding, bom, crLf);
         ASSERT(s == str);
         ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
         ASSERT(bom);
-        ASSERT(crLf);        
+        ASSERT(crLf);
     }
-    
+
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.write(Array<byte_t>(sizeof(BYTES_UTF16_LE_UNIX), BYTES_UTF16_LE_UNIX));
-        
+
         TextEncoding encoding;
         bool bom, crLf;
         String s = f.readString(encoding, bom, crLf);
         ASSERT(s == str);
         ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
         ASSERT(bom);
-        ASSERT(!crLf);        
+        ASSERT(!crLf);
     }
-    
+
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.write(Array<byte_t>(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX));
-        
+
         TextEncoding encoding;
         bool bom, crLf;
         String s = f.readString(encoding, bom, crLf);
         ASSERT(s == str);
         ASSERT(encoding == TEXT_ENCODING_UTF16_BE);
         ASSERT(bom);
-        ASSERT(!crLf);        
+        ASSERT(!crLf);
     }
-    
+
     // void writeString(const String& str, TextEncoding encoding, bool bom, bool crLf)
-    
+
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.writeString(str, TEXT_ENCODING_UTF8, false, false);
@@ -4948,7 +4948,7 @@ void testFile()
         ByteArray bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_UNIX, sizeof(BYTES_UTF16_LE_UNIX)) == 0);
     }
-    
+
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.writeString(str, TEXT_ENCODING_UTF16_BE, true, false);
@@ -5153,7 +5153,7 @@ void testConsoleReadKeys()
                 if (charIsPrint(key.ch))
                     Console::writeLine(key.ch);
                 else
-                    Console::writeLineFormatted(STR("\\x%02x"), 
+                    Console::writeLineFormatted(STR("\\x%02x"),
                         static_cast<unsigned>(key.ch));
                 break;
             }
@@ -5279,7 +5279,7 @@ int MAIN(int argc, const char_t** argv)
         Console::initialize();
         Console::setLineMode(true);
         printPlatformInfo();
-    
+
 //        testFoundation();
 //        testFile();
 //        testConsole();

@@ -46,7 +46,7 @@ public:
     {
         return _line;
     }
-    
+
     int column() const
     {
         return _column;
@@ -161,7 +161,7 @@ protected:
 protected:
     List<Document> _documents;
     ListNode<Document>* _document;
-    
+
     String _buffer;
     bool _lineSelection;
 
