@@ -117,7 +117,7 @@ protected:
 
     void trimTrailingWhitespace();
 
-    static bool isIdent(unichar_t ch);
+    static bool charIsIdent(unichar_t ch);
 
 protected:
     String _text;
@@ -168,8 +168,8 @@ protected:
     String _command;
     String _searchStr, _replaceStr;
 
-    CharArray _screen;
-    CharArray _window;
+    String _screen;
+    String _window;
     String _status;
 
     int _width, _height, _screenHeight;

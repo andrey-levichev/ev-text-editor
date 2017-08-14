@@ -240,7 +240,7 @@ void Document::insertChar(unichar_t ch)
         unichar_t ch;
 
         ch = _text.charAt(p);
-        while (charIsSpace(ch))
+        while (ch == ' ' || ch == '\t')
         {
             _indent += ch;
             p = _text.charForward(p);
@@ -451,12 +451,12 @@ String Document::currentWord() const
 {
     int start = _position;
 
-    if (isIdent(_text.charAt(start)))
+    if (charIsIdent(_text.charAt(start)))
     {
         while (start > 0)
         {
             int p = _text.charBack(start);
-            if (!isIdent(_text.charAt(p)))
+            if (!charIsIdent(_text.charAt(p)))
                 break;
             start = p;
         }
@@ -464,7 +464,7 @@ String Document::currentWord() const
         int end = _text.charForward(_position);
         while (end < _text.length())
         {
-            if (!isIdent(_text.charAt(end)))
+            if (!charIsIdent(_text.charAt(end)))
                 break;
             end = _text.charForward(end);
         }
@@ -635,7 +635,7 @@ void Document::trimTrailingWhitespace()
                 whitespace = 0;
             }
         }
-        else if (charIsSpace(ch))
+        else if (ch == ' ' || ch == '\t')
         {
             if (!whitespace)
                 whitespace = p;
@@ -656,7 +656,7 @@ void Document::trimTrailingWhitespace()
     _position = 0;
 }
 
-bool Document::isIdent(unichar_t ch)
+bool Document::charIsIdent(unichar_t ch)
 {
     return charIsAlphaNum(ch) || ch == '_';
 }
@@ -733,7 +733,7 @@ void Editor::updateScreen(bool redrawAll)
                     ch = ' ';
 
                 if (i >= left)
-                    _window.pushBack(ch);
+                    _window += ch;
             }
 
             ch = _document->value.text().charAt(p);
@@ -756,30 +756,28 @@ void Editor::updateScreen(bool redrawAll)
     else
         _window.assign(_width * _height, ' ');
 
-    ASSERT(_window.size() == _width * _height);
-
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(false);
 #endif
 
     if (redrawAll)
     {
-        Console::write(1, 1, _window.values(), _window.size());
+        Console::write(1, 1, _window);
     }
     else
     {
         int i = 0, j = 0;
-        int len = min(_window.size(), _screen.size());
+        int len = min(_window.length(), _screen.length());
         bool matching = true;
 
         for (; j < len; ++j)
         {
-            if (_window[j] == _screen[j])
+            if (_window.chars()[j] == _screen.chars()[j])
             {
                 if (!matching)
                 {
                     Console::write(i / _width + 1, i % _width + 1,
-                                   _window.values() + i, j - i);
+                                   _window.chars() + i, j - i);
                     i = j;
                     matching = true;
                 }
@@ -796,7 +794,7 @@ void Editor::updateScreen(bool redrawAll)
 
         if (!matching)
             Console::write(i / _width + 1, i % _width + 1,
-                           _window.values() + i, j - i);
+                           _window.chars() + i, j - i);
     }
 
     swap(_window, _screen);
