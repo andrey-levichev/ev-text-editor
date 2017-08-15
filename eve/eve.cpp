@@ -733,7 +733,11 @@ void Editor::updateScreen(bool redrawAll)
                     ch = ' ';
 
                 if (i >= left)
+#ifdef PLATFORM_WINDOWS
+                    _window += ch > 0xffff ? '?' : ch;
+#else
                     _window += ch;
+#endif
             }
 
             ch = _document->value.text().charAt(p);
@@ -1159,7 +1163,12 @@ void Editor::buildProject()
     Console::clear();
 
     saveDocuments();
-    system("gmake");
+
+#ifdef PLATFORM_WINDOWS
+    system("nmake");
+#else
+    system("make");
+#endif
 
     Console::writeLine(STR("Press any key to continue..."));
     Console::readChar();
