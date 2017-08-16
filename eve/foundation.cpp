@@ -26,7 +26,169 @@ char_t* strMove(char_t* destStr, const char_t* srcStr, int len)
     return destStr + len;
 }
 
+#ifdef CHAR_ENCODING_UTF8
+
+int strLen(const char_t* str)
+{
+    return strlen(str);
+}
+
+char_t* strCopy(char_t* destStr, const char_t* srcStr)
+{
+    return strcpy(destStr, srcStr);
+}
+
+int strCompare(const char_t* left, const char_t* right)
+{
+    return strcmp(left, right);
+}
+
+int strCompareLen(const char_t* left, const char_t* right, int len)
+{
+    return strncmp(left, right, len);
+}
+
+int strCompareNoCase(const char_t* left, const char_t* right)
+{
 #ifdef PLATFORM_WINDOWS
+    return _stricmp(left, right);
+#else
+    return strcasecmp(left, right);
+#endif
+}
+
+int strCompareLenNoCase(const char_t* left, const char_t* right, int len)
+{
+#ifdef PLATFORM_WINDOWS
+    return _strnicmp(left, right, len);
+#else
+    return strncasecmp(left, right, len);
+#endif
+}
+
+char_t* strFind(char_t* str, const char_t* searchStr)
+{
+    return strstr(str, searchStr);
+}
+
+const char_t* strFind(const char_t* str, const char_t* searchStr)
+{
+    return strstr(str, searchStr);
+}
+
+char_t* strFindNoCase(char_t* str, const char_t* searchStr)
+{
+#if defined(PLATFORM_AIX)
+    int len = strlen(searchStr);
+	for (; *str; ++str)
+        if (!strncasecmp(str, searchStr, len))
+            return str;
+
+    return NULL;
+#elif defined(PLATFORM_WINDOWS)
+    return StrStrI(str, searchStr);
+#else
+    return strcasestr(str, searchStr);
+#endif
+}
+
+const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
+{
+#if defined(PLATFORM_AIX)
+    int len = strlen(searchStr);
+	for (; *str; ++str)
+        if (!strncasecmp(str, searchStr, len))
+            return str;
+
+    return NULL;
+#elif defined(PLATFORM_WINDOWS)
+    return StrStrI(str, searchStr);
+#else
+    return strcasestr(str, searchStr);
+#endif
+}
+
+long strToLong(const char_t* str, char_t** end, int base)
+{
+    return strtol(str, end, base);
+}
+
+unsigned long strToULong(const char_t* str, char_t** end, int base)
+{
+    return strtoul(str, end, base);
+}
+
+long long strToLLong(const char_t* str, char_t** end, int base)
+{
+    return strtoll(str, end, base);
+}
+
+unsigned long long strToULLong(const char_t* str, char_t** end, int base)
+{
+    return strtoull(str, end, base);
+}
+
+float strToFloat(const char_t* str, char_t** end)
+{
+    return strtof(str, end);
+}
+
+double strToDouble(const char_t* str, char_t** end)
+{
+    return strtod(str, end);
+}
+
+void formatString(char_t* str, const char_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vsprintf(str, format, args);
+    va_end(args);
+}
+
+void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
+{
+#if defined(PLATFORM_AIX)
+    va_list args2;
+	va_copy(args2, args);
+	int len = vsnprintf(0, 0, format, args2);
+	va_end(args2);
+
+    if (len > 0)
+    {
+        *str = Memory::allocate<char_t>(len + 1);
+        vsnprintf(*str, len + 1, format, args);
+    }
+    else
+        *str = 0;
+#elif defined(PLATFORM_WINDOWS)
+    va_list args2;
+
+    va_copy(args2, args);
+    int len = _vscprintf(format, args2);
+    va_end(args2);
+
+    if (len > 0)
+    {
+        *str = Memory::allocate<char_t>(len + 1);
+        _vsnprintf(*str, len + 1, format, args);
+    }
+    else
+        *str = 0;
+#else
+    vasprintf(str, format, args);
+#endif
+}
+
+void formatAllocString(char_t** str, const char_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    formatAllocStringArgs(str, format, args);
+    va_end(args);
+}
+
+#else
 
 int strLen(const char_t* str)
 {
@@ -161,142 +323,6 @@ void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
     }
     else
         *str = 0;
-}
-
-void formatAllocString(char_t** str, const char_t* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    formatAllocStringArgs(str, format, args);
-    va_end(args);
-}
-
-#else
-
-int strLen(const char_t* str)
-{
-    return strlen(str);
-}
-
-char_t* strCopy(char_t* destStr, const char_t* srcStr)
-{
-    return strcpy(destStr, srcStr);
-}
-
-int strCompare(const char_t* left, const char_t* right)
-{
-    return strcmp(left, right);
-}
-
-int strCompareLen(const char_t* left, const char_t* right, int len)
-{
-    return strncmp(left, right, len);
-}
-
-int strCompareNoCase(const char_t* left, const char_t* right)
-{
-    return strcasecmp(left, right);
-}
-
-int strCompareLenNoCase(const char_t* left, const char_t* right, int len)
-{
-    return strncasecmp(left, right, len);
-}
-
-char_t* strFind(char_t* str, const char_t* searchStr)
-{
-    return strstr(str, searchStr);
-}
-
-const char_t* strFind(const char_t* str, const char_t* searchStr)
-{
-    return strstr(str, searchStr);
-}
-
-char_t* strFindNoCase(char_t* str, const char_t* searchStr)
-{
-#ifdef PLATFORM_AIX
-    int len = strlen(searchStr);
-	for (; *str; ++str)
-        if (!strncasecmp(str, searchStr, len))
-            return str;
-
-    return NULL;
-#else
-    return strcasestr(str, searchStr);
-#endif
-}
-
-const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
-{
-#ifdef PLATFORM_AIX
-    int len = strlen(searchStr);
-	for (; *str; ++str)
-        if (!strncasecmp(str, searchStr, len))
-            return str;
-
-    return NULL;
-#else
-    return strcasestr(str, searchStr);
-#endif
-}
-
-long strToLong(const char_t* str, char_t** end, int base)
-{
-    return strtol(str, end, base);
-}
-
-unsigned long strToULong(const char_t* str, char_t** end, int base)
-{
-    return strtoul(str, end, base);
-}
-
-long long strToLLong(const char_t* str, char_t** end, int base)
-{
-    return strtoll(str, end, base);
-}
-
-unsigned long long strToULLong(const char_t* str, char_t** end, int base)
-{
-    return strtoull(str, end, base);
-}
-
-float strToFloat(const char_t* str, char_t** end)
-{
-    return strtof(str, end);
-}
-
-double strToDouble(const char_t* str, char_t** end)
-{
-    return strtod(str, end);
-}
-
-void formatString(char_t* str, const char_t* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vsprintf(str, format, args);
-    va_end(args);
-}
-
-void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
-{
-#ifdef PLATFORM_AIX
-    va_list args2;
-	va_copy(args2, args);
-	int len = vsnprintf(0, 0, format, args2);
-	va_end(args2);
-
-    if (len > 0)
-    {
-        *str = Memory::allocate<char_t>(len + 1);
-        vsnprintf(*str, len + 1, format, args);
-    }
-    else
-        *str = 0;
-#else
-    vasprintf(str, format, args);
-#endif
 }
 
 void formatAllocString(char_t** str, const char_t* format, ...)

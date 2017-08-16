@@ -1,26 +1,6 @@
 #include <console.h>
 
-#ifdef PLATFORM_WINDOWS
-
-void printLine(const char_t* str)
-{
-    _putws(reinterpret_cast<const wchar_t*>(str));
-}
-
-void print(const char_t* format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    wprintf(reinterpret_cast<const wchar_t*>(format), args);
-    va_end(args);
-}
-
-void printArgs(const char_t* format, va_list args)
-{
-    vwprintf(reinterpret_cast<const wchar_t*>(format), args);
-}
-
-#else
+#ifdef CHAR_ENCODING_UTF8
 
 void printLine(const char_t* str)
 {
@@ -40,6 +20,26 @@ void printArgs(const char_t* format, va_list args)
     vprintf(format, args);
 }
 
+#else
+
+void printLine(const char_t* str)
+{
+    _putws(reinterpret_cast<const wchar_t*>(str));
+}
+
+void print(const char_t* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    wprintf(reinterpret_cast<const wchar_t*>(format), args);
+    va_end(args);
+}
+
+void printArgs(const char_t* format, va_list args)
+{
+    vwprintf(reinterpret_cast<const wchar_t*>(format), args);
+}
+
 #endif
 
 // Console
@@ -57,8 +57,12 @@ void Console::initialize()
     setlocale(LC_ALL, "");
 
 #ifdef PLATFORM_WINDOWS
+
+#ifdef CHAR_ENCODING_UTF16
     ASSERT(_setmode(_fileno(stdin), _O_U16TEXT) >= 0);
     ASSERT(_setmode(_fileno(stdout), _O_U16TEXT) >= 0);
+#endif
+
 #else
     setvbuf(stdout, NULL, _IONBF, 0);
 #endif
@@ -164,7 +168,7 @@ void Console::write(int line, int column, const char_t* chars, int len)
     ASSERT(handle);
 
     ASSERT(WriteConsoleOutputCharacter(handle,
-        reinterpret_cast<const wchar_t*>(chars), l, pos, &written));
+        reinterpret_cast<LPCTSTR>(chars), l, pos, &written));
 #else
     setCursorPosition(line, column);
     ASSERT(::write(STDOUT_FILENO, chars, l) >= 0);

@@ -1,5 +1,4 @@
 bugs & misc:
-* make sure eve builds with minimal dependencies
 * research about runtime checking by compiler and library
 * handle SIGWINCH to detect terminal size changes
 * some keys don't work in Linux, macOS, xterm

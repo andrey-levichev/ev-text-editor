@@ -8,13 +8,16 @@ const char_t* tab = STR("    ");
 Document::Document() :
     _position(0),
     _modified(false),
-#ifdef PLATFORM_WINDOWS
-    _encoding(TEXT_ENCODING_UTF16_LE),
-    _bom(true),
-    _crLf(true),
-#else
+#ifdef CHAR_ENCODING_UTF8
     _encoding(TEXT_ENCODING_UTF8),
     _bom(false),
+#else
+    _encoding(TEXT_ENCODING_UTF16_LE),
+    _bom(true),
+#endif
+#ifdef PLATFORM_WINDOWS
+    _crLf(true),
+#else
     _crLf(false),
 #endif
     _line(1), _column(1),
@@ -489,13 +492,16 @@ void Document::open(const String& filename)
 		_text.assign(file.readString(_encoding, _bom, _crLf));
 	else
     {
-#ifdef PLATFORM_WINDOWS
-        _encoding = TEXT_ENCODING_UTF16_LE;
-        _bom = true;
-        _crLf = true;
-#else
+#ifdef CHAR_ENCODING_UTF8
         _encoding = TEXT_ENCODING_UTF8;
         _bom = false;
+#else
+        _encoding = TEXT_ENCODING_UTF16_LE;
+        _bom = true;
+#endif
+#ifdef PLATFORM_WINDOWS
+        _crLf = true;
+#else
         _crLf = false;
 #endif
 		_text.clear();

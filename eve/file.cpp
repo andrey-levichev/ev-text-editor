@@ -52,7 +52,7 @@ bool File::open(const String& fileName, FileMode openMode)
         break;
     }
 
-    _handle = CreateFile(reinterpret_cast<const wchar_t*>(fileName.chars()),
+    _handle = CreateFile(reinterpret_cast<LPCTSTR>(fileName.chars()),
         GENERIC_READ | GENERIC_WRITE, 0, NULL,
         mode, FILE_ATTRIBUTE_NORMAL, NULL);
 #else

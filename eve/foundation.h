@@ -135,6 +135,7 @@ typedef unsigned char32_t;
 #ifdef PLATFORM_WINDOWS
 
 #include <windows.h>
+#include <shlwapi.h>
 #include <io.h>
 #include <fcntl.h>
 
@@ -177,7 +178,7 @@ const _Type& max(const _Type& left, const _Type& right)
 typedef char32_t unichar_t;
 typedef unsigned char byte_t;
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) && defined(_UNICODE)
 
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
@@ -271,17 +272,7 @@ const char16_t* utf16CharBack(const char16_t* pos);
 int utf16CharLength(char32_t ch);
 int utf16StringLength(const char16_t* str);
 
-#ifdef PLATFORM_WINDOWS
-
-#define UTF_CHAR_TO_UNICODE utf16CharToUnicode
-#define UNICODE_CHAR_TO_UTF unicodeCharToUtf16
-#define UTF_CHAR_AT utf16CharAt
-#define UTF_CHAR_FORWARD utf16CharForward
-#define UTF_CHAR_BACK utf16CharBack
-#define UTF_CHAR_LENGTH utf16CharLength
-#define UTF_STRING_LENGTH utf16StringLength
-
-#else
+#ifdef CHAR_ENCODING_UTF8
 
 #define UTF_CHAR_TO_UNICODE utf8CharToUnicode
 #define UNICODE_CHAR_TO_UTF unicodeCharToUtf8
@@ -290,6 +281,16 @@ int utf16StringLength(const char16_t* str);
 #define UTF_CHAR_BACK utf8CharBack
 #define UTF_CHAR_LENGTH utf8CharLength
 #define UTF_STRING_LENGTH utf8StringLength
+
+#else
+
+#define UTF_CHAR_TO_UNICODE utf16CharToUnicode
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf16
+#define UTF_CHAR_AT utf16CharAt
+#define UTF_CHAR_FORWARD utf16CharForward
+#define UTF_CHAR_BACK utf16CharBack
+#define UTF_CHAR_LENGTH utf16CharLength
+#define UTF_STRING_LENGTH utf16StringLength
 
 #endif
 
