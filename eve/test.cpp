@@ -5280,13 +5280,15 @@ int MAIN(int argc, const char_t** argv)
         Console::setLineMode(true);
         printPlatformInfo();
 
+        Console::writeLine(CHARS);
+
 //        testFoundation();
 //        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-        testConsoleReadKeys();
+//        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {

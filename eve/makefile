@@ -1,7 +1,6 @@
 TARGET=eve
 HEADERS=foundation.h console.h file.h eve.h
 SOURCES=foundation.cpp console.cpp file.cpp eve.cpp
-RM=$(if $(OS),del,rm)
 
 all: $(TARGET).vcpp.exe
 
@@ -35,5 +34,5 @@ $(TARGET).xlc: $(HEADERS) $(SOURCES)
 	xlC_r -qlanglvl=extended0x -g $(SOURCES) -o $@ -I. -DDEBUG
 
 clean:
-	-$(RM) *.exe *.obj *.ilk *.pdb \
-		$(TARGET).gcc $(TARGET).clang $(TARGET).sol $(TARGET).xlc *.o
+	-del *.exe *.obj *.ilk *.pdb
+	-rm $(TARGET).gcc $(TARGET).clang $(TARGET).sol $(TARGET).xlc *.o

@@ -173,6 +173,7 @@ protected:
     String _status;
 
     int _width, _height, _screenHeight;
+    bool _unicodeLimit16;
 };
 
 #endif
