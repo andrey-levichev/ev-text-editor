@@ -674,6 +674,16 @@ Editor::Editor() :
 
     _screen.ensureCapacity(_width * _height);
     _window.ensureCapacity(_width * _height);
+
+#ifdef PLATFORM_WINDOWS
+    _unicodeLimit16 = true;
+#else
+    const char* term = getenv("TERM");
+    if (term)
+        _unicodeLimit16 = strstr(term, "xterm") != NULL;
+    else
+        _unicodeLimit16 = false;
+#endif
 }
 
 Editor::~Editor()
@@ -733,11 +743,12 @@ void Editor::updateScreen(bool redrawAll)
                     ch = ' ';
 
                 if (i >= left)
-#ifdef PLATFORM_WINDOWS
-                    _window += ch > 0xffff ? '?' : ch;
-#else
-                    _window += ch;
-#endif
+                {
+                    if (_unicodeLimit16 && ch > 0xffff)
+                        _window += '?';
+                    else
+                        _window += ch;
+                }
             }
 
             ch = _document->value.text().charAt(p);
@@ -760,6 +771,8 @@ void Editor::updateScreen(bool redrawAll)
     else
         _window.assign(_width * _height, ' ');
 
+    ASSERT(_window.charLength() == _width * _height);
+
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(false);
 #endif
@@ -770,19 +783,20 @@ void Editor::updateScreen(bool redrawAll)
     }
     else
     {
-        int i = 0, j = 0;
-        int len = min(_window.length(), _screen.length());
+        int i = 0, j = 0, s = 0;
+        int ss = 0, sc = 0;
         bool matching = true;
 
-        for (; j < len; ++j)
+        while (i < _window.length())
         {
-            if (_window.chars()[j] == _screen.chars()[j])
+            if (_window.charAt(i) == _screen.charAt(j))
             {
                 if (!matching)
                 {
-                    Console::write(i / _width + 1, i % _width + 1,
-                                   _window.chars() + i, j - i);
-                    i = j;
+                    Console::write(ss / _width + 1, ss % _width + 1,
+                                   _window.chars() + s, i - s);
+                    s = i;
+                    ss = sc;
                     matching = true;
                 }
             }
@@ -790,15 +804,26 @@ void Editor::updateScreen(bool redrawAll)
             {
                 if (matching)
                 {
-                    i = j;
+                    s = i;
+                    ss = sc;
                     matching = false;
                 }
             }
+
+            i = _window.charForward(i);
+            j = _screen.charForward(j);
+            ++sc;
         }
 
+        ASSERT(i == _window.length());
+        ASSERT(j == _screen.length());
+        ASSERT(sc == _width * _height);
+
         if (!matching)
-            Console::write(i / _width + 1, i % _width + 1,
-                           _window.chars() + i, j - i);
+        {
+            Console::write(ss / _width + 1, ss % _width + 1,
+                           _window.chars() + s, i - s);
+        }
     }
 
     swap(_window, _screen);
