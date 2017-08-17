@@ -470,6 +470,11 @@ void testString()
     ASSERT(utf16CharLength(0x20ac) == 1);
     ASSERT(utf16CharLength(0x10348) == 2);
     ASSERT(utf16StringLength(CHARS16) == 4);
+    
+    ASSERT(charIsAlphaNum(CHAR('й')));
+    ASSERT(charToUpper(CHAR('й')) == CHAR('Й'));
+    ASSERT(strCompareNoCase(STR("йцукенг"), STR("ЙЦУКЕНГ")) == 0);
+    ASSERT(strFindNoCase(STR("йцукенг"), STR("ЦУК")) != NULL);
 
     // String()
 

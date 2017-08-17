@@ -1,6 +1,6 @@
 TARGET=eve
-HEADERS=foundation.h console.h file.h test.h
-SOURCES=foundation.cpp console.cpp file.cpp test.cpp
+HEADERS=foundation.h console.h file.h eve.h
+SOURCES=foundation.cpp console.cpp file.cpp eve.cpp
 
 all: $(TARGET).vcpp.exe
 

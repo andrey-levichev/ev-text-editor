@@ -219,8 +219,8 @@ char_t* strFindNoCase(char_t* str, const char_t* searchStr)
     int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT,
         FIND_FROMSTART | LINGUISTIC_IGNORECASE,
         reinterpret_cast<const wchar_t*>(str), -1,
-        reinterpret_cast<const wchar_t*>(searchStr),
-        -1, NULL, NULL, NULL, 0);
+        reinterpret_cast<const wchar_t*>(searchStr), -1,
+        NULL, NULL, NULL, 0);
 
     return index >= 0 ? str + index : NULL;
 }
@@ -230,8 +230,8 @@ const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
     int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT,
         FIND_FROMSTART | LINGUISTIC_IGNORECASE,
         reinterpret_cast<const wchar_t*>(str), -1,
-        reinterpret_cast<const wchar_t*>(searchStr),
-        -1, NULL, NULL, NULL, 0);
+        reinterpret_cast<const wchar_t*>(searchStr), -1,
+        NULL, NULL, NULL, 0);
 
     return index >= 0 ? str + index : NULL;
 }

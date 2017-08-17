@@ -6,7 +6,7 @@ alt+[ and alt+O don't work
 rework keyboard input to support different terminals
 allow customizable key mappings and reading partial keys
 * unicode support
-research utf-8 support in macos and linux
+research utf-8 support in macos, linux and c runtime library
 * foundation improvements
 prohibit write access to container data via pointer?
 acquire with capacity?
@@ -20,8 +20,6 @@ rename the types to make int 64 bit?
 string constructor that accepts ascii strings
 log memory allocations
 move assignment is called when string is assigned an r-value wiping out string storage
-* misc
-save only modified files
 
 basic features:
 * search/replace
@@ -51,6 +49,7 @@ foundation features:
 * type safe string formatting
 * date and time
 * locales (formatting, string compare/search/case conversion)
+consider supporting both UTF encodings on any platform
 * encoding conversion
 * threads/atomics/async
 * function objects (function/bind)

@@ -708,7 +708,10 @@ void Editor::openDocument(const char_t* filename)
 void Editor::saveDocuments()
 {
     for (auto node = _documents.front(); node; node = node->next)
-        node->value.save();
+    {
+        if (node->value.modified())
+            node->value.save();
+    }
 }
 
 void Editor::run()
