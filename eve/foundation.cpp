@@ -50,20 +50,12 @@ int strCompareLen(const char_t* left, const char_t* right, int len)
 
 int strCompareNoCase(const char_t* left, const char_t* right)
 {
-#ifdef PLATFORM_WINDOWS
-    return _stricmp(left, right);
-#else
     return strcasecmp(left, right);
-#endif
 }
 
 int strCompareLenNoCase(const char_t* left, const char_t* right, int len)
 {
-#ifdef PLATFORM_WINDOWS
-    return _strnicmp(left, right, len);
-#else
     return strncasecmp(left, right, len);
-#endif
 }
 
 char_t* strFind(char_t* str, const char_t* searchStr)
@@ -78,15 +70,13 @@ const char_t* strFind(const char_t* str, const char_t* searchStr)
 
 char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 {
-#if defined(PLATFORM_AIX)
+#ifdef PLATFORM_AIX
     int len = strlen(searchStr);
 	for (; *str; ++str)
         if (!strncasecmp(str, searchStr, len))
             return str;
 
     return NULL;
-#elif defined(PLATFORM_WINDOWS)
-    return StrStrI(str, searchStr);
 #else
     return strcasestr(str, searchStr);
 #endif
@@ -94,15 +84,13 @@ char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 
 const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
 {
-#if defined(PLATFORM_AIX)
+#ifdef PLATFORM_AIX
     int len = strlen(searchStr);
 	for (; *str; ++str)
         if (!strncasecmp(str, searchStr, len))
             return str;
 
     return NULL;
-#elif defined(PLATFORM_WINDOWS)
-    return StrStrI(str, searchStr);
 #else
     return strcasestr(str, searchStr);
 #endif
@@ -148,7 +136,7 @@ void formatString(char_t* str, const char_t* format, ...)
 
 void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
 {
-#if defined(PLATFORM_AIX)
+#ifdef PLATFORM_AIX
     va_list args2;
 	va_copy(args2, args);
 	int len = vsnprintf(0, 0, format, args2);
@@ -158,20 +146,6 @@ void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
     {
         *str = Memory::allocate<char_t>(len + 1);
         vsnprintf(*str, len + 1, format, args);
-    }
-    else
-        *str = 0;
-#elif defined(PLATFORM_WINDOWS)
-    va_list args2;
-
-    va_copy(args2, args);
-    int len = _vscprintf(format, args2);
-    va_end(args2);
-
-    if (len > 0)
-    {
-        *str = Memory::allocate<char_t>(len + 1);
-        _vsnprintf(*str, len + 1, format, args);
     }
     else
         *str = 0;

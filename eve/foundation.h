@@ -135,7 +135,6 @@ typedef unsigned char32_t;
 #ifdef PLATFORM_WINDOWS
 
 #include <windows.h>
-#include <shlwapi.h>
 #include <io.h>
 #include <fcntl.h>
 
@@ -178,7 +177,7 @@ const _Type& max(const _Type& left, const _Type& right)
 typedef char32_t unichar_t;
 typedef unsigned char byte_t;
 
-#if defined(PLATFORM_WINDOWS) && defined(_UNICODE)
+#if defined(PLATFORM_WINDOWS)
 
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
