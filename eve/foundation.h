@@ -174,15 +174,14 @@ const _Type& max(const _Type& left, const _Type& right)
 
 // string support
 
+#define CHAR(arg) U##arg
 typedef char32_t unichar_t;
-typedef unsigned char byte_t;
 
 #if defined(PLATFORM_WINDOWS)
 
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
 #define STR(arg) u##arg
-#define CHAR(arg) U##arg
 #define PUTS _putws
 
 typedef char16_t char_t;
@@ -198,8 +197,6 @@ typedef char16_t char_t;
 #else
 #define STR(arg) u8##arg
 #endif
-
-#define CHAR(arg) U##arg
 
 typedef char char_t;
 
@@ -512,6 +509,7 @@ inline int hash(const _Type1& val1, const _Type2& val2)
 
 // misc
 
+typedef unsigned char byte_t;
 #define INVALID_POSITION -1
 
 // Exception
@@ -2898,7 +2896,7 @@ public:
         swap(*this, tmp);
     }
 
-    void insert(const _Key& key, const _Value& value)
+    void add(const _Key& key, const _Value& value)
     {
         if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
@@ -2918,7 +2916,7 @@ public:
         ++_size;
     }
 
-    void insert(_Key&& key, _Value&& value)
+    void add(_Key&& key, _Value&& value)
     {
         if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
@@ -2975,7 +2973,7 @@ public:
         for (int i = 0; i < _keyValues.size(); ++i)
         {
             for (auto kvNode = _keyValues[i].front(); kvNode; kvNode = kvNode->next)
-                tmp.insert(const_cast<_Key&&>(kvNode->value.key),
+                tmp.add(const_cast<_Key&&>(kvNode->value.key),
                     static_cast<_Value&&>(kvNode->value.value));
         }
 
@@ -3182,7 +3180,7 @@ public:
         swap(*this, tmp);
     }
 
-    void insert(const _Type& value)
+    void add(const _Type& value)
     {
         if (_values.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
@@ -3199,7 +3197,7 @@ public:
         ++_size;
     }
 
-    void insert(_Type&& value)
+    void add(_Type&& value)
     {
         if (_values.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
@@ -3266,7 +3264,7 @@ public:
         for (int i = 0; i < _values.size(); ++i)
         {
             for (auto vNode = _values[i].front(); vNode; vNode = vNode->next)
-                tmp.insert(static_cast<_Type&&>(vNode->value));
+                tmp.add(static_cast<_Type&&>(vNode->value));
         }
 
         swap(*this, tmp);
@@ -3299,6 +3297,53 @@ protected:
     Array<List<_Type>> _values;
     int _size;
     float _maxLoadFactor;
+};
+
+// WordSet
+
+struct WordSetNode
+{
+    unichar_t ch;
+    WordSetNode* child;
+    WordSetNode* sibling;
+
+    WordSetNode(unichar_t ch) :
+        ch(ch), child(NULL), sibling(NULL)
+    {
+    }
+};
+
+class WordSet
+{
+public:
+    WordSet();
+    WordSet(const WordSet& other);
+    WordSet(WordSet&& other);
+    ~WordSet();
+
+    WordSet& operator=(const WordSet& other);
+    WordSet& operator=(WordSet&& other);
+
+    bool empty() const
+    {
+        return _root == NULL;
+    }
+
+    Array<String> get(const String& prefix = String()) const;
+    String getNext(const String& prefix) const;
+    String getPrev(const String& prefix) const;
+    String getLongest(const String& prefix) const;
+
+    void add(const String& word);
+    bool remove(const String& word);
+    void clear();
+
+protected:
+    void visitNode(const WordSetNode* node, Array<String>& words, String& word) const;
+    void clearNode(WordSetNode* node);
+
+protected:
+    WordSetNode* _root;
 };
 
 #endif

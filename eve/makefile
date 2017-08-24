@@ -1,8 +1,8 @@
 TARGET=eve
-HEADERS=foundation.h console.h file.h eve.h
-SOURCES=foundation.cpp console.cpp file.cpp eve.cpp
+HEADERS=foundation.h console.h file.h test.h
+SOURCES=foundation.cpp console.cpp file.cpp test.cpp
 
-all: $(TARGET).vcpp.exe
+all: $(TARGET).gcc
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /std:c++latest /utf-8 /EHsc /RTCsu /MTd /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
@@ -34,5 +34,5 @@ $(TARGET).xlc: $(HEADERS) $(SOURCES)
 	xlC_r -qlanglvl=extended0x -g $(SOURCES) -o $@ -I. -DDEBUG
 
 clean:
-	-del *.exe *.obj *.ilk *.pdb
-	-rm $(TARGET).gcc $(TARGET).clang $(TARGET).sol $(TARGET).xlc *.o
+	-del *.exe *.obj *.ilk *.pdb $(TARGET).gcc $(TARGET).clang $(TARGET).sol $(TARGET).xlc *.o
+	-rm *.exe *.obj *.ilk *.pdb $(TARGET).gcc $(TARGET).clang $(TARGET).sol $(TARGET).xlc *.o

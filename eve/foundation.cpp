@@ -1787,3 +1787,219 @@ bool ConstStringIterator::movePrev()
         return false;
     }
 }
+
+// WordSet
+
+WordSet::WordSet() :
+    _root(NULL)
+{
+}
+
+WordSet::WordSet(const WordSet& other)
+{
+}
+
+WordSet::WordSet(WordSet&& other)
+{
+}
+
+WordSet::~WordSet()
+{
+    clear();
+}
+
+WordSet& WordSet::operator=(const WordSet& other)
+{
+    return *this;
+}
+
+WordSet& WordSet::operator=(WordSet&& other)
+{
+    return *this;
+}
+
+Array<String> WordSet::get(const String& prefix) const
+{
+    Array<String> words;
+
+    if (_root)
+    {
+        WordSetNode* node = _root;
+        WordSetNode* start = _root;
+
+        for (int pos = 0; pos < prefix.length(); pos = prefix.charForward(pos))
+        {
+            unichar_t ch = prefix.charAt(pos);
+
+            if (node)
+            {
+                if (ch == node->ch)
+                {
+                    start = node;
+                    node = node->child;
+                }
+                else
+                {
+                    while (ch > node->ch && node->sibling)
+                    {
+                        start = node;
+                        node = node->sibling;
+                    }
+
+                    if (ch == node->ch)
+                    {
+                        start = node;
+                        node = node->child;
+                    }
+                    else
+                        return words;
+                }
+            }
+            else
+                return words;
+        }
+
+        String word = prefix;
+
+        if (prefix.empty())
+            visitNode(start, words, word);
+        else
+            visitNode(start->child, words, word);
+    }
+
+    return words;
+}
+
+String WordSet::getNext(const String& prefix) const
+{
+    return String();
+}
+
+String WordSet::getPrev(const String& prefix) const
+{
+    return String();
+}
+
+String WordSet::getLongest(const String& prefix) const
+{
+    return String();
+}
+
+void WordSet::add(const String& word)
+{
+    if (word.empty())
+        return;
+
+    WordSetNode* node = _root;
+    WordSetNode* prev = NULL;
+    int pos = 0;
+
+    while (true)
+    {
+        unichar_t ch = word.charAt(pos);
+
+        if (node)
+        {
+            bool first = true;
+
+            while (ch > node->ch && node->sibling)
+            {
+                prev = node;
+                node = node->sibling;
+                first = false;
+            }
+
+            if (ch == node->ch)
+            {
+                prev = node;
+                node = node->child;
+            }
+            else if (ch < node->ch)
+            {
+                WordSetNode* n = Memory::create<WordSetNode>(ch);
+                n->sibling = node;
+
+                if (prev)
+                {
+                    if (first)
+                        prev->child = n;
+                    else
+                        prev->sibling = n;
+                }
+                else
+                    _root = n;
+
+                prev = n;
+                node = NULL;
+            }
+            else
+            {
+                WordSetNode* n = Memory::create<WordSetNode>(ch);
+                node->sibling = n;
+
+                prev = n;
+                node = NULL;
+            }
+        }
+        else
+        {
+            WordSetNode* n = Memory::create<WordSetNode>(ch);
+
+            if (prev)
+                prev->child = n;
+            else
+                _root = n;
+
+            prev = n;
+            node = NULL;
+        }
+
+        if (ch)
+            pos = word.charForward(pos);
+        else
+            break;
+    }
+}
+
+bool WordSet::remove(const String& word)
+{
+    return false;
+}
+
+void WordSet::clear()
+{
+    if (_root)
+    {
+        clearNode(_root);
+        _root = NULL;
+    }
+}
+
+void WordSet::visitNode(const WordSetNode* node, Array<String>& words, String& word) const
+{
+    if (node->ch)
+        word += node->ch;
+
+    if (node->child)
+    {
+        visitNode(node->child, words, word);
+    }
+    else
+        words.pushBack(word);
+
+    if (node->ch)
+        word.erase(word.charBack(word.length(), 1));
+
+    if (node->sibling)
+        visitNode(node->sibling, words, word);
+}
+
+void WordSet::clearNode(WordSetNode* node)
+{
+    if (node)
+    {
+        clearNode(node->child);
+        clearNode(node->sibling);
+        Memory::destroy(node);
+    }
+}

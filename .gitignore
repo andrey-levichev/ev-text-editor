@@ -6,7 +6,7 @@
 *.ilk
 eve.gcc
 eve.clang
-eve.solstudio
+eve.sol
 eve.xlc
 tags
 test.txt

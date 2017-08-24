@@ -470,11 +470,30 @@ void testString()
     ASSERT(utf16CharLength(0x20ac) == 1);
     ASSERT(utf16CharLength(0x10348) == 2);
     ASSERT(utf16StringLength(CHARS16) == 4);
-    
+
+    {
+        unichar_t ch = CHAR('q');
+        ASSERT(ch == 0x71);
+    }
+
+#if !defined(PLATFORM_SOLARIS) && !defined(PLATFORM_AIX)
+    {
+        unichar_t ch = CHAR('й');
+        ASSERT(ch == 0x439);
+    }
+#endif
+
+    ASSERT(charIsAlphaNum(CHAR('q')));
+    ASSERT(charToUpper(CHAR('q')) == CHAR('Q'));
+    ASSERT(strCompareNoCase(STR("qwerty"), STR("QWERTY")) == 0);
+    ASSERT(strFindNoCase(STR("qwerty"), STR("WER")) != NULL);
+
+#if defined(PLATFORM_WINDOWS) && defined(PLATFORM_APPLE)
     ASSERT(charIsAlphaNum(CHAR('й')));
     ASSERT(charToUpper(CHAR('й')) == CHAR('Й'));
     ASSERT(strCompareNoCase(STR("йцукенг"), STR("ЙЦУКЕНГ")) == 0);
     ASSERT(strFindNoCase(STR("йцукенг"), STR("ЦУК")) != NULL);
+#endif
 
     // String()
 
@@ -3964,7 +3983,7 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 10);
+        m1.add(1, 10);
         Map<int, int> m2(m1);
         ASSERT(m1.size() == 1);
         ASSERT(m1.numBuckets() == 1);
@@ -3991,7 +4010,7 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 10);
+        m1.add(1, 10);
 
         Map<int, int> m2(static_cast<Map<int, int>&&>(m1));
 
@@ -4066,7 +4085,7 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
+        m.add(1, 10);
 
         const Map<int, int>& cm = m;
         ASSERT(cm[1] == 10);
@@ -4077,7 +4096,7 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 10);
+        m1.add(1, 10);
         Map<int, int> m2;
         m2 = m1;
         ASSERT(m1.size() == 1);
@@ -4103,7 +4122,7 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 10);
+        m1.add(1, 10);
 
         Map<int, int> m2;
         m2 = static_cast<Map<int, int>&&>(m1);
@@ -4133,7 +4152,7 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
+        m.add(1, 10);
 
         ASSERT(m.size() == 1);
         ASSERT(m.numBuckets() == 1);
@@ -4143,8 +4162,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
-        m.insert(2, 20);
+        m.add(1, 10);
+        m.add(2, 20);
 
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
@@ -4166,7 +4185,7 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
+        m.add(1, 10);
         ASSERT(*m.find(1) == 10);
         ASSERT(!m.find(2));
     }
@@ -4175,7 +4194,7 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
+        m.add(1, 10);
 
         const Map<int, int>& cm = m;
         ASSERT(*cm.find(1) == 10);
@@ -4194,7 +4213,7 @@ void testMap()
 
     {
         Map<int, int> m1;
-        m1.insert(1, 10);
+        m1.add(1, 10);
         Map<int, int> m2;
         m2.assign(m1);
         ASSERT(m1.size() == 1);
@@ -4203,20 +4222,20 @@ void testMap()
         ASSERT(m2[1] == 10);
     }
 
-    // void insert(const _Key& key, const _Value& value)
+    // void add(const _Key& key, const _Value& value)
 
     {
         Map<int, int> m;
         int k = 1, v = 10;
-        m.insert(k, v);
+        m.add(k, v);
         ASSERT(m[k] == v);
     }
 
-    // void insert(_Key&& key, _Value&& value)
+    // void add(_Key&& key, _Value&& value)
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
+        m.add(1, 10);
         ASSERT(m[1] == 10);
     }
 
@@ -4224,7 +4243,7 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
+        m.add(1, 10);
         m.remove(1);
         ASSERT(m.empty());
     }
@@ -4233,8 +4252,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
-        m.insert(2, 20);
+        m.add(1, 10);
+        m.add(2, 20);
         m.clear();
         ASSERT(m.empty());
     }
@@ -4255,8 +4274,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
-        m.insert(2, 20);
+        m.add(1, 10);
+        m.add(2, 20);
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
 
@@ -4267,8 +4286,8 @@ void testMap()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
-        m.insert(2, 20);
+        m.add(1, 10);
+        m.add(2, 20);
         ASSERT(m.size() == 2);
         ASSERT(m.numBuckets() == 3);
 
@@ -4290,9 +4309,9 @@ void testMap()
 
     {
         Map<UniquePtr<int>, UniquePtr<int>> m;
-        m.insert(createUnique<int>(1), createUnique<int>(10));
-        m.insert(createUnique<int>(1), createUnique<int>(20));
-        m.insert(createUnique<int>(2), createUnique<int>(20));
+        m.add(createUnique<int>(1), createUnique<int>(10));
+        m.add(createUnique<int>(1), createUnique<int>(20));
+        m.add(createUnique<int>(2), createUnique<int>(20));
         ASSERT(m.size() == 2);
         ASSERT(m.remove(createUnique<int>(1)));
         ASSERT(!m.remove(createUnique<int>(3)));
@@ -4301,8 +4320,8 @@ void testMap()
 
     {
         Map<UniquePtr<int>, UniquePtr<int>> m;
-        m.insert(createUnique<int>(1), createUnique<int>(10));
-        m.insert(createUnique<int>(2), createUnique<int>(20));
+        m.add(createUnique<int>(1), createUnique<int>(10));
+        m.add(createUnique<int>(2), createUnique<int>(20));
         m.rehash(10);
         m.clear();
     }
@@ -4319,9 +4338,9 @@ void testMapIterator()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
-        m.insert(2, 20);
-        m.insert(3, 30);
+        m.add(1, 10);
+        m.add(2, 20);
+        m.add(3, 30);
 
         auto iter = m.iterator();
         int sum1 = 0, sum2 = 0;
@@ -4344,9 +4363,9 @@ void testMapIterator()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
-        m.insert(2, 20);
-        m.insert(3, 30);
+        m.add(1, 10);
+        m.add(2, 20);
+        m.add(3, 30);
 
         auto iter = m.iterator();
         ASSERT_EXCEPTION(Exception, iter.value());
@@ -4365,9 +4384,9 @@ void testMapIterator()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
-        m.insert(2, 20);
-        m.insert(3, 30);
+        m.add(1, 10);
+        m.add(2, 20);
+        m.add(3, 30);
 
         auto iter = m.constIterator();
         int sum1 = 0, sum2 = 0;
@@ -4390,9 +4409,9 @@ void testMapIterator()
 
     {
         Map<int, int> m;
-        m.insert(1, 10);
-        m.insert(2, 20);
-        m.insert(3, 30);
+        m.add(1, 10);
+        m.add(2, 20);
+        m.add(3, 30);
 
         auto iter = m.constIterator();
         ASSERT_EXCEPTION(Exception, iter.value());
@@ -4437,7 +4456,7 @@ void testSet()
 
     {
         Set<int> s1;
-        s1.insert(1);
+        s1.add(1);
         Set<int> s2(s1);
         ASSERT(s2.size() == 1);
         ASSERT(s2.numBuckets() == 1);
@@ -4464,7 +4483,7 @@ void testSet()
 
     {
         Set<int> s1;
-        s1.insert(1);
+        s1.add(1);
 
         Set<int> s2(static_cast<Set<int>&&>(s1));
 
@@ -4484,7 +4503,7 @@ void testSet()
 
     {
         Set<int> s1;
-        s1.insert(1);
+        s1.add(1);
         Set<int> s2;
         s2 = s1;
         ASSERT(s1.size() == 1);
@@ -4510,7 +4529,7 @@ void testSet()
 
     {
         Set<int> s1;
-        s1.insert(1);
+        s1.add(1);
 
         Set<int> s2;
         s2 = static_cast<Set<int>&&>(s1);
@@ -4540,7 +4559,7 @@ void testSet()
 
     {
         Set<int> s;
-        s.insert(1);
+        s.add(1);
 
         ASSERT(s.size() == 1);
         ASSERT(s.numBuckets() == 1);
@@ -4550,8 +4569,8 @@ void testSet()
 
     {
         Set<int> s;
-        s.insert(1);
-        s.insert(2);
+        s.add(1);
+        s.add(2);
 
         ASSERT(s.size() == 2);
         ASSERT(s.numBuckets() == 3);
@@ -4573,7 +4592,7 @@ void testSet()
 
     {
         Set<int> s;
-        s.insert(1);
+        s.add(1);
 
         const Set<int>& cs = s;
         ASSERT(*cs.find(1) == 1);
@@ -4592,7 +4611,7 @@ void testSet()
 
     {
         Set<int> s1;
-        s1.insert(1);
+        s1.add(1);
         Set<int> s2;
         s2.assign(s1);
         ASSERT(s1.size() == 1);
@@ -4601,20 +4620,20 @@ void testSet()
         ASSERT(s2.find(1));
     }
 
-    // void insert(const _Type& value)
+    // void add(const _Type& value)
 
     {
         Set<int> s;
         int v = 1;
-        s.insert(v);
+        s.add(v);
         ASSERT(s.find(v));
     }
 
-    // void insert(_Type&& value)
+    // void add(_Type&& value)
 
     {
         Set<int> s;
-        s.insert(1);
+        s.add(1);
         ASSERT(s.find(1));
     }
 
@@ -4624,7 +4643,7 @@ void testSet()
 
     {
         Set<int> s;
-        s.insert(1);
+        s.add(1);
         ASSERT(s.remove() == 1);
     }
 
@@ -4632,7 +4651,7 @@ void testSet()
 
     {
         Set<int> s;
-        s.insert(1);
+        s.add(1);
         ASSERT(!s.remove(2));
         ASSERT(s.remove(1));
         ASSERT(s.empty());
@@ -4642,8 +4661,8 @@ void testSet()
 
     {
         Set<int> s;
-        s.insert(1);
-        s.insert(2);
+        s.add(1);
+        s.add(2);
         s.clear();
         ASSERT(s.empty());
     }
@@ -4664,8 +4683,8 @@ void testSet()
 
     {
         Set<int> s;
-        s.insert(1);
-        s.insert(2);
+        s.add(1);
+        s.add(2);
         ASSERT(s.size() == 2);
         ASSERT(s.numBuckets() == 3);
 
@@ -4676,8 +4695,8 @@ void testSet()
 
     {
         Set<int> s;
-        s.insert(1);
-        s.insert(2);
+        s.add(1);
+        s.add(2);
         ASSERT(s.size() == 2);
         ASSERT(s.numBuckets() == 3);
 
@@ -4690,28 +4709,28 @@ void testSet()
 
     {
         Set<UniquePtr<int>> s;
-        s.insert(createUnique<int>(1));
+        s.add(createUnique<int>(1));
         ASSERT(s.find(createUnique<int>(1)));
     }
 
     {
         Set<UniquePtr<int>> s;
-        s.insert(createUnique<int>(1));
+        s.add(createUnique<int>(1));
         UniquePtr<int> p = s.remove();
         ASSERT(*p == 1);
     }
 
     {
         Set<UniquePtr<int>> s;
-        s.insert(createUnique<int>(1));
+        s.add(createUnique<int>(1));
         ASSERT(!s.remove(createUnique<int>(2)));
         ASSERT(s.remove(createUnique<int>(1)));
     }
 
     {
         Set<UniquePtr<int>> s;
-        s.insert(createUnique<int>(1));
-        s.insert(createUnique<int>(2));
+        s.add(createUnique<int>(1));
+        s.add(createUnique<int>(2));
         s.rehash(10);
         s.clear();
     }
@@ -4728,9 +4747,9 @@ void testSetIterator()
 
     {
         Set<int> s;
-        s.insert(1);
-        s.insert(2);
-        s.insert(3);
+        s.add(1);
+        s.add(2);
+        s.add(3);
 
         auto iter = s.constIterator();
         int sum = 0;
@@ -4750,9 +4769,9 @@ void testSetIterator()
 
     {
         Set<int> s;
-        s.insert(1);
-        s.insert(2);
-        s.insert(3);
+        s.add(1);
+        s.add(2);
+        s.add(3);
 
         auto iter = s.constIterator();
         ASSERT_EXCEPTION(Exception, iter.value());
@@ -4760,6 +4779,93 @@ void testSetIterator()
         ASSERT_NO_EXCEPTION(iter.value());
         iter.reset();
         ASSERT_EXCEPTION(Exception, iter.value());
+    }
+}
+
+void testWordSet()
+{
+    {
+        WordSet ws;
+        ASSERT(ws.empty());
+    }
+
+    {
+        WordSet ws;
+        ws.add(STR("a"));
+        ASSERT(!ws.empty());
+        ASSERT(compareSequence(ws.get(), STR("a")));
+    }
+
+    {
+        WordSet ws;
+        ws.add(STR("a"));
+        ws.add(STR("a"));
+        ASSERT(!ws.empty());
+        ASSERT(compareSequence(ws.get(), STR("a")));
+    }
+
+    {
+        WordSet ws;
+        ws.add(STR("a"));
+        ws.add(STR("aa"));
+        ASSERT(!ws.empty());
+        ASSERT(compareSequence(ws.get(), STR("a"), STR("aa")));
+    }
+
+    {
+        WordSet ws;
+        ws.add(STR("a"));
+        ws.add(STR("b"));
+        ASSERT(!ws.empty());
+        ASSERT(compareSequence(ws.get(), STR("a"), STR("b")));
+    }
+
+    {
+        WordSet ws;
+        ws.add(STR("b"));
+        ws.add(STR("a"));
+        ASSERT(!ws.empty());
+        ASSERT(compareSequence(ws.get(), STR("a"), STR("b")));
+    }
+
+    {
+        WordSet ws;
+        ws.add(STR("a"));
+        ws.add(STR("c"));
+        ws.add(STR("b"));
+        ASSERT(!ws.empty());
+        ASSERT(compareSequence(ws.get(), STR("a"), STR("b"), STR("c")));
+    }
+
+    {
+        WordSet ws;
+        ws.add(STR("a"));
+        ws.add(STR("b"));
+        ws.add(STR("c"));
+        ws.add(STR("bb"));
+        ASSERT(!ws.empty());
+        ASSERT(compareSequence(ws.get(), STR("a"), STR("b"), STR("bb"), STR("c")));
+    }
+
+    {
+        WordSet ws;
+        ws.add(STR("bad"));
+        ws.add(STR("bandit"));
+        ws.add(STR("badly"));
+        ws.add(STR("banned"));
+        ws.add(STR("house"));
+        ws.add(STR("bank"));
+        ws.add(STR("home"));
+
+        ASSERT(compareSequence(ws.get(), STR("bad"), STR("badly"),
+            STR("bandit"), STR("bank"), STR("banned"), STR("home"), STR("house")));
+
+        ASSERT(compareSequence(ws.get(STR("b")), STR("bad"), STR("badly"),
+            STR("bandit"), STR("bank"), STR("banned")));
+
+        ASSERT(compareSequence(ws.get(STR("bad")), STR("bad"), STR("badly")));
+        ASSERT(compareSequence(ws.get(STR("ban")), STR("bandit"), STR("bank"), STR("banned")));
+        ASSERT(compareSequence(ws.get(STR("h")), STR("home"), STR("house")));
     }
 }
 
@@ -4777,6 +4883,7 @@ void testFoundation()
     testMapIterator();
     testSet();
     testSetIterator();
+    testWordSet();
 }
 
 void testFile()
@@ -5286,7 +5393,7 @@ int MAIN(int argc, const char_t** argv)
         printPlatformInfo();
 
         testFoundation();
-        testFile();
+//        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();

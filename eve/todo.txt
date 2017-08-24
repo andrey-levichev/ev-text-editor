@@ -1,12 +1,18 @@
 bugs & misc:
-* research about runtime checking by compiler and library
+* editing features to use eve for development
+new/open/save commands
+file switching command
+interactive replace
+find/replace in all files
+word completion
+unindent with backspace
+block indent, comment
+undo last change
 * handle SIGWINCH to detect terminal size changes
 * some keys don't work in Linux, macOS, xterm
 alt+[ and alt+O don't work
 rework keyboard input to support different terminals
-allow customizable key mappings and reading partial keys
-* unicode support
-research utf-8 support in macos, linux and c runtime library
+allow reading partial keys
 * foundation improvements
 prohibit write access to container data via pointer?
 acquire with capacity?
@@ -19,7 +25,9 @@ replace smart pointers with smart references
 rename the types to make int 64 bit?
 string constructor that accepts ascii strings
 log memory allocations
-move assignment is called when string is assigned an r-value wiping out string storage
+move assignment is called when string is assigned an r-value freeing string storage
+unicode char literals don't work on solaris/aix
+* get rid of Test output, print test names
 
 basic features:
 * search/replace
@@ -48,9 +56,11 @@ foundation features:
 * convert any object to string
 * type safe string formatting
 * date and time
-* locales (formatting, string compare/search/case conversion)
+* improved Unicode support
+locales (formatting, string compare/search/case conversion)
 consider supporting both UTF encodings on any platform
-* encoding conversion
+encoding conversion
+handle invalid Unicode sequences
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
@@ -64,4 +74,3 @@ split/join, tokenizer
 conversion to binary/hex
 simple parsing a la scanf
 simple regular expressions
-handle invalid unicode sequences
