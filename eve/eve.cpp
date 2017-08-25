@@ -482,6 +482,8 @@ void Document::replace(const String& searchStr, const String& replaceStr)
 {
     _text.replaceString(searchStr, replaceStr);
     lineColumnToPosition();
+    _modified = true;
+    _selection = -1;
 }
 
 void Document::open(const String& filename)

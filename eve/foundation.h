@@ -3304,11 +3304,12 @@ protected:
 struct WordSetNode
 {
     unichar_t ch;
+    WordSetNode* parent;
     WordSetNode* child;
     WordSetNode* sibling;
 
     WordSetNode(unichar_t ch) :
-        ch(ch), child(NULL), sibling(NULL)
+        ch(ch), parent(NULL), child(NULL), sibling(NULL)
     {
     }
 };
@@ -3339,8 +3340,7 @@ public:
     void clear();
 
 protected:
-    void visitNode(const WordSetNode* node, Array<String>& words, String& word) const;
-    void clearNode(WordSetNode* node);
+    WordSetNode* findStartNode(const String& prefix) const;
 
 protected:
     WordSetNode* _root;

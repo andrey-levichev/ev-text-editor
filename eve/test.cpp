@@ -38,6 +38,9 @@ bool equalsTo(const UniquePtr<int>& left, const UniquePtr<int>& right)
 template<typename _Char>
 int compareUniString(const _Char* str1, const _Char* str2)
 {
+    ASSERT(str1);
+    ASSERT(str2);
+
     for (; *str1 == *str2; str1++, str2++)
         if (!*str1)
             return 0;
@@ -47,19 +50,30 @@ int compareUniString(const _Char* str1, const _Char* str2)
 }
 
 template<typename _SeqType, typename _ElemType>
-bool compareSequence(const _SeqType& seq, const _ElemType* values)
+bool compareArray(const _SeqType& seq, int size, const _ElemType* values)
 {
+    ASSERT(size >= 0);
+    ASSERT(values);
+
     auto iter = seq.constIterator();
-    while (!iter.moveNext())
+    bool hasNext = iter.moveNext();
+
+    while (hasNext && size > 0)
+    {
         if (iter.value() != *values++)
             return false;
-    return true;
+
+        hasNext = iter.moveNext();
+        --size;
+    }
+
+    return !hasNext && size == 0;
 }
 
 template<typename _IterType>
 bool compareSequenceIter(_IterType& iter)
 {
-    return true;
+    return !iter.moveNext();
 }
 
 template<typename _IterType, typename _Arg, typename... _Args>
@@ -73,7 +87,7 @@ bool compareSequenceIter(_IterType& iter, _Arg&& arg, _Args&&... args)
             return false;
     }
     else
-        return true;
+        return false;
 }
 
 template<typename _SeqType, typename... _Args>
@@ -83,12 +97,79 @@ bool compareSequence(const _SeqType& seq, _Args&&... args)
     return compareSequenceIter(iter, static_cast<_Args&&>(args)...);
 }
 
+void testSupport()
+{
+    // compareUniString
+
+    ASSERT(compareUniString("abc", "abc") == 0);
+    ASSERT(compareUniString("abc", "abC") > 0);
+    ASSERT(compareUniString("abC", "abc") < 0);
+    ASSERT(compareUniString("ab", "abc") < 0);
+    ASSERT(compareUniString("abc", "ab") > 0);
+
+    // compareArray
+
+    {
+        int vals[] = { 1 };
+        Array<int> a;
+        ASSERT(compareArray(a, 0, vals));
+        ASSERT(!compareArray(a, 1, vals));
+    }
+
+    {
+        int vals[] = { 1, 2 };
+        Array<int> a(1, vals);
+        ASSERT(!compareArray(a, 0, vals));
+        ASSERT(compareArray(a, 1, vals));
+        ASSERT(!compareArray(a, 2, vals));
+    }
+
+    {
+        int vals[] = { 1, 2, 3 };
+        Array<int> a(2, vals);
+        ASSERT(!compareArray(a, 1, vals));
+        ASSERT(compareArray(a, 2, vals));
+        ASSERT(!compareArray(a, 3, vals));
+
+        vals[1] = 0;
+        ASSERT(!compareArray(a, 2, vals));
+    }
+
+    // compareSequence
+
+    {
+        Array<int> a;
+        ASSERT(compareSequence(a));
+        ASSERT(!compareSequence(a, 1));
+    }
+
+    {
+        Array<int> a;
+        a.pushBack(1);
+
+        ASSERT(!compareSequence(a));
+        ASSERT(compareSequence(a, 1));
+        ASSERT(!compareSequence(a, 1, 2));
+    }
+
+    {
+        Array<int> a;
+        a.pushBack(1);
+        a.pushBack(2);
+
+        ASSERT(!compareSequence(a, 1));
+        ASSERT(compareSequence(a, 1, 2));
+        ASSERT(!compareSequence(a, 1, 0));
+        ASSERT(!compareSequence(a, 1, 2, 3));
+    }
+}
+
 void testUniquePtr()
 {
     // UniquePtr()
 
     {
-        UniquePtr<Test> p;
+        UniquePtr<Cat> p;
         ASSERT_EXCEPTION(NullPointerException, *p);
         ASSERT_EXCEPTION(NullPointerException, p->val());
         ASSERT(!p);
@@ -98,11 +179,11 @@ void testUniquePtr()
     // UniquePtr(UniquePtr<_Type>&& other)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>();
-        Test* p = p1.ptr();
+        UniquePtr<Cat> p1 = createUnique<Cat>();
+        Cat* p = p1.ptr();
         ASSERT(p1);
 
-        UniquePtr<Test> p2 = static_cast<UniquePtr<Test>&&>(p1);
+        UniquePtr<Cat> p2 = static_cast<UniquePtr<Cat>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
     }
@@ -110,12 +191,12 @@ void testUniquePtr()
     // UniquePtr& operator=(UniquePtr<_Type>&& other)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>();
-        Test* p = p1.ptr();
+        UniquePtr<Cat> p1 = createUnique<Cat>();
+        Cat* p = p1.ptr();
         ASSERT(p1);
 
-        UniquePtr<Test> p2;
-        p2 = static_cast<UniquePtr<Test>&&>(p1);
+        UniquePtr<Cat> p2;
+        p2 = static_cast<UniquePtr<Cat>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
     }
@@ -133,7 +214,7 @@ void testUniquePtr()
     // void create(_Args&&... args)
 
     {
-        UniquePtr<Test> p;
+        UniquePtr<Cat> p;
         ASSERT(!p);
         ASSERT(p.empty());
 
@@ -155,14 +236,14 @@ void testUniquePtr()
     // void reset()
 
     {
-        UniquePtr<Test> p;
+        UniquePtr<Cat> p;
         ASSERT(!p);
         p.reset();
         ASSERT(!p);
     }
 
     {
-        UniquePtr<Test> p;
+        UniquePtr<Cat> p;
         ASSERT(!p);
         p.create();
         ASSERT(p);
@@ -173,23 +254,23 @@ void testUniquePtr()
     // bool operator==(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>();
-        UniquePtr<Test> p2 = createUnique<Test>();
+        UniquePtr<Cat> p1 = createUnique<Cat>();
+        UniquePtr<Cat> p2 = createUnique<Cat>();
         ASSERT(!(p1 == p2));
     }
 
     // bool operator!=(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>();
-        UniquePtr<Test> p2 = createUnique<Test>();
+        UniquePtr<Cat> p1 = createUnique<Cat>();
+        UniquePtr<Cat> p2 = createUnique<Cat>();
         ASSERT(p1 != p2);
     }
 
     // UniquePtr<_T> createUnique(_Args&&... args)
 
     {
-        UniquePtr<Test> p = createUnique<Test>(1);
+        UniquePtr<Cat> p = createUnique<Cat>(1);
         ASSERT(p);
         ASSERT(p.ptr());
         ASSERT((*p).val() == 1);
@@ -202,7 +283,7 @@ void testSharedPtr()
     // SharedPtr()
 
     {
-        SharedPtr<Test> p;
+        SharedPtr<Cat> p;
         ASSERT_EXCEPTION(NullPointerException, *p);
         ASSERT_EXCEPTION(NullPointerException, p->val());
         ASSERT(!p);
@@ -213,12 +294,12 @@ void testSharedPtr()
     // SharedPtr(const SharedPtr<_Type>& other)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
-        Test* p = p1.ptr();
+        SharedPtr<Cat> p1 = createShared<Cat>();
+        Cat* p = p1.ptr();
         ASSERT(p1);
 
         {
-            SharedPtr<Test> p2 = p1;
+            SharedPtr<Cat> p2 = p1;
             ASSERT(p1 && p1.ptr() == p);
             ASSERT(p2 && p2.ptr() == p);
             ASSERT(p1.refCount() == 2 && p2.refCount() == 2);
@@ -231,11 +312,11 @@ void testSharedPtr()
     // SharedPtr(SharedPtr<_Type>&& other)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
-        Test* p = p1.ptr();
+        SharedPtr<Cat> p1 = createShared<Cat>();
+        Cat* p = p1.ptr();
         ASSERT(p1);
 
-        SharedPtr<Test> p2 = static_cast<SharedPtr<Test>&&>(p1);
+        SharedPtr<Cat> p2 = static_cast<SharedPtr<Cat>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
@@ -244,12 +325,12 @@ void testSharedPtr()
     // SharedPtr<_Type>& operator=(const SharedPtr<_Type>& other)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
-        Test* p = p1.ptr();
+        SharedPtr<Cat> p1 = createShared<Cat>();
+        Cat* p = p1.ptr();
         ASSERT(p1);
 
         {
-            SharedPtr<Test> p2;
+            SharedPtr<Cat> p2;
             p2 = p1;
             ASSERT(p1 && p1.ptr() == p);
             ASSERT(p2 && p2.ptr() == p);
@@ -263,12 +344,12 @@ void testSharedPtr()
     // SharedPtr<_Type>& operator=(SharedPtr<_Type>&& other)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
-        Test* p = p1.ptr();
+        SharedPtr<Cat> p1 = createShared<Cat>();
+        Cat* p = p1.ptr();
         ASSERT(p1);
 
-        SharedPtr<Test> p2;
-        p2 = static_cast<SharedPtr<Test>&&>(p1);
+        SharedPtr<Cat> p2;
+        p2 = static_cast<SharedPtr<Cat>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
@@ -289,7 +370,7 @@ void testSharedPtr()
     // void create(_Args&&... args)
 
     {
-        SharedPtr<Test> p;
+        SharedPtr<Cat> p;
         ASSERT(!p);
         ASSERT(p.empty());
 
@@ -311,14 +392,14 @@ void testSharedPtr()
     // void reset()
 
     {
-        SharedPtr<Test> p;
+        SharedPtr<Cat> p;
         ASSERT(!p);
         p.reset();
         ASSERT(!p);
     }
 
     {
-        SharedPtr<Test> p;
+        SharedPtr<Cat> p;
         ASSERT(!p);
         p.create();
         ASSERT(p);
@@ -329,23 +410,23 @@ void testSharedPtr()
     // bool operator==(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
-        SharedPtr<Test> p2 = p1;
+        SharedPtr<Cat> p1 = createShared<Cat>();
+        SharedPtr<Cat> p2 = p1;
         ASSERT(p1 == p2);
     }
 
     // bool operator!=(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
-        SharedPtr<Test> p2 = createShared<Test>();
+        SharedPtr<Cat> p1 = createShared<Cat>();
+        SharedPtr<Cat> p2 = createShared<Cat>();
         ASSERT(p1 != p2);
     }
 
     // SharedPtr<_T> createShared(_Args&&... args)
 
     {
-        SharedPtr<Test> p = createShared<Test>(1);
+        SharedPtr<Cat> p = createShared<Cat>(1);
         ASSERT(p);
         ASSERT(p.ptr());
         ASSERT((*p).val() == 1);
@@ -2490,7 +2571,7 @@ void testArray()
         ASSERT(a.size() == 3);
         ASSERT(a.capacity() == 3);
         ASSERT(a.values() != ep);
-        ASSERT(compareSequence(a, ep));
+        ASSERT(compareArray(a, 3, ep));
     }
 
     // Array(const Array<_Type>& other)
@@ -2507,7 +2588,7 @@ void testArray()
         ASSERT(a2.size() == 3);
         ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
-        ASSERT(compareSequence(a2, ep));
+        ASSERT(compareArray(a2, 3, ep));
         ASSERT(a1.values() != a2.values());
     }
 
@@ -2523,7 +2604,7 @@ void testArray()
         ASSERT(a2.size() == 3);
         ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
-        ASSERT(compareSequence(a2, ep));
+        ASSERT(compareArray(a2, 3, ep));
     }
 
     // Array<_Type>& operator=(const Array<_Type>& other)
@@ -2534,7 +2615,7 @@ void testArray()
         ASSERT(a2.size() == 3);
         ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
-        ASSERT(compareSequence(a2, ep));
+        ASSERT(compareArray(a2, 3, ep));
         ASSERT(a1.values() != a2.values());
     }
 
@@ -2551,7 +2632,7 @@ void testArray()
         ASSERT(a2.size() == 3);
         ASSERT(a2.capacity() == 3);
         ASSERT(a2.values());
-        ASSERT(compareSequence(a2, ep));
+        ASSERT(compareArray(a2, 3, ep));
     }
 
     // _Type& operator[](int index)
@@ -2675,7 +2756,7 @@ void testArray()
         ASSERT(a.capacity() == 3);
         a.ensureCapacity(2);
         ASSERT(a.capacity() == 3);
-        ASSERT(compareSequence(a, ep));
+        ASSERT(compareArray(a, 3, ep));
     }
 
     {
@@ -2683,7 +2764,7 @@ void testArray()
         ASSERT(a.capacity() == 3);
         a.ensureCapacity(5);
         ASSERT(a.capacity() == 5);
-        ASSERT(compareSequence(a, ep));
+        ASSERT(compareArray(a, 3, ep));
     }
 
     {
@@ -2691,7 +2772,7 @@ void testArray()
         ASSERT(a.capacity() == 3);
         a.ensureCapacity(0);
         ASSERT(a.capacity() == 3);
-        ASSERT(compareSequence(a, ep));
+        ASSERT(compareArray(a, 3, ep));
     }
 
     // void shrinkToLength()
@@ -2701,7 +2782,7 @@ void testArray()
         ASSERT(a.capacity() == 3);
         a.shrinkToLength();
         ASSERT(a.capacity() == 3);
-        ASSERT(compareSequence(a, ep));
+        ASSERT(compareArray(a, 3, ep));
     }
 
     {
@@ -2710,7 +2791,7 @@ void testArray()
         ASSERT(a.capacity() == 10);
         a.shrinkToLength();
         ASSERT(a.capacity() == 3);
-        ASSERT(compareSequence(a, ep));
+        ASSERT(compareArray(a, 3, ep));
     }
 
     // void resize(int size)
@@ -2848,7 +2929,7 @@ void testArray()
         a.assign(3, ep);
         ASSERT(a.size() == 3);
         ASSERT(a.capacity() == 3);
-        ASSERT(compareSequence(a, ep));
+        ASSERT(compareArray(a, 3, ep));
     }
 
     {
@@ -2886,7 +2967,7 @@ void testArray()
         a2.assign(a1);
         ASSERT(a2.size() == 3);
         ASSERT(a2.capacity() == 3);
-        ASSERT(compareSequence(a2, ep));
+        ASSERT(compareArray(a2, 3, ep));
     }
 
     {
@@ -3094,7 +3175,7 @@ void testArray()
         int* e = Memory::createArrayCopy(3, 3, ep);
         Array<int> a = Array<int>::acquire(3, e);
         ASSERT(a.values() == e);
-        ASSERT(compareSequence(a, ep));
+        ASSERT(compareArray(a, 3, ep));
         ASSERT(a.size() == 3);
         ASSERT(a.capacity() == 3);
     }
@@ -3376,7 +3457,7 @@ void testList()
         ASSERT(l.back());
         ASSERT(l.size() == 3);
         ASSERT(!l.empty());
-        ASSERT(compareSequence(l, ep));
+        ASSERT(compareArray(l, 3, ep));
     }
 
     // List(const List<_Type>& other)
@@ -3395,7 +3476,7 @@ void testList()
         ASSERT(l2.back());
         ASSERT(l2.size() == 3);
         ASSERT(!l2.empty());
-        ASSERT(compareSequence(l2, ep));
+        ASSERT(compareArray(l2, 3, ep));
     }
 
     // List(List<_Type>&& other)
@@ -3420,7 +3501,7 @@ void testList()
         ASSERT(l2.back());
         ASSERT(l2.size() == 3);
         ASSERT(!l2.empty());
-        ASSERT(compareSequence(l2, ep));
+        ASSERT(compareArray(l2, 3, ep));
     }
 
     //  List<_Type>& operator=(const List<_Type>& other)
@@ -3432,7 +3513,7 @@ void testList()
         ASSERT(l2.back());
         ASSERT(l2.size() == 3);
         ASSERT(!l2.empty());
-        ASSERT(compareSequence(l2, ep));
+        ASSERT(compareArray(l2, 3, ep));
     }
 
     // List<_Type>& operator=(List<_Type>&& other)
@@ -3459,7 +3540,7 @@ void testList()
         ASSERT(l2.back());
         ASSERT(l2.size() == 3);
         ASSERT(!l2.empty());
-        ASSERT(compareSequence(l2, ep));
+        ASSERT(compareArray(l2, 3, ep));
     }
 
     // int size() const
@@ -3571,7 +3652,7 @@ void testList()
         List<int> l;
         l.assign(3, ep);
         ASSERT(!l.empty());
-        ASSERT(compareSequence(l, ep));
+        ASSERT(compareArray(l, 3, ep));
     }
 
     // void assign(const List<_Type>& other)
@@ -3586,7 +3667,7 @@ void testList()
         List<int> l1(3, ep), l2;
         l2.assign(l1);
         ASSERT(!l2.empty());
-        ASSERT(compareSequence(l2, ep));
+        ASSERT(compareArray(l2, 3, ep));
     }
 
     // void popFront()
@@ -5392,6 +5473,7 @@ int MAIN(int argc, const char_t** argv)
         Console::setLineMode(true);
         printPlatformInfo();
 
+        testSupport();
         testFoundation();
 //        testFile();
 //        testConsole();

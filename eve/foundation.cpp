@@ -1821,50 +1821,35 @@ WordSet& WordSet::operator=(WordSet&& other)
 Array<String> WordSet::get(const String& prefix) const
 {
     Array<String> words;
+    WordSetNode* start = findStartNode(prefix);
 
-    if (_root)
+    if (start)
     {
-        WordSetNode* node = _root;
-        WordSetNode* start = _root;
+        String word = prefix;
+        WordSetNode* node = start;
+        bool sibling = false;
 
-        for (int pos = 0; pos < prefix.length(); pos = prefix.charForward(pos))
+        do
         {
-            unichar_t ch = prefix.charAt(pos);
-
-            if (node)
+            if (sibling)
             {
-                if (ch == node->ch)
-                {
-                    start = node;
-                    node = node->child;
-                }
-                else
-                {
-                    while (ch > node->ch && node->sibling)
-                    {
-                        start = node;
-                        node = node->sibling;
-                    }
-
-                    if (ch == node->ch)
-                    {
-                        start = node;
-                        node = node->child;
-                    }
-                    else
-                        return words;
-                }
+                sibling = node == node->parent->sibling;
+                node = node->parent;
             }
             else
-                return words;
+            {
+                if (node->child)
+                    node = node->child;
+                else if (node->sibling)
+                    node = node->sibling;
+                else
+                {
+                    sibling = node == node->parent->sibling;
+                    node = node->parent;
+                }
+            }
         }
-
-        String word = prefix;
-
-        if (prefix.empty())
-            visitNode(start, words, word);
-        else
-            visitNode(start->child, words, word);
+        while (node != start);
     }
 
     return words;
@@ -1891,7 +1876,7 @@ void WordSet::add(const String& word)
         return;
 
     WordSetNode* node = _root;
-    WordSetNode* prev = NULL;
+    WordSetNode* parent = NULL;
     int pos = 0;
 
     while (true)
@@ -1904,53 +1889,57 @@ void WordSet::add(const String& word)
 
             while (ch > node->ch && node->sibling)
             {
-                prev = node;
+                parent = node;
                 node = node->sibling;
                 first = false;
             }
 
             if (ch == node->ch)
             {
-                prev = node;
+                parent = node;
                 node = node->child;
             }
             else if (ch < node->ch)
             {
                 WordSetNode* n = Memory::create<WordSetNode>(ch);
+                n->parent = parent;
                 n->sibling = node;
+                node->parent = n;
 
-                if (prev)
+                if (parent)
                 {
                     if (first)
-                        prev->child = n;
+                        parent->child = n;
                     else
-                        prev->sibling = n;
+                        parent->sibling = n;
                 }
                 else
                     _root = n;
 
-                prev = n;
+                parent = n;
                 node = NULL;
             }
             else
             {
                 WordSetNode* n = Memory::create<WordSetNode>(ch);
+                n->parent = node;
                 node->sibling = n;
 
-                prev = n;
+                parent = n;
                 node = NULL;
             }
         }
         else
         {
             WordSetNode* n = Memory::create<WordSetNode>(ch);
+            n->parent = parent;
 
-            if (prev)
-                prev->child = n;
+            if (parent)
+                parent->child = n;
             else
                 _root = n;
 
-            prev = n;
+            parent = n;
             node = NULL;
         }
 
@@ -1970,36 +1959,73 @@ void WordSet::clear()
 {
     if (_root)
     {
-        clearNode(_root);
+        WordSetNode* node = _root;
+
+        while (true)
+        {
+            if (node->child)
+                node = node->child;
+            else if (node->sibling)
+                node = node->sibling;
+            else
+            {
+                WordSetNode* n = node;
+                node = node->parent;
+                Memory::destroy(n);
+
+                if (!node)
+                    break;
+
+                if (node->child == n)
+                    node->child = NULL;
+                else if (node->sibling == n)
+                    node->sibling = NULL;
+            }
+        }
+
         _root = NULL;
     }
 }
 
-void WordSet::visitNode(const WordSetNode* node, Array<String>& words, String& word) const
+WordSetNode* WordSet::findStartNode(const String& prefix) const
 {
-    if (node->ch)
-        word += node->ch;
+    if (!_root)
+        return NULL;
 
-    if (node->child)
+    WordSetNode* node = _root;
+    WordSetNode* start = _root;
+
+    for (int pos = 0; pos < prefix.length(); pos = prefix.charForward(pos))
     {
-        visitNode(node->child, words, word);
+        unichar_t ch = prefix.charAt(pos);
+
+        if (node)
+        {
+            if (ch == node->ch)
+            {
+                start = node;
+                node = node->child;
+            }
+            else
+            {
+                while (ch > node->ch && node->sibling)
+                {
+                    start = node;
+                    node = node->sibling;
+                }
+
+                if (ch == node->ch)
+                {
+                    start = node;
+                    node = node->child;
+                }
+                else
+                    return NULL;
+            }
+        }
+        else
+            return NULL;
     }
-    else
-        words.pushBack(word);
 
-    if (node->ch)
-        word.erase(word.charBack(word.length(), 1));
-
-    if (node->sibling)
-        visitNode(node->sibling, words, word);
-}
-
-void WordSet::clearNode(WordSetNode* node)
-{
-    if (node)
-    {
-        clearNode(node->child);
-        clearNode(node->sibling);
-        Memory::destroy(node);
-    }
+    return prefix.empty() ? start : start->child;
 }
