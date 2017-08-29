@@ -1827,26 +1827,45 @@ Array<String> WordSet::get(const String& prefix) const
     {
         String word = prefix;
         WordSetNode* node = start;
-        bool sibling = false;
+        WordSetNode* prev = NULL;
 
         do
         {
-            if (sibling)
+            if (!prev || prev == node->parent)
             {
-                sibling = node == node->parent->sibling;
-                node = node->parent;
+                if (node->child)
+                {
+                    prev = node;
+                    node = node->child;
+                }
+                else if (node->sibling)
+                {
+                    prev = node;
+                    node = node->sibling;
+                }
+                else
+                {
+                    prev = node;
+                    node = node->parent;
+                }
+            }
+            else if (prev == node->child)
+            {
+                if (node->sibling)
+                {
+                    prev = node;
+                    node = node->sibling;
+                }
+                else
+                {
+                    prev = node;
+                    node = node->parent;
+                }
             }
             else
             {
-                if (node->child)
-                    node = node->child;
-                else if (node->sibling)
-                    node = node->sibling;
-                else
-                {
-                    sibling = node == node->parent->sibling;
-                    node = node->parent;
-                }
+                node = node->parent;
+                prev = node->parent;
             }
         }
         while (node != start);

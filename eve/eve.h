@@ -118,6 +118,7 @@ protected:
     void trimTrailingWhitespace();
 
     static bool charIsIdent(unichar_t ch);
+    static bool isWordBoundary(unichar_t ch1, unichar_t ch2);
 
 protected:
     String _text;

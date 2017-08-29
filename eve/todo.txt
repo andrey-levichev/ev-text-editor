@@ -5,9 +5,11 @@ file switching command
 interactive replace
 find/replace in all files
 word completion
-unindent with backspace
 block indent, comment
 undo last change
+indent should consider previous non-empty line
+recall prev command
+line mode selection?
 * handle SIGWINCH to detect terminal size changes
 * some keys don't work in Linux, macOS, xterm
 alt+[ and alt+O don't work
@@ -27,7 +29,6 @@ string constructor that accepts ascii strings
 log memory allocations
 move assignment is called when string is assigned an r-value freeing string storage
 unicode char literals don't work on solaris/aix
-* get rid of Test output, print test names
 
 basic features:
 * search/replace

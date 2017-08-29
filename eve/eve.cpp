@@ -85,7 +85,7 @@ bool Document::moveWordForward()
         while (_position < _text.length())
         {
             unichar_t ch = _text.charAt(_position);
-            if (charIsSpace(prevChar) && !charIsSpace(ch))
+            if (isWordBoundary(prevChar, ch))
                 break;
 
             prevChar = ch;
@@ -120,7 +120,7 @@ bool Document::moveWordBack()
                 _position = _text.charBack(_position);
 
                 unichar_t ch = _text.charAt(_position);
-                if (charIsSpace(ch) && !charIsSpace(prevChar))
+                if (isWordBoundary(ch, prevChar))
                 {
                     _position = prevPos;
                     break;
@@ -172,7 +172,17 @@ bool Document::moveToLineStart()
 
     if (p < _position)
     {
-        _position = p;
+        unichar_t ch;
+        int q = p;
+
+        ch = _text.charAt(q);
+        while (ch == ' ' || ch == '\t')
+        {
+            q = _text.charForward(q);
+            ch = _text.charAt(q);
+        }
+
+        _position = _position > q ? q : p;
         positionToLineColumn();
         return true;
     }
@@ -250,8 +260,16 @@ void Document::insertChar(unichar_t ch)
             ch = _text.charAt(p);
         }
 
-        _text.insert(_position, _indent);
-        _position += _indent.length();
+        if (p <= _position)
+        {
+            _text.insert(_position, _indent);
+            _position += _indent.length();
+        }
+        else
+        {
+            _text.insert(_position, '\n');
+            _position = _text.charForward(_position);
+        }
     }
     else if (ch == '\t') // tab
     {
@@ -294,8 +312,49 @@ bool Document::deleteCharBack()
 {
     if (_position > 0)
     {
-        int prev = _position;
-        _position = _text.charBack(_position);
+        int p = _position;
+        unichar_t ch;
+        bool unindent = true;
+
+        do
+        {
+            int q = _text.charBack(p);
+            ch = _text.charAt(q);
+
+            if (ch == '\n')
+                break;
+            else if (ch != ' ')
+            {
+                unindent = false;
+                break;
+            }
+
+            p = q;
+        }
+        while (p > 0);
+
+        int prev;
+
+        if (unindent && p < _position)
+        {
+            int q = _position;
+
+            ch = _text.charAt(q);
+            while (ch == ' ')
+            {
+                q = _text.charForward(q);
+                ch = _text.charAt(q);
+            }
+
+            prev = q;
+            _position = _text.charForward(p, (q - p - 1) / TAB_SIZE * TAB_SIZE);
+        }
+        else
+        {
+            prev = _position;
+            _position = _text.charBack(_position);
+        }
+
         _text.erase(_position, prev - _position);
 
         positionToLineColumn();
@@ -667,6 +726,13 @@ void Document::trimTrailingWhitespace()
 bool Document::charIsIdent(unichar_t ch)
 {
     return charIsAlphaNum(ch) || ch == '_';
+}
+
+bool Document::isWordBoundary(unichar_t ch1, unichar_t ch2)
+{
+    return (!charIsIdent(ch1) && charIsIdent(ch2)) ||
+        ((charIsIdent(ch1) || charIsSpace(ch1)) && !(charIsIdent(ch2) || charIsSpace(ch2))) ||
+        (ch1 != '\n' && ch2 == '\n');
 }
 
 // Editor
@@ -1132,39 +1198,39 @@ void Editor::processCommand()
         return;
     else
     {
-        int pos = 0;
-        unichar_t ch = _command.charAt(pos);
+        int p = 0;
+        unichar_t ch = _command.charAt(p);
 
         if (ch == 'f')
         {
-            pos = _command.charForward(pos);
-            if (_command.charAt(pos) == ' ')
+            p = _command.charForward(p);
+            if (_command.charAt(p) == ' ')
             {
-                pos = _command.charForward(pos);
-                _searchStr = _command.substr(pos);
+                p = _command.charForward(p);
+                _searchStr = _command.substr(p);
                 _document->value.findNext(_searchStr);
                 return;
             }
         }
         else if (ch == 'r')
         {
-            pos = _command.charForward(pos);
-            if (_command.charAt(pos) == ' ')
+            p = _command.charForward(p);
+            if (_command.charAt(p) == ' ')
             {
-                pos = _command.charForward(pos);
+                p = _command.charForward(p);
 
-                if (pos < _command.length())
+                if (p < _command.length())
                 {
-                    int sep = _command.find(' ', pos);
-                    if (sep == INVALID_POSITION)
+                    int q = _command.find(' ', p);
+                    if (q == INVALID_POSITION)
                     {
-                        _searchStr = _command.substr(pos);
+                        _searchStr = _command.substr(p);
                         _replaceStr.clear();
                     }
                     else
                     {
-                        _searchStr = _command.substr(pos, sep - pos);
-                        _replaceStr = _command.substr(sep + 1);
+                        _searchStr = _command.substr(p, q - p);
+                        _replaceStr = _command.substr(q + 1);
                     }
 
                     _document->value.replace(_searchStr, _replaceStr);
@@ -1174,11 +1240,11 @@ void Editor::processCommand()
         }
         else if (ch == 'g')
         {
-            pos = _command.charForward(pos);
-            if (_command.charAt(pos) == ' ')
+            p = _command.charForward(p);
+            if (_command.charAt(p) == ' ')
             {
-                pos = _command.charForward(pos);
-                int line = _command.substr(pos).toInt();
+                p = _command.charForward(p);
+                int line = _command.substr(p).toInt();
 
                 if (line > 0)
                     _document->value.moveToLine(line);
@@ -1194,6 +1260,7 @@ void Editor::processCommand()
 }
 
 void Editor::buildProject()
+
 {
     Console::setLineMode(true);
     Console::clear();
