@@ -1,7 +1,6 @@
 #include <eve.h>
 
 const int TAB_SIZE = 4;
-const char_t* tab = STR("    ");
 
 // Document
 
@@ -75,26 +74,27 @@ bool Document::moveBack()
 
 bool Document::moveWordForward()
 {
-    int start = _position;
+    int p = _position;
 
-    if (_position < _text.length())
+    if (p < _text.length())
     {
-        unichar_t prevChar = _text.charAt(_position);
-        _position = _text.charForward(_position);
+        unichar_t prevChar = _text.charAt(p);
+        p = _text.charForward(p);
 
-        while (_position < _text.length())
+        while (p < _text.length())
         {
-            unichar_t ch = _text.charAt(_position);
+            unichar_t ch = _text.charAt(p);
             if (isWordBoundary(prevChar, ch))
                 break;
 
             prevChar = ch;
-            _position = _text.charForward(_position);
+            p = _text.charForward(p);
         }
     }
 
-    if (_position > start)
+    if (p > _position)
     {
+        _position = p;
         positionToLineColumn();
         return true;
     }
@@ -104,37 +104,38 @@ bool Document::moveWordForward()
 
 bool Document::moveWordBack()
 {
-    int start = _position;
+    int p = _position;
 
-    if (_position > 0)
+    if (p > 0)
     {
-        _position = _text.charBack(_position);
+        p = _text.charBack(p);
 
-        if (_position > 0)
+        if (p > 0)
         {
-            unichar_t prevChar = _text.charAt(_position);
-            int prevPos = _position;
+            unichar_t prevChar = _text.charAt(p);
+            int prevPos = p;
 
             do
             {
-                _position = _text.charBack(_position);
+                p = _text.charBack(p);
 
-                unichar_t ch = _text.charAt(_position);
+                unichar_t ch = _text.charAt(p);
                 if (isWordBoundary(ch, prevChar))
                 {
-                    _position = prevPos;
+                    p = prevPos;
                     break;
                 }
 
                 prevChar = ch;
-                prevPos = _position;
+                prevPos = p;
             }
-            while (_position > 0);
+            while (p > 0);
         }
     }
 
-    if (_position < start)
+    if (p < _position)
     {
+        _position = p;
         positionToLineColumn();
         return true;
     }
@@ -168,31 +169,33 @@ bool Document::moveToEnd()
 
 bool Document::moveToLineStart()
 {
-    int p = findCurrentLineStart();
+    int start = findLineStart(_position);
 
-    if (p < _position)
+    unichar_t ch;
+    int end = start;
+
+    ch = _text.charAt(end);
+    while (ch == ' ' || ch == '\t')
     {
-        unichar_t ch;
-        int q = p;
+        end = _text.charForward(end);
+        ch = _text.charAt(end);
+    }
 
-        ch = _text.charAt(q);
-        while (ch == ' ' || ch == '\t')
-        {
-            q = _text.charForward(q);
-            ch = _text.charAt(q);
-        }
+    int p = _position == start || _position > end ? end : start;
 
-        _position = _position > q ? q : p;
+    if (p != _position)
+    {
+        _position = p;
         positionToLineColumn();
         return true;
     }
-    else
-        return false;
+
+    return false;
 }
 
 bool Document::moveToLineEnd()
 {
-    int p = findCurrentLineEnd();
+    int p = findLineEnd(_position);
 
     if (p > _position)
     {
@@ -248,7 +251,7 @@ void Document::insertChar(unichar_t ch)
 
     if (ch == '\n') // new line
     {
-        int p = findCurrentLineStart();
+        int p = findLineStart(_position);
         _indent.assign('\n');
         unichar_t ch;
 
@@ -273,8 +276,7 @@ void Document::insertChar(unichar_t ch)
     }
     else if (ch == '\t') // tab
     {
-        _text.insert(_position, tab);
-        _position = _text.charForward(_position, TAB_SIZE);
+        _position = indentLine(_position);
     }
     else if (ch == 0x14) // real tab
     {
@@ -312,50 +314,16 @@ bool Document::deleteCharBack()
 {
     if (_position > 0)
     {
-        int p = _position;
-        unichar_t ch;
-        bool unindent = true;
+        int p = unindentLine(_position);
 
-        do
+        if (p == INVALID_POSITION)
         {
-            int q = _text.charBack(p);
-            ch = _text.charAt(q);
-
-            if (ch == '\n')
-                break;
-            else if (ch != ' ')
-            {
-                unindent = false;
-                break;
-            }
-
-            p = q;
-        }
-        while (p > 0);
-
-        int prev;
-
-        if (unindent && p < _position)
-        {
-            int q = _position;
-
-            ch = _text.charAt(q);
-            while (ch == ' ')
-            {
-                q = _text.charForward(q);
-                ch = _text.charAt(q);
-            }
-
-            prev = q;
-            _position = _text.charForward(p, (q - p - 1) / TAB_SIZE * TAB_SIZE);
+            p = _position;
+            _position = _text.charBack(_position);
+            _text.erase(_position, p - _position);
         }
         else
-        {
-            prev = _position;
-            _position = _text.charBack(_position);
-        }
-
-        _text.erase(_position, prev - _position);
+            _position = p;
 
         positionToLineColumn();
         _modified = true;
@@ -404,6 +372,59 @@ bool Document::deleteWordBack()
     return false;
 }
 
+int Document::indentLine(int pos)
+{
+    ASSERT(pos >= 0);
+
+    int p = findLineStart(pos);
+    unichar_t ch;
+    int indent = 0;
+
+    ch = _text.charAt(p);
+    while (ch == ' ')
+    {
+        ++indent;
+        p = _text.charForward(p);
+        ch = _text.charAt(p);
+    }
+
+    int n = (indent / TAB_SIZE + 1) * TAB_SIZE - indent;
+    _text.insert(p, ' ', n);
+
+    return _text.charForward(p, n);
+}
+
+int Document::unindentLine(int pos)
+{
+    ASSERT(pos >= 0);
+
+    if (pos > 0)
+    {
+        int p = findLineStart(pos);
+        unichar_t ch;
+        int indent = 0;
+
+        ch = _text.charAt(p);
+        while (ch == ' ')
+        {
+            ++indent;
+            p = _text.charForward(p);
+            ch = _text.charAt(p);
+        }
+
+        if (pos <= p)
+        {
+            int n = indent - (indent - 1) / TAB_SIZE * TAB_SIZE;
+            int q = _text.charBack(p, n);
+            _text.erase(q, p - q);
+
+            return q;
+        }
+    }
+
+    return INVALID_POSITION;
+}
+
 void Document::markSelection()
 {
     _selection = _position;
@@ -416,8 +437,8 @@ String Document::copyDeleteText(bool copy)
 
     if (_selection < 0)
     {
-        start = findCurrentLineStart();
-        end = findCurrentLineEnd();
+        start = findLineStart(_position);
+        end = findLineEnd(_position);
         if (_text.charAt(end) == '\n')
             end = _text.charForward(end);
     }
@@ -458,7 +479,7 @@ String Document::copyDeleteText(bool copy)
 void Document::pasteText(const String& text, bool lineSelection)
 {
     if (lineSelection)
-        _text.insert(findCurrentLineStart(), text);
+        _text.insert(findLineStart(_position), text);
     else
         _text.insert(_position, text);
 
@@ -587,33 +608,29 @@ void Document::save()
     _selection = -1;
 }
 
-int Document::findCurrentLineStart() const
+int Document::findLineStart(int pos) const
 {
-    int p = _position;
-
-    while (p > 0)
+    while (pos > 0)
     {
-        int q = _text.charBack(p);
-        if (_text.charAt(q) == '\n')
-            break;
-        p = q;
-    }
-
-    return p;
-}
-
-int Document::findCurrentLineEnd() const
-{
-    int p = _position;
-
-    while (p < _text.length())
-    {
+        int p = _text.charBack(pos);
         if (_text.charAt(p) == '\n')
             break;
-        p = _text.charForward(p);
+        pos = p;
     }
 
-    return p;
+    return pos;
+}
+
+int Document::findLineEnd(int pos) const
+{
+    while (pos < _text.length())
+    {
+        if (_text.charAt(pos) == '\n')
+            break;
+        pos = _text.charForward(pos);
+    }
+
+    return pos;
 }
 
 void Document::positionToLineColumn()
@@ -728,11 +745,11 @@ bool Document::charIsIdent(unichar_t ch)
     return charIsAlphaNum(ch) || ch == '_';
 }
 
-bool Document::isWordBoundary(unichar_t ch1, unichar_t ch2)
+bool Document::isWordBoundary(unichar_t prevCh, unichar_t ch)
 {
-    return (!charIsIdent(ch1) && charIsIdent(ch2)) ||
-        ((charIsIdent(ch1) || charIsSpace(ch1)) && !(charIsIdent(ch2) || charIsSpace(ch2))) ||
-        (ch1 != '\n' && ch2 == '\n');
+    return (!charIsIdent(prevCh) && charIsIdent(ch)) ||
+        ((charIsIdent(prevCh) || charIsSpace(prevCh)) && !(charIsIdent(ch) || charIsSpace(ch))) ||
+        (prevCh != '\n' && ch == '\n');
 }
 
 // Editor
@@ -860,20 +877,20 @@ void Editor::updateScreen(bool redrawAll)
     }
     else
     {
-        int i = 0, j = 0, s = 0;
-        int ss = 0, sc = 0;
+        int windowIndex = 0, screenIndex = 0, matchingStartIndex = 0;
+        int matchingStartCharIndex = 0, charIndex = 0;
         bool matching = true;
 
-        while (i < _window.length())
+        while (windowIndex < _window.length())
         {
-            if (_window.charAt(i) == _screen.charAt(j))
+            if (_window.charAt(windowIndex) == _screen.charAt(screenIndex))
             {
                 if (!matching)
                 {
-                    Console::write(ss / _width + 1, ss % _width + 1,
-                                   _window.chars() + s, i - s);
-                    s = i;
-                    ss = sc;
+                    Console::write(matchingStartCharIndex / _width + 1, matchingStartCharIndex % _width + 1,
+                        _window.chars() + matchingStartIndex, windowIndex - matchingStartIndex);
+                    matchingStartIndex = windowIndex;
+                    matchingStartCharIndex = charIndex;
                     matching = true;
                 }
             }
@@ -881,25 +898,25 @@ void Editor::updateScreen(bool redrawAll)
             {
                 if (matching)
                 {
-                    s = i;
-                    ss = sc;
+                    matchingStartIndex = windowIndex;
+                    matchingStartCharIndex = charIndex;
                     matching = false;
                 }
             }
 
-            i = _window.charForward(i);
-            j = _screen.charForward(j);
-            ++sc;
+            windowIndex = _window.charForward(windowIndex);
+            screenIndex = _screen.charForward(screenIndex);
+            ++charIndex;
         }
 
-        ASSERT(i == _window.length());
-        ASSERT(j == _screen.length());
-        ASSERT(sc == _width * _height);
+        ASSERT(windowIndex == _window.length());
+        ASSERT(screenIndex == _screen.length());
+        ASSERT(charIndex == _width * _height);
 
         if (!matching)
         {
-            Console::write(ss / _width + 1, ss % _width + 1,
-                           _window.chars() + s, i - s);
+            Console::write(matchingStartCharIndex / _width + 1, matchingStartCharIndex % _width + 1,
+                _window.chars() + matchingStartIndex, windowIndex - matchingStartIndex);
         }
     }
 

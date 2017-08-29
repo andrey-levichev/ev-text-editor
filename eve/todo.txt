@@ -6,10 +6,8 @@ interactive replace
 find/replace in all files
 word completion
 block indent, comment
-undo last change
-indent should consider previous non-empty line
-recall prev command
-line mode selection?
+* indent should consider previous non-empty line
+* pasting blocks of code into terminal results in ever increasing indent
 * handle SIGWINCH to detect terminal size changes
 * some keys don't work in Linux, macOS, xterm
 alt+[ and alt+O don't work

@@ -94,6 +94,9 @@ public:
     bool deleteWordForward();
     bool deleteWordBack();
 
+    int indentLine(int pos);
+    int unindentLine(int pos);
+
     void markSelection();
     String copyDeleteText(bool copy);
     void pasteText(const String& text, bool lineSelection);
@@ -109,8 +112,8 @@ public:
     void save();
 
 protected:
-    int findCurrentLineStart() const;
-    int findCurrentLineEnd() const;
+    int findLineStart(int pos) const;
+    int findLineEnd(int pos) const;
 
     void positionToLineColumn();
     void lineColumnToPosition();
@@ -118,7 +121,7 @@ protected:
     void trimTrailingWhitespace();
 
     static bool charIsIdent(unichar_t ch);
-    static bool isWordBoundary(unichar_t ch1, unichar_t ch2);
+    static bool isWordBoundary(unichar_t prevCh, unichar_t ch);
 
 protected:
     String _text;
