@@ -104,9 +104,11 @@ public:
     void lineColumnToTopLeft(int width, int height);
     int findLine(int line) const;
 
-    bool findNext(const String& pattern);
     String currentWord() const;
-    void replace(const String& searchStr, const String& replaceStr);
+
+    int findPosition(const String& searchStr, bool next);
+    bool find(const String& searchStr, bool next);
+    bool replace(const String& searchStr, const String& replaceStr);
 
     void open(const String& filename);
     void save();

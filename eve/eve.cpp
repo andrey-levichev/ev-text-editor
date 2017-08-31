@@ -398,28 +398,26 @@ int Document::unindentLine(int pos)
 {
     ASSERT(pos >= 0);
 
-    if (pos > 0)
+    int p = findLineStart(pos);
+    int q = p;
+    unichar_t ch;
+    int indent = 0;
+
+    ch = _text.charAt(q);
+    while (ch == ' ')
     {
-        int p = findLineStart(pos);
-        unichar_t ch;
-        int indent = 0;
+        ++indent;
+        q = _text.charForward(q);
+        ch = _text.charAt(q);
+    }
 
-        ch = _text.charAt(p);
-        while (ch == ' ')
-        {
-            ++indent;
-            p = _text.charForward(p);
-            ch = _text.charAt(p);
-        }
+    if (pos != p && pos <= q)
+    {
+        int n = indent - (indent - 1) / TAB_SIZE * TAB_SIZE;
+        p = _text.charBack(q, n);
+        _text.erase(p, q - p);
 
-        if (pos <= p)
-        {
-            int n = indent - (indent - 1) / TAB_SIZE * TAB_SIZE;
-            int q = _text.charBack(p, n);
-            _text.erase(q, p - q);
-
-            return q;
-        }
+        return p;
     }
 
     return INVALID_POSITION;
@@ -504,32 +502,6 @@ int Document::findLine(int line) const
     return p;
 }
 
-bool Document::findNext(const String& pattern)
-{
-    if (!pattern.empty())
-    {
-        int p;
-
-        if (_position < _text.length())
-        {
-            p = _text.find(pattern, _text.charForward(_position));
-            if (p < 0)
-                p = _text.find(pattern);
-        }
-        else
-			p = _text.find(pattern);
-
-		if (p >= 0 && p != _position)
-		{
-			_position = p;
-            positionToLineColumn();
-            return true;
-        }
-    }
-
-    return false;
-}
-
 String Document::currentWord() const
 {
     int start = _position;
@@ -558,12 +530,62 @@ String Document::currentWord() const
     return String();
 }
 
-void Document::replace(const String& searchStr, const String& replaceStr)
+int Document::findPosition(const String& searchStr, bool next)
 {
-    _text.replaceString(searchStr, replaceStr);
-    lineColumnToPosition();
-    _modified = true;
-    _selection = -1;
+    int p = INVALID_POSITION;
+
+    if (!searchStr.empty())
+    {
+        if (_position < _text.length())
+        {
+            p = next ? _text.charForward(_position) : _position;
+
+            p = _text.find(searchStr, p);
+            if (p == INVALID_POSITION)
+                p = _text.find(searchStr);
+        }
+        else
+			p = _text.find(searchStr);
+    }
+
+    return p;
+}
+
+bool Document::find(const String& searchStr, bool next)
+{
+    int p = findPosition(searchStr, next);
+
+	if (p != INVALID_POSITION && p != _position)
+	{
+		_position = p;
+        positionToLineColumn();
+        return true;
+    }
+
+    return false;
+}
+
+bool Document::replace(const String& searchStr, const String& replaceStr)
+{
+    int p = findPosition(searchStr, false);
+
+	if (p == _position)
+	{
+        _text.replace(p, replaceStr, searchStr.length());
+
+        _position = p + replaceStr.length();
+        p = findPosition(searchStr, false);
+        if (p != INVALID_POSITION)
+            _position = p;
+
+        positionToLineColumn();
+        _modified = true;
+        _selection = -1;
+
+        return true;
+    }
+
+    return false;
 }
 
 void Document::open(const String& filename)
@@ -925,6 +947,10 @@ void Editor::updateScreen(bool redrawAll)
     if (_document)
     {
         _status = _document->value.filename();
+
+        if (_document->value.modified())
+            _status += '*';
+
         _status += _document->value.encoding() == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
         _status += _document->value.crlf() ? STR("  CRLF") : STR("  LF");
         _status.appendFormat(STR("  %d, %d"), _document->value.line(), _document->value.column());
@@ -1033,6 +1059,11 @@ bool Editor::processKey()
                     _document->value.save();
                     update = true;
                 }
+                else if (key.ch == 'a')
+                {
+                    saveDocuments();
+                    update = true;
+                }
                 else if (key.ch == 'x')
                 {
                     saveDocuments();
@@ -1071,11 +1102,15 @@ bool Editor::processKey()
                 else if (key.ch == 'w')
                 {
                     _searchStr = _document->value.currentWord();
-                    update = _document->value.findNext(_searchStr);
+                    update = _document->value.find(_searchStr, true);
                 }
                 else if (key.ch == 'f')
                 {
-                    update = _document->value.findNext(_searchStr);
+                    update = _document->value.find(_searchStr, true);
+                }
+                else if (key.ch == 'r')
+                {
+                    update = _document->value.replace(_searchStr, _replaceStr);
                 }
                 else if (key.ch == '/')
                 {
@@ -1225,7 +1260,7 @@ void Editor::processCommand()
             {
                 p = _command.charForward(p);
                 _searchStr = _command.substr(p);
-                _document->value.findNext(_searchStr);
+                _document->value.find(_searchStr, false);
                 return;
             }
         }
@@ -1250,7 +1285,7 @@ void Editor::processCommand()
                         _replaceStr = _command.substr(q + 1);
                     }
 
-                    _document->value.replace(_searchStr, _replaceStr);
+                    _document->value.find(_searchStr, false);
                     return;
                 }
             }
@@ -1314,8 +1349,9 @@ int MAIN(int argc, const char_t** argv)
                 "alt+home/end - start/end of file\n"
                 "pgup/pgdn - page up/down\n"
                 "alt+pgup/pgdn - half page up/down\n"
+                "insert - indent line\n"
                 "del - delete character at cursor position\n"
-                "backspace - delete character to the left of cursor position\n"
+                "backspace - unindent line or delete character to the left of cursor position\n"
                 "alt+del - delete word at cursor position\n"
                 "alt+backspace - delete word to the left of cursor position\n"
                 "alt+M - mark selection start\n"
@@ -1324,11 +1360,19 @@ int MAIN(int argc, const char_t** argv)
                 "alt+P - paste line/selection\n"
                 "alt+W - find word at cursor\n"
                 "alt+F - find again\n"
+                "alt+R - replace and find again\n"
                 "alt+/ - enter command\n"
                 "alt+B - build with make\n"
+                "alt+, - go to previous document\n"
+                "alt+. - go to next document\n"
                 "alt+S - save\n"
+                "alt+A - save all\n"
                 "alt+X - save all and quit\n"
-                "alt+Q - quit without saving\n\n"));
+                "alt+Q - quit without saving\n\n"
+                "commands:\n"
+                "g number - go to line number\n"
+                "f string - find string\n"
+                "r searchString replaceString - replace string\n"));
 
             return 1;
         }

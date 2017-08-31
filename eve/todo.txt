@@ -1,57 +1,34 @@
 bugs & misc:
-* editing features to use eve for development
-new/open/save commands
-file switching command
-interactive replace
-find/replace in all files
-word completion
-block indent, comment
 * indent should consider previous non-empty line
 * pasting blocks of code into terminal results in ever increasing indent
-* handle SIGWINCH to detect terminal size changes
 * some keys don't work in Linux, macOS, xterm
 alt+[ and alt+O don't work
 rework keyboard input to support different terminals
 allow reading partial keys
-* foundation improvements
-prohibit write access to container data via pointer?
-acquire with capacity?
-blob class for array of value types?
-simple string too?
-make sure app code doens't do low level stuff and relies on foundation
-StringWithEncoding - string with encoding information
-support for zero chars in string?
-replace smart pointers with smart references
-rename the types to make int 64 bit?
-string constructor that accepts ascii strings
-log memory allocations
-move assignment is called when string is assigned an r-value freeing string storage
-unicode char literals don't work on solaris/aix
+same or different keys on different platforms?
 
-basic features:
-* search/replace
-* selection with highlighting and alt+arrows
-* unindent with backspace
-* terminal window resizing
+editor:
+* selection with arrows and highlighting
+* handle terminal window resizing (SIGWINCH)
 * block indent, comment
 * paragraph back/forward
-
-advanced features:
-* multiple files
-* regex search/replace
-* search/replace in files
+* quickly switch between documents
+* find/replace in all documents
+* regex find/replace
 * parse build output for errors
+* undo/redo
+* command history
 * syntax highlighting
-basic highlighting based on file suffix for a few common languages
+highlighting based on file suffix for a few common languages
 keywords, numbers, strings, comments
-* word completion
+* autocomplete
 parse a set of directories for words
 cache results in a file
-offer completion after second letter
+offer completions after first letter
 offer recently used, located nearby first
 complete on tab or punctuation
 
-foundation features:
+foundation:
 * convert any object to string
 * type safe string formatting
 * date and time
@@ -73,3 +50,17 @@ split/join, tokenizer
 conversion to binary/hex
 simple parsing a la scanf
 simple regular expressions
+* foundation improvements
+prohibit write access to container data via pointer?
+acquire with capacity?
+blob class for array of value types?
+simple string too?
+make sure app code doens't do low level stuff and relies on foundation
+StringWithEncoding - string with encoding information
+support for zero chars in string?
+replace smart pointers with smart references
+rename the types to make int 64 bit?
+string constructor that accepts ascii strings
+log memory allocations
+move assignment is called when string is assigned an r-value freeing string storage
+unicode char literals don't work on solaris/aix
