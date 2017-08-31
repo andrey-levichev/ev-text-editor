@@ -1,4 +1,5 @@
 bugs & misc:
+* gcc optimized version crashes
 * indent should consider previous non-empty line
 * pasting blocks of code into terminal results in ever increasing indent
 * some keys don't work in Linux, macOS, xterm
