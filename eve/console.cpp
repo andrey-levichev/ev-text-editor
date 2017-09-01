@@ -59,12 +59,15 @@ void Console::initialize()
 #ifdef PLATFORM_WINDOWS
 
 #ifdef CHAR_ENCODING_UTF16
-    ASSERT(_setmode(_fileno(stdin), _O_U16TEXT) >= 0);
-    ASSERT(_setmode(_fileno(stdout), _O_U16TEXT) >= 0);
+    int rc = _setmode(_fileno(stdin), _O_U16TEXT);
+    ASSERT(rc >= 0);
+    rc = _setmode(_fileno(stdout), _O_U16TEXT);
+    ASSERT(rc >= 0);
 #endif
 
 #else
-    setvbuf(stdout, NULL, _IONBF, 0);
+    int rc = setvbuf(stdout, NULL, _IONBF, 0);
+    ASSERT(rc == 0);
 #endif
 }
 
@@ -74,18 +77,27 @@ void Console::setLineMode(bool lineMode)
     if (lineMode)
     {
         termios ta;
-        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
+
+        int rc = tcgetattr(STDIN_FILENO, &ta);
+        ASSERT(rc == 0);
+
         ta.c_lflag |= ECHO | ICANON;
-        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
+        rc = tcsetattr(STDIN_FILENO, TCSANOW, &ta);
+        ASSERT(rc == 0);
     }
     else
     {
         termios ta;
-        ASSERT(tcgetattr(STDIN_FILENO, &ta) >= 0);
+
+        int rc = tcgetattr(STDIN_FILENO, &ta);
+        ASSERT(rc == 0);
+
         ta.c_lflag &= ~(ECHO | ICANON);
         ta.c_cc[VTIME] = 0;
         ta.c_cc[VMIN] = 1;
-        ASSERT(tcsetattr(STDIN_FILENO, TCSANOW, &ta) >= 0);
+
+        rc = tcsetattr(STDIN_FILENO, TCSANOW, &ta);
+        ASSERT(rc == 0);
     }
 #endif
 }
@@ -106,9 +118,11 @@ void Console::write(const char_t* chars, int len)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(WriteConsole(handle, chars, l, &written, NULL));
+    BOOL rc = WriteConsole(handle, chars, l, &written, NULL);
+    ASSERT(rc);
 #else
-    ASSERT(::write(STDOUT_FILENO, chars, l) >= 0);
+    int written = ::write(STDOUT_FILENO, chars, l);
+    ASSERT(written >= 0);
 #endif
 }
 
@@ -167,11 +181,14 @@ void Console::write(int line, int column, const char_t* chars, int len)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(WriteConsoleOutputCharacter(handle,
-        reinterpret_cast<LPCTSTR>(chars), l, pos, &written));
+    BOOL rc = WriteConsoleOutputCharacter(handle,
+        reinterpret_cast<LPCTSTR>(chars), l, pos, &written);
+    ASSERT(rc);
 #else
     setCursorPosition(line, column);
-    ASSERT(::write(STDOUT_FILENO, chars, l) >= 0);
+
+    int written = ::write(STDOUT_FILENO, chars, l);
+    ASSERT(written >= 0);
 #endif
 }
 
@@ -228,10 +245,14 @@ char32_t Console::readChar()
     ASSERT(handle);
 
     wchar_t ch;
-    ASSERT(ReadConsole(handle, &ch, 1, &written, NULL));
+    BOOL rc = ReadConsole(handle, &ch, 1, &written, NULL);
+    ASSERT(rc);
 
     if (ch == '\r')
-        ASSERT(ReadConsole(handle, &ch, 1, &written, NULL));
+    {
+        rc = ReadConsole(handle, &ch, 1, &written, NULL);
+        ASSERT(rc);
+    }
 
     return ch;
 #else
@@ -291,7 +312,8 @@ void Console::getSize(int& width, int& height)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(GetConsoleScreenBufferInfo(handle, &csbi));
+    BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
+    ASSERT(rc);
 
     width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
@@ -304,14 +326,20 @@ void Console::clear()
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(GetConsoleScreenBufferInfo(handle, &csbi));
+    BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
+    ASSERT(rc);
 
     COORD pos = { 0, 0 };
     DWORD size = csbi.dwSize.X * csbi.dwSize.Y, written;
 
-    ASSERT(FillConsoleOutputCharacter(handle, ' ', size, pos, &written));
-    ASSERT(FillConsoleOutputAttribute(handle, csbi.wAttributes, size, pos, &written));
-    ASSERT(SetConsoleCursorPosition(handle, pos));
+    rc = FillConsoleOutputCharacter(handle, ' ', size, pos, &written);
+    ASSERT(rc);
+
+    rc = FillConsoleOutputAttribute(handle, csbi.wAttributes, size, pos, &written);
+    ASSERT(rc);
+
+    rc = SetConsoleCursorPosition(handle, pos);
+    ASSERT(rc);
 }
 
 void Console::showCursor(bool show)
@@ -321,9 +349,12 @@ void Console::showCursor(bool show)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(GetConsoleCursorInfo(handle, &cci));
+    BOOL rc = GetConsoleCursorInfo(handle, &cci);
+    ASSERT(rc);
+
     cci.bVisible = show;
-    ASSERT(SetConsoleCursorInfo(handle, &cci));
+    rc = SetConsoleCursorInfo(handle, &cci);
+    ASSERT(rc);
 }
 
 void Console::setCursorPosition(int line, int column)
@@ -338,7 +369,8 @@ void Console::setCursorPosition(int line, int column)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    ASSERT(SetConsoleCursorPosition(handle, pos));
+    BOOL rc = SetConsoleCursorPosition(handle, pos);
+    ASSERT(rc);
 }
 
 #else
@@ -346,7 +378,9 @@ void Console::setCursorPosition(int line, int column)
 void Console::getSize(int& width, int& height)
 {
     struct winsize ws;
-    ASSERT(ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) >= 0);
+    int rc = ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
+    ASSERT(rc >= 0);
+
     width = ws.ws_col;
     height = ws.ws_row;
 }
@@ -382,10 +416,12 @@ const Array<Key>& Console::readKeys()
     if (WaitForSingleObject(handle, INFINITE) == WAIT_OBJECT_0)
     {
         DWORD numInputRec = 0;
-        ASSERT(GetNumberOfConsoleInputEvents(handle, &numInputRec));
+        BOOL rc = GetNumberOfConsoleInputEvents(handle, &numInputRec);
+        ASSERT(rc);
 
         _input.resize(numInputRec);
-        ASSERT(ReadConsoleInput(handle, _input.values(), numInputRec, &numInputRec));
+        rc = ReadConsoleInput(handle, _input.values(), numInputRec, &numInputRec);
+        ASSERT(rc);
 
         for (DWORD i = 0; i < numInputRec; ++i)
         {
@@ -506,7 +542,8 @@ const Array<Key>& Console::readKeys()
     if (poll(&pfd, 1, -1) > 0)
     {
         int len;
-        ASSERT(ioctl(STDIN_FILENO, FIONREAD, &len) >= 0);
+        int rc = ioctl(STDIN_FILENO, FIONREAD, &len)
+        ASSERT(rc >= 0);
 
         _input.resize(len + 1);
         len = read(STDIN_FILENO, _input.values(), len);

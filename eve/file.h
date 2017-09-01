@@ -59,11 +59,14 @@ public:
 
 #ifdef PLATFORM_WINDOWS
         LARGE_INTEGER offset = { { 0 } };
-        ASSERT(SetFilePointerEx(_handle, offset, NULL, FILE_BEGIN));
+        BOOL rc = SetFilePointerEx(_handle, offset, NULL, FILE_BEGIN);
+        ASSERT(rc);
 
         if (ReadFile(_handle, data.values(), bytesSize, &bytesRead, NULL))
 #else
-        ASSERT(lseek(_handle, 0, SEEK_SET) == 0);
+        int rc = lseek(_handle, 0, SEEK_SET);
+        ASSERT(rc == 0);
+
         if ((bytesRead = ::read(_handle, data.values(), bytesSize)) >= 0)
 #endif
         {
@@ -94,13 +97,16 @@ public:
         DWORD bytesSize = size * sizeof(_Type), bytesWritten;
 
         LARGE_INTEGER offset = { { 0 } };
-        ASSERT(SetFilePointerEx(_handle, offset, NULL, FILE_BEGIN));
+        BOOL rc = SetFilePointerEx(_handle, offset, NULL, FILE_BEGIN);
+        ASSERT(rc);
 
         if (WriteFile(_handle, data, bytesSize, &bytesWritten, NULL))
 #else
         ssize_t bytesSize = size * sizeof(_Type), bytesWritten;
 
-        ASSERT(lseek(_handle, 0, SEEK_SET) == 0);
+        int rc = lseek(_handle, 0, SEEK_SET);
+        ASSERT(rc == 0);
+
         if ((bytesWritten = ::write(_handle, data, bytesSize)) >= 0)
 #endif
         {

@@ -750,9 +750,7 @@ String String::substr(int pos, int len) const
 
     if (_length > 0)
     {
-        if (len >= 0)
-            ASSERT(pos + len >= 0 && pos + len <= _length);
-
+        ASSERT(len < 0 || (pos + len >= 0 && pos + len <= _length));
         return String(_chars + pos, len);
     }
     else
