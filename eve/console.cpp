@@ -542,7 +542,7 @@ const Array<Key>& Console::readKeys()
     if (poll(&pfd, 1, -1) > 0)
     {
         int len;
-        int rc = ioctl(STDIN_FILENO, FIONREAD, &len)
+        int rc = ioctl(STDIN_FILENO, FIONREAD, &len);
         ASSERT(rc >= 0);
 
         _input.resize(len + 1);
