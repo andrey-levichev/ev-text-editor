@@ -6,6 +6,9 @@ editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 * reset terminal mode on abort/exception
 * line copy doesn't work after using mark
 * after long build output on windows editor screen doesn't refresh
+* more features to implement soon
+find/replace arbitrary strings not just words
+indent, comment block
 
 editor:
 * selection with arrows and highlighting

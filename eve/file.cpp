@@ -257,7 +257,7 @@ int64_t File::size() const
 #else
     struct stat st;
     int rc = fstat(_handle, &st);
-    ASSERT(rc = 0);
+    ASSERT(rc == 0);
     return st.st_size;
 #endif
 }
