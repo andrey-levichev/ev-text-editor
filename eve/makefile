@@ -1,8 +1,8 @@
 TARGET=eve
-HEADERS=foundation.h console.h file.h eve.h
-SOURCES=foundation.cpp console.cpp file.cpp eve.cpp
+HEADERS=foundation.h console.h file.h test.h
+SOURCES=foundation.cpp console.cpp file.cpp test.cpp
 
-all: $(TARGET).gcc
+all: $(TARGET).vcpp.exe
 
 $(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
 	cl /nologo /std:c++latest /utf-8 /EHsc /RTCsu /MTd /Zi /W3 /wd4244 /wd4267 $(SOURCES) \

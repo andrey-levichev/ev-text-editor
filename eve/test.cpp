@@ -5358,38 +5358,48 @@ void testConsoleReadKeys()
 
 void testKeys()
 {
-    char chars[10];
+    char chars[16];
+    bool gotChars = false;
 
-    pollfd pfd;
-    pfd.fd = STDIN_FILENO;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
+    termios ta;
 
-    Console::setLineMode(false);
+    tcgetattr(STDIN_FILENO, &ta);
+    ta.c_lflag &= ~(ECHO | ICANON);
+    ta.c_cc[VTIME] = 0;
+    ta.c_cc[VMIN] = 0;
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
 
     while (true)
     {
-        if (poll(&pfd, 1, -1) > 0)
+        int len = read(STDIN_FILENO, chars, sizeof(chars));
+
+        if (len > 0)
         {
-            int len;
-            ioctl(STDIN_FILENO, FIONREAD, &len);
-
-            read(STDIN_FILENO, chars, len);
+            gotChars = true;
 
             for (int i = 0; i < len; ++i)
-                printf("%x ", static_cast<uint8_t>(chars[i]));
-
-            for (int i = 0; i < len; ++i)
+            {
                 if (isprint(chars[i]))
                     putchar(chars[i]);
                 else
-                    printf("\\x%x ", static_cast<uint8_t>(chars[i]));
+                    printf("\\x%x", static_cast<uint8_t>(chars[i]));
+            }
+        }
+        else
+        {
+            if (gotChars)
+            {
+                printf("\n");
+                gotChars = false;
+            }
 
-            printf("\n");
+            usleep(10000);
         }
     }
 
-    Console::setLineMode(true);
+    ta.c_lflag |= ECHO | ICANON;
+    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
 }
 
 #endif
@@ -5473,14 +5483,14 @@ int MAIN(int argc, const char_t** argv)
         Console::setLineMode(true);
         printPlatformInfo();
 
-        testSupport();
-        testFoundation();
+//        testSupport();
+//        testFoundation();
 //        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-//        testConsoleReadKeys();
+        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {

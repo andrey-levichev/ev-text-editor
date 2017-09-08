@@ -1,11 +1,11 @@
 bugs & misc:
+* rework keyboard input to support different terminals
+editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 * indent should consider previous non-empty line
 * pasting blocks of code into terminal results in ever increasing indent
-* some keys don't work in Linux, macOS, xterm
-alt+[ and alt+O don't work
-rework keyboard input to support different terminals
-allow reading partial keys
-same or different keys on different platforms?
+* reset terminal mode on abort/exception
+* line copy doesn't work after using mark
+* after long build output on windows editor screen doesn't refresh
 
 editor:
 * selection with arrows and highlighting

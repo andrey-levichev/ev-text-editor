@@ -42,12 +42,120 @@ void printArgs(const char_t* format, va_list args)
 
 #endif
 
+#ifdef PLATFORM_UNIX
+
+struct KeyMapping
+{
+    int len;
+    const char* chars;
+    Key key;
+};
+
+static KeyMapping keyMapping[] =
+    {
+        { 7, "\x1b[15;3~", Key(KEY_F5, false, true) },
+        { 7, "\x1b[17;3~", Key(KEY_F6, false, true) },
+        { 7, "\x1b[18;3~", Key(KEY_F7, false, true) },
+        { 7, "\x1b[19;3~", Key(KEY_F8, false, true) },
+        { 7, "\x1b[20;3~", Key(KEY_F9, false, true) },
+        { 7, "\x1b[21;3~", Key(KEY_F10, false, true) },
+        { 7, "\x1b[23;3~", Key(KEY_F11, false, true) },
+        { 7, "\x1b[24;3~", Key(KEY_F12, false, true) },
+        { 7, "\x1b[15;5~", Key(KEY_F5, true) },
+        { 7, "\x1b[17;5~", Key(KEY_F6, true) },
+        { 7, "\x1b[18;5~", Key(KEY_F7, true) },
+        { 7, "\x1b[19;5~", Key(KEY_F8, true) },
+        { 7, "\x1b[20;5~", Key(KEY_F9, true) },
+        { 7, "\x1b[21;5~", Key(KEY_F10, true) },
+        { 7, "\x1b[23;5~", Key(KEY_F11, true) },
+        { 7, "\x1b[24;5~", Key(KEY_F12, true) },
+        { 6, "\x1b\x1b[11~", Key(KEY_F1, false, true) },
+        { 6, "\x1b\x1b[12~", Key(KEY_F2, false, true) },
+        { 6, "\x1b\x1b[13~", Key(KEY_F3, false, true) },
+        { 6, "\x1b\x1b[14~", Key(KEY_F4, false, true) },
+        { 6, "\x1b\x1b[15~", Key(KEY_F5, false, true) },
+        { 6, "\x1b\x1b[17~", Key(KEY_F6, false, true) },
+        { 6, "\x1b\x1b[18~", Key(KEY_F7, false, true) },
+        { 6, "\x1b\x1b[19~", Key(KEY_F8, false, true) },
+        { 6, "\x1b\x1b[20~", Key(KEY_F9, false, true) },
+        { 6, "\x1b\x1b[21~", Key(KEY_F10, false, true) },
+        { 6, "\x1b\x1b[23~", Key(KEY_F11, false, true) },
+        { 6, "\x1b\x1b[24~", Key(KEY_F12, false, true) },
+        { 5, "\x1b[11~", Key(KEY_F1) },
+        { 5, "\x1b[12~", Key(KEY_F2) },
+        { 5, "\x1b[13~", Key(KEY_F3) },
+        { 5, "\x1b[14~", Key(KEY_F4) },
+        { 5, "\x1b[15~", Key(KEY_F5) },
+        { 5, "\x1b[17~", Key(KEY_F6) },
+        { 5, "\x1b[18~", Key(KEY_F7) },
+        { 5, "\x1b[19~", Key(KEY_F8) },
+        { 5, "\x1b[20~", Key(KEY_F9) },
+        { 5, "\x1b[21~", Key(KEY_F10) },
+        { 5, "\x1b[23~", Key(KEY_F11) },
+        { 5, "\x1b[24~", Key(KEY_F12) },
+        { 5, "\x1b[23~", Key(KEY_F1, false, false, true) },
+        { 5, "\x1b[24~", Key(KEY_F2, false, false, true) },
+        { 5, "\x1b[25~", Key(KEY_F3, false, false, true) },
+        { 5, "\x1b[26~", Key(KEY_F4, false, false, true) },
+        { 5, "\x1b[28~", Key(KEY_F5, false, false, true) },
+        { 5, "\x1b[29~", Key(KEY_F6, false, false, true) },
+        { 5, "\x1b[31~", Key(KEY_F7, false, false, true) },
+        { 5, "\x1b[32~", Key(KEY_F8, false, false, true) },
+        { 5, "\x1b[33~", Key(KEY_F9, false, false, true) },
+        { 5, "\x1b[34~", Key(KEY_F10, false, false, true) },
+        { 5, "\x1b[23~", Key(KEY_F11, false, false, true) },
+        { 5, "\x1b[24~", Key(KEY_F12, false, false, true) },
+        { 5, "\x1b\x1b[2~", Key(KEY_INSERT, false, true) },
+        { 5, "\x1b\x1b[3~", Key(KEY_DELETE, false, true) },
+        { 5, "\x1b\x1b[1~", Key(KEY_HOME, false, true) },
+        { 5, "\x1b\x1b[4~", Key(KEY_END, false, true) },
+        { 5, "\x1b\x1b[5~", Key(KEY_PGUP, false, true) },
+        { 5, "\x1b\x1b[6~", Key(KEY_PGDN, false, true) },
+        { 4, "\x1b[2~", Key(KEY_INSERT) },
+        { 4, "\x1b[3~", Key(KEY_DELETE) },
+        { 4, "\x1b[1~", Key(KEY_HOME) },
+        { 4, "\x1b[4~", Key(KEY_END) },
+        { 4, "\x1b[5~", Key(KEY_PGUP) },
+        { 4, "\x1b[6~", Key(KEY_PGDN) },
+        { 4, "\x1b\x1b[A", Key(KEY_UP, false, true) },
+        { 4, "\x1b\x1b[B", Key(KEY_DOWN, false, true) },
+        { 4, "\x1b\x1b[C", Key(KEY_RIGHT, false, true) },
+        { 4, "\x1b\x1b[D", Key(KEY_LEFT, false, true) },
+        { 4, "\x1b\x1bOA", Key(KEY_UP, true, true) },
+        { 4, "\x1b\x1bOB", Key(KEY_DOWN, true, true) },
+        { 4, "\x1b\x1bOC", Key(KEY_RIGHT, true, true) },
+        { 4, "\x1b\x1bOD", Key(KEY_LEFT, true, true) },
+        { 4, "\x1bO3P", Key(KEY_F1, false, true) },
+        { 4, "\x1bO3Q", Key(KEY_F2, false, true) },
+        { 4, "\x1bO3R", Key(KEY_F3, false, true) },
+        { 4, "\x1bO3S", Key(KEY_F4, false, true) },
+        { 4, "\x1bO5P", Key(KEY_F1, true) },
+        { 4, "\x1bO5Q", Key(KEY_F2, true) },
+        { 4, "\x1bO5R", Key(KEY_F3, true) },
+        { 4, "\x1bO5S", Key(KEY_F4, true) },
+        { 3, "\x1b[A", Key(KEY_UP) },
+        { 3, "\x1b[B", Key(KEY_DOWN) },
+        { 3, "\x1b[C", Key(KEY_RIGHT) },
+        { 3, "\x1b[D", Key(KEY_LEFT) },
+        { 3, "\x1bOA", Key(KEY_UP, true) },
+        { 3, "\x1bOB", Key(KEY_DOWN, true) },
+        { 3, "\x1bOC", Key(KEY_RIGHT, true) },
+        { 3, "\x1bOD", Key(KEY_LEFT, true) },
+        { 3, "\x1b[Z", Key(KEY_TAB, false, false, true) },
+        { 3, "\x1bOP", Key(KEY_F1) },
+        { 3, "\x1bOQ", Key(KEY_F2) },
+        { 3, "\x1bOR", Key(KEY_F3) },
+        { 3, "\x1bOS", Key(KEY_F4) }
+    };
+
+#endif
+
 // Console
 
 #ifdef PLATFORM_WINDOWS
-Array<INPUT_RECORD> Console::_input(10);
+Array<INPUT_RECORD> Console::_input(16);
 #else
-Array<char> Console::_input(10);
+Array<char> Console::_input(16);
 #endif
 
 Array<Key> Console::_keys;
@@ -94,7 +202,7 @@ void Console::setLineMode(bool lineMode)
 
         ta.c_lflag &= ~(ECHO | ICANON);
         ta.c_cc[VTIME] = 0;
-        ta.c_cc[VMIN] = 1;
+        ta.c_cc[VMIN] = 0;
 
         rc = tcsetattr(STDIN_FILENO, TCSANOW, &ta);
         ASSERT(rc == 0);
@@ -530,76 +638,84 @@ const Array<Key>& Console::readKeys()
         }
     }
 
-    return _keys;
-
 #else
 
-    pollfd pfd;
-    pfd.fd = STDIN_FILENO;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
+    bool gotChars = false;
+    _input.clear();
 
-    if (poll(&pfd, 1, -1) > 0)
+    while (true)
     {
-        int len;
-        int rc = ioctl(STDIN_FILENO, FIONREAD, &len);
-        ASSERT(rc >= 0);
+        char chars[16];
 
-        _input.resize(len + 1);
-        len = read(STDIN_FILENO, _input.values(), len);
+        int len = read(STDIN_FILENO, chars, sizeof(chars));
 
         if (len > 0)
         {
-            _input[len] = 0;
-            const char* p = _input.values();
+            gotChars = true;
+            for (int i = 0; i < len; ++i)
+                _input.pushBack(chars[i]);
+        }
+        else
+        {
+            if (gotChars)
+                break;
+            else
+                usleep(10000);
+        }
+    }
 
-            while (*p)
+    const char* p = _input.values();
+    const char* e = p + _input.size();
+    _input.pushBack(0);
+
+    while (p < e)
+    {
+        int n = sizeof(keyMapping) / sizeof(KeyMapping);
+        bool found = false;
+
+        for (int i = 0; i < n; ++i)
+        {
+            if (!strncmp(p, keyMapping[i].chars, keyMapping[i].len))
             {
-                Key key;
-
-                if (*p == 0x1b)
-                {
-                    ++p;
-
-                    if (*p == 0x1b)
-                    {
-                        ++p;
-                        key.alt = true;
-
-                        if (*p == 0x5b)
-                        {
-                            p = readSpecialKey(p, key);
-                        }
-                        else if (*p == 0x4f)
-                        {
-                            key.ctrl = true;
-                            p = readSpecialKey(p, key);
-                        }
-                        else
-                            continue;
-                    }
-                    else if (*p == 0x5b)
-                    {
-                        p = readSpecialKey(p, key);
-                    }
-                    else if (*p == 0x4f)
-                    {
-                        key.ctrl = true;
-                        p = readSpecialKey(p, key);
-                    }
-                    else if (*p)
-                    {
-                        key.alt = true;
-                        p = readRegularKey(p, key);
-                    }
-                    else
-                        key.code = KEY_ESC;
-                }
-                else
-                    p = readRegularKey(p, key);
-
-                _keys.pushBack(key);
+                _keys.pushBack(keyMapping[i].key);
+                p += keyMapping[i].len;
+                found = true;
+                break;
             }
+        }
+
+        if (!found)
+        {
+            Key key;
+
+            if (*p == 0x1b)
+            {
+                ++p;
+
+                if (*p)
+                    key.alt = true;
+                else
+                {
+                    _keys.pushBack(Key(KEY_ESC));
+                    continue;
+                }
+            }
+
+            unichar_t ch;
+            p += UTF_CHAR_TO_UNICODE(p, ch);
+            key.ch = ch;
+            key.shift = charIsUpper(ch);
+
+            if (ch == '\t')
+                key.code = KEY_TAB;
+            else if (ch == '\n')
+                key.code = KEY_ENTER;
+            else if (ch == 0x7f)
+                key.code = KEY_BACKSPACE;
+            else if (iswcntrl(ch))
+                key.ctrl = true;
+
+            _keys.pushBack(key);
         }
     }
 
@@ -607,242 +723,3 @@ const Array<Key>& Console::readKeys()
 
     return _keys;
 }
-
-#ifdef PLATFORM_UNIX
-
-const char* Console::readRegularKey(const char* p, Key& key)
-{
-    ASSERT(p);
-
-    unichar_t ch;
-    p += UTF_CHAR_TO_UNICODE(p, ch);
-    key.ch = ch;
-
-    if (ch == '\t')
-        key.code = KEY_TAB;
-    else if (ch == '\n')
-        key.code = KEY_ENTER;
-    else if (ch == 0x7f)
-        key.code = KEY_BACKSPACE;
-    else if (iswcntrl(ch))
-        key.ctrl = true;
-    else
-        key.shift = charIsUpper(ch);
-
-    return p;
-}
-
-const char* Console::readSpecialKey(const char* p, Key& key)
-{
-    ASSERT(p);
-
-    ++p;
-    bool read7e = true;
-
-    if (*p == 0x31)
-    {
-        ++p;
-
-        if (*p == 0x31)
-            key.code = KEY_F1;
-        else if (*p == 0x32)
-            key.code = KEY_F2;
-        else if (*p == 0x33)
-            key.code = KEY_F3;
-        else if (*p == 0x34)
-            key.code = KEY_F4;
-        else if (*p == 0x35)
-            key.code = KEY_F5;
-        else if (*p == 0x37)
-            key.code = KEY_F6;
-        else if (*p == 0x38)
-            key.code = KEY_F7;
-        else if (*p == 0x39)
-            key.code = KEY_F8;
-        else if (*p == 0x3b)
-        {
-            ++p;
-            read7e = false;
-
-            if (*p == 0x33)
-            {
-                ++p;
-
-                if (*p == 0x46)
-                {
-                    key.alt = true;
-                    key.code = KEY_END;
-                }
-                else if (*p == 0x48)
-                {
-                    key.alt = true;
-                    key.code = KEY_HOME;
-                }
-                else
-                    return p;
-            }
-            else if (*p == 0x35)
-            {
-                ++p;
-
-                if (*p == 0x43)
-                {
-                    key.ctrl = true;
-                    key.code = KEY_RIGHT;
-                }
-                else if (*p == 0x44)
-                {
-                    key.ctrl = true;
-                    key.code = KEY_LEFT;
-                }
-                else
-                    return p;
-            }
-            else
-                return p;
-        }
-        else if (*p == 0x7e)
-        {
-            read7e = false;
-            key.code = KEY_HOME;
-        }
-        else
-            return p;
-    }
-    else if (*p == 0x32)
-    {
-        ++p;
-
-        if (*p == 0x30)
-            key.code = KEY_F9;
-        else if (*p == 0x31)
-            key.code = KEY_F10;
-        else if (*p == 0x33)
-            key.code = KEY_F11;
-        else if (*p == 0x34)
-            key.code = KEY_F12;
-        else if (*p == 0x7e)
-        {
-            read7e = false;
-            key.code = KEY_INSERT;
-        }
-        else
-            return p;
-    }
-    else if (*p == 0x33)
-    {
-        if (*(p + 1) == 0x3b)
-        {
-            p += 2;
-            if (*p == 0x33)
-            {
-                key.alt = true;
-                key.code = KEY_DELETE;
-            }
-            else
-                return p;
-        }
-        else
-            key.code = KEY_DELETE;
-    }
-    else if (*p == 0x34)
-    {
-        key.code = KEY_END;
-    }
-    else if (*p == 0x35)
-    {
-        if (*(p + 1) == 0x3b)
-        {
-            p += 2;
-            if (*p == 0x33)
-            {
-                key.alt = true;
-                key.code = KEY_PGUP;
-            }
-            else
-                return p;
-        }
-        else
-            key.code = KEY_PGUP;
-    }
-    else if (*p == 0x36)
-    {
-        if (*(p + 1) == 0x3b)
-        {
-            p += 2;
-            if (*p == 0x33)
-            {
-                key.alt = true;
-                key.code = KEY_PGDN;
-            }
-            else
-                return p;
-        }
-        else
-            key.code = KEY_PGDN;
-    }
-    else if (*p == 0x41)
-    {
-        read7e = false;
-        key.code = KEY_UP;
-    }
-    else if (*p == 0x42)
-    {
-        read7e = false;
-        key.code = KEY_DOWN;
-    }
-    else if (*p == 0x43)
-    {
-        read7e = false;
-        key.code = KEY_RIGHT;
-    }
-    else if (*p == 0x44)
-    {
-        read7e = false;
-        key.code = KEY_LEFT;
-    }
-    else if (*p == 0x46)
-    {
-        read7e = false;
-        key.code = KEY_END;
-    }
-    else if (*p == 0x48)
-    {
-        read7e = false;
-        key.code = KEY_HOME;
-    }
-    else if (*p == 0x5b)
-    {
-        ++p;
-        read7e = false;
-
-        if (*p == 0x41)
-            key.code = KEY_F1;
-        else if (*p == 0x42)
-            key.code = KEY_F2;
-        else if (*p == 0x43)
-            key.code = KEY_F3;
-        else if (*p == 0x44)
-            key.code = KEY_F4;
-        else if (*p == 0x45)
-            key.code = KEY_F5;
-        else
-            return p;
-    }
-    else
-        return p;
-
-    ++p;
-    if (read7e)
-    {
-        if (*p == 0x7e)
-            ++p;
-        else
-            throw Exception(STR("0x7e expected in input stream"));
-    }
-
-    return p;
-}
-
-#endif
-

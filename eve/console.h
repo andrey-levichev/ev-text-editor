@@ -57,6 +57,18 @@ struct Key
         ctrl(false), alt(false), shift(false)
     {
     }
+
+    Key(KeyCode code, bool ctrl = false, bool alt = false, bool shift = false) :
+        code(code), ch(0),
+        ctrl(ctrl), alt(alt), shift(shift)
+    {
+    }
+
+    Key(unichar_t ch, bool ctrl = false, bool alt = false, bool shift = false) :
+        code(KEY_NONE), ch(ch),
+        ctrl(ctrl), alt(alt), shift(shift)
+    {
+    }
 };
 
 // Console
@@ -96,12 +108,6 @@ public:
     static void setCursorPosition(int line, int column);
 
     static const Array<Key>& readKeys();
-
-protected:
-#ifdef PLATFORM_UNIX
-    static const char* readRegularKey(const char* p, Key& key);
-    static const char* readSpecialKey(const char* p, Key& key);
-#endif
 
 protected:
 #ifdef PLATFORM_WINDOWS
