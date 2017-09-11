@@ -559,7 +559,7 @@ void Console::getSize(int& width, int& height)
     BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
     ASSERT(rc);
 
-    width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    width = csbi.dwSize.X;
     height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 }
 

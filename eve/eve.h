@@ -86,6 +86,7 @@ public:
     bool moveLinesDown(int lines);
     bool moveToLine(int line);
 
+    void insertNewLine();
     void insertChar(unichar_t ch);
 
     bool deleteCharForward();

@@ -1,19 +1,17 @@
 bugs & misc:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
-* indent should consider previous non-empty line
-* pasting blocks of code into terminal results in ever increasing indent
-* reset terminal mode on abort/exception
-* line copy doesn't work after using mark
-* after long build output on windows editor screen doesn't refresh
-* more features to implement soon
-find/replace arbitrary strings not just words
-indent, comment block
+replace key mapping table with trie based word map
+* pasting screen selection from eve doesn't copy newlines on unix
+print clear to eol code at the end of line
+* use window width instead of screen buffer width on windows
+clear/save screen on startup/build?
+* more editor features to implement soon
+block indent, comment
 
 editor:
 * selection with arrows and highlighting
 * handle terminal window resizing (SIGWINCH)
-* block indent, comment
 * paragraph back/forward
 * quickly switch between documents
 * find/replace in all documents
@@ -30,6 +28,8 @@ cache results in a file
 offer completions after first letter
 offer recently used, located nearby first
 complete on tab or punctuation
+* customizable key mappings
+* clipboard integration
 
 foundation:
 * convert any object to string

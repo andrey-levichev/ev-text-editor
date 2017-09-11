@@ -245,36 +245,49 @@ bool Document::moveToLine(int line)
     return _position != prev;
 }
 
+void Document::insertNewLine()
+{
+    int p = _position;
+    unichar_t ch = '\n';
+
+    while (p > 0 && (ch == ' ' || ch == '\t' || ch == '\n'))
+    {
+        p = _text.charBack(p);
+        ch = _text.charAt(p);
+    }
+
+    p = findLineStart(p);
+    _indent.assign('\n');
+
+    ch = _text.charAt(p);
+    while (ch == ' ' || ch == '\t')
+    {
+        _indent += ch;
+        p = _text.charForward(p);
+        ch = _text.charAt(p);
+    }
+
+    if (p <= _position)
+    {
+        _text.insert(_position, _indent);
+        _position += _indent.length();
+    }
+    else
+    {
+        _text.insert(_position, '\n');
+        _position = _text.charForward(_position);
+    }
+
+    positionToLineColumn();
+    _modified = true;
+    _selection = -1;
+}
+
 void Document::insertChar(unichar_t ch)
 {
     ASSERT(ch != 0);
 
-    if (ch == '\n') // new line
-    {
-        int p = findLineStart(_position);
-        _indent.assign('\n');
-        unichar_t ch;
-
-        ch = _text.charAt(p);
-        while (ch == ' ' || ch == '\t')
-        {
-            _indent += ch;
-            p = _text.charForward(p);
-            ch = _text.charAt(p);
-        }
-
-        if (p <= _position)
-        {
-            _text.insert(_position, _indent);
-            _position += _indent.length();
-        }
-        else
-        {
-            _text.insert(_position, '\n');
-            _position = _text.charForward(_position);
-        }
-    }
-    else if (ch == '\t') // tab
+    if (ch == '\t') // tab
     {
         _position = indentLine(_position);
     }
@@ -785,8 +798,8 @@ Editor::Editor() :
     Console::getSize(_width, _screenHeight);
     _height = _screenHeight - 1;
 
-    _screen.ensureCapacity(_width * _height);
-    _window.ensureCapacity(_width * _height);
+    _screen.ensureCapacity(_width * _height + 1);
+    _window.ensureCapacity(_width * _height + 1);
 
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
@@ -985,6 +998,7 @@ bool Editor::processKey()
 {
     bool update = false;
     const Array<Key>& keys = Console::readKeys();
+    bool autoindent = keys.size() == 1;
 
     for (int i = 0; i < keys.size(); ++i)
     {
@@ -1165,7 +1179,15 @@ bool Editor::processKey()
             {
                 update = _document->value.moveLinesDown(_height - 1);
             }
-            else if (key.ch == '\n' || key.ch == '\t' || charIsPrint(key.ch))
+            else if (key.ch == '\n')
+            {
+                if (autoindent)
+                    _document->value.insertNewLine();
+                else
+                    _document->value.insertChar('\n');
+                update = true;
+            }
+            else if (key.ch == '\t' || charIsPrint(key.ch))
             {
                 _document->value.insertChar(key.ch);
                 update = true;
@@ -1267,13 +1289,15 @@ void Editor::processCommand()
         else if (ch == 'r')
         {
             p = _command.charForward(p);
-            if (_command.charAt(p) == ' ')
+            unichar_t sep = _command.charAt(p);
+
+            if (sep != 0)
             {
                 p = _command.charForward(p);
 
                 if (p < _command.length())
                 {
-                    int q = _command.find(' ', p);
+                    int q = _command.find(sep, p);
                     if (q == INVALID_POSITION)
                     {
                         _searchStr = _command.substr(p);
