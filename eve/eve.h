@@ -95,8 +95,8 @@ public:
     bool deleteWordForward();
     bool deleteWordBack();
 
-    int indentLine(int pos);
-    int unindentLine(int pos);
+    void indentLines();
+    void unindentLines();
 
     void markSelection();
     String copyDeleteText(bool copy);
@@ -117,6 +117,11 @@ public:
 protected:
     int findLineStart(int pos) const;
     int findLineEnd(int pos) const;
+    int findNextLine(int pos) const;
+    int findPreviousLine(int pos) const;
+
+    void indentLine(int pos);
+    void unindentLine(int pos);
 
     void positionToLineColumn();
     void lineColumnToPosition();

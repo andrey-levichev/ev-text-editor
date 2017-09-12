@@ -8,6 +8,9 @@ print clear to eol code at the end of line
 clear/save screen on startup/build?
 * more editor features to implement soon
 block indent, comment
+restore real tab
+selection remains after indent
+after mark, copy, single line copy doesn't work
 
 editor:
 * selection with arrows and highlighting
@@ -30,6 +33,7 @@ offer recently used, located nearby first
 complete on tab or punctuation
 * customizable key mappings
 * clipboard integration
+* line wrapping
 
 foundation:
 * convert any object to string

@@ -287,20 +287,8 @@ void Document::insertChar(unichar_t ch)
 {
     ASSERT(ch != 0);
 
-    if (ch == '\t') // tab
-    {
-        _position = indentLine(_position);
-    }
-    else if (ch == 0x14) // real tab
-    {
-        _text.insert(_position, '\t');
-        _position = _text.charForward(_position);
-    }
-    else
-    {
-        _text.insert(_position, ch);
-        _position = _text.charForward(_position);
-    }
+    _text.insert(_position, ch);
+    _position = _text.charForward(_position);
 
     positionToLineColumn();
     _modified = true;
@@ -327,16 +315,9 @@ bool Document::deleteCharBack()
 {
     if (_position > 0)
     {
-        int p = unindentLine(_position);
-
-        if (p == INVALID_POSITION)
-        {
-            p = _position;
-            _position = _text.charBack(_position);
-            _text.erase(_position, p - _position);
-        }
-        else
-            _position = p;
+        int prev = _position;
+        _position = _text.charBack(_position);
+        _text.erase(_position, prev - _position);
 
         positionToLineColumn();
         _modified = true;
@@ -385,55 +366,76 @@ bool Document::deleteWordBack()
     return false;
 }
 
-int Document::indentLine(int pos)
+void Document::indentLines()
 {
-    ASSERT(pos >= 0);
-
-    int p = findLineStart(pos);
-    unichar_t ch;
-    int indent = 0;
-
-    ch = _text.charAt(p);
-    while (ch == ' ')
+    if (_selection < 0)
     {
-        ++indent;
-        p = _text.charForward(p);
-        ch = _text.charAt(p);
+        indentLine(_position);
+    }
+    else
+    {
+        int start, end;
+
+        if (_selection < _position)
+        {
+            start = _selection;
+            end = _position;
+        }
+        else
+        {
+            start = _position;
+            end = _selection;
+        }
+
+        start = findLineStart(start);
+
+        for (int pos = end; pos >= start;)
+        {
+            indentLine(pos);
+            pos = findPreviousLine(pos);
+        }
+
+        _selection = start;
     }
 
-    int n = (indent / TAB_SIZE + 1) * TAB_SIZE - indent;
-    _text.insert(p, ' ', n);
-
-    return _text.charForward(p, n);
+    lineColumnToPosition();
+    _modified = true;
 }
 
-int Document::unindentLine(int pos)
+void Document::unindentLines()
 {
-    ASSERT(pos >= 0);
-
-    int p = findLineStart(pos);
-    int q = p;
-    unichar_t ch;
-    int indent = 0;
-
-    ch = _text.charAt(q);
-    while (ch == ' ')
+    if (_selection < 0)
     {
-        ++indent;
-        q = _text.charForward(q);
-        ch = _text.charAt(q);
+        unindentLine(_position);
+    }
+    else
+    {
+        int start, end;
+
+        if (_selection < _position)
+        {
+            start = _selection;
+            end = _position;
+        }
+        else
+        {
+            start = _position;
+            end = _selection;
+        }
+
+        start = findLineStart(start);
+
+        for (int pos = end; pos >= start;)
+        {
+            unindentLine(pos);
+            pos = findPreviousLine(pos);
+        }
+
+        _selection = start;
     }
 
-    if (pos != p && pos <= q)
-    {
-        int n = indent - (indent - 1) / TAB_SIZE * TAB_SIZE;
-        p = _text.charBack(q, n);
-        _text.erase(p, q - p);
-
-        return p;
-    }
-
-    return INVALID_POSITION;
+    lineColumnToPosition();
+    _modified = true;
 }
 
 void Document::markSelection()
@@ -666,6 +668,73 @@ int Document::findLineEnd(int pos) const
     }
 
     return pos;
+}
+
+int Document::findNextLine(int pos) const
+{
+    pos = findLineEnd(pos);
+
+    if (pos < _text.length())
+        pos = _text.charForward(pos);
+
+    return pos;
+}
+
+int Document::findPreviousLine(int pos) const
+{
+    pos = findLineStart(pos);
+
+    if (pos > 0)
+    {
+        pos = _text.charBack(pos);
+        pos = findLineStart(pos);
+    }
+
+    return pos;
+}
+
+void Document::indentLine(int pos)
+{
+    ASSERT(pos >= 0);
+
+    int p = findLineStart(pos);
+    unichar_t ch;
+    int indent = 0;
+
+    ch = _text.charAt(p);
+    while (ch == ' ')
+    {
+        ++indent;
+        p = _text.charForward(p);
+        ch = _text.charAt(p);
+    }
+
+    int n = (indent / TAB_SIZE + 1) * TAB_SIZE - indent;
+    _text.insert(p, ' ', n);
+}
+
+void Document::unindentLine(int pos)
+{
+    ASSERT(pos >= 0);
+
+    int p = findLineStart(pos);
+    unichar_t ch;
+    int indent = 0;
+
+    ch = _text.charAt(p);
+    while (ch == ' ')
+    {
+        ++indent;
+        p = _text.charForward(p);
+        ch = _text.charAt(p);
+    }
+
+    if (indent > 0)
+    {
+        int n = indent - (indent - 1) / TAB_SIZE * TAB_SIZE;
+        int q = _text.charBack(p, n);
+        _text.erase(q, p - q);
+    }
 }
 
 void Document::positionToLineColumn()
@@ -1016,9 +1085,9 @@ bool Editor::processKey()
                 {
                     update = _document->value.moveWordBack();
                 }
-                else if (key.code == KEY_TAB || key.ch == 0x14) // ^Tab or ^T
+                else if (key.code == KEY_TAB)
                 {
-                    _document->value.insertChar(0x14);
+                    _document->value.unindentLines();
                     update = true;
                 }
             }
@@ -1179,7 +1248,7 @@ bool Editor::processKey()
             {
                 update = _document->value.moveLinesDown(_height - 1);
             }
-            else if (key.ch == '\n')
+            else if (key.code == KEY_ENTER)
             {
                 if (autoindent)
                     _document->value.insertNewLine();
@@ -1187,7 +1256,12 @@ bool Editor::processKey()
                     _document->value.insertChar('\n');
                 update = true;
             }
-            else if (key.ch == '\t' || charIsPrint(key.ch))
+            else if (key.code == KEY_TAB)
+            {
+                _document->value.indentLines();
+                update = true;
+            }
+            else if (key.ch == 0x09 && charIsPrint(key.ch))
             {
                 _document->value.insertChar(key.ch);
                 update = true;
