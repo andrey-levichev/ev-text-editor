@@ -5490,7 +5490,7 @@ int MAIN(int argc, const char_t** argv)
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-        testConsoleReadKeys();
+//        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {

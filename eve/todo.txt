@@ -8,9 +8,8 @@ print clear to eol code at the end of line
 clear/save screen on startup/build?
 * more editor features to implement soon
 block indent, comment
-restore real tab
-selection remains after indent
-after mark, copy, single line copy doesn't work
+review input code
+translate unix control chars to ctrl+letter?
 
 editor:
 * selection with arrows and highlighting

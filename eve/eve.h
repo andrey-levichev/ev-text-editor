@@ -120,8 +120,8 @@ protected:
     int findNextLine(int pos) const;
     int findPreviousLine(int pos) const;
 
-    void indentLine(int pos);
-    void unindentLine(int pos);
+    int indentLine(int pos);
+    int unindentLine(int pos);
 
     void positionToLineColumn();
     void lineColumnToPosition();

@@ -370,7 +370,7 @@ void Document::indentLines()
 {
     if (_selection < 0)
     {
-        indentLine(_position);
+        _position = indentLine(_position);
     }
     else
     {
@@ -388,17 +388,19 @@ void Document::indentLines()
         }
 
         start = findLineStart(start);
+        int pos = end;
 
-        for (int pos = end; pos >= start;)
+        do
         {
-            indentLine(pos);
-            pos = findPreviousLine(pos);
+            _position = indentLine(pos);
+            pos = findPreviousLine(_position);
         }
+        while (pos != INVALID_POSITION && pos >= start);
 
-        _selection = start;
+        _selection = -1;
     }
 
-    lineColumnToPosition();
+    positionToLineColumn();
     _modified = true;
 }
 
@@ -406,7 +408,7 @@ void Document::unindentLines()
 {
     if (_selection < 0)
     {
-        unindentLine(_position);
+        _position = unindentLine(_position);
     }
     else
     {
@@ -424,17 +426,19 @@ void Document::unindentLines()
         }
 
         start = findLineStart(start);
+        int pos = end;
 
-        for (int pos = end; pos >= start;)
+        do
         {
-            unindentLine(pos);
-            pos = findPreviousLine(pos);
+            _position = unindentLine(pos);
+            pos = findPreviousLine(_position);
         }
+        while (pos != INVALID_POSITION && pos >= start);
 
-        _selection = start;
+        _selection = -1;
     }
 
-    lineColumnToPosition();
+    positionToLineColumn();
     _modified = true;
 }
 
@@ -467,6 +471,8 @@ String Document::copyDeleteText(bool copy)
             start = _position;
             end = _selection;
         }
+
+        _selection = -1;
     }
 
     if (start < end)
@@ -480,7 +486,6 @@ String Document::copyDeleteText(bool copy)
 
             positionToLineColumn();
             _modified = true;
-            _selection = -1;
         }
 
         return text;
@@ -647,6 +652,8 @@ void Document::save()
 
 int Document::findLineStart(int pos) const
 {
+    ASSERT(pos >= 0);
+
     while (pos > 0)
     {
         int p = _text.charBack(pos);
@@ -660,6 +667,8 @@ int Document::findLineStart(int pos) const
 
 int Document::findLineEnd(int pos) const
 {
+    ASSERT(pos >= 0);
+
     while (pos < _text.length())
     {
         if (_text.charAt(pos) == '\n')
@@ -672,28 +681,32 @@ int Document::findLineEnd(int pos) const
 
 int Document::findNextLine(int pos) const
 {
+    ASSERT(pos >= 0);
+
     pos = findLineEnd(pos);
 
     if (pos < _text.length())
-        pos = _text.charForward(pos);
-
-    return pos;
+        return _text.charForward(pos);
+    else
+        return INVALID_POSITION;
 }
 
 int Document::findPreviousLine(int pos) const
 {
+    ASSERT(pos >= 0);
+
     pos = findLineStart(pos);
 
     if (pos > 0)
     {
         pos = _text.charBack(pos);
-        pos = findLineStart(pos);
+        return findLineStart(pos);
     }
-
-    return pos;
+    else
+        return INVALID_POSITION;
 }
 
-void Document::indentLine(int pos)
+int Document::indentLine(int pos)
 {
     ASSERT(pos >= 0);
 
@@ -711,9 +724,11 @@ void Document::indentLine(int pos)
 
     int n = (indent / TAB_SIZE + 1) * TAB_SIZE - indent;
     _text.insert(p, ' ', n);
+
+    return _text.charForward(p, n);
 }
 
-void Document::unindentLine(int pos)
+int Document::unindentLine(int pos)
 {
     ASSERT(pos >= 0);
 
@@ -731,10 +746,12 @@ void Document::unindentLine(int pos)
 
     if (indent > 0)
     {
-        int n = indent - (indent - 1) / TAB_SIZE * TAB_SIZE;
-        int q = _text.charBack(p, n);
-        _text.erase(q, p - q);
+        int q = p, n = indent - (indent - 1) / TAB_SIZE * TAB_SIZE;
+        p = _text.charBack(p, n);
+        _text.erase(p, q - p);
     }
+
+    return p;
 }
 
 void Document::positionToLineColumn()
@@ -794,6 +811,8 @@ void Document::lineColumnToPosition()
 
 void Document::lineColumnToTopLeft(int width, int height)
 {
+    ASSERT(width > 0 && height > 0);
+
     if (_line < _top)
         _top = _line;
     else if (_line >= _top + height)
@@ -889,6 +908,8 @@ Editor::~Editor()
 
 void Editor::openDocument(const char_t* filename)
 {
+    ASSERT(filename);
+
     _documents.pushBack(Document());
     _document = _documents.back();
     _document->value.open(filename);
@@ -1085,9 +1106,9 @@ bool Editor::processKey()
                 {
                     update = _document->value.moveWordBack();
                 }
-                else if (key.code == KEY_TAB)
+                else if (key.code == KEY_TAB || key.ch == 0x14)
                 {
-                    _document->value.unindentLines();
+                    _document->value.insertChar(0x9);
                     update = true;
                 }
             }
@@ -1208,6 +1229,14 @@ bool Editor::processKey()
                     }
                 }
             }
+            else if (key.shift)
+            {
+                if (key.code == KEY_TAB)
+                {
+                    _document->value.unindentLines();
+                    update = true;
+                }
+            }
             else if (key.code == KEY_BACKSPACE)
             {
                 update = _document->value.deleteCharBack();
@@ -1261,7 +1290,7 @@ bool Editor::processKey()
                 _document->value.indentLines();
                 update = true;
             }
-            else if (key.ch == 0x09 && charIsPrint(key.ch))
+            else if (charIsPrint(key.ch))
             {
                 _document->value.insertChar(key.ch);
                 update = true;
