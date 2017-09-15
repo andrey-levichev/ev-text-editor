@@ -42,6 +42,8 @@ void printArgs(const char_t* format, va_list args)
 
 #endif
 
+static const char* controlKeys = "@abcdefghijklmnopqrstuvwxyz[\\]^_";
+
 #ifdef PLATFORM_UNIX
 
 struct KeyMapping
@@ -758,18 +760,21 @@ const Array<Key>& Console::readKeys()
                     key.code = KEY_F12;
                     break;
                 default:
-                    key.code = KEY_NONE;
-                    key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
+                    if (inputRec.Event.KeyEvent.uChar.UnicodeChar == 0)
+                        continue;
+                    if (inputRec.Event.KeyEvent.uChar.UnicodeChar < 0x20)
+                        key.ch = controlKeys[inputRec.Event.KeyEvent.uChar.UnicodeChar];
+                    else
+                        key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
                     break;
                 }
 
-                DWORD controlKeys = inputRec.Event.KeyEvent.dwControlKeyState;
-                key.ctrl = (controlKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-                key.alt = (controlKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
-                key.shift = (controlKeys & SHIFT_PRESSED) != 0;
+                DWORD modifierKeys = inputRec.Event.KeyEvent.dwControlKeyState;
+                key.ctrl = (modifierKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+                key.alt = (modifierKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+                key.shift = (modifierKeys & SHIFT_PRESSED) != 0;
 
-                if (!(key.code == KEY_NONE && key.ch == 0))
-                    _keys.pushBack(key);
+                _keys.pushBack(key);
             }
         }
     }
@@ -839,7 +844,6 @@ const Array<Key>& Console::readKeys()
 
             unichar_t ch;
             p += UTF_CHAR_TO_UNICODE(p, ch);
-            key.ch = ch;
             key.shift = charIsUpper(ch);
 
             if (ch == '\t')
@@ -848,8 +852,13 @@ const Array<Key>& Console::readKeys()
                 key.code = KEY_ENTER;
             else if (ch == 0x7f)
                 key.code = KEY_BACKSPACE;
-            else if (iswcntrl(ch))
+            else if (ch < 0x20)
+            {
                 key.ctrl = true;
+                key.ch = controlKeys[ch];
+            }
+            eles
+                key.ch = ch;
 
             _keys.pushBack(key);
         }

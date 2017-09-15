@@ -97,6 +97,7 @@ public:
 
     void indentLines();
     void unindentLines();
+    void toggleComment();
 
     void markSelection();
     String copyDeleteText(bool copy);
@@ -122,6 +123,7 @@ protected:
 
     int indentLine(int pos);
     int unindentLine(int pos);
+    int toggleComment(int pos);
 
     void positionToLineColumn();
     void lineColumnToPosition();

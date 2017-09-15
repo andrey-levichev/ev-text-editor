@@ -442,6 +442,44 @@ void Document::unindentLines()
     _modified = true;
 }
 
+void Document::toggleComment()
+{
+    if (_selection < 0)
+    {
+        _position = toggleComment(_position);
+    }
+    else
+    {
+        int start, end;
+
+        if (_selection < _position)
+        {
+            start = _selection;
+            end = _position;
+        }
+        else
+        {
+            start = _position;
+            end = _selection;
+        }
+
+        start = findLineStart(start);
+        int pos = end;
+
+        do
+        {
+            _position = toggleComment(pos);
+            pos = findPreviousLine(_position);
+        }
+        while (pos != INVALID_POSITION && pos >= start);
+
+        _selection = -1;
+    }
+
+    positionToLineColumn();
+    _modified = true;
+}
+
 void Document::markSelection()
 {
     _selection = _position;
@@ -752,6 +790,38 @@ int Document::unindentLine(int pos)
     }
 
     return p;
+}
+
+int Document::toggleComment(int pos)
+{
+    ASSERT(pos >= 0);
+
+    int start = findLineStart(pos), p = start;
+    unichar_t ch;
+    int indent = 0;
+
+    ch = _text.charAt(p);
+    while (ch == ' ')
+    {
+        p = _text.charForward(p);
+        ch = _text.charAt(p);
+    }
+
+    if (ch == '/')
+    {
+        int q = _text.charForward(p);
+        ch = _text.charAt(q);
+
+        if (ch == '/')
+        {
+            q = _text.charForward(q);
+            _text.erase(p, q - p);
+            return p;
+        }
+    }
+
+    _text.insert(start, STR("//"));
+    return start;
 }
 
 void Document::positionToLineColumn()
@@ -1218,24 +1288,14 @@ bool Editor::processKey()
                 }
                 else if (key.ch == '/')
                 {
-                    try
-                    {
-                        processCommand();
-                        update = true;
-                    }
-                    catch (Exception& ex)
-                    {
-                        Console::write(_screenHeight, 1, ex.message());
-                    }
-                }
-            }
-            else if (key.shift)
-            {
-                if (key.code == KEY_TAB)
-                {
-                    _document->value.unindentLines();
+                    _document->value.toggleComment();
                     update = true;
                 }
+            }
+            else if (key.shift && key.code == KEY_TAB)
+            {
+                _document->value.unindentLines();
+                update = true;
             }
             else if (key.code == KEY_BACKSPACE)
             {
@@ -1289,6 +1349,18 @@ bool Editor::processKey()
             {
                 _document->value.indentLines();
                 update = true;
+            }
+            else if (key.code == KEY_ESC)
+            {
+                try
+                {
+                    processCommand();
+                    update = true;
+                }
+                catch (Exception& ex)
+                {
+                    Console::write(_screenHeight, 1, ex.message());
+                }
             }
             else if (charIsPrint(key.ch))
             {
