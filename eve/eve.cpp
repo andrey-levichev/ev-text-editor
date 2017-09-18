@@ -748,45 +748,56 @@ int Document::indentLine(int pos)
 {
     ASSERT(pos >= 0);
 
-    int p = findLineStart(pos);
+    int start = findLineStart(pos), p = start;
     unichar_t ch;
     int indent = 0;
 
     ch = _text.charAt(p);
-    while (ch == ' ')
+    while (ch == ' ' || ch == '\t')
     {
-        ++indent;
+        if (ch == '\t')
+            indent += TAB_SIZE - (p - start) % TAB_SIZE;
+        else
+            ++indent;
+
         p = _text.charForward(p);
         ch = _text.charAt(p);
     }
 
-    int n = (indent / TAB_SIZE + 1) * TAB_SIZE - indent;
-    _text.insert(p, ' ', n);
+    indent = (indent / TAB_SIZE + 1) * TAB_SIZE;
+    _text.erase(start, p - start);
+    _text.insert(start, ' ', indent);
 
-    return _text.charForward(p, n);
+    return _text.charForward(start, indent);
 }
 
 int Document::unindentLine(int pos)
 {
     ASSERT(pos >= 0);
 
-    int p = findLineStart(pos);
+    int start = findLineStart(pos), p = start;
     unichar_t ch;
     int indent = 0;
 
     ch = _text.charAt(p);
-    while (ch == ' ')
+    while (ch == ' ' || ch == '\t')
     {
-        ++indent;
+        if (ch == '\t')
+            indent += TAB_SIZE - (p - start) % TAB_SIZE;
+        else
+            ++indent;
+
         p = _text.charForward(p);
         ch = _text.charAt(p);
     }
 
     if (indent > 0)
     {
-        int q = p, n = indent - (indent - 1) / TAB_SIZE * TAB_SIZE;
-        p = _text.charBack(p, n);
-        _text.erase(p, q - p);
+        indent = (indent - 1) / TAB_SIZE * TAB_SIZE;
+        _text.erase(start, p - start);
+        _text.insert(start, ' ', indent);
+
+        p = _text.charForward(start, indent);
     }
 
     return p;
@@ -801,7 +812,7 @@ int Document::toggleComment(int pos)
     int indent = 0;
 
     ch = _text.charAt(p);
-    while (ch == ' ')
+    while (ch == ' ' || ch == '\t')
     {
         p = _text.charForward(p);
         ch = _text.charAt(p);
