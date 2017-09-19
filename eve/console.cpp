@@ -857,7 +857,7 @@ const Array<Key>& Console::readKeys()
                 key.ctrl = true;
                 key.ch = controlKeys[ch];
             }
-            eles
+            else
                 key.ch = ch;
 
             _keys.pushBack(key);

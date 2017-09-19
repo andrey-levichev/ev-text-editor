@@ -809,7 +809,6 @@ int Document::toggleComment(int pos)
 
     int start = findLineStart(pos), p = start;
     unichar_t ch;
-    int indent = 0;
 
     ch = _text.charAt(p);
     while (ch == ' ' || ch == '\t')
@@ -1562,6 +1561,7 @@ int MAIN(int argc, const char_t** argv)
                 "pgup/pgdn - page up/down\n"
                 "alt+pgup/pgdn - half page up/down\n"
                 "tab - indent line\n"
+                "shift+tab - unindent line\n"
                 "delete - delete character at cursor position\n"
                 "backspace - unindent line or delete character to the left of cursor position\n"
                 "alt+del - delete word at cursor position\n"
@@ -1573,14 +1573,15 @@ int MAIN(int argc, const char_t** argv)
                 "alt+w - find word at cursor\n"
                 "alt+f - find again\n"
                 "alt+r - replace and find again\n"
-                "alt+/ - enter command\n"
+                "alt+/ - toggle comment\n"
                 "alt+b - build with make\n"
                 "alt+, - go to previous document\n"
                 "alt+. - go to next document\n"
                 "alt+s - save\n"
                 "alt+a - save all\n"
                 "alt+x - save all and quit\n"
-                "alt+q - quit without saving\n\n"
+                "alt+q - quit without saving\n"
+                "ESC - enter command\n\n"
                 "commands:\n"
                 "g number - go to line number\n"
                 "f string - find string\n"

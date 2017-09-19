@@ -6,6 +6,8 @@ replace key mapping table with trie based word map
 print clear to eol code at the end of line
 * use window width instead of screen buffer width on windows
 clear/save screen on startup/build?
+* string set
+do we need zeros in the leaf nodes?
 
 editor:
 * selection with arrows and highlighting

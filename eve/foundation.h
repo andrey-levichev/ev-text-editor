@@ -3299,31 +3299,31 @@ protected:
     float _maxLoadFactor;
 };
 
-// WordSet
+// StringSet
 
-struct WordSetNode
+struct StringSetNode
 {
     unichar_t ch;
-    WordSetNode* parent;
-    WordSetNode* child;
-    WordSetNode* sibling;
+    StringSetNode* parent;
+    StringSetNode* child;
+    StringSetNode* sibling;
 
-    WordSetNode(unichar_t ch) :
+    StringSetNode(unichar_t ch) :
         ch(ch), parent(NULL), child(NULL), sibling(NULL)
     {
     }
 };
 
-class WordSet
+class StringSet
 {
 public:
-    WordSet();
-    WordSet(const WordSet& other);
-    WordSet(WordSet&& other);
-    ~WordSet();
+    StringSet();
+    StringSet(const StringSet& other);
+    StringSet(StringSet&& other);
+    ~StringSet();
 
-    WordSet& operator=(const WordSet& other);
-    WordSet& operator=(WordSet&& other);
+    StringSet& operator=(const StringSet& other);
+    StringSet& operator=(StringSet&& other);
 
     bool empty() const
     {
@@ -3335,15 +3335,15 @@ public:
     String getPrev(const String& prefix) const;
     String getLongest(const String& prefix) const;
 
-    void add(const String& word);
-    bool remove(const String& word);
+    void add(const String& key);
+    bool remove(const String& key);
     void clear();
 
 protected:
-    WordSetNode* findStartNode(const String& prefix) const;
+    StringSetNode* findNode(const String& prefix) const;
 
 protected:
-    WordSetNode* _root;
+    StringSetNode* _root;
 };
 
 #endif

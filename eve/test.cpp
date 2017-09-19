@@ -4863,90 +4863,89 @@ void testSetIterator()
     }
 }
 
-void testWordSet()
+void testStringSet()
 {
     {
-        WordSet ws;
-        ASSERT(ws.empty());
+        StringSet ss;
+        ASSERT(ss.empty());
     }
 
     {
-        WordSet ws;
-        ws.add(STR("a"));
-        ASSERT(!ws.empty());
-        ASSERT(compareSequence(ws.get(), STR("a")));
+        StringSet ss;
+        ss.add(STR("a"));
+        ASSERT(!ss.empty());
+        ASSERT(compareSequence(ss.get(), STR("a")));
     }
 
     {
-        WordSet ws;
-        ws.add(STR("a"));
-        ws.add(STR("a"));
-        ASSERT(!ws.empty());
-        ASSERT(compareSequence(ws.get(), STR("a")));
+        StringSet ss;
+        ss.add(STR("a"));
+        ss.add(STR("a"));
+        ASSERT(!ss.empty());
+        ASSERT(compareSequence(ss.get(), STR("a")));
     }
 
     {
-        WordSet ws;
-        ws.add(STR("a"));
-        ws.add(STR("aa"));
-        ASSERT(!ws.empty());
-        ASSERT(compareSequence(ws.get(), STR("a"), STR("aa")));
+        StringSet ss;
+        ss.add(STR("a"));
+        ss.add(STR("aa"));
+        ASSERT(!ss.empty());
+        ASSERT(compareSequence(ss.get(), STR("a"), STR("aa")));
     }
 
     {
-        WordSet ws;
-        ws.add(STR("a"));
-        ws.add(STR("b"));
-        ASSERT(!ws.empty());
-        ASSERT(compareSequence(ws.get(), STR("a"), STR("b")));
+        StringSet ss;
+        ss.add(STR("a"));
+        ss.add(STR("b"));
+        ASSERT(!ss.empty());
+        ASSERT(compareSequence(ss.get(), STR("a"), STR("b")));
     }
 
     {
-        WordSet ws;
-        ws.add(STR("b"));
-        ws.add(STR("a"));
-        ASSERT(!ws.empty());
-        ASSERT(compareSequence(ws.get(), STR("a"), STR("b")));
+        StringSet ss;
+        ss.add(STR("b"));
+        ss.add(STR("a"));
+        ASSERT(!ss.empty());
+        ASSERT(compareSequence(ss.get(), STR("a"), STR("b")));
     }
 
     {
-        WordSet ws;
-        ws.add(STR("a"));
-        ws.add(STR("c"));
-        ws.add(STR("b"));
-        ASSERT(!ws.empty());
-        ASSERT(compareSequence(ws.get(), STR("a"), STR("b"), STR("c")));
+        StringSet ss;
+        ss.add(STR("a"));
+        ss.add(STR("c"));
+        ss.add(STR("b"));
+        ASSERT(!ss.empty());
+        ASSERT(compareSequence(ss.get(), STR("a"), STR("b"), STR("c")));
     }
 
     {
-        WordSet ws;
-        ws.add(STR("a"));
-        ws.add(STR("b"));
-        ws.add(STR("c"));
-        ws.add(STR("bb"));
-        ASSERT(!ws.empty());
-        ASSERT(compareSequence(ws.get(), STR("a"), STR("b"), STR("bb"), STR("c")));
+        StringSet ss;
+        ss.add(STR("ab"));
+        ss.add(STR("aa"));
+        ASSERT(!ss.empty());
+        ASSERT(compareSequence(ss.get(), STR("aa"), STR("ab")));
     }
 
     {
-        WordSet ws;
-        ws.add(STR("bad"));
-        ws.add(STR("bandit"));
-        ws.add(STR("badly"));
-        ws.add(STR("banned"));
-        ws.add(STR("house"));
-        ws.add(STR("bank"));
-        ws.add(STR("home"));
+        StringSet ss;
+        ss.add(STR("bad"));
+        ss.add(STR("bandit"));
+        ss.add(STR("bag"));
+        ss.add(STR("banned"));
+        ss.add(STR("house"));
+        ss.add(STR("baby"));
+        ss.add(STR("home"));
 
-        ASSERT(compareSequence(ws.get(), STR("bad"), STR("badly"),
-            STR("bandit"), STR("bank"), STR("banned"), STR("home"), STR("house")));
+        ASSERT(compareSequence(ss.get(), STR("baby"), STR("bad"), STR("bag"),
+            STR("bandit"), STR("banned"), STR("home"), STR("house")));
 
-        ASSERT(compareSequence(ws.get(STR("b")), STR("bad"), STR("badly"),
-            STR("bandit"), STR("bank"), STR("banned")));
+        ASSERT(compareSequence(ss.get(STR("b")), STR("baby"),  STR("bad"), STR("bag"),
+            STR("bandit"), STR("banned")));
 
-        ASSERT(compareSequence(ws.get(STR("bad")), STR("bad"), STR("badly")));
-        ASSERT(compareSequence(ws.get(STR("ban")), STR("bandit"), STR("bank"), STR("banned")));
-        ASSERT(compareSequence(ws.get(STR("h")), STR("home"), STR("house")));
+        ASSERT(compareSequence(ss.get(STR("bad")), STR("bad")));
+        ASSERT(compareSequence(ss.get(STR("ban")), STR("bandit"), STR("banned")));
+        ASSERT(compareSequence(ss.get(STR("h")), STR("home"), STR("house")));
+        ASSERT(ss.get(STR("x")).empty());
     }
 }
 
@@ -4964,7 +4963,7 @@ void testFoundation()
     testMapIterator();
     testSet();
     testSetIterator();
-    testWordSet();
+    testStringSet();
 }
 
 void testFile()
@@ -5483,14 +5482,14 @@ int MAIN(int argc, const char_t** argv)
         Console::setLineMode(true);
         printPlatformInfo();
 
-//        testSupport();
-//        testFoundation();
+        testSupport();
+        testFoundation();
 //        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-        testConsoleReadKeys();
+//        testConsoleReadKeys();
     }
     catch (Exception& ex)
     {
