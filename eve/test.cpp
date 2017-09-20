@@ -4865,6 +4865,9 @@ void testSetIterator()
 
 void testStringSet()
 {
+    // StringSet()
+    // bool empty() const
+
     {
         StringSet ss;
         ASSERT(ss.empty());
@@ -4874,6 +4877,29 @@ void testStringSet()
         StringSet ss;
         ss.add(STR("a"));
         ASSERT(!ss.empty());
+    }
+
+    // StringSet(const StringSet& other)
+
+    // StringSet(StringSet&& other)
+
+    // StringSet& operator=(const StringSet& other)
+
+    // StringSet& operator=(StringSet&& other)
+
+    // Array<String> get(const String& prefix = String()) const
+
+    // String getNext(const String& key) const
+
+    // String getPrev(const String& key) const
+
+    // String getLongest(const String& prefix) const
+
+    // void add(const String& key)
+
+    {
+        StringSet ss;
+        ss.add(STR("a"));
         ASSERT(compareSequence(ss.get(), STR("a")));
     }
 
@@ -4881,7 +4907,6 @@ void testStringSet()
         StringSet ss;
         ss.add(STR("a"));
         ss.add(STR("a"));
-        ASSERT(!ss.empty());
         ASSERT(compareSequence(ss.get(), STR("a")));
     }
 
@@ -4889,7 +4914,6 @@ void testStringSet()
         StringSet ss;
         ss.add(STR("a"));
         ss.add(STR("aa"));
-        ASSERT(!ss.empty());
         ASSERT(compareSequence(ss.get(), STR("a"), STR("aa")));
     }
 
@@ -4897,7 +4921,6 @@ void testStringSet()
         StringSet ss;
         ss.add(STR("a"));
         ss.add(STR("b"));
-        ASSERT(!ss.empty());
         ASSERT(compareSequence(ss.get(), STR("a"), STR("b")));
     }
 
@@ -4905,7 +4928,6 @@ void testStringSet()
         StringSet ss;
         ss.add(STR("b"));
         ss.add(STR("a"));
-        ASSERT(!ss.empty());
         ASSERT(compareSequence(ss.get(), STR("a"), STR("b")));
     }
 
@@ -4914,7 +4936,6 @@ void testStringSet()
         ss.add(STR("a"));
         ss.add(STR("c"));
         ss.add(STR("b"));
-        ASSERT(!ss.empty());
         ASSERT(compareSequence(ss.get(), STR("a"), STR("b"), STR("c")));
     }
 
@@ -4922,7 +4943,6 @@ void testStringSet()
         StringSet ss;
         ss.add(STR("ab"));
         ss.add(STR("aa"));
-        ASSERT(!ss.empty());
         ASSERT(compareSequence(ss.get(), STR("aa"), STR("ab")));
     }
 
@@ -4947,6 +4967,10 @@ void testStringSet()
         ASSERT(compareSequence(ss.get(STR("h")), STR("home"), STR("house")));
         ASSERT(ss.get(STR("x")).empty());
     }
+
+    // bool remove(const String& key)
+
+    // void clear();
 }
 
 void testFoundation()

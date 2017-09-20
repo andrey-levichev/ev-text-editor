@@ -6,8 +6,11 @@ replace key mapping table with trie based word map
 print clear to eol code at the end of line
 * use window width instead of screen buffer width on windows
 clear/save screen on startup/build?
-* string set
-do we need zeros in the leaf nodes?
+* pressing enter in whitespace of indented line following another indented line increases indent
+* block indent shouldn't jump to start
+* rename kvList and kvNode
+* change Set::find to Set::contains
+* add vs append vs pushBack, erase vs delete vs remove
 
 editor:
 * selection with arrows and highlighting

@@ -3325,25 +3325,40 @@ public:
     StringSet& operator=(const StringSet& other);
     StringSet& operator=(StringSet&& other);
 
+    int size() const
+    {
+        return _size;
+    }
+
     bool empty() const
     {
         return _root == NULL;
     }
 
     Array<String> get(const String& prefix = String()) const;
-    String getNext(const String& prefix) const;
-    String getPrev(const String& prefix) const;
+    String getNext(const String& key) const;
+    String getPrev(const String& key) const;
     String getLongest(const String& prefix) const;
+    bool contains(const String& key) const;
 
+    void assign(const StringSet& other);
     void add(const String& key);
+    String remove();
     bool remove(const String& key);
     void clear();
+
+    friend void swap(StringSet& left, StringSet& right)
+    {
+        swap(left._root, right._root);
+        swap(left._size, right._size);
+    }
 
 protected:
     StringSetNode* findNode(const String& prefix) const;
 
 protected:
     StringSetNode* _root;
+    int _size;
 };
 
 #endif

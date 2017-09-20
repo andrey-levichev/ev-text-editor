@@ -1789,7 +1789,7 @@ bool ConstStringIterator::movePrev()
 // StringSet
 
 StringSet::StringSet() :
-    _root(NULL)
+    _root(NULL), _size(0)
 {
 }
 
@@ -1863,12 +1863,12 @@ Array<String> StringSet::get(const String& prefix) const
     return keys;
 }
 
-String StringSet::getNext(const String& prefix) const
+String StringSet::getNext(const String& key) const
 {
     return String();
 }
 
-String StringSet::getPrev(const String& prefix) const
+String StringSet::getPrev(const String& key) const
 {
     return String();
 }
@@ -1878,10 +1878,18 @@ String StringSet::getLongest(const String& prefix) const
     return String();
 }
 
+bool StringSet::contains(const String& key) const
+{
+    return false;
+}
+
+void StringSet::assign(const StringSet& other)
+{
+}
+
 void StringSet::add(const String& key)
 {
-    if (key.empty())
-        throw Exception(STR("empty key is not allowed"));
+    ASSERT(!key.empty());
 
     StringSetNode* node = _root;
     StringSetNode* parent = NULL;
@@ -1958,8 +1966,72 @@ void StringSet::add(const String& key)
     }
 }
 
+String StringSet::remove()
+{
+    return String();
+}
+
 bool StringSet::remove(const String& key)
 {
+    ASSERT(!key.empty());
+
+    StringSetNode* start = findNode(key);
+
+    if (start && start->ch == 0)
+    {
+        StringSetNode* node = start;
+
+        while (true)
+        {
+            StringSetNode* n = node;
+            node = node->parent;
+
+            if (node)
+            {
+                if (n->sibling)
+                {
+                    if (node->child == n)
+                        node->child = n->sibling;
+                    else
+                        node->sibling = n->sibling;
+
+                    n->sibling->parent = node;
+                    Memory::destroy(n);
+                    break;
+                }
+                else
+                {
+                    if (node->child == n)
+                    {
+                        node->child = NULL;
+                        Memory::destroy(n);
+                    }
+                    else
+                    {
+                        node->sibling = NULL;
+                        Memory::destroy(n);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (n->sibling)
+                {
+                    _root = n->sibling;
+                    n->sibling->parent = NULL;
+                }
+                else
+                    _root = NULL;
+
+                Memory::destroy(n);
+                break;
+            }
+        }
+
+        return true;
+    }
+
     return false;
 }
 
@@ -1979,15 +2051,21 @@ void StringSet::clear()
             {
                 StringSetNode* n = node;
                 node = node->parent;
-                Memory::destroy(n);
 
-                if (!node)
+                if (node)
+                {
+                    if (node->child == n)
+                        node->child = NULL;
+                    else
+                        node->sibling = NULL;
+
+                    Memory::destroy(n);
+                }
+                else
+                {
+                    Memory::destroy(n);
                     break;
-
-                if (node->child == n)
-                    node->child = NULL;
-                else if (node->sibling == n)
-                    node->sibling = NULL;
+                }
             }
         }
 
@@ -2001,7 +2079,7 @@ StringSetNode* StringSet::findNode(const String& prefix) const
         return NULL;
 
     StringSetNode* node = _root;
-    StringSetNode* start = _root;
+    StringSetNode* parent = _root;
 
     for (int pos = 0; pos < prefix.length(); pos = prefix.charForward(pos))
     {
@@ -2011,20 +2089,20 @@ StringSetNode* StringSet::findNode(const String& prefix) const
         {
             if (ch == node->ch)
             {
-                start = node;
+                parent = node;
                 node = node->child;
             }
             else
             {
                 while (ch > node->ch && node->sibling)
                 {
-                    start = node;
+                    parent = node;
                     node = node->sibling;
                 }
 
                 if (ch == node->ch)
                 {
-                    start = node;
+                    parent = node;
                     node = node->child;
                 }
                 else
@@ -2035,5 +2113,5 @@ StringSetNode* StringSet::findNode(const String& prefix) const
             return NULL;
     }
 
-    return prefix.empty() ? start : start->child;
+    return prefix.empty() ? parent : parent->child;
 }
