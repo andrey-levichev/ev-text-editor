@@ -145,7 +145,7 @@ void testSupport()
 
     {
         Array<int> a;
-        a.pushBack(1);
+        a.addLast(1);
 
         ASSERT(!compareSequence(a));
         ASSERT(compareSequence(a, 1));
@@ -154,8 +154,8 @@ void testSupport()
 
     {
         Array<int> a;
-        a.pushBack(1);
-        a.pushBack(2);
+        a.addLast(1);
+        a.addLast(2);
 
         ASSERT(!compareSequence(a, 1));
         ASSERT(compareSequence(a, 1, 2));
@@ -2709,29 +2709,29 @@ void testArray()
         ASSERT(*(ca.values() + 2) == 3);
     }
 
-    // _Type& front()
-    // const _Type& front() const
-    // _Type& back()
-    // const _Type& back() const
+    // _Type& first()
+    // const _Type& first() const
+    // _Type& last()
+    // const _Type& last() const
 
     {
         Array<int> a;
-        ASSERT_EXCEPTION(Exception, a.front());
-        ASSERT_EXCEPTION(Exception, a.back());
+        ASSERT_EXCEPTION(Exception, a.first());
+        ASSERT_EXCEPTION(Exception, a.last());
 
         const Array<int>& ca = a;
-        ASSERT_EXCEPTION(Exception, ca.front());
-        ASSERT_EXCEPTION(Exception, ca.back());
+        ASSERT_EXCEPTION(Exception, ca.first());
+        ASSERT_EXCEPTION(Exception, ca.last());
     }
 
     {
         Array<int> a(3, ep);
-        ASSERT(a.front() == 1);
-        ASSERT(a.back() == 3);
+        ASSERT(a.first() == 1);
+        ASSERT(a.last() == 3);
 
         const Array<int>& ca = a;
-        ASSERT(ca.front() == 1);
-        ASSERT(ca.back() == 3);
+        ASSERT(ca.first() == 1);
+        ASSERT(ca.last() == 3);
     }
 
     // int find(const _Type& value) const
@@ -2979,55 +2979,55 @@ void testArray()
         ASSERT(a2[0] == 0);
     }
 
-    // void popBack()
+    // void removeLast()
 
-    ASSERT_EXCEPTION(Exception, Array<int>().popBack());
+    ASSERT_EXCEPTION(Exception, Array<int>().removeLast());
 
     {
         Array<int> a(3, ep);
-        a.popBack();
+        a.removeLast();
         ASSERT(a.size() == 2);
     }
 
-    // void pushBack(const _Type& value)
+    // void addLast(const _Type& value)
 
     {
         Array<int> a;
         int v1 = 1, v2 = 2, v3 = 3;
 
-        a.pushBack(v1);
-        ASSERT(a.back() == v1);
+        a.addLast(v1);
+        ASSERT(a.last() == v1);
         ASSERT(a.size() == 1);
         ASSERT(a.capacity() == 1);
 
-        a.pushBack(v2);
-        ASSERT(a.back() == v2);
+        a.addLast(v2);
+        ASSERT(a.last() == v2);
         ASSERT(a.size() == 2);
         ASSERT(a.capacity() == 3);
 
-        a.pushBack(v3);
-        ASSERT(a.back() == v3);
+        a.addLast(v3);
+        ASSERT(a.last() == v3);
         ASSERT(a.size() == 3);
         ASSERT(a.capacity() == 3);
     }
 
-    // void pushBack(_Type&& value)
+    // void addLast(_Type&& value)
 
     {
         Array<int> a;
 
-        a.pushBack(1);
-        ASSERT(a.back() == 1);
+        a.addLast(1);
+        ASSERT(a.last() == 1);
         ASSERT(a.size() == 1);
         ASSERT(a.capacity() == 1);
 
-        a.pushBack(2);
-        ASSERT(a.back() == 2);
+        a.addLast(2);
+        ASSERT(a.last() == 2);
         ASSERT(a.size() == 2);
         ASSERT(a.capacity() == 3);
 
-        a.pushBack(3);
-        ASSERT(a.back() == 3);
+        a.addLast(3);
+        ASSERT(a.last() == 3);
         ASSERT(a.size() == 3);
         ASSERT(a.capacity() == 3);
     }
@@ -3046,17 +3046,17 @@ void testArray()
         int v1 = 1, v2 = 2, v3 = 3, v4 = 4;
 
         a.insert(0, v1);
-        ASSERT(a.back() == v1);
+        ASSERT(a.last() == v1);
         ASSERT(a.size() == 1);
         ASSERT(a.capacity() == 1);
 
         a.insert(1, v2);
-        ASSERT(a.back() == v2);
+        ASSERT(a.last() == v2);
         ASSERT(a.size() == 2);
         ASSERT(a.capacity() == 3);
 
         a.insert(0, v3);
-        ASSERT(a.front() == v3);
+        ASSERT(a.first() == v3);
         ASSERT(a.size() == 3);
         ASSERT(a.capacity() == 3);
 
@@ -3078,17 +3078,17 @@ void testArray()
         Array<int> a;
 
         a.insert(0, 1);
-        ASSERT(a.back() == 1);
+        ASSERT(a.last() == 1);
         ASSERT(a.size() == 1);
         ASSERT(a.capacity() == 1);
 
         a.insert(1, 2);
-        ASSERT(a.back() == 2);
+        ASSERT(a.last() == 2);
         ASSERT(a.size() == 2);
         ASSERT(a.capacity() == 3);
 
         a.insert(0, 3);
-        ASSERT(a.front() == 3);
+        ASSERT(a.first() == 3);
         ASSERT(a.size() == 3);
         ASSERT(a.capacity() == 3);
 
@@ -3201,8 +3201,8 @@ void testArray()
 
     {
         Array<UniquePtr<int>> a;
-        a.pushBack(createUnique<int>(1));
-        a.pushBack(createUnique<int>(2));
+        a.addLast(createUnique<int>(1));
+        a.addLast(createUnique<int>(2));
         ASSERT(*a[0] == 1);
         ASSERT(*a[1] == 2);
         ASSERT(a.find(createUnique<int>(0)) == INVALID_POSITION);
@@ -3213,7 +3213,7 @@ void testArray()
         Array<UniquePtr<int>> a;
         a.ensureCapacity(2);
         ASSERT(a.capacity() == 2);
-        a.pushBack(createUnique<int>(1));
+        a.addLast(createUnique<int>(1));
         a.shrinkToLength();
         ASSERT(a.capacity() == 1);
         a.resize(3);
@@ -3224,22 +3224,22 @@ void testArray()
         Array<UniquePtr<int>> a;
         a.insert(0, createUnique<int>(1));
         a.insert(0, createUnique<int>(2));
-        a.popBack();
-        ASSERT(*a.back() == 2);
+        a.removeLast();
+        ASSERT(*a.last() == 2);
     }
 
     {
         Array<UniquePtr<int>> a;
-        a.pushBack(createUnique<int>(1));
-        a.pushBack(createUnique<int>(2));
+        a.addLast(createUnique<int>(1));
+        a.addLast(createUnique<int>(2));
         a.remove(0);
-        ASSERT(*a.front() == 2);
+        ASSERT(*a.first() == 2);
     }
 
     {
         Array<UniquePtr<int>> a;
-        a.pushBack(createUnique<int>(1));
-        a.pushBack(createUnique<int>(2));
+        a.addLast(createUnique<int>(1));
+        a.addLast(createUnique<int>(2));
         a.clear();
         ASSERT(a.empty());
     }
@@ -3389,8 +3389,8 @@ void testList()
 
     {
         List<int> l;
-        ASSERT(!l.front());
-        ASSERT(!l.back());
+        ASSERT(!l.first());
+        ASSERT(!l.last());
         ASSERT(l.size() == 0);
         ASSERT(l.empty());
     }
@@ -3401,19 +3401,19 @@ void testList()
 
     {
         List<int> l(0);
-        ASSERT(!l.front());
-        ASSERT(!l.back());
+        ASSERT(!l.first());
+        ASSERT(!l.last());
         ASSERT(l.size() == 0);
         ASSERT(l.empty());
     }
 
     {
         List<int> l(1);
-        ASSERT(l.front());
-        ASSERT(l.back());
+        ASSERT(l.first());
+        ASSERT(l.last());
         ASSERT(l.size() == 1);
         ASSERT(!l.empty());
-        ASSERT(l.front()->value == 0);
+        ASSERT(l.first()->value == 0);
     }
 
     // List(int size, const _Type& value)
@@ -3422,19 +3422,19 @@ void testList()
 
     {
         List<int> l(0, 123);
-        ASSERT(!l.front());
-        ASSERT(!l.back());
+        ASSERT(!l.first());
+        ASSERT(!l.last());
         ASSERT(l.size() == 0);
         ASSERT(l.empty());
     }
 
     {
         List<int> l(1, 123);
-        ASSERT(l.front());
-        ASSERT(l.back());
+        ASSERT(l.first());
+        ASSERT(l.last());
         ASSERT(l.size() == 1);
         ASSERT(!l.empty());
-        ASSERT(l.front()->value == 123);
+        ASSERT(l.first()->value == 123);
     }
 
     // List(int size, const _Type* values)
@@ -3445,16 +3445,16 @@ void testList()
 
     {
         List<int> l(0, np);
-        ASSERT(!l.front());
-        ASSERT(!l.back());
+        ASSERT(!l.first());
+        ASSERT(!l.last());
         ASSERT(l.size() == 0);
         ASSERT(l.empty());
     }
 
     {
         List<int> l(3, ep);
-        ASSERT(l.front());
-        ASSERT(l.back());
+        ASSERT(l.first());
+        ASSERT(l.last());
         ASSERT(l.size() == 3);
         ASSERT(!l.empty());
         ASSERT(compareArray(l, 3, ep));
@@ -3464,16 +3464,16 @@ void testList()
 
     {
         List<int> l1, l2(l1);
-        ASSERT(!l2.front());
-        ASSERT(!l2.back());
+        ASSERT(!l2.first());
+        ASSERT(!l2.last());
         ASSERT(l2.size() == 0);
         ASSERT(l2.empty());
     }
 
     {
         List<int> l1(3, ep), l2(l1);
-        ASSERT(l2.front());
-        ASSERT(l2.back());
+        ASSERT(l2.first());
+        ASSERT(l2.last());
         ASSERT(l2.size() == 3);
         ASSERT(!l2.empty());
         ASSERT(compareArray(l2, 3, ep));
@@ -3483,8 +3483,8 @@ void testList()
 
     {
         List<int> l1, l2(static_cast<List<int>&&>(l1));
-        ASSERT(!l2.front());
-        ASSERT(!l2.back());
+        ASSERT(!l2.first());
+        ASSERT(!l2.last());
         ASSERT(l2.size() == 0);
         ASSERT(l2.empty());
     }
@@ -3492,13 +3492,13 @@ void testList()
     {
         List<int> l1(3, ep), l2(static_cast<List<int>&&>(l1));
 
-        ASSERT(!l1.front());
-        ASSERT(!l1.back());
+        ASSERT(!l1.first());
+        ASSERT(!l1.last());
         ASSERT(l1.size() == 0);
         ASSERT(l1.empty());
 
-        ASSERT(l2.front());
-        ASSERT(l2.back());
+        ASSERT(l2.first());
+        ASSERT(l2.last());
         ASSERT(l2.size() == 3);
         ASSERT(!l2.empty());
         ASSERT(compareArray(l2, 3, ep));
@@ -3509,8 +3509,8 @@ void testList()
     {
         List<int> l1(3, ep), l2;
         l2 = l1;
-        ASSERT(l2.front());
-        ASSERT(l2.back());
+        ASSERT(l2.first());
+        ASSERT(l2.last());
         ASSERT(l2.size() == 3);
         ASSERT(!l2.empty());
         ASSERT(compareArray(l2, 3, ep));
@@ -3521,8 +3521,8 @@ void testList()
     {
         List<int> l1, l2;
         l2 = static_cast<List<int>&&>(l1);
-        ASSERT(!l2.front());
-        ASSERT(!l2.back());
+        ASSERT(!l2.first());
+        ASSERT(!l2.last());
         ASSERT(l2.size() == 0);
         ASSERT(l2.empty());
     }
@@ -3531,13 +3531,13 @@ void testList()
         List<int> l1(3, ep), l2;
         l2 = static_cast<List<int>&&>(l1);
 
-        ASSERT(!l1.front());
-        ASSERT(!l1.back());
+        ASSERT(!l1.first());
+        ASSERT(!l1.last());
         ASSERT(l1.size() == 0);
         ASSERT(l1.empty());
 
-        ASSERT(l2.front());
-        ASSERT(l2.back());
+        ASSERT(l2.first());
+        ASSERT(l2.last());
         ASSERT(l2.size() == 3);
         ASSERT(!l2.empty());
         ASSERT(compareArray(l2, 3, ep));
@@ -3545,55 +3545,55 @@ void testList()
 
     // int size() const
     // bool empty() const
-    // ListNode<_Type>* front()
-    // ListNode<_Type>* back()
+    // ListNode<_Type>* first()
+    // ListNode<_Type>* last()
 
     {
         List<int> l;
 
-        ASSERT(!l.front());
-        ASSERT(!l.back());
+        ASSERT(!l.first());
+        ASSERT(!l.last());
         ASSERT(l.size() == 0);
         ASSERT(l.empty());
 
-        l.pushBack(1);
-        ASSERT(l.front());
-        ASSERT(l.back());
+        l.addLast(1);
+        ASSERT(l.first());
+        ASSERT(l.last());
         ASSERT(l.size() == 1);
         ASSERT(!l.empty());
-        ASSERT(l.front()->value == 1);
-        ASSERT(l.back()->value == 1);
+        ASSERT(l.first()->value == 1);
+        ASSERT(l.last()->value == 1);
 
-        l.pushBack(2);
-        ASSERT(l.front());
-        ASSERT(l.back());
+        l.addLast(2);
+        ASSERT(l.first());
+        ASSERT(l.last());
         ASSERT(l.size() == 2);
         ASSERT(!l.empty());
-        ASSERT(l.front()->value == 1);
-        ASSERT(l.back()->value == 2);
+        ASSERT(l.first()->value == 1);
+        ASSERT(l.last()->value == 2);
     }
 
-    // const ListNode<_Type>* front() const
-    // const ListNode<_Type>* back() const
+    // const ListNode<_Type>* first() const
+    // const ListNode<_Type>* last() const
 
     {
         List<int> l;
         const List<int>& cl = l;
 
-        ASSERT(!cl.front());
-        ASSERT(!cl.back());
+        ASSERT(!cl.first());
+        ASSERT(!cl.last());
 
-        l.pushBack(1);
-        ASSERT(cl.front());
-        ASSERT(cl.back());
-        ASSERT(cl.front()->value == 1);
-        ASSERT(cl.back()->value == 1);
+        l.addLast(1);
+        ASSERT(cl.first());
+        ASSERT(cl.last());
+        ASSERT(cl.first()->value == 1);
+        ASSERT(cl.last()->value == 1);
 
-        l.pushBack(2);
-        ASSERT(cl.front());
-        ASSERT(cl.back());
-        ASSERT(cl.front()->value == 1);
-        ASSERT(cl.back()->value == 2);
+        l.addLast(2);
+        ASSERT(cl.first());
+        ASSERT(cl.last());
+        ASSERT(cl.first()->value == 1);
+        ASSERT(cl.last()->value == 2);
     }
 
 
@@ -3606,7 +3606,7 @@ void testList()
 
     {
         List<int> l(3, ep);
-        ASSERT(l.find(2) == l.front()->next);
+        ASSERT(l.find(2) == l.first()->next);
         ASSERT(!l.find(0));
     }
 
@@ -3621,7 +3621,7 @@ void testList()
     {
         List<int> l(3, ep);
         const List<int>& cl = l;
-        ASSERT(cl.find(2) == cl.front()->next);
+        ASSERT(cl.find(2) == cl.first()->next);
         ASSERT(!cl.find(0));
     }
 
@@ -3637,7 +3637,7 @@ void testList()
         List<int> l;
         l.assign(1, 123);
         ASSERT(!l.empty());
-        ASSERT(l.front()->value == 123);
+        ASSERT(l.first()->value == 123);
     }
 
     // void assign(int size, const _Type* values)
@@ -3670,84 +3670,84 @@ void testList()
         ASSERT(compareArray(l2, 3, ep));
     }
 
-    // void popFront()
+    // void removeFirst()
 
-    ASSERT_EXCEPTION(Exception, List<int>().popFront());
-
-    {
-        List<int> l(3, ep);
-
-        l.popFront();
-        ASSERT(l.front()->value == 2);
-        ASSERT(l.size() == 2);
-
-        l.popFront();
-        ASSERT(l.front()->value == 3);
-        ASSERT(l.size() == 1);
-
-        l.popFront();
-        ASSERT(l.empty());
-    }
-
-    // void popBack()
-
-    ASSERT_EXCEPTION(Exception, List<int>().popBack());
+    ASSERT_EXCEPTION(Exception, List<int>().removeFirst());
 
     {
         List<int> l(3, ep);
 
-        l.popBack();
-        ASSERT(l.back()->value == 2);
+        l.removeFirst();
+        ASSERT(l.first()->value == 2);
         ASSERT(l.size() == 2);
 
-        l.popBack();
-        ASSERT(l.back()->value == 1);
+        l.removeFirst();
+        ASSERT(l.first()->value == 3);
         ASSERT(l.size() == 1);
 
-        l.popBack();
+        l.removeFirst();
         ASSERT(l.empty());
     }
 
-    // void pushFront(const _Type& value)
+    // void removeLast()
+
+    ASSERT_EXCEPTION(Exception, List<int>().removeLast());
+
+    {
+        List<int> l(3, ep);
+
+        l.removeLast();
+        ASSERT(l.last()->value == 2);
+        ASSERT(l.size() == 2);
+
+        l.removeLast();
+        ASSERT(l.last()->value == 1);
+        ASSERT(l.size() == 1);
+
+        l.removeLast();
+        ASSERT(l.empty());
+    }
+
+    // void addFirst(const _Type& value)
 
     {
         List<int> l;
         int v1 = 1, v2 = 2;
-        l.pushFront(v1);
-        ASSERT(l.front()->value == 1);
-        l.pushFront(v2);
-        ASSERT(l.front()->value == 2);
+        l.addFirst(v1);
+        ASSERT(l.first()->value == 1);
+        l.addFirst(v2);
+        ASSERT(l.first()->value == 2);
     }
 
-    // void pushFront(_Type&& value)
+    // void addFirst(_Type&& value)
 
     {
         List<int> l;
-        l.pushFront(1);
-        ASSERT(l.front()->value == 1);
-        l.pushFront(2);
-        ASSERT(l.front()->value == 2);
+        l.addFirst(1);
+        ASSERT(l.first()->value == 1);
+        l.addFirst(2);
+        ASSERT(l.first()->value == 2);
     }
 
-    // void pushBack(const _Type& value)
+    // void addLast(const _Type& value)
 
     {
         List<int> l;
         int v1 = 1, v2 = 2;
-        l.pushBack(v1);
-        ASSERT(l.back()->value == 1);
-        l.pushBack(v2);
-        ASSERT(l.back()->value == 2);
+        l.addLast(v1);
+        ASSERT(l.last()->value == 1);
+        l.addLast(v2);
+        ASSERT(l.last()->value == 2);
     }
 
-    // void pushBack(_Type&& value)
+    // void addLast(_Type&& value)
 
     {
         List<int> l;
-        l.pushBack(1);
-        ASSERT(l.back()->value == 1);
-        l.pushBack(2);
-        ASSERT(l.back()->value == 2);
+        l.addLast(1);
+        ASSERT(l.last()->value == 1);
+        l.addLast(2);
+        ASSERT(l.last()->value == 2);
     }
 
     // ListNode<_Type>* insertBefore(ListNode<_Type>* pos, const _Type& value)
@@ -3760,9 +3760,9 @@ void testList()
     {
         List<int> l;
         int v1 = 1, v2 = 2, v3 = 3;
-        l.pushBack(v1);
-        ASSERT(l.insertBefore(l.front(), v2)->value == v2);
-        ASSERT(l.insertBefore(l.back(), v3)->value == v3);
+        l.addLast(v1);
+        ASSERT(l.insertBefore(l.first(), v2)->value == v2);
+        ASSERT(l.insertBefore(l.last(), v3)->value == v3);
         ASSERT(compareSequence(l, 2, 3, 1));
     }
 
@@ -3772,9 +3772,9 @@ void testList()
 
     {
         List<int> l;
-        l.pushBack(1);
-        ASSERT(l.insertBefore(l.front(), 2)->value == 2);
-        ASSERT(l.insertBefore(l.back(), 3)->value == 3);
+        l.addLast(1);
+        ASSERT(l.insertBefore(l.first(), 2)->value == 2);
+        ASSERT(l.insertBefore(l.last(), 3)->value == 3);
         ASSERT(compareSequence(l, 2, 3, 1));
     }
 
@@ -3788,9 +3788,9 @@ void testList()
     {
         List<int> l;
         int v1 = 1, v2 = 2, v3 = 3;
-        l.pushBack(v1);
-        ASSERT(l.insertAfter(l.back(), v2)->value == v2);
-        ASSERT(l.insertAfter(l.front(), v3)->value == v3);
+        l.addLast(v1);
+        ASSERT(l.insertAfter(l.last(), v2)->value == v2);
+        ASSERT(l.insertAfter(l.first(), v3)->value == v3);
         ASSERT(compareSequence(l, 1, 3, 2));
     }
 
@@ -3800,9 +3800,9 @@ void testList()
 
     {
         List<int> l;
-        l.pushBack(1);
-        ASSERT(l.insertAfter(l.back(), 2)->value == 2);
-        ASSERT(l.insertAfter(l.front(), 3)->value == 3);
+        l.addLast(1);
+        ASSERT(l.insertAfter(l.last(), 2)->value == 2);
+        ASSERT(l.insertAfter(l.first(), 3)->value == 3);
         ASSERT(compareSequence(l, 1, 3, 2));
     }
 
@@ -3812,19 +3812,19 @@ void testList()
 
     {
         List<int> l(3, ep);
-        l.remove(l.front());
+        l.remove(l.first());
         ASSERT(compareSequence(l, 2, 3));
     }
 
     {
         List<int> l(3, ep);
-        l.remove(l.back());
+        l.remove(l.last());
         ASSERT(compareSequence(l, 1, 2));
     }
 
     {
         List<int> l(3, ep);
-        l.remove(l.front()->next);
+        l.remove(l.first()->next);
         ASSERT(compareSequence(l, 1, 3));
     }
 
@@ -3833,8 +3833,8 @@ void testList()
     {
         List<int> l;
         l.clear();
-        ASSERT(!l.front());
-        ASSERT(!l.back());
+        ASSERT(!l.first());
+        ASSERT(!l.last());
         ASSERT(l.size() == 0);
         ASSERT(l.empty());
     }
@@ -3842,8 +3842,8 @@ void testList()
     {
         List<int> l(3, ep);
         l.clear();
-        ASSERT(!l.front());
-        ASSERT(!l.back());
+        ASSERT(!l.first());
+        ASSERT(!l.last());
         ASSERT(l.size() == 0);
         ASSERT(l.empty());
     }
@@ -3857,40 +3857,40 @@ void testList()
 
     {
          List<UniquePtr<int>> l;
-         l.pushBack(createUnique<int>(1));
-         l.pushBack(createUnique<int>(2));
+         l.addLast(createUnique<int>(1));
+         l.addLast(createUnique<int>(2));
          ASSERT(!l.find(createUnique<int>(0)));
          ASSERT(l.find(createUnique<int>(2)));
     }
 
     {
          List<UniquePtr<int>> l;
-         l.pushBack(createUnique<int>(1));
-         l.insertBefore(l.front(), createUnique<int>(2));
-         l.popFront();
-         ASSERT(*l.back()->value == 1);
+         l.addLast(createUnique<int>(1));
+         l.insertBefore(l.first(), createUnique<int>(2));
+         l.removeFirst();
+         ASSERT(*l.last()->value == 1);
     }
 
     {
          List<UniquePtr<int>> l;
-         l.pushFront(createUnique<int>(1));
-         l.insertAfter(l.back(), createUnique<int>(2));
-         l.popBack();
-         ASSERT(*l.back()->value == 1);
+         l.addFirst(createUnique<int>(1));
+         l.insertAfter(l.last(), createUnique<int>(2));
+         l.removeLast();
+         ASSERT(*l.last()->value == 1);
     }
 
     {
          List<UniquePtr<int>> l;
-         l.pushBack(createUnique<int>(1));
-         l.pushBack(createUnique<int>(2));
-         l.remove(l.front());
-         ASSERT(*l.back()->value == 2);
+         l.addLast(createUnique<int>(1));
+         l.addLast(createUnique<int>(2));
+         l.remove(l.first());
+         ASSERT(*l.last()->value == 2);
     }
 
     {
          List<UniquePtr<int>> l;
-         l.pushBack(createUnique<int>(1));
-         l.pushBack(createUnique<int>(2));
+         l.addLast(createUnique<int>(1));
+         l.addLast(createUnique<int>(2));
          l.clear();
          ASSERT(l.empty());
     }

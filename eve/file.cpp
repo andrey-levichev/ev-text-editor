@@ -211,15 +211,15 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
     {
         if (encoding == TEXT_ENCODING_UTF8)
         {
-            bytes.pushBack(0xef);
-            bytes.pushBack(0xbb);
-            bytes.pushBack(0xbf);
+            bytes.addLast(0xef);
+            bytes.addLast(0xbb);
+            bytes.addLast(0xbf);
         }
         else
         {
             char16_t ch = 0xfeff;
-            bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch)));
-            bytes.pushBack(*(reinterpret_cast<byte_t*>(&ch) + 1));
+            bytes.addLast(*(reinterpret_cast<byte_t*>(&ch)));
+            bytes.addLast(*(reinterpret_cast<byte_t*>(&ch) + 1));
         }
     }
 
@@ -273,5 +273,5 @@ void File::appendChar(ByteArray& bytes, TextEncoding encoding, unichar_t ch)
         n = unicodeCharToUtf16(ch, reinterpret_cast<char16_t*>(s)) * 2;
 
     for (int i = 0; i < n; ++i)
-        bytes.pushBack(s[i]);
+        bytes.addLast(s[i]);
 }

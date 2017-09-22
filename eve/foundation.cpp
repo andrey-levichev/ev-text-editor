@@ -1828,7 +1828,7 @@ Array<String> StringSet::get(const String& prefix) const
         StringSetNode* prev = node->parent;
 
         if (!node->ch)
-            keys.pushBack(key);
+            keys.addLast(key);
 
         while (true)
         {
@@ -1839,7 +1839,7 @@ Array<String> StringSet::get(const String& prefix) const
                 node = node->child;
 
                 if (!node->ch)
-                    keys.pushBack(key);
+                    keys.addLast(key);
             }
             else if (node->sibling && prev != node->sibling)
             {

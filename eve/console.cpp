@@ -774,7 +774,7 @@ const Array<Key>& Console::readKeys()
                 key.alt = (modifierKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
                 key.shift = (modifierKeys & SHIFT_PRESSED) != 0;
 
-                _keys.pushBack(key);
+                _keys.addLast(key);
             }
         }
     }
@@ -794,7 +794,7 @@ const Array<Key>& Console::readKeys()
         {
             gotChars = true;
             for (int i = 0; i < len; ++i)
-                _input.pushBack(chars[i]);
+                _input.addLast(chars[i]);
         }
         else
         {
@@ -807,7 +807,7 @@ const Array<Key>& Console::readKeys()
 
     const char* p = _input.values();
     const char* e = p + _input.size();
-    _input.pushBack(0);
+    _input.addLast(0);
 
     while (p < e)
     {
@@ -818,7 +818,7 @@ const Array<Key>& Console::readKeys()
         {
             if (!strncmp(p, keyMapping[i].chars, keyMapping[i].len))
             {
-                _keys.pushBack(keyMapping[i].key);
+                _keys.addLast(keyMapping[i].key);
                 p += keyMapping[i].len;
                 found = true;
                 break;
@@ -837,7 +837,7 @@ const Array<Key>& Console::readKeys()
                     key.alt = true;
                 else
                 {
-                    _keys.pushBack(Key(KEY_ESC));
+                    _keys.addLast(Key(KEY_ESC));
                     continue;
                 }
             }
@@ -860,7 +860,7 @@ const Array<Key>& Console::readKeys()
             else
                 key.ch = ch;
 
-            _keys.pushBack(key);
+            _keys.addLast(key);
         }
     }
 

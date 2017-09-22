@@ -8,8 +8,6 @@ print clear to eol code at the end of line
 clear/save screen on startup/build?
 * pressing enter in whitespace of indented line following another indented line increases indent
 * block indent shouldn't jump to start
-* add vs append vs pushBack, erase vs delete vs remove
-* double check auto
 
 editor:
 * selection with arrows and highlighting

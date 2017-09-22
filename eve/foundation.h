@@ -1700,25 +1700,25 @@ public:
         return _values;
     }
 
-    _Type& front()
+    _Type& first()
     {
         ASSERT(_size > 0);
         return _values[0];
     }
 
-    const _Type& front() const
+    const _Type& first() const
     {
         ASSERT(_size > 0);
         return _values[0];
     }
 
-    _Type& back()
+    _Type& last()
     {
         ASSERT(_size > 0);
         return _values[_size - 1];
     }
 
-    const _Type& back() const
+    const _Type& last() const
     {
         ASSERT(_size > 0);
         return _values[_size - 1];
@@ -1856,7 +1856,7 @@ public:
         }
     }
 
-    void popBack()
+    void removeLast()
     {
         ASSERT(_size > 0);
 
@@ -1864,7 +1864,7 @@ public:
         --_size;
     }
 
-    void pushBack(const _Type& value)
+    void addLast(const _Type& value)
     {
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
@@ -1873,7 +1873,7 @@ public:
         ++_size;
     }
 
-    void pushBack(_Type&& value)
+    void addLast(_Type&& value)
     {
         if (_size >= _capacity)
             reallocate(_capacity * 2 + 1);
@@ -2034,7 +2034,7 @@ public:
         if (_node)
             _node = _node->next;
         else
-            _node = _list.front();
+            _node = _list.first();
 
         return _node != NULL;
     }
@@ -2044,7 +2044,7 @@ public:
         if (_node)
             _node = _node->prev;
         else
-            _node = _list.back();
+            _node = _list.last();
 
         return _node != NULL;
     }
@@ -2081,7 +2081,7 @@ public:
         if (_node)
             _node = _node->next;
         else
-            _node = _list.front();
+            _node = _list.first();
 
         return _node != NULL;
     }
@@ -2091,7 +2091,7 @@ public:
         if (_node)
             _node = _node->prev;
         else
-            _node = _list.back();
+            _node = _list.last();
 
         return _node != NULL;
     }
@@ -2123,19 +2123,19 @@ public:
 
 public:
     List() :
-        _front(NULL), _back(NULL)
+        _first(NULL), _last(NULL)
     {
     }
 
     List(int size) :
-        _front(NULL), _back(NULL)
+        _first(NULL), _last(NULL)
     {
         ASSERT(size >= 0);
 
         try
         {
             for (int i = 0; i < size; ++i)
-                pushBack(_Type());
+                addLast(_Type());
         }
         catch (...)
         {
@@ -2145,14 +2145,14 @@ public:
     }
 
     List(int size, const _Type& value) :
-        _front(NULL), _back(NULL)
+        _first(NULL), _last(NULL)
     {
         ASSERT(size >= 0);
 
         try
         {
             for (int i = 0; i < size; ++i)
-                pushBack(value);
+                addLast(value);
         }
         catch (...)
         {
@@ -2162,14 +2162,14 @@ public:
     }
 
     List(int size, const _Type* values) :
-        _front(NULL), _back(NULL)
+        _first(NULL), _last(NULL)
     {
         ASSERT((size == 0 && !values) || (size > 0 && values));
 
         try
         {
             for (int i = 0; i < size; ++i)
-                pushBack(values[i]);
+                addLast(values[i]);
         }
         catch (...)
         {
@@ -2179,12 +2179,12 @@ public:
     }
 
     List(const List<_Type>& other) :
-        _front(NULL), _back(NULL)
+        _first(NULL), _last(NULL)
     {
         try
         {
-            for (auto node = other.front(); node; node = node->next)
-                pushBack(node->value);
+            for (auto node = other.first(); node; node = node->next)
+                addLast(node->value);
         }
         catch (...)
         {
@@ -2195,10 +2195,10 @@ public:
 
     List(List<_Type>&& other)
     {
-        _front = other._front;
-        _back = other._back;
-        other._front = NULL;
-        other._back = NULL;
+        _first = other._first;
+        _last = other._last;
+        other._first = NULL;
+        other._last = NULL;
     }
 
     ~List()
@@ -2223,7 +2223,7 @@ public:
     {
         int cnt = 0;
 
-        for (auto node = _front; node; node = node->next)
+        for (auto node = _first; node; node = node->next)
             ++cnt;
 
         return cnt;
@@ -2231,27 +2231,27 @@ public:
 
     bool empty() const
     {
-        return !_front;
+        return !_first;
     }
 
-    ListNode<_Type>* front()
+    ListNode<_Type>* first()
     {
-        return _front;
+        return _first;
     }
 
-    const ListNode<_Type>* front() const
+    const ListNode<_Type>* first() const
     {
-        return _front;
+        return _first;
     }
 
-    ListNode<_Type>* back()
+    ListNode<_Type>* last()
     {
-        return _back;
+        return _last;
     }
 
-    const ListNode<_Type>* back() const
+    const ListNode<_Type>* last() const
     {
-        return _back;
+        return _last;
     }
 
     Iterator iterator()
@@ -2266,7 +2266,7 @@ public:
 
     ListNode<_Type>* find(const _Type& value)
     {
-        for (auto node = _front; node; node = node->next)
+        for (auto node = _first; node; node = node->next)
             if (equalsTo(node->value, value))
                 return node;
 
@@ -2275,7 +2275,7 @@ public:
 
     const ListNode<_Type>* find(const _Type& value) const
     {
-        for (auto node = _front; node; node = node->next)
+        for (auto node = _first; node; node = node->next)
             if (equalsTo(node->value, value))
                 return node;
 
@@ -2300,93 +2300,93 @@ public:
         swap(*this, tmp);
     }
 
-    void popFront()
+    void removeFirst()
     {
-        ASSERT(_front);
+        ASSERT(_first);
 
-        auto node = _front;
-        _front = _front->next;
+        auto node = _first;
+        _first = _first->next;
 
-        if (_front)
-            _front->prev = NULL;
+        if (_first)
+            _first->prev = NULL;
         else
-            _back = NULL;
+            _last = NULL;
 
         Memory::destroy(node);
     }
 
-    void popBack()
+    void removeLast()
     {
-        ASSERT(_back);
+        ASSERT(_last);
 
-        auto node = _back;
-        _back = _back->prev;
+        auto node = _last;
+        _last = _last->prev;
 
-        if (_back)
-            _back->next = NULL;
+        if (_last)
+            _last->next = NULL;
         else
-            _front = NULL;
+            _first = NULL;
 
         Memory::destroy(node);
     }
 
-    void pushFront(const _Type& value)
+    void addFirst(const _Type& value)
     {
-        if (_front)
+        if (_first)
         {
-            auto node = createListNode(value, NULL, _front);
-            _front->prev = node;
-            _front = node;
+            auto node = createListNode(value, NULL, _first);
+            _first->prev = node;
+            _first = node;
         }
         else
         {
             auto node = createListNode(value, NULL, NULL);
-            _front = _back = node;
+            _first = _last = node;
         }
     }
 
-    void pushFront(_Type&& value)
+    void addFirst(_Type&& value)
     {
-        if (_front)
+        if (_first)
         {
-            auto node = createListNode(static_cast<_Type&&>(value), NULL, _front);
-            _front->prev = node;
-            _front = node;
+            auto node = createListNode(static_cast<_Type&&>(value), NULL, _first);
+            _first->prev = node;
+            _first = node;
         }
         else
         {
             auto node = createListNode(static_cast<_Type&&>(value), NULL, NULL);
-            _front = _back = node;
+            _first = _last = node;
         }
     }
 
-    void pushBack(const _Type& value)
+    void addLast(const _Type& value)
     {
-        if (_front)
+        if (_first)
         {
-            auto node = createListNode(value, _back, NULL);
-            _back->next = node;
-            _back = node;
+            auto node = createListNode(value, _last, NULL);
+            _last->next = node;
+            _last = node;
         }
         else
         {
             auto node = createListNode(value, NULL, NULL);
-            _front = _back = node;
+            _first = _last = node;
         }
     }
 
-    void pushBack(_Type&& value)
+    void addLast(_Type&& value)
     {
-        if (_front)
+        if (_first)
         {
-            auto node = createListNode(static_cast<_Type&&>(value), _back, NULL);
-            _back->next = node;
-            _back = node;
+            auto node = createListNode(static_cast<_Type&&>(value), _last, NULL);
+            _last->next = node;
+            _last = node;
         }
         else
         {
             auto node = createListNode(static_cast<_Type&&>(value), NULL, NULL);
-            _front = _back = node;
+            _first = _last = node;
         }
     }
 
@@ -2399,7 +2399,7 @@ public:
         if (pos->prev)
             pos->prev->next = node;
         else
-            _front = node;
+            _first = node;
 
         pos->prev = node;
         return node;
@@ -2414,7 +2414,7 @@ public:
         if (pos->prev)
             pos->prev->next = node;
         else
-            _front = node;
+            _first = node;
 
         pos->prev = node;
         return node;
@@ -2429,7 +2429,7 @@ public:
         if (pos->next)
             pos->next->prev = node;
         else
-            _back = node;
+            _last = node;
 
         pos->next = node;
         return node;
@@ -2444,7 +2444,7 @@ public:
         if (pos->next)
             pos->next->prev = node;
         else
-            _back = node;
+            _last = node;
 
         pos->next = node;
         return node;
@@ -2457,12 +2457,12 @@ public:
         if (pos->prev)
             pos->prev->next = pos->next;
         else
-            _front = pos->next;
+            _first = pos->next;
 
         if (pos->next)
             pos->next->prev = pos->prev;
         else
-            _back = pos->prev;
+            _last = pos->prev;
 
         Memory::destroy(pos);
     }
@@ -2470,13 +2470,13 @@ public:
     void clear()
     {
         destroyNodes();
-        _front = _back = NULL;
+        _first = _last = NULL;
     }
 
     friend void swap(List<_Type>& left, List<_Type>& right)
     {
-        swap(left._front, right._front);
-        swap(left._back, right._back);
+        swap(left._first, right._first);
+        swap(left._last, right._last);
     }
 
 protected:
@@ -2516,7 +2516,7 @@ protected:
 
     void destroyNodes()
     {
-        for (auto node = _front; node;)
+        for (auto node = _first; node;)
         {
             auto n = node;
             node = node->next;
@@ -2525,8 +2525,8 @@ protected:
     }
 
 protected:
-    ListNode<_Type>* _front;
-    ListNode<_Type>* _back;
+    ListNode<_Type>* _first;
+    ListNode<_Type>* _last;
 };
 
 // KeyValue
@@ -2603,7 +2603,7 @@ public:
             {
                 for (++_index; _index < _map._keyValues.size(); ++_index)
                 {
-                    _node = _map._keyValues[_index].front();
+                    _node = _map._keyValues[_index].first();
 
                     if (_node)
                         return true;
@@ -2614,7 +2614,7 @@ public:
         {
             for (_index = 0; _index < _map._keyValues.size(); ++_index)
             {
-                _node = _map._keyValues[_index].front();
+                _node = _map._keyValues[_index].first();
 
                 if (_node)
                     return true;
@@ -2668,7 +2668,7 @@ public:
             {
                 for (++_index; _index < _map._keyValues.size(); ++_index)
                 {
-                    _node = _map._keyValues[_index].front();
+                    _node = _map._keyValues[_index].first();
 
                     if (_node)
                         return true;
@@ -2679,7 +2679,7 @@ public:
         {
             for (_index = 0; _index < _map._keyValues.size(); ++_index)
             {
-                _node = _map._keyValues[_index].front();
+                _node = _map._keyValues[_index].first();
 
                 if (_node)
                     return true;
@@ -2818,16 +2818,16 @@ public:
 
         auto& bucket = getBucket(key);
 
-        for (auto node = bucket.front(); node; node = node->next)
+        for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value.key, key))
                 return node->value.value;
         }
 
-        bucket.pushBack(KeyValue<_Key, _Value>(key));
+        bucket.addLast(KeyValue<_Key, _Value>(key));
         ++_size;
 
-        return bucket.back()->value.value;
+        return bucket.last()->value.value;
     }
 
     _Value& value(_Key&& key)
@@ -2837,16 +2837,16 @@ public:
 
         auto& bucket = getBucket(key);
 
-        for (auto node = bucket.front(); node; node = node->next)
+        for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value.key, key))
                 return node->value.value;
         }
 
-        bucket.pushBack(KeyValue<_Key, _Value>(static_cast<_Key&&>(key)));
+        bucket.addLast(KeyValue<_Key, _Value>(static_cast<_Key&&>(key)));
         ++_size;
 
-        return bucket.back()->value.value;
+        return bucket.last()->value.value;
     }
 
     const _Value& value(const _Key& key) const
@@ -2864,7 +2864,7 @@ public:
         {
             auto& bucket = getBucket(key);
 
-            for (auto node = bucket.front(); node; node = node->next)
+            for (auto node = bucket.first(); node; node = node->next)
             {
                 if (equalsTo(node->value.key, key))
                     return &node->value.value;
@@ -2880,7 +2880,7 @@ public:
         {
             auto& bucket = getBucket(key);
 
-            for (auto node = bucket.front(); node; node = node->next)
+            for (auto node = bucket.first(); node; node = node->next)
             {
                 if (equalsTo(node->value.key, key))
                     return &node->value.value;
@@ -2903,7 +2903,7 @@ public:
 
         auto& bucket = getBucket(key);
 
-        for (auto node = bucket.front(); node; node = node->next)
+        for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value.key, key))
             {
@@ -2912,7 +2912,7 @@ public:
             }
         }
 
-        bucket.pushBack(KeyValue<_Key, _Value>(key, value));
+        bucket.addLast(KeyValue<_Key, _Value>(key, value));
         ++_size;
     }
 
@@ -2923,7 +2923,7 @@ public:
 
         auto& bucket = getBucket(key);
 
-        for (auto node = bucket.front(); node; node = node->next)
+        for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value.key, key))
             {
@@ -2932,7 +2932,7 @@ public:
             }
         }
 
-        bucket.pushBack(KeyValue<_Key, _Value>(
+        bucket.addLast(KeyValue<_Key, _Value>(
             static_cast<_Key&&>(key), static_cast<_Value&&>(value)));
 
         ++_size;
@@ -2944,7 +2944,7 @@ public:
         {
             auto& bucket = getBucket(key);
 
-            for (auto node = bucket.front(); node; node = node->next)
+            for (auto node = bucket.first(); node; node = node->next)
             {
                 if (equalsTo(node->value.key, key))
                 {
@@ -2972,7 +2972,7 @@ public:
 
         for (int i = 0; i < _keyValues.size(); ++i)
         {
-            for (auto node = _keyValues[i].front(); node; node = node->next)
+            for (auto node = _keyValues[i].first(); node; node = node->next)
                 tmp.add(const_cast<_Key&&>(node->value.key),
                     static_cast<_Value&&>(node->value.value));
         }
@@ -3042,7 +3042,7 @@ public:
             {
                 for (++_index; _index < _set._values.size(); ++_index)
                 {
-                    _node = _set._values[_index].front();
+                    _node = _set._values[_index].first();
 
                     if (_node)
                         return true;
@@ -3053,7 +3053,7 @@ public:
         {
             for (_index = 0; _index < _set._values.size(); ++_index)
             {
-                _node = _set._values[_index].front();
+                _node = _set._values[_index].first();
 
                 if (_node)
                     return true;
@@ -3165,7 +3165,7 @@ public:
     {
         auto& bucket = getBucket(value);
 
-        for (auto node = bucket.front(); node; node = node->next)
+        for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value, value))
                 return &node->value;
@@ -3187,13 +3187,13 @@ public:
 
         auto& bucket = getBucket(value);
 
-        for (auto node = bucket.front(); node; node = node->next)
+        for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value, value))
                 return;
         }
 
-        bucket.pushBack(value);
+        bucket.addLast(value);
         ++_size;
     }
 
@@ -3204,13 +3204,13 @@ public:
 
         auto& bucket = getBucket(value);
 
-        for (auto node = bucket.front(); node; node = node->next)
+        for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value, value))
                 return;
         }
 
-        bucket.pushBack(static_cast<_Type&&>(value));
+        bucket.addLast(static_cast<_Type&&>(value));
         ++_size;
     }
 
@@ -3222,8 +3222,8 @@ public:
 
             if (!bucket.empty())
             {
-                _Type value = static_cast<_Type&&>(bucket.front()->value);
-                bucket.popFront();
+                _Type value = static_cast<_Type&&>(bucket.first()->value);
+                bucket.removeFirst();
                 --_size;
                 return value;
             }
@@ -3236,7 +3236,7 @@ public:
     {
         auto& bucket = getBucket(value);
 
-        for (auto node = bucket.front(); node; node = node->next)
+        for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value, value))
             {
@@ -3263,7 +3263,7 @@ public:
 
         for (int i = 0; i < _values.size(); ++i)
         {
-            for (auto node = _values[i].front(); node; node = node->next)
+            for (auto node = _values[i].first(); node; node = node->next)
                 tmp.add(static_cast<_Type&&>(node->value));
         }
 

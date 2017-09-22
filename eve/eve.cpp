@@ -990,14 +990,14 @@ void Editor::openDocument(const char_t* filename)
 {
     ASSERT(filename);
 
-    _documents.pushBack(Document());
-    _document = _documents.back();
+    _documents.addLast(Document());
+    _document = _documents.last();
     _document->value.open(filename);
 }
 
 void Editor::saveDocuments()
 {
-    for (auto node = _documents.front(); node; node = node->next)
+    for (auto node = _documents.first(); node; node = node->next)
     {
         if (node->value.modified())
             node->value.save();
@@ -1006,7 +1006,7 @@ void Editor::saveDocuments()
 
 void Editor::run()
 {
-    _document = _documents.front();
+    _document = _documents.first();
     updateScreen(true);
 
     while (processKey());
@@ -1555,7 +1555,7 @@ int MAIN(int argc, const char_t** argv)
                 "usage: eve filename ...\n\n"
                 "keys:\n"
                 "arrows - move cursor\n"
-                "ctrl+left/right - word back/forward\n"
+                "ctrl+left/right - word last/forward\n"
                 "home/end - start/end of line\n"
                 "alt+home/end - start/end of file\n"
                 "pgup/pgdn - page up/down\n"
@@ -1563,9 +1563,9 @@ int MAIN(int argc, const char_t** argv)
                 "tab - indent line\n"
                 "shift+tab - unindent line\n"
                 "delete - delete character at cursor position\n"
-                "backspace - unindent line or delete character to the left of cursor position\n"
+                "lastspace - unindent line or delete character to the left of cursor position\n"
                 "alt+del - delete word at cursor position\n"
-                "alt+backspace - delete word to the left of cursor position\n"
+                "alt+lastspace - delete word to the left of cursor position\n"
                 "alt+m - mark selection start\n"
                 "alt+d - delete line/selection\n"
                 "alt+c - copy line/selection\n"
