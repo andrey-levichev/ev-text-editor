@@ -1186,7 +1186,7 @@ bool Editor::processKey()
                 {
                     update = _document->value.moveWordBack();
                 }
-                else if (key.code == KEY_TAB || key.ch == 0x14)
+                else if (key.code == KEY_TAB || key.ch == 't')
                 {
                     _document->value.insertChar(0x9);
                     update = true;

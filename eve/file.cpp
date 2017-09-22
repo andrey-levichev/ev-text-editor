@@ -217,9 +217,9 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
         }
         else
         {
-            char16_t ch = 0xfeff;
-            bytes.addLast(*(reinterpret_cast<byte_t*>(&ch)));
-            bytes.addLast(*(reinterpret_cast<byte_t*>(&ch) + 1));
+            char16_t bomch = 0xfeff;
+            bytes.addLast(*(reinterpret_cast<byte_t*>(&bomch)));
+            bytes.addLast(*(reinterpret_cast<byte_t*>(&bomch) + 1));
         }
     }
 

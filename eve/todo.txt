@@ -8,6 +8,11 @@ print clear to eol code at the end of line
 clear/save screen on startup/build?
 * pressing enter in whitespace of indented line following another indented line increases indent
 * block indent shouldn't jump to start
+* makefile changes
+aliasing warnings with gcc
+compile in 64-bit mode
+make sure tests are not optimized away in release build
+tests don't compile on AIX
 
 editor:
 * selection with arrows and highlighting

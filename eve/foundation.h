@@ -336,7 +336,7 @@ inline void swapBytes(uint64_t* values, int len)
 #define STR_MACRO(arg) STR(arg)
 #define NUM_MACRO(arg) STR_MACRO(TO_STR(arg))
 
-#ifdef DEBUG
+#ifdef ENABLE_ASSERT
 
 #ifdef ABORT_ON_ASSERT_FAILURE
 
@@ -3168,10 +3168,10 @@ public:
         for (auto node = bucket.first(); node; node = node->next)
         {
             if (equalsTo(node->value, value))
-                return &node->value;
+                return true;
         }
 
-        return NULL;
+        return false;
     }
 
     void assign(const Set<_Type>& other)

@@ -1,38 +1,100 @@
-TARGET=eve
-HEADERS=foundation.h console.h file.h test.h
-SOURCES=foundation.cpp console.cpp file.cpp test.cpp
+HEADERS=foundation.h console.h file.h
+SOURCES=foundation.cpp console.cpp file.cpp
+TEST_HEADERS=test.h $(HEADERS)
+TEST_SOURCES=test.cpp $(SOURCES)
+EVE_HEADERS=eve.h $(HEADERS)
+EVE_SOURCES=eve.cpp $(SOURCES)
 
-all: $(TARGET).gcc
+TRASH=eve.vcpp.dbg.exe eve.vcpp.exe test.vcpp.dbg.exe test .vcpp.exe *.obj *.ilk *.pdb \
+	eve.gcc.dbg eve.clang.dbg eve.sol.dbg eve.xlc.dbg \
+	test.gcc.dbg test.clang.dbg test.sol.dbg test.xlc.dbg \
+	eve.gcc eve.clang eve.sol eve.xlc \
+	test.gcc test.clang test.sol test.xlc *.o
 
-$(TARGET).vcpp.exe: $(HEADERS) $(SOURCES)
-	cl /nologo /std:c++latest /utf-8 /EHsc /RTCsu /MTd /Zi /W3 /wd4244 /wd4267 $(SOURCES) \
-		/I. /DDEBUG /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
-		/D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS /link /out:$@
+VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 \
+	/I. /DENABLE_ASSERT /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
+	/D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS /Fe:$@
+VCPP_DEBUG_OPTIONS=/RTCsu /MTd /Zi
+VCPP_RELEASE_OPTIONS=/MT /Ox
 
-$(TARGET).gcc: $(HEADERS) $(SOURCES)
-	g++ -g -Wall $(SOURCES) -o $@ -I. -DDEBUG
+GCC_OPTIONS=-Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable
+GCC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
+GCC_RELEASE_OPTIONS=-O3
 
-$(TARGET).mingw.exe: $(HEADERS) $(SOURCES)
-	g++ -g -Wall $(SOURCES) -o $@ -static \
-		-I. -DDEBUG -D_UNICODE -DUNICODE \
-		-D_WIN32_WINNT=_WIN32_WINNT_WIN7 -municode
+CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable
+CLANG_DEBUG_OPTIONS=-g -DENABLE_ASSERT
+CLANG_RELEASE_OPTIONS=-O3
 
-$(TARGET).clang: $(HEADERS) $(SOURCES)
-	clang++ -std=gnu++14 -g -Wall $(SOURCES) -o $@ -I. -DDEBUG
+SOL_OPTIONS=-m64 -std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2
+SOL_DEBUG_OPTIONS=-g -DENABLE_ASSERT
+SOL_RELEASE_OPTIONS=-O3
 
-$(TARGET).clang.exe: $(HEADERS) $(SOURCES)
-	clang++ -std=gnu++14 -g -Wall $(SOURCES) -o $@ \
-		-fno-color-diagnostics -fms-compatibility-version=19.10 -fexceptions \
-		-I. -DDEBUG -D_UNICODE -DUNICODE \
-		-D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
-		-D_CRT_SECURE_NO_WARNINGS -D_CRT_NON_CONFORMING_SWPRINTFS
+XLC_OPTIONS=-qlanglvl=extended0x -o $@ -I.
+XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
+XLC_RELEASE_OPTIONS=-O3
 
-$(TARGET).sol: $(HEADERS) $(SOURCES)
-	CC -std=c++11 -g $(SOURCES) -o $@ -I. -DDEBUG
+all: eve.gcc.dbg
 
-$(TARGET).xlc: $(HEADERS) $(SOURCES)
-	xlC_r -qlanglvl=extended0x -g $(SOURCES) -o $@ -I. -DDEBUG
+eve.vcpp.dbg.exe: $(EVE_HEADERS) $(EVE_SOURCES)
+	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)
+
+eve.gcc.dbg: $(EVE_HEADERS) $(EVE_SOURCES)
+	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(EVE_SOURCES)
+
+eve.clang.dbg: $(EVE_HEADERS) $(EVE_SOURCES)
+	clang++ $(CLANG_OPTIONS) $(CLANG_DEBUG_OPTIONS) $(EVE_SOURCES)
+
+eve.sol.dbg: $(EVE_HEADERS) $(EVE_SOURCES)
+	CC $(SOL_OPTIONS) $(SOL_DEBUG_OPTIONS) $(EVE_SOURCES)
+
+eve.xlc.dbg: $(EVE_HEADERS) $(EVE_SOURCES)
+	xlC_r $(XLC_OPTIONS) $(XLC_DEBUG_OPTIONS) $(EVE_SOURCES)
+
+eve.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
+	cl $(VCPP_OPTIONS) $(VCPP_RELEASE_OPTIONS) $(EVE_SOURCES)
+
+eve.gcc: $(EVE_HEADERS) $(EVE_SOURCES)
+	g++ $(GCC_OPTIONS) $(GCC_RELEASE_OPTIONS) $(EVE_SOURCES)
+
+eve.clang: $(EVE_HEADERS) $(EVE_SOURCES)
+	clang++ $(CLANG_OPTIONS) $(CLANG_RELEASE_OPTIONS) $(EVE_SOURCES)
+
+eve.sol: $(EVE_HEADERS) $(EVE_SOURCES)
+	CC $(SOL_OPTIONS) $(SOL_RELEASE_OPTIONS) $(EVE_SOURCES)
+
+eve.xlc: $(EVE_HEADERS) $(EVE_SOURCES)
+	xlC_r $(XLC_OPTIONS) $(XLC_RELEASE_OPTIONS) $(EVE_SOURCES)
+
+test.vcpp.dbg.exe: $(TEST_HEADERS) $(TEST_SOURCES)
+	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(TEST_SOURCES)
+
+test.gcc.dbg: $(TEST_HEADERS) $(TEST_SOURCES)
+	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(TEST_SOURCES)
+
+test.clang.dbg: $(TEST_HEADERS) $(TEST_SOURCES)
+	clang++ $(CLANG_OPTIONS) $(CLANG_DEBUG_OPTIONS) $(TEST_SOURCES)
+
+test.sol.dbg: $(TEST_HEADERS) $(TEST_SOURCES)
+	CC $(SOL_OPTIONS) $(SOL_DEBUG_OPTIONS) $(TEST_SOURCES)
+
+test.xlc.dbg: $(TEST_HEADERS) $(TEST_SOURCES)
+	xlC_r $(XLC_OPTIONS) $(XLC_DEBUG_OPTIONS) $(TEST_SOURCES)
+
+test.vcpp.exe: $(TEST_HEADERS) $(TEST_SOURCES)
+	cl $(VCPP_OPTIONS) $(VCPP_RELEASE_OPTIONS) $(TEST_SOURCES) -DENABLE_ASSERT
+
+test.gcc: $(TEST_HEADERS) $(TEST_SOURCES)
+	g++ $(GCC_OPTIONS) $(GCC_RELEASE_OPTIONS) $(TEST_SOURCES) -DENABLE_ASSERT
+
+test.clang: $(TEST_HEADERS) $(TEST_SOURCES)
+	clang++ $(CLANG_OPTIONS) $(CLANG_RELEASE_OPTIONS) $(TEST_SOURCES) -DENABLE_ASSERT
+
+test.sol: $(TEST_HEADERS) $(TEST_SOURCES)
+	CC $(SOL_OPTIONS) $(SOL_RELEASE_OPTIONS) $(TEST_SOURCES) -DENABLE_ASSERT
+
+test.xlc: $(TEST_HEADERS) $(TEST_SOURCES)
+	xlC_r $(XLC_OPTIONS) $(XLC_RELEASE_OPTIONS) $(TEST_SOURCES) -DENABLE_ASSERT
 
 clean:
-	-del *.exe *.obj *.ilk *.pdb $(TARGET).gcc $(TARGET).clang $(TARGET).sol $(TARGET).xlc *.o
-	-rm *.exe *.obj *.ilk *.pdb $(TARGET).gcc $(TARGET).clang $(TARGET).sol $(TARGET).xlc *.o
+	-del $(TRASH)
+	-rm $(TRASH)
