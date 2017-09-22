@@ -2482,7 +2482,7 @@ public:
 protected:
     ListNode<_Type>* createListNode(const _Type& value, ListNode<_Type>* prev, ListNode<_Type>* next)
     {
-        ListNode<_Type>* ptr = Memory::allocate<ListNode<_Type>>();
+        auto ptr = Memory::allocate<ListNode<_Type>>();
 
         try
         {
@@ -2499,7 +2499,7 @@ protected:
 
     ListNode<_Type>* createListNode(_Type&& value, ListNode<_Type>* prev, ListNode<_Type>* next)
     {
-        ListNode<_Type>* ptr = Memory::allocate<ListNode<_Type>>();
+        auto ptr = Memory::allocate<ListNode<_Type>>();
 
         try
         {
@@ -2816,18 +2816,18 @@ public:
         if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
 
-        auto& kvList = getBucket(key);
+        auto& bucket = getBucket(key);
 
-        for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+        for (auto node = bucket.front(); node; node = node->next)
         {
-            if (equalsTo(kvNode->value.key, key))
-                return kvNode->value.value;
+            if (equalsTo(node->value.key, key))
+                return node->value.value;
         }
 
-        kvList.pushBack(KeyValue<_Key, _Value>(key));
+        bucket.pushBack(KeyValue<_Key, _Value>(key));
         ++_size;
 
-        return kvList.back()->value.value;
+        return bucket.back()->value.value;
     }
 
     _Value& value(_Key&& key)
@@ -2835,18 +2835,18 @@ public:
         if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
 
-        auto& kvList = getBucket(key);
+        auto& bucket = getBucket(key);
 
-        for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+        for (auto node = bucket.front(); node; node = node->next)
         {
-            if (equalsTo(kvNode->value.key, key))
-                return kvNode->value.value;
+            if (equalsTo(node->value.key, key))
+                return node->value.value;
         }
 
-        kvList.pushBack(KeyValue<_Key, _Value>(static_cast<_Key&&>(key)));
+        bucket.pushBack(KeyValue<_Key, _Value>(static_cast<_Key&&>(key)));
         ++_size;
 
-        return kvList.back()->value.value;
+        return bucket.back()->value.value;
     }
 
     const _Value& value(const _Key& key) const
@@ -2862,12 +2862,12 @@ public:
     {
         if (!_keyValues.empty())
         {
-            auto& kvList = getBucket(key);
+            auto& bucket = getBucket(key);
 
-            for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+            for (auto node = bucket.front(); node; node = node->next)
             {
-                if (equalsTo(kvNode->value.key, key))
-                    return &kvNode->value.value;
+                if (equalsTo(node->value.key, key))
+                    return &node->value.value;
             }
         }
 
@@ -2878,12 +2878,12 @@ public:
     {
         if (!_keyValues.empty())
         {
-            auto& kvList = getBucket(key);
+            auto& bucket = getBucket(key);
 
-            for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+            for (auto node = bucket.front(); node; node = node->next)
             {
-                if (equalsTo(kvNode->value.key, key))
-                    return &kvNode->value.value;
+                if (equalsTo(node->value.key, key))
+                    return &node->value.value;
             }
         }
 
@@ -2901,18 +2901,18 @@ public:
         if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
 
-        auto& kvList = getBucket(key);
+        auto& bucket = getBucket(key);
 
-        for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+        for (auto node = bucket.front(); node; node = node->next)
         {
-            if (equalsTo(kvNode->value.key, key))
+            if (equalsTo(node->value.key, key))
             {
-                kvNode->value.value = value;
+                node->value.value = value;
                 return;
             }
         }
 
-        kvList.pushBack(KeyValue<_Key, _Value>(key, value));
+        bucket.pushBack(KeyValue<_Key, _Value>(key, value));
         ++_size;
     }
 
@@ -2921,18 +2921,18 @@ public:
         if (_keyValues.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
 
-        auto& kvList = getBucket(key);
+        auto& bucket = getBucket(key);
 
-        for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+        for (auto node = bucket.front(); node; node = node->next)
         {
-            if (equalsTo(kvNode->value.key, key))
+            if (equalsTo(node->value.key, key))
             {
-                kvNode->value.value = static_cast<_Value&&>(value);
+                node->value.value = static_cast<_Value&&>(value);
                 return;
             }
         }
 
-        kvList.pushBack(KeyValue<_Key, _Value>(
+        bucket.pushBack(KeyValue<_Key, _Value>(
             static_cast<_Key&&>(key), static_cast<_Value&&>(value)));
 
         ++_size;
@@ -2942,13 +2942,13 @@ public:
     {
         if (!_keyValues.empty())
         {
-            auto& kvList = getBucket(key);
+            auto& bucket = getBucket(key);
 
-            for (auto kvNode = kvList.front(); kvNode; kvNode = kvNode->next)
+            for (auto node = bucket.front(); node; node = node->next)
             {
-                if (equalsTo(kvNode->value.key, key))
+                if (equalsTo(node->value.key, key))
                 {
-                    kvList.remove(kvNode);
+                    bucket.remove(node);
                     --_size;
                     return true;
                 }
@@ -2972,9 +2972,9 @@ public:
 
         for (int i = 0; i < _keyValues.size(); ++i)
         {
-            for (auto kvNode = _keyValues[i].front(); kvNode; kvNode = kvNode->next)
-                tmp.add(const_cast<_Key&&>(kvNode->value.key),
-                    static_cast<_Value&&>(kvNode->value.value));
+            for (auto node = _keyValues[i].front(); node; node = node->next)
+                tmp.add(const_cast<_Key&&>(node->value.key),
+                    static_cast<_Value&&>(node->value.value));
         }
 
         swap(*this, tmp);
@@ -3161,14 +3161,14 @@ public:
         _maxLoadFactor = loadFactor;
     }
 
-    const _Type* find(const _Type& value) const
+    bool contains(const _Type& value) const
     {
-        const List<_Type>& vList = getBucket(value);
+        auto& bucket = getBucket(value);
 
-        for (auto vNode = vList.front(); vNode; vNode = vNode->next)
+        for (auto node = bucket.front(); node; node = node->next)
         {
-            if (equalsTo(vNode->value, value))
-                return &vNode->value;
+            if (equalsTo(node->value, value))
+                return &node->value;
         }
 
         return NULL;
@@ -3185,15 +3185,15 @@ public:
         if (_values.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
 
-        List<_Type>& vList = getBucket(value);
+        auto& bucket = getBucket(value);
 
-        for (auto vNode = vList.front(); vNode; vNode = vNode->next)
+        for (auto node = bucket.front(); node; node = node->next)
         {
-            if (equalsTo(vNode->value, value))
+            if (equalsTo(node->value, value))
                 return;
         }
 
-        vList.pushBack(value);
+        bucket.pushBack(value);
         ++_size;
     }
 
@@ -3202,15 +3202,15 @@ public:
         if (_values.empty() || loadFactor() > _maxLoadFactor)
             rehash(_size * 2 / _maxLoadFactor + 1);
 
-        List<_Type>& vList = getBucket(value);
+        auto& bucket = getBucket(value);
 
-        for (auto vNode = vList.front(); vNode; vNode = vNode->next)
+        for (auto node = bucket.front(); node; node = node->next)
         {
-            if (equalsTo(vNode->value, value))
+            if (equalsTo(node->value, value))
                 return;
         }
 
-        vList.pushBack(static_cast<_Type&&>(value));
+        bucket.pushBack(static_cast<_Type&&>(value));
         ++_size;
     }
 
@@ -3218,12 +3218,12 @@ public:
     {
         for (int i = 0; i < _values.size(); ++i)
         {
-            List<_Type>& vList = _values[i];
+            auto& bucket = _values[i];
 
-            if (!vList.empty())
+            if (!bucket.empty())
             {
-                _Type value = static_cast<_Type&&>(vList.front()->value);
-                vList.popFront();
+                _Type value = static_cast<_Type&&>(bucket.front()->value);
+                bucket.popFront();
                 --_size;
                 return value;
             }
@@ -3234,13 +3234,13 @@ public:
 
     bool remove(const _Type& value)
     {
-        List<_Type>& vList = getBucket(value);
+        auto& bucket = getBucket(value);
 
-        for (auto vNode = vList.front(); vNode; vNode = vNode->next)
+        for (auto node = bucket.front(); node; node = node->next)
         {
-            if (equalsTo(vNode->value, value))
+            if (equalsTo(node->value, value))
             {
-                vList.remove(vNode);
+                bucket.remove(node);
                 --_size;
                 return true;
             }
@@ -3263,8 +3263,8 @@ public:
 
         for (int i = 0; i < _values.size(); ++i)
         {
-            for (auto vNode = _values[i].front(); vNode; vNode = vNode->next)
-                tmp.add(static_cast<_Type&&>(vNode->value));
+            for (auto node = _values[i].front(); node; node = node->next)
+                tmp.add(static_cast<_Type&&>(node->value));
         }
 
         swap(*this, tmp);

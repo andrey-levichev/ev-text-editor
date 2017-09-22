@@ -4543,7 +4543,7 @@ void testSet()
         ASSERT(s2.numBuckets() == 1);
         ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(!s2.empty());
-        ASSERT(s2.find(1));
+        ASSERT(s2.contains(1));
     }
 
     // Set(Set<_Type>&& other)
@@ -4577,7 +4577,7 @@ void testSet()
         ASSERT(s2.numBuckets() == 1);
         ASSERT(s2.maxLoadFactor() == 0.75f);
         ASSERT(!s2.empty());
-        ASSERT(s2.find(1));
+        ASSERT(s2.contains(1));
     }
 
     // Set<_Type>& operator=(const Set<_Type>& other)
@@ -4590,7 +4590,7 @@ void testSet()
         ASSERT(s1.size() == 1);
         ASSERT(s1.numBuckets() == 1);
         ASSERT(!s2.empty());
-        ASSERT(s2.find(1));
+        ASSERT(s2.contains(1));
     }
 
     // Set<_Type>& operator=(Set<_Type>&& other)
@@ -4622,7 +4622,7 @@ void testSet()
         ASSERT(s2.size() == 1);
         ASSERT(s2.numBuckets() == 1);
         ASSERT(!s2.empty());
-        ASSERT(s2.find(1));
+        ASSERT(s2.contains(1));
     }
 
     // int size() const
@@ -4669,15 +4669,15 @@ void testSet()
         ASSERT(s.maxLoadFactor() == 0.5f);
     }
 
-    // const _Type* find(const _Type& value) const
+    // bool contains(const _Type& value) const
 
     {
         Set<int> s;
         s.add(1);
 
         const Set<int>& cs = s;
-        ASSERT(*cs.find(1) == 1);
-        ASSERT(!cs.find(2));
+        ASSERT(cs.contains(1));
+        ASSERT(!cs.contains(2));
     }
 
     // void assign(const Set<_Type>& other)
@@ -4698,7 +4698,7 @@ void testSet()
         ASSERT(s1.size() == 1);
         ASSERT(s1.numBuckets() == 1);
         ASSERT(!s2.empty());
-        ASSERT(s2.find(1));
+        ASSERT(s2.contains(1));
     }
 
     // void add(const _Type& value)
@@ -4707,7 +4707,7 @@ void testSet()
         Set<int> s;
         int v = 1;
         s.add(v);
-        ASSERT(s.find(v));
+        ASSERT(s.contains(v));
     }
 
     // void add(_Type&& value)
@@ -4715,7 +4715,7 @@ void testSet()
     {
         Set<int> s;
         s.add(1);
-        ASSERT(s.find(1));
+        ASSERT(s.contains(1));
     }
 
     // _Type remove()
@@ -4791,7 +4791,7 @@ void testSet()
     {
         Set<UniquePtr<int>> s;
         s.add(createUnique<int>(1));
-        ASSERT(s.find(createUnique<int>(1)));
+        ASSERT(s.contains(createUnique<int>(1)));
     }
 
     {
