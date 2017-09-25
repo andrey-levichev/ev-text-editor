@@ -5,13 +5,13 @@ TEST_SOURCES=test.cpp $(SOURCES)
 EVE_HEADERS=eve.h $(HEADERS)
 EVE_SOURCES=eve.cpp $(SOURCES)
 
-TRASH=eve.vcpp.dbg.exe eve.vcpp.exe test.vcpp.dbg.exe test .vcpp.exe *.obj *.ilk *.pdb \
-	eve.gcc.dbg eve.clang.dbg eve.sol.dbg eve.xlc.dbg \
-	test.gcc.dbg test.clang.dbg test.sol.dbg test.xlc.dbg \
+TRASH=eve.dbg.vcpp.exe eve.vcpp.exe test.dbg.vcpp.exe test.vcpp.exe *.obj *.ilk *.pdb \
+	eve.dbg.gcc eve.dbg.clang eve.dbg.sol eve.dbg.xlc \
+	test.dbg.gcc test.dbg.clang test.dbg.sol test.dbg.xlc \
 	eve.gcc eve.clang eve.sol eve.xlc \
 	test.gcc test.clang test.sol test.xlc *.o
 
-VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 \
+VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 /wd4723 \
 	/I. /DENABLE_ASSERT /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
 	/D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS /Fe:$@
 VCPP_DEBUG_OPTIONS=/RTCsu /MTd /Zi
@@ -29,25 +29,25 @@ SOL_OPTIONS=-m64 -std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2
 SOL_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 SOL_RELEASE_OPTIONS=-O3
 
-XLC_OPTIONS=-qlanglvl=extended0x -o $@ -I.
+XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
-XLC_RELEASE_OPTIONS=-O3
+XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: eve.gcc.dbg
+all: eve.dbg.xlc
 
-eve.vcpp.dbg.exe: $(EVE_HEADERS) $(EVE_SOURCES)
+eve.dbg.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)
 
-eve.gcc.dbg: $(EVE_HEADERS) $(EVE_SOURCES)
+eve.dbg.gcc: $(EVE_HEADERS) $(EVE_SOURCES)
 	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(EVE_SOURCES)
 
-eve.clang.dbg: $(EVE_HEADERS) $(EVE_SOURCES)
+eve.dbg.clang: $(EVE_HEADERS) $(EVE_SOURCES)
 	clang++ $(CLANG_OPTIONS) $(CLANG_DEBUG_OPTIONS) $(EVE_SOURCES)
 
-eve.sol.dbg: $(EVE_HEADERS) $(EVE_SOURCES)
+eve.dbg.sol: $(EVE_HEADERS) $(EVE_SOURCES)
 	CC $(SOL_OPTIONS) $(SOL_DEBUG_OPTIONS) $(EVE_SOURCES)
 
-eve.xlc.dbg: $(EVE_HEADERS) $(EVE_SOURCES)
+eve.dbg.xlc: $(EVE_HEADERS) $(EVE_SOURCES)
 	xlC_r $(XLC_OPTIONS) $(XLC_DEBUG_OPTIONS) $(EVE_SOURCES)
 
 eve.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
@@ -65,19 +65,19 @@ eve.sol: $(EVE_HEADERS) $(EVE_SOURCES)
 eve.xlc: $(EVE_HEADERS) $(EVE_SOURCES)
 	xlC_r $(XLC_OPTIONS) $(XLC_RELEASE_OPTIONS) $(EVE_SOURCES)
 
-test.vcpp.dbg.exe: $(TEST_HEADERS) $(TEST_SOURCES)
+test.dbg.vcpp.exe: $(TEST_HEADERS) $(TEST_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(TEST_SOURCES)
 
-test.gcc.dbg: $(TEST_HEADERS) $(TEST_SOURCES)
+test.dbg.gcc: $(TEST_HEADERS) $(TEST_SOURCES)
 	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(TEST_SOURCES)
 
-test.clang.dbg: $(TEST_HEADERS) $(TEST_SOURCES)
+test.dbg.clang: $(TEST_HEADERS) $(TEST_SOURCES)
 	clang++ $(CLANG_OPTIONS) $(CLANG_DEBUG_OPTIONS) $(TEST_SOURCES)
 
-test.sol.dbg: $(TEST_HEADERS) $(TEST_SOURCES)
+test.dbg.sol: $(TEST_HEADERS) $(TEST_SOURCES)
 	CC $(SOL_OPTIONS) $(SOL_DEBUG_OPTIONS) $(TEST_SOURCES)
 
-test.xlc.dbg: $(TEST_HEADERS) $(TEST_SOURCES)
+test.dbg.xlc: $(TEST_HEADERS) $(TEST_SOURCES)
 	xlC_r $(XLC_OPTIONS) $(XLC_DEBUG_OPTIONS) $(TEST_SOURCES)
 
 test.vcpp.exe: $(TEST_HEADERS) $(TEST_SOURCES)

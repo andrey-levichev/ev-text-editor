@@ -7,123 +7,39 @@
 
 void printPlatformInfo();
 
-// Dog
+// Test
 
-class Dog
+class Test
 {
 public:
-    Dog() :
-        _val(0)
-    {
-        Console::writeLineFormatted(STR("%p: Dog::Dog(): %d"), this, _val);
-    }
-
-    Dog(int val) :
-        _val(val)
-    {
-        Console::writeLineFormatted(STR("%p: Dog::Dog(int): %d"), this, _val);
-    }
-
-    Dog(const Dog& other) :
-        _val(other._val)
-    {
-        Console::writeLineFormatted(STR("%p: Dog::Dog(const Dog&): %d"), this, _val);
-    }
-
-    Dog(Dog&& other) :
-        _val(other._val)
-    {
-        other._val = 0;
-        Console::writeLineFormatted(STR("%p: Dog::Dog(Dog&&): %d"), this, _val);
-    }
-
-    ~Dog()
-    {
-        Console::writeLineFormatted(STR("%p: Dog::~Dog(): %d"), this, _val);
-    }
-
-    Dog& operator=(const Dog& other)
-    {
-        _val = other._val;
-        Console::writeLineFormatted(STR("%p: Dog::operator=(const Dog&): %d"), this, _val);
-        return *this;
-    }
-
-    Dog& operator=(Dog&& other)
-    {
-        _val = other._val;
-        other._val = 0;
-        Console::writeLineFormatted(STR("%p: Dog::operator=(Dog&&): %d"), this, _val);
-        return *this;
-    }
-
-    int val() const
-    {
-        return _val;
-    }
-
-    int& val()
-    {
-        return _val;
-    }
-
-    friend void swap(Dog& left, Dog& right)
-    {
-        swap(left._val, right._val);
-    }
-
-    friend bool operator==(const Dog& left, const Dog& right)
-    {
-        return left._val == right._val;
-    }
-
-    friend bool operator!=(const Dog& left, const Dog& right)
-    {
-        return left._val != right._val;
-    }
-
-    friend int hash(const Dog& val)
-    {
-        return val._val;
-    }
-
-protected:
-    int _val;
-};
-
-// Cat
-
-class Cat
-{
-public:
-    Cat() :
+    Test() :
         _val(0)
     {
     }
 
-    Cat(int val) :
+    Test(int val) :
         _val(val)
     {
     }
 
-    Cat(const Cat& other) :
+    Test(const Test& other) :
         _val(other._val)
     {
     }
 
-    Cat(Cat&& other) :
+    Test(Test&& other) :
         _val(other._val)
     {
         other._val = 0;
     }
 
-    Cat& operator=(const Cat& other)
+    Test& operator=(const Test& other)
     {
         _val = other._val;
         return *this;
     }
 
-    Cat& operator=(Cat&& other)
+    Test& operator=(Test&& other)
     {
         _val = other._val;
         other._val = 0;
@@ -140,22 +56,22 @@ public:
         return _val;
     }
 
-    friend void swap(Cat& left, Cat& right)
+    friend void swap(Test& left, Test& right)
     {
         swap(left._val, right._val);
     }
 
-    friend bool operator==(const Cat& left, const Cat& right)
+    friend bool operator==(const Test& left, const Test& right)
     {
         return left._val == right._val;
     }
 
-    friend bool operator!=(const Cat& left, const Cat& right)
+    friend bool operator!=(const Test& left, const Test& right)
     {
         return left._val != right._val;
     }
 
-    friend int hash(const Cat& val)
+    friend int hash(const Test& val)
     {
         return val._val;
     }

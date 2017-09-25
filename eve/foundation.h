@@ -443,24 +443,20 @@ inline int hash(unsigned val)
 
 inline int hash(long val)
 {
+    int* h = reinterpret_cast<int*>(&val);
     if (sizeof(long) == 8)
-    {
-        int* h = reinterpret_cast<int*>(&val);
         return hash(*h, *(h + 1));
-    }
     else
-        return *reinterpret_cast<int*>(&val);
+        return *h;
 }
 
 inline int hash(unsigned long val)
 {
+    int* h = reinterpret_cast<int*>(&val);
     if (sizeof(unsigned long) == 8)
-    {
-        int* h = reinterpret_cast<int*>(&val);
         return hash(*h, *(h + 1));
-    }
     else
-        return *reinterpret_cast<int*>(&val);
+        return *h;
 }
 
 inline int hash(long long val)
@@ -477,7 +473,8 @@ inline int hash(unsigned long long val)
 
 inline int hash(float val)
 {
-    return *reinterpret_cast<int*>(&val);
+    int *h = reinterpret_cast<int*>(&val);
+    return *h;
 }
 
 inline int hash(double val)
@@ -498,7 +495,8 @@ inline int hash(const char_t* val)
 
 inline int hash(const void* val)
 {
-    return hash(*reinterpret_cast<intptr_t*>(&val));
+    intptr_t* h = reinterpret_cast<intptr_t*>(&val);
+    return hash(*h);
 }
 
 template<typename _Type1, typename _Type2>

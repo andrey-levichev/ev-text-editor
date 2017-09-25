@@ -4,10 +4,10 @@
 *.obj
 *.exe
 *.ilk
-eve.gcc
-eve.clang
-eve.sol
-eve.xlc
+*.gcc
+*.clang
+*.sol
+*.xlc
 tags
 test.txt
 test.dat

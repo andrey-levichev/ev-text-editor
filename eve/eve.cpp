@@ -392,15 +392,15 @@ void Document::indentLines()
 
         do
         {
-            _position = indentLine(pos);
-            pos = findPreviousLine(_position);
+            pos = indentLine(pos);
+            pos = findPreviousLine(pos);
         }
         while (pos != INVALID_POSITION && pos >= start);
 
         _selection = -1;
     }
 
-    positionToLineColumn();
+    lineColumnToPosition();
     _modified = true;
 }
 
@@ -430,15 +430,15 @@ void Document::unindentLines()
 
         do
         {
-            _position = unindentLine(pos);
-            pos = findPreviousLine(_position);
+            pos = unindentLine(pos);
+            pos = findPreviousLine(pos);
         }
         while (pos != INVALID_POSITION && pos >= start);
 
         _selection = -1;
     }
 
-    positionToLineColumn();
+    lineColumnToPosition();
     _modified = true;
 }
 
