@@ -247,7 +247,7 @@ bool Document::moveToLine(int line)
 
 void Document::insertNewLine()
 {
-    int p = _position;
+    int p = _position, q = p;
     unichar_t ch = '\n';
 
     while (p > 0 && (ch == ' ' || ch == '\t' || ch == '\n'))
@@ -267,16 +267,15 @@ void Document::insertNewLine()
         ch = _text.charAt(p);
     }
 
-    if (p <= _position)
+    ch = _text.charAt(q);
+    while (ch == ' ' || ch == '\t')
     {
-        _text.insert(_position, _indent);
-        _position += _indent.length();
+        q = _text.charForward(q);
+        ch = _text.charAt(q);
     }
-    else
-    {
-        _text.insert(_position, '\n');
-        _position = _text.charForward(_position);
-    }
+
+    _text.replace(_position, _indent, q - _position);
+    _position += _indent.length();
 
     positionToLineColumn();
     _modified = true;
@@ -369,9 +368,7 @@ bool Document::deleteWordBack()
 void Document::indentLines()
 {
     if (_selection < 0)
-    {
-        _position = indentLine(_position);
-    }
+        indentLine(_position);
     else
     {
         int start, end;
@@ -407,9 +404,7 @@ void Document::indentLines()
 void Document::unindentLines()
 {
     if (_selection < 0)
-    {
-        _position = unindentLine(_position);
-    }
+        unindentLine(_position);
     else
     {
         int start, end;
@@ -445,9 +440,7 @@ void Document::unindentLines()
 void Document::toggleComment()
 {
     if (_selection < 0)
-    {
-        _position = toggleComment(_position);
-    }
+        toggleComment(_position);
     else
     {
         int start, end;
@@ -468,15 +461,15 @@ void Document::toggleComment()
 
         do
         {
-            _position = toggleComment(pos);
-            pos = findPreviousLine(_position);
+            pos = toggleComment(pos);
+            pos = findPreviousLine(pos);
         }
         while (pos != INVALID_POSITION && pos >= start);
 
         _selection = -1;
     }
 
-    positionToLineColumn();
+    lineColumnToPosition();
     _modified = true;
 }
 
@@ -768,7 +761,7 @@ int Document::indentLine(int pos)
     _text.erase(start, p - start);
     _text.insert(start, ' ', indent);
 
-    return _text.charForward(start, indent);
+    return start;
 }
 
 int Document::unindentLine(int pos)
@@ -796,11 +789,9 @@ int Document::unindentLine(int pos)
         indent = (indent - 1) / TAB_SIZE * TAB_SIZE;
         _text.erase(start, p - start);
         _text.insert(start, ' ', indent);
-
-        p = _text.charForward(start, indent);
     }
 
-    return p;
+    return start;
 }
 
 int Document::toggleComment(int pos)
@@ -826,7 +817,7 @@ int Document::toggleComment(int pos)
         {
             q = _text.charForward(q);
             _text.erase(p, q - p);
-            return p;
+            return start;
         }
     }
 

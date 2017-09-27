@@ -6,9 +6,7 @@ replace key mapping table with trie based word map
 print clear to eol code at the end of line
 * use window width instead of screen buffer width on windows
 clear/save screen on startup/build?
-* pressing enter in whitespace of indented line following another indented line increases indent
 * keep selection after indent, clear on cursor move
-* cursor must stay in the same position after block operations
 
 editor:
 * selection with arrows and highlighting

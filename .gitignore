@@ -9,7 +9,7 @@
 *.sol
 *.xlc
 tags
-test.txt
+doc.txt
 test.dat
 Debug
 Release
