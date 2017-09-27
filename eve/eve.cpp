@@ -368,7 +368,7 @@ bool Document::deleteWordBack()
 void Document::indentLines()
 {
     if (_selection < 0)
-        indentLine(_position);
+        _position = indentLine(_position);
     else
     {
         int start, end;
@@ -385,26 +385,31 @@ void Document::indentLines()
         }
 
         start = findLineStart(start);
-        int pos = end;
+        int pos = end, n = 0;
 
         do
         {
             pos = indentLine(pos);
             pos = findPreviousLine(pos);
+            ++n;
         }
         while (pos != INVALID_POSITION && pos >= start);
 
-        _selection = -1;
+        _position = _selection = start;
+        while (--n > 0)
+            _selection = findNextLine(_selection);
+
+        _selection = findLineEnd(_selection);
     }
 
-    lineColumnToPosition();
+    positionToLineColumn();
     _modified = true;
 }
 
 void Document::unindentLines()
 {
     if (_selection < 0)
-        unindentLine(_position);
+        _position = unindentLine(_position);
     else
     {
         int start, end;
@@ -421,26 +426,31 @@ void Document::unindentLines()
         }
 
         start = findLineStart(start);
-        int pos = end;
+        int pos = end, n = 0;
 
         do
         {
             pos = unindentLine(pos);
             pos = findPreviousLine(pos);
+            ++n;
         }
         while (pos != INVALID_POSITION && pos >= start);
 
-        _selection = -1;
+        _position = _selection = start;
+        while (--n > 0)
+            _selection = findNextLine(_selection);
+
+        _selection = findLineEnd(_selection);
     }
 
-    lineColumnToPosition();
+    positionToLineColumn();
     _modified = true;
 }
 
 void Document::toggleComment()
 {
     if (_selection < 0)
-        toggleComment(_position);
+        _position = toggleComment(_position);
     else
     {
         int start, end;
@@ -457,19 +467,24 @@ void Document::toggleComment()
         }
 
         start = findLineStart(start);
-        int pos = end;
+        int pos = end, n = 0;
 
         do
         {
             pos = toggleComment(pos);
             pos = findPreviousLine(pos);
+            ++n;
         }
         while (pos != INVALID_POSITION && pos >= start);
 
-        _selection = -1;
+        _position = _selection = start;
+        while (--n > 0)
+            _selection = findNextLine(_selection);
+
+        _selection = findLineEnd(_selection);
     }
 
-    lineColumnToPosition();
+    positionToLineColumn();
     _modified = true;
 }
 
