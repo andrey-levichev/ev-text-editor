@@ -367,125 +367,17 @@ bool Document::deleteWordBack()
 
 void Document::indentLines()
 {
-    if (_selection < 0)
-        _position = indentLine(_position);
-    else
-    {
-        int start, end;
-
-        if (_selection < _position)
-        {
-            start = _selection;
-            end = _position;
-        }
-        else
-        {
-            start = _position;
-            end = _selection;
-        }
-
-        start = findLineStart(start);
-        int pos = end, n = 0;
-
-        do
-        {
-            pos = indentLine(pos);
-            pos = findPreviousLine(pos);
-            ++n;
-        }
-        while (pos != INVALID_POSITION && pos >= start);
-
-        _position = _selection = start;
-        while (--n > 0)
-            _selection = findNextLine(_selection);
-
-        _selection = findLineEnd(_selection);
-    }
-
-    positionToLineColumn();
-    _modified = true;
+    changeLines(&Document::indentLine);
 }
 
 void Document::unindentLines()
 {
-    if (_selection < 0)
-        _position = unindentLine(_position);
-    else
-    {
-        int start, end;
-
-        if (_selection < _position)
-        {
-            start = _selection;
-            end = _position;
-        }
-        else
-        {
-            start = _position;
-            end = _selection;
-        }
-
-        start = findLineStart(start);
-        int pos = end, n = 0;
-
-        do
-        {
-            pos = unindentLine(pos);
-            pos = findPreviousLine(pos);
-            ++n;
-        }
-        while (pos != INVALID_POSITION && pos >= start);
-
-        _position = _selection = start;
-        while (--n > 0)
-            _selection = findNextLine(_selection);
-
-        _selection = findLineEnd(_selection);
-    }
-
-    positionToLineColumn();
-    _modified = true;
+    changeLines(&Document::unindentLine);
 }
 
 void Document::toggleComment()
 {
-    if (_selection < 0)
-        _position = toggleComment(_position);
-    else
-    {
-        int start, end;
-
-        if (_selection < _position)
-        {
-            start = _selection;
-            end = _position;
-        }
-        else
-        {
-            start = _position;
-            end = _selection;
-        }
-
-        start = findLineStart(start);
-        int pos = end, n = 0;
-
-        do
-        {
-            pos = toggleComment(pos);
-            pos = findPreviousLine(pos);
-            ++n;
-        }
-        while (pos != INVALID_POSITION && pos >= start);
-
-        _position = _selection = start;
-        while (--n > 0)
-            _selection = findNextLine(_selection);
-
-        _selection = findLineEnd(_selection);
-    }
-
-    positionToLineColumn();
-    _modified = true;
+    changeLines(&Document::toggleComment);
 }
 
 void Document::markSelection()
@@ -752,31 +644,86 @@ int Document::findPreviousLine(int pos) const
         return INVALID_POSITION;
 }
 
+void Document::changeLines(int(Document::* lineOp)(int))
+{
+    if (_selection < 0)
+        _position = (this->*lineOp)(_position);
+    else
+    {
+        int start, end;
+        bool atStart;
+
+        if (_selection < _position)
+        {
+            start = _selection;
+            end = _position;
+            atStart = false;
+        }
+        else
+        {
+            start = _position;
+            end = _selection;
+            atStart = true;
+        }
+
+        start = findLineStart(start);
+        int pos = end, n = 0;
+
+        do
+        {
+            pos = (this->*lineOp)(pos);
+            pos = findPreviousLine(pos);
+            ++n;
+        }
+        while (pos != INVALID_POSITION && pos >= start);
+
+        end = start;
+        while (--n > 0)
+            end = findNextLine(end);
+
+        end = findLineEnd(end);
+
+        if (atStart)
+        {
+            _position = start;
+            _selection = end;
+        }
+        else
+        {
+            _selection = start;
+            _position = end;
+        }
+    }
+
+    positionToLineColumn();
+    _modified = true;
+}
+
 int Document::indentLine(int pos)
 {
     ASSERT(pos >= 0);
 
     int start = findLineStart(pos), p = start;
     unichar_t ch;
-    int indent = 0;
+    int n = 0;
 
     ch = _text.charAt(p);
     while (ch == ' ' || ch == '\t')
     {
         if (ch == '\t')
-            indent += TAB_SIZE - (p - start) % TAB_SIZE;
+            n += TAB_SIZE - (p - start) % TAB_SIZE;
         else
-            ++indent;
+            ++n;
 
         p = _text.charForward(p);
         ch = _text.charAt(p);
     }
 
-    indent = (indent / TAB_SIZE + 1) * TAB_SIZE;
+    n = (n / TAB_SIZE + 1) * TAB_SIZE;
     _text.erase(start, p - start);
-    _text.insert(start, ' ', indent);
+    _text.insert(start, ' ', n);
 
-    return start;
+    return pos - (p - start) + n;
 }
 
 int Document::unindentLine(int pos)
@@ -785,28 +732,32 @@ int Document::unindentLine(int pos)
 
     int start = findLineStart(pos), p = start;
     unichar_t ch;
-    int indent = 0;
+    int n = 0;
 
     ch = _text.charAt(p);
     while (ch == ' ' || ch == '\t')
     {
         if (ch == '\t')
-            indent += TAB_SIZE - (p - start) % TAB_SIZE;
+            n += TAB_SIZE - (p - start) % TAB_SIZE;
         else
-            ++indent;
+            ++n;
 
         p = _text.charForward(p);
         ch = _text.charAt(p);
     }
 
-    if (indent > 0)
+    if (n > 0)
     {
-        indent = (indent - 1) / TAB_SIZE * TAB_SIZE;
+        n = (n - 1) / TAB_SIZE * TAB_SIZE;
         _text.erase(start, p - start);
-        _text.insert(start, ' ', indent);
+        _text.insert(start, ' ', n);
+
+        pos = pos - (p - start) + n;
+        if (pos < start)
+            pos = start;
     }
 
-    return start;
+    return pos;
 }
 
 int Document::toggleComment(int pos)

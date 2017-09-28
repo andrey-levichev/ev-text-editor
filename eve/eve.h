@@ -121,6 +121,8 @@ protected:
     int findNextLine(int pos) const;
     int findPreviousLine(int pos) const;
 
+    void changeLines(int(Document::* lineOp)(int));
+
     int indentLine(int pos);
     int unindentLine(int pos);
     int toggleComment(int pos);
