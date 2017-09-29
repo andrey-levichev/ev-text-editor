@@ -6,7 +6,8 @@ replace key mapping table with trie based word map
 print clear to eol code at the end of line
 * use window width instead of screen buffer width on windows
 clear/save screen on startup/build?
-* findLineTextStart
+* text modification operations should replace selection?
+* do we really need selectionMode flag?
 
 editor:
 * selection with arrows and highlighting
@@ -32,6 +33,7 @@ complete on tab or punctuation
 * line wrapping
 
 foundation:
+* memory mapped file I/O
 * convert any object to string
 * type safe string formatting
 * date and time

@@ -155,7 +155,7 @@ protected:
     int _top, _left;
 
     int _selection;
-    bool _keepSelection;
+    bool _selectionMode;
 
     String _indent;
 };
