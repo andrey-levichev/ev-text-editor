@@ -27,6 +27,11 @@ public:
         return _modified;
     }
 
+    void filename(const String& filename)
+    {
+        _filename = filename;
+    }
+
     const String& filename() const
     {
         return _filename;
@@ -114,6 +119,7 @@ public:
 
     void open(const String& filename);
     void save();
+    void clear();
 
 protected:
     int findLineStart(int pos) const;
@@ -147,7 +153,9 @@ protected:
 
     int _line, _column, _preferredColumn;
     int _top, _left;
+
     int _selection;
+    bool _keepSelection;
 
     String _indent;
 };

@@ -4,27 +4,9 @@ const int TAB_SIZE = 4;
 
 // Document
 
-Document::Document() :
-    _position(0),
-    _modified(false),
-#ifdef CHAR_ENCODING_UTF8
-    _encoding(TEXT_ENCODING_UTF8),
-    _bom(false),
-#else
-    _encoding(TEXT_ENCODING_UTF16_LE),
-    _bom(true),
-#endif
-#ifdef PLATFORM_WINDOWS
-    _crLf(true),
-#else
-    _crLf(false),
-#endif
-    _line(1), _column(1),
-    _preferredColumn(1),
-    _top(1), _left(1),
-    _selection(-1)
+Document::Document()
 {
-    _text.ensureCapacity(1);
+    clear();
 }
 
 bool Document::moveUp()
@@ -35,7 +17,18 @@ bool Document::moveUp()
     int prev = _position;
     lineColumnToPosition();
 
-    return _position != prev;
+    if (_position != prev)
+    {
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
+        return true;
+    }
+    else
+        return false;
 }
 
 bool Document::moveDown()
@@ -45,7 +38,18 @@ bool Document::moveDown()
     int prev = _position;
     lineColumnToPosition();
 
-    return _position != prev;
+    if (_position != prev)
+    {
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
+        return true;
+    }
+    else
+        return false;
 }
 
 bool Document::moveForward()
@@ -54,6 +58,13 @@ bool Document::moveForward()
     {
         _position = _text.charForward(_position);
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
 
@@ -66,6 +77,13 @@ bool Document::moveBack()
     {
         _position = _text.charBack(_position);
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
 
@@ -96,6 +114,13 @@ bool Document::moveWordForward()
     {
         _position = p;
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
     else
@@ -137,6 +162,13 @@ bool Document::moveWordBack()
     {
         _position = p;
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
     else
@@ -149,6 +181,13 @@ bool Document::moveToStart()
     {
         _position = 0;
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
 
@@ -161,6 +200,13 @@ bool Document::moveToEnd()
     {
         _position = _text.length();
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
 
@@ -187,6 +233,13 @@ bool Document::moveToLineStart()
     {
         _position = p;
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
 
@@ -201,6 +254,13 @@ bool Document::moveToLineEnd()
     {
         _position = p;
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
     else
@@ -218,7 +278,18 @@ bool Document::moveLinesUp(int lines)
     int prev = _position;
     lineColumnToPosition();
 
-    return _position != prev;
+    if (_position != prev)
+    {
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
+        return true;
+    }
+    else
+        return false;
 }
 
 bool Document::moveLinesDown(int lines)
@@ -230,7 +301,18 @@ bool Document::moveLinesDown(int lines)
     int prev = _position;
     lineColumnToPosition();
 
-    return _position != prev;
+    if (_position != prev)
+    {
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
+        return true;
+    }
+    else
+        return false;
 }
 
 bool Document::moveToLine(int line)
@@ -242,7 +324,17 @@ bool Document::moveToLine(int line)
     int prev = _position;
     lineColumnToPosition();
 
-    return _position != prev;
+    if (_position != prev)
+    {
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+        return true;
+    }
+    else
+        return false;
 }
 
 void Document::insertNewLine()
@@ -279,6 +371,7 @@ void Document::insertNewLine()
 
     positionToLineColumn();
     _modified = true;
+    _keepSelection = true;
     _selection = -1;
 }
 
@@ -291,6 +384,7 @@ void Document::insertChar(unichar_t ch)
 
     positionToLineColumn();
     _modified = true;
+    _keepSelection = true;
     _selection = -1;
 }
 
@@ -302,6 +396,7 @@ bool Document::deleteCharForward()
 
         positionToLineColumn();
         _modified = true;
+        _keepSelection = true;
         _selection = -1;
 
         return true;
@@ -320,6 +415,7 @@ bool Document::deleteCharBack()
 
         positionToLineColumn();
         _modified = true;
+        _keepSelection = true;
         _selection = -1;
 
         return true;
@@ -339,6 +435,7 @@ bool Document::deleteWordForward()
 
         positionToLineColumn();
         _modified = true;
+        _keepSelection = true;
         _selection = -1;
 
         return true;
@@ -357,6 +454,7 @@ bool Document::deleteWordBack()
 
         positionToLineColumn();
         _modified = true;
+        _keepSelection = true;
         _selection = -1;
 
         return true;
@@ -410,6 +508,7 @@ String Document::copyDeleteText(bool copy)
             end = _selection;
         }
 
+        _keepSelection = true;
         _selection = -1;
     }
 
@@ -442,6 +541,7 @@ void Document::pasteText(const String& text, bool lineSelection)
     _position += text.length();
     positionToLineColumn();
     _modified = true;
+    _keepSelection = true;
     _selection = -1;
 }
 
@@ -517,6 +617,13 @@ bool Document::find(const String& searchStr, bool next)
 	{
 		_position = p;
         positionToLineColumn();
+
+        if (!_keepSelection)
+        {
+            _keepSelection = true;
+            _selection = -1;
+        }
+
         return true;
     }
 
@@ -538,6 +645,7 @@ bool Document::replace(const String& searchStr, const String& replaceStr)
 
         positionToLineColumn();
         _modified = true;
+        _keepSelection = true;
         _selection = -1;
 
         return true;
@@ -548,44 +656,51 @@ bool Document::replace(const String& searchStr, const String& replaceStr)
 
 void Document::open(const String& filename)
 {
-	File file;
-
-	if (file.open(filename, FILE_MODE_OPEN_EXISTING))
-		_text.assign(file.readString(_encoding, _bom, _crLf));
-	else
-    {
-#ifdef CHAR_ENCODING_UTF8
-        _encoding = TEXT_ENCODING_UTF8;
-        _bom = false;
-#else
-        _encoding = TEXT_ENCODING_UTF16_LE;
-        _bom = true;
-#endif
-#ifdef PLATFORM_WINDOWS
-        _crLf = true;
-#else
-        _crLf = false;
-#endif
-		_text.clear();
-    }
-
+    clear();
     _filename = filename;
-    _position = 0;
-    _modified = false;
-    _line = 1; _column = 1;
-    _preferredColumn = 1;
-    _selection = -1;
+
+	File file;
+	if (file.open(filename, FILE_MODE_OPEN_EXISTING))
+        _text.assign(file.readString(_encoding, _bom, _crLf));
 }
 
 void Document::save()
 {
+    if (_filename.empty())
+        throw Exception(STR("filename must be specified"));
+
     trimTrailingWhitespace();
+
 	File file(_filename, FILE_MODE_CREATE);
 	file.writeString(_text, _encoding, _bom, _crLf);
 
     lineColumnToPosition();
     _modified = false;
     _selection = -1;
+}
+
+void Document::clear()
+{
+    _text.ensureCapacity(1);
+    _text.clear();
+
+    _position = 0;
+    _modified = false;
+
+    _encoding = TEXT_ENCODING_UTF8;
+    _bom = false;
+#ifdef PLATFORM_WINDOWS
+    _crLf = true;
+#else
+    _crLf = false;
+#endif
+
+    _line = _column = 1;
+    _preferredColumn = 1;
+    _top = _left = 1;
+
+    _selection = -1;
+    _keepSelection = true;
 }
 
 int Document::findLineStart(int pos) const
@@ -693,6 +808,8 @@ void Document::changeLines(int(Document::* lineOp)(int))
             _selection = start;
             _position = end;
         }
+
+        _keepSelection = false;
     }
 
     positionToLineColumn();
