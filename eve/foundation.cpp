@@ -1786,6 +1786,22 @@ bool ConstStringIterator::movePrev()
     }
 }
 
+// ConstStringSetIterator
+
+bool ConstStringSetIterator::moveNext()
+{
+    return false;
+}
+
+bool ConstStringSetIterator::movePrev()
+{
+    return false;
+}
+
+void ConstStringSetIterator::reset()
+{
+}
+
 // StringSet
 
 StringSet::StringSet() :
@@ -1795,10 +1811,50 @@ StringSet::StringSet() :
 
 StringSet::StringSet(const StringSet& other)
 {
+    if (other._root)
+    {
+        StringSetNode* node = NULL;
+        StringSetNode* prev = NULL;
+        StringSetNode* otherNode = other._root;
+        StringSetNode* otherPrev = NULL;
+
+        while (true)
+        {
+            StringSetNode* n = Memory::create<StringSetNode>(otherNode->ch);
+
+            if (otherNode->child && otherPrev == otherNode->parent)
+            {
+                otherPrev = otherNode;
+                otherNode = otherNode->child;
+            }
+            else if (otherNode->sibling && otherPrev != otherNode->sibling)
+            {
+                otherPrev = otherNode;
+                otherNode = otherNode->sibling;
+            }
+            else
+            {
+                if (otherNode == other._root)
+                    break;
+
+                otherPrev = otherNode;
+                otherNode = otherNode->parent;
+            }
+        }
+    }
+    else
+    {
+        _root = NULL;
+        _size = 0;
+    }
 }
 
 StringSet::StringSet(StringSet&& other)
 {
+    _root = other._root;
+    _size = other._size;
+    other._root = NULL;
+    other._size = 0;
 }
 
 StringSet::~StringSet()
@@ -1808,11 +1864,14 @@ StringSet::~StringSet()
 
 StringSet& StringSet::operator=(const StringSet& other)
 {
+    assign(other);
     return *this;
 }
 
 StringSet& StringSet::operator=(StringSet&& other)
 {
+    StringSet tmp(static_cast<StringSet&&>(other));
+    swap(*this, tmp);
     return *this;
 }
 
@@ -1880,11 +1939,14 @@ String StringSet::getLongest(const String& prefix) const
 
 bool StringSet::contains(const String& key) const
 {
-    return false;
+    StringSetNode* node = findNode(key);
+    return node && !node->ch;
 }
 
 void StringSet::assign(const StringSet& other)
 {
+    StringSet tmp(other);
+    swap(*this, tmp);
 }
 
 void StringSet::add(const String& key)

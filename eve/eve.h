@@ -81,6 +81,12 @@ public:
     bool moveWordForward();
     bool moveWordBack();
 
+    bool moveCharsForward();
+    bool moveCharsBack();
+
+    bool moveParagraphForward();
+    bool moveParagraphBack();
+
     bool moveToStart();
     bool moveToEnd();
 

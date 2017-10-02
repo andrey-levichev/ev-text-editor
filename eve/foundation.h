@@ -3297,7 +3297,7 @@ protected:
     float _maxLoadFactor;
 };
 
-// StringSet
+// StringSetNode
 
 struct StringSetNode
 {
@@ -3312,8 +3312,43 @@ struct StringSetNode
     }
 };
 
+// ConstStringSetIterator
+
+class StringSet;
+
+class ConstStringSetIterator
+{
+public:
+    ConstStringSetIterator(const StringSet& set) :
+        _set(set), _node(NULL)
+    {
+    }
+
+    const String& value() const
+    {
+        ASSERT(_node);
+        return _key;
+    }
+
+    bool moveNext();
+    bool movePrev();
+    void reset();
+
+protected:
+    const StringSet& _set;
+    const StringSetNode* _node;
+    String _key;
+};
+
+// StringSet
+
 class StringSet
 {
+public:
+    friend class ConstStringSetIterator;
+
+    typedef ConstStringSetIterator ConstIterator;
+
 public:
     StringSet();
     StringSet(const StringSet& other);

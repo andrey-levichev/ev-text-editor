@@ -84,16 +84,16 @@ bool Document::moveWordForward()
 
     if (p < _text.length())
     {
-        unichar_t prevChar = _text.charAt(p);
+        unichar_t prevCh = _text.charAt(p);
         p = _text.charForward(p);
 
         while (p < _text.length())
         {
             unichar_t ch = _text.charAt(p);
-            if (isWordBoundary(prevChar, ch))
+            if (isWordBoundary(prevCh, ch))
                 break;
 
-            prevChar = ch;
+            prevCh = ch;
             p = _text.charForward(p);
         }
     }
@@ -122,7 +122,7 @@ bool Document::moveWordBack()
 
         if (p > 0)
         {
-            unichar_t prevChar = _text.charAt(p);
+            unichar_t prevCh = _text.charAt(p);
             int prevPos = p;
 
             do
@@ -130,13 +130,13 @@ bool Document::moveWordBack()
                 p = _text.charBack(p);
 
                 unichar_t ch = _text.charAt(p);
-                if (isWordBoundary(ch, prevChar))
+                if (isWordBoundary(ch, prevCh))
                 {
                     p = prevPos;
                     break;
                 }
 
-                prevChar = ch;
+                prevCh = ch;
                 prevPos = p;
             }
             while (p > 0);
@@ -155,6 +155,95 @@ bool Document::moveWordBack()
     }
     else
         return false;
+}
+
+bool Document::moveCharsForward()
+{
+    int p = _position;
+
+    if (p < _text.length())
+    {
+        unichar_t prevCh = _text.charAt(p);
+        p = _text.charForward(p);
+
+        while (p < _text.length())
+        {
+            unichar_t ch = _text.charAt(p);
+            if (charIsSpace(prevCh) && !charIsSpace(ch))
+                break;
+
+            prevCh = ch;
+            p = _text.charForward(p);
+        }
+    }
+
+    if (p > _position)
+    {
+        _position = p;
+        positionToLineColumn();
+
+        if (!_selectionMode)
+            _selection = -1;
+
+        return true;
+    }
+    else
+        return false;
+}
+
+bool Document::moveCharsBack()
+{
+    int p = _position;
+
+    if (p > 0)
+    {
+        p = _text.charBack(p);
+
+        if (p > 0)
+        {
+            unichar_t prevCh = _text.charAt(p);
+            int prevPos = p;
+
+            do
+            {
+                p = _text.charBack(p);
+
+                unichar_t ch = _text.charAt(p);
+                if (charIsSpace(ch) && !charIsSpace(prevCh))
+                {
+                    p = prevPos;
+                    break;
+                }
+
+                prevCh = ch;
+                prevPos = p;
+            }
+            while (p > 0);
+        }
+    }
+
+    if (p < _position)
+    {
+        _position = p;
+        positionToLineColumn();
+
+        if (!_selectionMode)
+            _selection = -1;
+
+        return true;
+    }
+    else
+        return false;
+}
+
+bool Document::moveParagraphForward()
+{
+    return false;
+}
+
+bool Document::moveParagraphBack()
+{
+    return false;
 }
 
 bool Document::moveToStart()
@@ -1212,13 +1301,21 @@ bool Editor::processKey()
         {
             if (key.ctrl)
             {
-                if (key.code == KEY_RIGHT)
+                if (key.code == KEY_LEFT)
+                {
+                    update = _document->value.moveWordBack();
+                }
+                else if (key.code == KEY_RIGHT)
                 {
                     update = _document->value.moveWordForward();
                 }
-                else if (key.code == KEY_LEFT)
+                else if (key.code == KEY_UP)
                 {
-                    update = _document->value.moveWordBack();
+                    update = _document->value.moveLinesUp(10);
+                }
+                else if (key.code == KEY_DOWN)
+                {
+                    update = _document->value.moveLinesDown(10);
                 }
                 else if (key.code == KEY_TAB || key.ch == 't')
                 {
@@ -1228,7 +1325,23 @@ bool Editor::processKey()
             }
             else if (key.alt)
             {
-                if (key.code == KEY_DELETE)
+                if (key.code == KEY_LEFT)
+                {
+                    update = _document->value.moveCharsBack();
+                }
+                else if (key.code == KEY_RIGHT)
+                {
+                    update = _document->value.moveCharsForward();
+                }
+                else if (key.code == KEY_UP)
+                {
+                    update = _document->value.moveParagraphBack();
+                }
+                else if (key.code == KEY_DOWN)
+                {
+                    update = _document->value.moveParagraphForward();
+                }
+                else if (key.code == KEY_DELETE)
                 {
                     update = _document->value.deleteWordForward();
                 }
@@ -1349,6 +1462,14 @@ bool Editor::processKey()
             {
                 update = _document->value.deleteCharForward();
             }
+            else if (key.code == KEY_LEFT)
+            {
+                update = _document->value.moveBack();
+            }
+            else if (key.code == KEY_RIGHT)
+            {
+                update = _document->value.moveForward();
+            }
             else if (key.code == KEY_UP)
             {
                 update = _document->value.moveUp();
@@ -1356,14 +1477,6 @@ bool Editor::processKey()
             else if (key.code == KEY_DOWN)
             {
                 update = _document->value.moveDown();
-            }
-            else if (key.code == KEY_RIGHT)
-            {
-                update = _document->value.moveForward();
-            }
-            else if (key.code == KEY_LEFT)
-            {
-                update = _document->value.moveBack();
             }
             else if (key.code == KEY_HOME)
             {

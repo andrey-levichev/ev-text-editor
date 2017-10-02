@@ -6,8 +6,6 @@ replace key mapping table with trie based word map
 print clear to eol code at the end of line
 * use window width instead of screen buffer width on windows
 clear/save screen on startup/build?
-* text modification operations should replace selection?
-* do we really need selectionMode flag?
 
 editor:
 * selection with arrows and highlighting
@@ -69,3 +67,8 @@ string constructor that accepts ascii strings
 log memory allocations
 move assignment is called when string is assigned an r-value freeing string storage
 unicode char literals don't work on solaris/aix
+
+autocomplete:
+list of words in editor, on open scan all files, add words to list
+rebuild the list from scratch during a period of inactivity
+will use trie for now for simple autocomplete based on prefix
