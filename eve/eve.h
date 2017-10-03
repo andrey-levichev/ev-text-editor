@@ -84,9 +84,6 @@ public:
     bool moveCharsForward();
     bool moveCharsBack();
 
-    bool moveParagraphForward();
-    bool moveParagraphBack();
-
     bool moveToStart();
     bool moveToEnd();
 
@@ -166,6 +163,20 @@ protected:
     String _indent;
 };
 
+// RecentLocation
+
+struct RecentLocation
+{
+    ListNode<Document>* document;
+    int line;
+
+    RecentLocation(ListNode<Document>* document, int line) :
+        document(document),
+        line(line)
+    {
+    }
+};
+
 // Editor
 
 class Editor
@@ -182,6 +193,10 @@ public:
 protected:
     void updateScreen(bool redrawAll = false);
     bool processKey();
+
+    void updateRecentLocations();
+    void moveToPrevRecentLocation();
+    void moveToNextRecentLocation();
 
     String getCommand(const char_t* prompt);
     void processCommand();
@@ -204,6 +219,9 @@ protected:
 
     int _width, _height, _screenHeight;
     bool _unicodeLimit16;
+
+    List<RecentLocation> _recentLocations;
+    ListNode<RecentLocation>* _recentLocation;
 };
 
 #endif

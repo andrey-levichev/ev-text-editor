@@ -236,16 +236,6 @@ bool Document::moveCharsBack()
         return false;
 }
 
-bool Document::moveParagraphForward()
-{
-    return false;
-}
-
-bool Document::moveParagraphBack()
-{
-    return false;
-}
-
 bool Document::moveToStart()
 {
     if (_position > 0)
@@ -1082,7 +1072,8 @@ bool Document::isWordBoundary(unichar_t prevCh, unichar_t ch)
 
 Editor::Editor() :
     _document(NULL),
-    _lineSelection(false)
+    _lineSelection(false),
+    _recentLocation(NULL)
 {
     Console::setLineMode(false);
 
@@ -1290,6 +1281,7 @@ void Editor::updateScreen(bool redrawAll)
 bool Editor::processKey()
 {
     bool update = false;
+    bool modified = false;
     const Array<Key>& keys = Console::readKeys();
     bool autoindent = keys.size() == 1;
 
@@ -1320,7 +1312,7 @@ bool Editor::processKey()
                 else if (key.code == KEY_TAB || key.ch == 't')
                 {
                     _document->value.insertChar(0x9);
-                    update = true;
+                    update = modified = true;
                 }
             }
             else if (key.alt)
@@ -1335,19 +1327,19 @@ bool Editor::processKey()
                 }
                 else if (key.code == KEY_UP)
                 {
-                    update = _document->value.moveParagraphBack();
+                    moveToPrevRecentLocation();
                 }
                 else if (key.code == KEY_DOWN)
                 {
-                    update = _document->value.moveParagraphForward();
+                    moveToNextRecentLocation();
                 }
                 else if (key.code == KEY_DELETE)
                 {
-                    update = _document->value.deleteWordForward();
+                    modified = update = _document->value.deleteWordForward();
                 }
                 else if (key.code == KEY_BACKSPACE)
                 {
-                    update = _document->value.deleteWordBack();
+                    modified = update = _document->value.deleteWordBack();
                 }
                 else if (key.code == KEY_HOME)
                 {
@@ -1367,17 +1359,19 @@ bool Editor::processKey()
                 }
                 else if (key.ch == ',')
                 {
-                    if (_document->prev)
+                    auto doc = _document->prev ? _document->prev : _documents.last();
+                    if (doc != _document)
                     {
-                        _document = _document->prev;
+                        _document = doc;
                         updateScreen(true);
                     }
                 }
                 else if (key.ch == '.')
                 {
-                    if (_document->next)
+                    auto doc = _document->next ? _document->next : _documents.first();
+                    if (doc != _document)
                     {
-                        _document = _document->next;
+                        _document = doc;
                         updateScreen(true);
                     }
                 }
@@ -1406,7 +1400,7 @@ bool Editor::processKey()
                     _buffer = _document->value.copyDeleteText(false);
 
                     if (!_buffer.empty())
-                        update = true;
+                        modified = update = true;
                 }
                 else if (key.ch == 'c')
                 {
@@ -1418,7 +1412,7 @@ bool Editor::processKey()
                     if (!_buffer.empty())
                     {
                         _document->value.pasteText(_buffer, _lineSelection);
-                        update = true;
+                        modified = update = true;
                     }
                 }
                 else if (key.ch == 'b')
@@ -1441,26 +1435,26 @@ bool Editor::processKey()
                 }
                 else if (key.ch == 'r')
                 {
-                    update = _document->value.replace(_searchStr, _replaceStr);
+                    modified = update = _document->value.replace(_searchStr, _replaceStr);
                 }
                 else if (key.ch == '/')
                 {
                     _document->value.toggleComment();
-                    update = true;
+                    modified = update = true;
                 }
             }
             else if (key.shift && key.code == KEY_TAB)
             {
                 _document->value.unindentLines();
-                update = true;
+                modified = update = true;
             }
             else if (key.code == KEY_BACKSPACE)
             {
-                update = _document->value.deleteCharBack();
+                modified = update = _document->value.deleteCharBack();
             }
             else if (key.code == KEY_DELETE)
             {
-                update = _document->value.deleteCharForward();
+                modified = update = _document->value.deleteCharForward();
             }
             else if (key.code == KEY_LEFT)
             {
@@ -1500,12 +1494,12 @@ bool Editor::processKey()
                     _document->value.insertNewLine();
                 else
                     _document->value.insertChar('\n');
-                update = true;
+                modified = update = true;
             }
             else if (key.code == KEY_TAB)
             {
                 _document->value.indentLines();
-                update = true;
+                modified = update = true;
             }
             else if (key.code == KEY_ESC)
             {
@@ -1522,7 +1516,7 @@ bool Editor::processKey()
             else if (charIsPrint(key.ch))
             {
                 _document->value.insertChar(key.ch);
-                update = true;
+                modified = update = true;
             }
         }
         else
@@ -1540,7 +1534,83 @@ bool Editor::processKey()
     if (update)
         updateScreen();
 
+    if (modified)
+        updateRecentLocations();
+
     return true;
+}
+
+void Editor::updateRecentLocations()
+{
+    ListNode<RecentLocation>* node;
+    _recentLocation = NULL;
+
+    for (node = _recentLocations.first(); node; node = node->next)
+    {
+        if (node->value.document == _document &&
+                abs(node->value.line - _document->value.line()) <= 5)
+            break;
+    }
+
+    if (node)
+    {
+        _recentLocations.addLast(node->value);
+        _recentLocations.remove(node);
+    }
+    else
+        _recentLocations.addLast(
+            RecentLocation(_document, _document->value.line()));
+
+    if (_recentLocations.size() > 10)
+        _recentLocations.removeFirst();
+}
+
+void Editor::moveToPrevRecentLocation()
+{
+    _recentLocation = _recentLocation && _recentLocation->prev ?
+        _recentLocation->prev : _recentLocations.last();
+
+    if (_recentLocation)
+    {
+        if (_recentLocation->value.document == _document &&
+            abs(_recentLocation->value.line - _document->value.line()) <= 5)
+        {
+            _recentLocation = _recentLocation->prev ?
+                _recentLocation->prev : _recentLocations.last();
+
+            if (_recentLocation->value.document == _document &&
+                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
+                return;
+        }
+
+        _document = _recentLocation->value.document;
+        _document->value.moveToLine(_recentLocation->value.line);
+        updateScreen(true);
+    }
+}
+
+void Editor::moveToNextRecentLocation()
+{
+    _recentLocation = _recentLocation && _recentLocation->next ?
+        _recentLocation->next : _recentLocations.first();
+
+    if (_recentLocation)
+    {
+        if (_recentLocation->value.document == _document &&
+            abs(_recentLocation->value.line - _document->value.line()) <= 5)
+        {
+            _recentLocation = _recentLocation->next ?
+                _recentLocation->next : _recentLocations.first();
+
+            if (_recentLocation->value.document == _document &&
+                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
+                return;
+        }
+
+        _document = _recentLocation->value.document;
+        _document->value.moveToLine(_recentLocation->value.line);
+        updateScreen(true);
+    }
 }
 
 String Editor::getCommand(const char_t* prompt)

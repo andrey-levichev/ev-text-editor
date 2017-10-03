@@ -6,12 +6,15 @@ replace key mapping table with trie based word map
 print clear to eol code at the end of line
 * use window width instead of screen buffer width on windows
 clear/save screen on startup/build?
+* scroll screen buffer to the top after build on windows
+* don't use raw pointers
+* container move insert
 
 editor:
 * selection with arrows and highlighting
 * handle terminal window resizing (SIGWINCH)
-* paragraph back/forward
 * quickly switch between documents
+alt+number, command to swith by first few letters of filename
 * find/replace in all documents
 * regex find/replace
 * parse build output for errors
