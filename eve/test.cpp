@@ -4863,128 +4863,6 @@ void testSetIterator()
     }
 }
 
-void testStringSet()
-{
-    // StringSet()
-    // bool empty() const
-
-    {
-        StringSet ss;
-        ASSERT(ss.empty());
-    }
-
-    {
-        StringSet ss;
-        ss.add(STR("a"));
-        ASSERT(!ss.empty());
-    }
-
-    // StringSet(const StringSet& other)
-
-    // StringSet(StringSet&& other)
-
-    // StringSet& operator=(const StringSet& other)
-
-    // StringSet& operator=(StringSet&& other)
-
-    // Array<String> get(const String& prefix = String()) const
-
-    // String getNext(const String& key) const
-
-    // String getPrev(const String& key) const
-
-    // String getLongest(const String& prefix) const
-
-    // void add(const String& key)
-
-    {
-        StringSet ss;
-        ss.add(STR("a"));
-        ASSERT(compareSequence(ss.get(), STR("a")));
-    }
-
-    {
-        StringSet ss;
-        ss.add(STR("a"));
-        ss.add(STR("a"));
-        ASSERT(compareSequence(ss.get(), STR("a")));
-    }
-
-    {
-        StringSet ss;
-        const char_t* a = STR("a");
-        const char_t* aa = STR("aa");
-
-        ss.add(a);
-        ss.add(aa);
-
-        ASSERT(compareSequence(ss.get(), a, aa));
-    }
-
-    {
-        StringSet ss;
-        ss.add(STR("a"));
-        ss.add(STR("b"));
-        ASSERT(compareSequence(ss.get(), STR("a"), STR("b")));
-    }
-
-    {
-        StringSet ss;
-        ss.add(STR("b"));
-        ss.add(STR("a"));
-        ASSERT(compareSequence(ss.get(), STR("a"), STR("b")));
-    }
-
-    {
-        StringSet ss;
-        ss.add(STR("a"));
-        ss.add(STR("c"));
-        ss.add(STR("b"));
-        ASSERT(compareSequence(ss.get(), STR("a"), STR("b"), STR("c")));
-    }
-
-    {
-        StringSet ss;
-        ss.add(STR("ab"));
-        ss.add(STR("aa"));
-        ASSERT(compareSequence(ss.get(), STR("aa"), STR("ab")));
-    }
-
-    {
-        StringSet ss;
-        const char_t* bad = STR("bad");
-        const char_t* bandit = STR("bandit");
-        const char_t* bag = STR("bag");
-        const char_t* banned = STR("banned");
-        const char_t* house = STR("house");
-        const char_t* baby = STR("baby");
-        const char_t* home = STR("home");
-
-        ss.add(bad);
-        ss.add(bandit);
-        ss.add(bag);
-        ss.add(banned);
-        ss.add(house);
-        ss.add(baby);
-        ss.add(home);
-
-        ASSERT(compareSequence(ss.get(), baby, bad, bag,
-            bandit, banned, home, house));
-
-        ASSERT(compareSequence(ss.get(STR("b")), baby,  bad, bag,
-            bandit, banned));
-
-        ASSERT(compareSequence(ss.get(STR("bad")), bad));
-        ASSERT(compareSequence(ss.get(STR("ban")), bandit, banned));
-        ASSERT(compareSequence(ss.get(STR("h")), home, house));
-        ASSERT(ss.get(STR("x")).empty());
-    }
-
-    // bool remove(const String& key)
-
-    // void clear();
-}
-
 void testFoundation()
 {
     testUniquePtr();
@@ -4999,7 +4877,6 @@ void testFoundation()
     testMapIterator();
     testSet();
     testSetIterator();
-    testStringSet();
 }
 
 void testFile()

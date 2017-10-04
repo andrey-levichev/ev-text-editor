@@ -2,6 +2,18 @@
 
 const int TAB_SIZE = 4;
 
+bool charIsIdent(unichar_t ch)
+{
+    return charIsAlphaNum(ch) || ch == '_';
+}
+
+bool isWordBoundary(unichar_t prevCh, unichar_t ch)
+{
+    return (!charIsIdent(prevCh) && charIsIdent(ch)) ||
+        ((charIsIdent(prevCh) || charIsSpace(prevCh)) && !(charIsIdent(ch) || charIsSpace(ch))) ||
+        (prevCh != '\n' && ch == '\n');
+}
+
 // Document
 
 Document::Document()
@@ -630,6 +642,21 @@ String Document::currentWord() const
     return String();
 }
 
+String Document::autocompletePrefix() const
+{
+    int pos = _position;
+
+    while (pos > 0)
+    {
+        int p = _text.charBack(pos);
+        if (!charIsIdent(_text.charAt(p)))
+            break;
+        pos = p;
+    }
+
+    return _text.substr(pos, _position - pos);
+}
+
 int Document::findPosition(const String& searchStr, bool next)
 {
     int p = INVALID_POSITION;
@@ -1056,24 +1083,13 @@ void Document::trimTrailingWhitespace()
     _position = 0;
 }
 
-bool Document::charIsIdent(unichar_t ch)
-{
-    return charIsAlphaNum(ch) || ch == '_';
-}
-
-bool Document::isWordBoundary(unichar_t prevCh, unichar_t ch)
-{
-    return (!charIsIdent(prevCh) && charIsIdent(ch)) ||
-        ((charIsIdent(prevCh) || charIsSpace(prevCh)) && !(charIsIdent(ch) || charIsSpace(ch))) ||
-        (prevCh != '\n' && ch == '\n');
-}
-
 // Editor
 
 Editor::Editor() :
     _document(NULL),
     _lineSelection(false),
-    _recentLocation(NULL)
+    _recentLocation(NULL),
+    _currentSuggestion(INVALID_POSITION)
 {
     Console::setLineMode(false);
 
@@ -1107,6 +1123,7 @@ void Editor::openDocument(const char_t* filename)
     _documents.addLast(Document());
     _document = _documents.last();
     _document->value.open(filename);
+    addAutocompleteSuggestions(_document->value);
 }
 
 void Editor::saveDocuments()
@@ -1442,6 +1459,34 @@ bool Editor::processKey()
                     _document->value.toggleComment();
                     modified = update = true;
                 }
+                else if (key.ch == '[')
+                {
+                    String prefix = _document->value.autocompletePrefix();
+
+                    if (!prefix.empty())
+                    {
+                        int i = findPrevSuggestion(prefix, _currentSuggestion);
+                        if (i != _currentSuggestion)
+                        {
+                            _currentSuggestion = i;
+                            Console::write(_screenHeight, 1, _autocompleteSuggestions[i].word);
+                        }
+                    }
+                }
+                else if (key.ch == ']')
+                {
+                    String prefix = _document->value.autocompletePrefix();
+
+                    if (!prefix.empty())
+                    {
+                        int i = findNextSuggestion(prefix, _currentSuggestion);
+                        if (i != _currentSuggestion)
+                        {
+                            _currentSuggestion = i;
+                            Console::write(_screenHeight, 1, _autocompleteSuggestions[i].word);
+                        }
+                    }
+                }
             }
             else if (key.shift && key.code == KEY_TAB)
             {
@@ -1759,6 +1804,93 @@ void Editor::buildProject()
     updateScreen(true);
 }
 
+void Editor::addAutocompleteSuggestions(const Document& document)
+{
+    const String& text = document.text();
+    String word;
+
+    for (int pos = 0; pos < text.length(); pos = text.charForward(pos))
+    {
+        unichar_t ch = text.charAt(pos);
+
+        if (charIsIdent(ch))
+            word += ch;
+        else if (!word.empty())
+        {
+            if (word.charLength() > 1)
+                _autocompleteSuggestions.addLast(AutocompleteSuggestion(word, 0));
+
+            word.clear();
+        }
+    }
+
+    if (word.charLength() > 1)
+        _autocompleteSuggestions.addLast(AutocompleteSuggestion(word, 0));
+}
+
+int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion)
+{
+    ASSERT(!prefix.empty());
+    ASSERT(currentSuggestion == INVALID_POSITION ||
+        (currentSuggestion >= 0 && currentSuggestion < _autocompleteSuggestions.size()));
+
+    if (_autocompleteSuggestions.size() > 0)
+    {
+        int i = currentSuggestion == INVALID_POSITION ?
+            _autocompleteSuggestions.size() - 1 : currentSuggestion - 1;
+
+        for (; i >= 0; --i)
+            if (_autocompleteSuggestions[i].word.startsWith(prefix))
+                break;
+
+        if (i >= 0)
+            return i;
+
+        if (currentSuggestion != INVALID_POSITION)
+        {
+            for (i = _autocompleteSuggestions.size() - 1; i > currentSuggestion; --i)
+                if (_autocompleteSuggestions[i].word.startsWith(prefix))
+                    break;
+
+            if (i > currentSuggestion)
+                return i;
+        }
+    }
+
+    return INVALID_POSITION;
+}
+
+int Editor::findNextSuggestion(const String& prefix, int currentSuggestion)
+{
+    ASSERT(!prefix.empty());
+    ASSERT(currentSuggestion == INVALID_POSITION ||
+        (currentSuggestion >= 0 && currentSuggestion < _autocompleteSuggestions.size()));
+
+    if (_autocompleteSuggestions.size() > 0)
+    {
+        int i = currentSuggestion == INVALID_POSITION ? 0 : currentSuggestion + 1;
+
+        for (; i < _autocompleteSuggestions.size(); ++i)
+            if (_autocompleteSuggestions[i].word.startsWith(prefix))
+                break;
+
+        if (i < _autocompleteSuggestions.size())
+            return i;
+
+        if (currentSuggestion != INVALID_POSITION)
+        {
+            for (i = 0; i < currentSuggestion; ++i)
+                if (_autocompleteSuggestions[i].word.startsWith(prefix))
+                    break;
+
+            if (i < currentSuggestion)
+                return i;
+        }
+    }
+
+    return INVALID_POSITION;
+}
+
 int MAIN(int argc, const char_t** argv)
 {
     Console::initialize();
@@ -1768,21 +1900,24 @@ int MAIN(int argc, const char_t** argv)
         if (argc < 2)
         {
             Console::writeLine(STR("eve text editor version 1.0\n"
-                "Copyright (C) Andrey Levichev, 2017. All rights reserved.\n\n"
+                "Copyright (C) Andrey Levichev, 2017\n\n"
                 "usage: eve filename ...\n\n"
                 "keys:\n"
                 "arrows - move cursor\n"
-                "ctrl+left/right - word last/forward\n"
+                "ctrl+left/right - word (identifier) left/right\n"
+                "ctrl+up/down - 10 lines up/down\n"
+                "alt+left/right - word (space separated) left/right\n"
+                "alt+up/down - previous/next edited location\n"
                 "home/end - start/end of line\n"
                 "alt+home/end - start/end of file\n"
                 "pgup/pgdn - page up/down\n"
                 "alt+pgup/pgdn - half page up/down\n"
-                "tab - indent line\n"
-                "shift+tab - unindent line\n"
+                "tab - indent line/selection\n"
+                "shift+tab - unindent line/selection\n"
                 "delete - delete character at cursor position\n"
-                "lastspace - unindent line or delete character to the left of cursor position\n"
+                "backspace - delete character to the left of cursor position\n"
                 "alt+del - delete word at cursor position\n"
-                "alt+lastspace - delete word to the left of cursor position\n"
+                "alt+backspace - delete word to the left of cursor position\n"
                 "alt+m - mark selection start\n"
                 "alt+d - delete line/selection\n"
                 "alt+c - copy line/selection\n"
@@ -1790,7 +1925,7 @@ int MAIN(int argc, const char_t** argv)
                 "alt+w - find word at cursor\n"
                 "alt+f - find again\n"
                 "alt+r - replace and find again\n"
-                "alt+/ - toggle comment\n"
+                "alt+/ - toggle comment for line/selection\n"
                 "alt+b - build with make\n"
                 "alt+, - go to previous document\n"
                 "alt+. - go to next document\n"
@@ -1802,7 +1937,7 @@ int MAIN(int argc, const char_t** argv)
                 "commands:\n"
                 "g number - go to line number\n"
                 "f string - find string\n"
-                "r searchString replaceString - replace string\n"));
+                "r searchString replaceString - replace string (use any character as string separator)\n"));
 
             return 1;
         }

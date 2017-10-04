@@ -9,6 +9,10 @@ clear/save screen on startup/build?
 * scroll screen buffer to the top after build on windows
 * don't use raw pointers
 * container move insert
+* list vs array - when to use?
+* get rid of underscores?
+* equals/less - function or overloaded operator?
+* sync ordering prev/next, back/forward
 
 editor:
 * selection with arrows and highlighting
@@ -65,13 +69,9 @@ make sure app code doens't do low level stuff and relies on foundation
 StringWithEncoding - string with encoding information
 support for zero chars in string?
 replace smart pointers with smart references
+scoped pointer, copy object when pointer is copied
 rename the types to make int 64 bit?
 string constructor that accepts ascii strings
 log memory allocations
 move assignment is called when string is assigned an r-value freeing string storage
 unicode char literals don't work on solaris/aix
-
-autocomplete:
-list of words in editor, on open scan all files, add words to list
-rebuild the list from scratch during a period of inactivity
-will use trie for now for simple autocomplete based on prefix

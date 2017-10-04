@@ -115,6 +115,7 @@ public:
     int findLine(int line) const;
 
     String currentWord() const;
+    String autocompletePrefix() const;
 
     int findPosition(const String& searchStr, bool next);
     bool find(const String& searchStr, bool next);
@@ -140,9 +141,6 @@ protected:
     void lineColumnToPosition();
 
     void trimTrailingWhitespace();
-
-    static bool charIsIdent(unichar_t ch);
-    static bool isWordBoundary(unichar_t prevCh, unichar_t ch);
 
 protected:
     String _text;
@@ -171,8 +169,20 @@ struct RecentLocation
     int line;
 
     RecentLocation(ListNode<Document>* document, int line) :
-        document(document),
-        line(line)
+        document(document), line(line)
+    {
+    }
+};
+
+// AutocompleteSuggestion
+
+struct AutocompleteSuggestion
+{
+    String word;
+    float rank;
+
+    AutocompleteSuggestion(String word, float rank) :
+        word(word), rank(rank)
     {
     }
 };
@@ -203,6 +213,10 @@ protected:
 
     void buildProject();
 
+    void addAutocompleteSuggestions(const Document& document);
+    int findPrevSuggestion(const String& prefix, int currentSuggestion);
+    int findNextSuggestion(const String& prefix, int currentSuggestion);
+
 protected:
     List<Document> _documents;
     ListNode<Document>* _document;
@@ -222,6 +236,9 @@ protected:
 
     List<RecentLocation> _recentLocations;
     ListNode<RecentLocation>* _recentLocation;
+
+    Array<AutocompleteSuggestion> _autocompleteSuggestions;
+    int _currentSuggestion;
 };
 
 #endif
