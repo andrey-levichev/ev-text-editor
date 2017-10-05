@@ -205,8 +205,8 @@ protected:
     bool processKey();
 
     void updateRecentLocations();
-    void moveToPrevRecentLocation();
     void moveToNextRecentLocation();
+    void moveToPrevRecentLocation();
 
     String getCommand(const char_t* prompt);
     void processCommand();
@@ -214,8 +214,8 @@ protected:
     void buildProject();
 
     void addAutocompleteSuggestions(const Document& document);
-    int findPrevSuggestion(const String& prefix, int currentSuggestion);
     int findNextSuggestion(const String& prefix, int currentSuggestion);
+    int findPrevSuggestion(const String& prefix, int currentSuggestion);
 
 protected:
     List<Document> _documents;

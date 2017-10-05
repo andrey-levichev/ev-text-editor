@@ -5395,10 +5395,10 @@ int MAIN(int argc, const char_t** argv)
         Console::setLineMode(true);
         printPlatformInfo();
 
-        testSupport();
-        testFoundation();
+//        testSupport();
+//        testFoundation();
 //        testFile();
-//        testConsole();
+        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();

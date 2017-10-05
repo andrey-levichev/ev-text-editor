@@ -7,59 +7,59 @@ print clear to eol code at the end of line
 * use window width instead of screen buffer width on windows
 clear/save screen on startup/build?
 * scroll screen buffer to the top after build on windows
-* don't use raw pointers
-* container move insert
-* list vs array - when to use?
-* get rid of underscores?
-* equals/less - function or overloaded operator?
-* sync ordering prev/next, back/forward
 
 editor:
-* selection with arrows and highlighting
-* handle terminal window resizing (SIGWINCH)
-* quickly switch between documents
-alt+number, command to swith by first few letters of filename
-* find/replace in all documents
-* regex find/replace
+* autocomplete
+* new/open/save
+* switch between documents with alt+number
+* find/replace all, ignore case
+* syntax highlighting
 * parse build output for errors
 * undo/redo
+* regex find/replace, match word
 * command history
-* syntax highlighting
-highlighting based on file suffix for a few common languages
-keywords, numbers, strings, comments
-* autocomplete
-parse a set of directories for words
-cache results in a file
-offer completions after first letter
-offer recently used, located nearby first
-complete on tab or punctuation
-* customizable key mappings
+* config file
 * clipboard integration
+* selection with arrows and highlighting
+* handle terminal window resizing (SIGWINCH)
+* customizable key mappings
 * line wrapping
 
+release:
+* graphical user interface
+* webpage, payment system
+* registration code generation/checking
+* license, relase notes, documentation
+* install package, auto-update
+* package for app stores, linux distros
+* version for iOS/Android?
+
 foundation:
-* memory mapped file I/O
-* convert any object to string
-* type safe string formatting
-* date and time
-* improved Unicode support
+* international support
 locales (formatting, string compare/search/case conversion)
-consider supporting both UTF encodings on any platform
+support both UTF encodings on any platform or same encoding everywhere?
 encoding conversion
 handle invalid Unicode sequences
-* threads/atomics/async
-* function objects (function/bind)
-* type traits
 * containers
 initializer_list support
 conversion between containers (array to list etc)
 create element in place
 move node pointers instead of nodes when rehashing to avoid allocation
+benchmark/improve hash function
 * strings
 split/join, tokenizer
 conversion to binary/hex
 simple parsing a la scanf
 simple regular expressions
+type safe string formatting
+* convert any object to string
+* files
+memory mapped I/O
+file system access
+* date and time
+* threads/atomics/async
+* function objects (function/bind)
+* type traits
 * foundation improvements
 prohibit write access to container data via pointer?
 acquire with capacity?
@@ -75,3 +75,7 @@ string constructor that accepts ascii strings
 log memory allocations
 move assignment is called when string is assigned an r-value freeing string storage
 unicode char literals don't work on solaris/aix
+how to minimize the use of raw pointers?
+list vs array - when to use?
+get rid of underscores?
+equals/less - function or overloaded operator?

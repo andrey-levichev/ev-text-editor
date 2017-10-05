@@ -419,15 +419,20 @@ void Console::write(int line, int column, const char_t* chars, int len)
     int l = len < 0 ? strLen(chars) : len;
 
 #ifdef PLATFORM_WINDOWS
-    DWORD written;
-    COORD pos;
-    pos.X = column - 1;
-    pos.Y = line - 1;
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
 
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    BOOL rc = WriteConsoleOutputCharacter(handle,
+    BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
+    ASSERT(rc);
+
+    DWORD written;
+    COORD pos;
+    pos.X = csbi.srWindow.Left + column - 1;
+    pos.Y = csbi.srWindow.Top + line - 1;
+
+    rc = WriteConsoleOutputCharacter(handle,
         reinterpret_cast<LPCTSTR>(chars), l, pos, &written);
     ASSERT(rc);
 #else
@@ -561,7 +566,7 @@ void Console::getSize(int& width, int& height)
     BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
     ASSERT(rc);
 
-    width = csbi.dwSize.X;
+    width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 }
 
@@ -584,6 +589,7 @@ void Console::clear()
     rc = FillConsoleOutputAttribute(handle, csbi.wAttributes, size, pos, &written);
     ASSERT(rc);
 
+    pos = { csbi.srWindow.Left, csbi.srWindow.Top };
     rc = SetConsoleCursorPosition(handle, pos);
     ASSERT(rc);
 }
@@ -608,14 +614,19 @@ void Console::setCursorPosition(int line, int column)
     ASSERT(line > 0);
     ASSERT(column > 0);
 
-    COORD pos;
-    pos.X = column - 1;
-    pos.Y = line - 1;
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
 
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
-    BOOL rc = SetConsoleCursorPosition(handle, pos);
+    BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
+    ASSERT(rc);
+
+    COORD pos;
+    pos.X = csbi.srWindow.Left + column - 1;
+    pos.Y = csbi.srWindow.Top + line - 1;
+
+    rc = SetConsoleCursorPosition(handle, pos);
     ASSERT(rc);
 }
 

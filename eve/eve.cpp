@@ -1123,15 +1123,14 @@ void Editor::openDocument(const char_t* filename)
     _documents.addLast(Document());
     _document = _documents.last();
     _document->value.open(filename);
-    addAutocompleteSuggestions(_document->value);
 }
 
 void Editor::saveDocuments()
 {
-    for (auto node = _documents.first(); node; node = node->next)
+    for (auto doc = _documents.first(); doc; doc = doc->next)
     {
-        if (node->value.modified())
-            node->value.save();
+        if (doc->value.modified())
+            doc->value.save();
     }
 }
 
@@ -1459,34 +1458,6 @@ bool Editor::processKey()
                     _document->value.toggleComment();
                     modified = update = true;
                 }
-                else if (key.ch == '[')
-                {
-                    String prefix = _document->value.autocompletePrefix();
-
-                    if (!prefix.empty())
-                    {
-                        int i = findPrevSuggestion(prefix, _currentSuggestion);
-                        if (i != _currentSuggestion)
-                        {
-                            _currentSuggestion = i;
-                            Console::write(_screenHeight, 1, _autocompleteSuggestions[i].word);
-                        }
-                    }
-                }
-                else if (key.ch == ']')
-                {
-                    String prefix = _document->value.autocompletePrefix();
-
-                    if (!prefix.empty())
-                    {
-                        int i = findNextSuggestion(prefix, _currentSuggestion);
-                        if (i != _currentSuggestion)
-                        {
-                            _currentSuggestion = i;
-                            Console::write(_screenHeight, 1, _autocompleteSuggestions[i].word);
-                        }
-                    }
-                }
             }
             else if (key.shift && key.code == KEY_TAB)
             {
@@ -1610,30 +1581,6 @@ void Editor::updateRecentLocations()
         _recentLocations.removeFirst();
 }
 
-void Editor::moveToPrevRecentLocation()
-{
-    _recentLocation = _recentLocation && _recentLocation->prev ?
-        _recentLocation->prev : _recentLocations.last();
-
-    if (_recentLocation)
-    {
-        if (_recentLocation->value.document == _document &&
-            abs(_recentLocation->value.line - _document->value.line()) <= 5)
-        {
-            _recentLocation = _recentLocation->prev ?
-                _recentLocation->prev : _recentLocations.last();
-
-            if (_recentLocation->value.document == _document &&
-                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
-                return;
-        }
-
-        _document = _recentLocation->value.document;
-        _document->value.moveToLine(_recentLocation->value.line);
-        updateScreen(true);
-    }
-}
-
 void Editor::moveToNextRecentLocation()
 {
     _recentLocation = _recentLocation && _recentLocation->next ?
@@ -1646,6 +1593,30 @@ void Editor::moveToNextRecentLocation()
         {
             _recentLocation = _recentLocation->next ?
                 _recentLocation->next : _recentLocations.first();
+
+            if (_recentLocation->value.document == _document &&
+                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
+                return;
+        }
+
+        _document = _recentLocation->value.document;
+        _document->value.moveToLine(_recentLocation->value.line);
+        updateScreen(true);
+    }
+}
+
+void Editor::moveToPrevRecentLocation()
+{
+    _recentLocation = _recentLocation && _recentLocation->prev ?
+        _recentLocation->prev : _recentLocations.last();
+
+    if (_recentLocation)
+    {
+        if (_recentLocation->value.document == _document &&
+            abs(_recentLocation->value.line - _document->value.line()) <= 5)
+        {
+            _recentLocation = _recentLocation->prev ?
+                _recentLocation->prev : _recentLocations.last();
 
             if (_recentLocation->value.document == _document &&
                     abs(_recentLocation->value.line - _document->value.line()) <= 5)
@@ -1783,7 +1754,6 @@ void Editor::processCommand()
 }
 
 void Editor::buildProject()
-
 {
     Console::setLineMode(true);
     Console::clear();
@@ -1828,6 +1798,37 @@ void Editor::addAutocompleteSuggestions(const Document& document)
         _autocompleteSuggestions.addLast(AutocompleteSuggestion(word, 0));
 }
 
+int Editor::findNextSuggestion(const String& prefix, int currentSuggestion)
+{
+    ASSERT(!prefix.empty());
+    ASSERT(currentSuggestion == INVALID_POSITION ||
+        (currentSuggestion >= 0 && currentSuggestion < _autocompleteSuggestions.size()));
+
+    if (_autocompleteSuggestions.size() > 0)
+    {
+        int i = currentSuggestion == INVALID_POSITION ? 0 : currentSuggestion + 1;
+
+        for (; i < _autocompleteSuggestions.size(); ++i)
+            if (_autocompleteSuggestions[i].word.startsWith(prefix))
+                break;
+
+        if (i < _autocompleteSuggestions.size())
+            return i;
+
+        if (currentSuggestion != INVALID_POSITION)
+        {
+            for (i = 0; i < currentSuggestion; ++i)
+                if (_autocompleteSuggestions[i].word.startsWith(prefix))
+                    break;
+
+            if (i < currentSuggestion)
+                return i;
+        }
+    }
+
+    return INVALID_POSITION;
+}
+
 int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion)
 {
     ASSERT(!prefix.empty());
@@ -1853,37 +1854,6 @@ int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion)
                     break;
 
             if (i > currentSuggestion)
-                return i;
-        }
-    }
-
-    return INVALID_POSITION;
-}
-
-int Editor::findNextSuggestion(const String& prefix, int currentSuggestion)
-{
-    ASSERT(!prefix.empty());
-    ASSERT(currentSuggestion == INVALID_POSITION ||
-        (currentSuggestion >= 0 && currentSuggestion < _autocompleteSuggestions.size()));
-
-    if (_autocompleteSuggestions.size() > 0)
-    {
-        int i = currentSuggestion == INVALID_POSITION ? 0 : currentSuggestion + 1;
-
-        for (; i < _autocompleteSuggestions.size(); ++i)
-            if (_autocompleteSuggestions[i].word.startsWith(prefix))
-                break;
-
-        if (i < _autocompleteSuggestions.size())
-            return i;
-
-        if (currentSuggestion != INVALID_POSITION)
-        {
-            for (i = 0; i < currentSuggestion; ++i)
-                if (_autocompleteSuggestions[i].word.startsWith(prefix))
-                    break;
-
-            if (i < currentSuggestion)
                 return i;
         }
     }
