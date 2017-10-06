@@ -44,7 +44,14 @@ void printArgs(const char_t* format, va_list args)
 
 static const char* controlKeys = "@abcdefghijklmnopqrstuvwxyz[\\]^_";
 
+volatile bool screenSizeChanged = false;
+
 #ifdef PLATFORM_UNIX
+
+extern "C" void onSIGWINCH(int sig)
+{
+    screenSizeChanged = true;
+}
 
 struct KeyMapping
 {
@@ -307,13 +314,24 @@ void Console::initialize()
 #ifdef CHAR_ENCODING_UTF16
     int rc = _setmode(_fileno(stdin), _O_U16TEXT);
     ASSERT(rc >= 0);
+
     rc = _setmode(_fileno(stdout), _O_U16TEXT);
     ASSERT(rc >= 0);
+
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    ASSERT(handle);
+
+    BOOL rc2 = SetConsoleMode(handle, ENABLE_EXTENDED_FLAGS |
+        ENABLE_INSERT_MODE | ENABLE_QUICK_EDIT_MODE |
+        ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT);
+    ASSERT(rc2);
 #endif
 
 #else
     int rc = setvbuf(stdout, NULL, _IONBF, 0);
     ASSERT(rc == 0);
+
+    signal(SIGWINCH, onSIGWINCH);
 #endif
 }
 
@@ -359,11 +377,10 @@ void Console::write(const char_t* chars, int len)
     int l = len < 0 ? strLen(chars) : len;
 
 #ifdef PLATFORM_WINDOWS
-    DWORD written;
-
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
+    DWORD written;
     BOOL rc = WriteConsole(handle, chars, l, &written, NULL);
     ASSERT(rc);
 #else
@@ -419,19 +436,18 @@ void Console::write(int line, int column, const char_t* chars, int len)
     int l = len < 0 ? strLen(chars) : len;
 
 #ifdef PLATFORM_WINDOWS
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
     BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
     ASSERT(rc);
 
-    DWORD written;
     COORD pos;
     pos.X = csbi.srWindow.Left + column - 1;
     pos.Y = csbi.srWindow.Top + line - 1;
 
+    DWORD written;
     rc = WriteConsoleOutputCharacter(handle,
         reinterpret_cast<LPCTSTR>(chars), l, pos, &written);
     ASSERT(rc);
@@ -558,11 +574,10 @@ String Console::readLine()
 
 void Console::getSize(int& width, int& height)
 {
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
     BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
     ASSERT(rc);
 
@@ -572,16 +587,15 @@ void Console::getSize(int& width, int& height)
 
 void Console::clear()
 {
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
     BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
     ASSERT(rc);
 
-    COORD pos = { 0, 0 };
     DWORD size = csbi.dwSize.X * csbi.dwSize.Y, written;
+    COORD pos = { 0, 0 };
 
     rc = FillConsoleOutputCharacter(handle, ' ', size, pos, &written);
     ASSERT(rc);
@@ -596,11 +610,10 @@ void Console::clear()
 
 void Console::showCursor(bool show)
 {
-    CONSOLE_CURSOR_INFO cci;
-
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
+    CONSOLE_CURSOR_INFO cci;
     BOOL rc = GetConsoleCursorInfo(handle, &cci);
     ASSERT(rc);
 
@@ -614,11 +627,10 @@ void Console::setCursorPosition(int line, int column)
     ASSERT(line > 0);
     ASSERT(column > 0);
 
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
     BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
     ASSERT(rc);
 
@@ -787,6 +799,10 @@ const Array<Key>& Console::readKeys()
 
                 _keys.addLast(key);
             }
+            else if (inputRec.EventType == WINDOW_BUFFER_SIZE_EVENT)
+            {
+                _keys.addLast(Key(KEY_SCREEN_SIZE_CHANGED));
+            }
         }
     }
 
@@ -811,6 +827,12 @@ const Array<Key>& Console::readKeys()
         {
             if (gotChars)
                 break;
+            else if (screenSizeChanged)
+            {
+                screenSizeChanged = false;
+                _keys.addLast(Key(KEY_SCREEN_SIZE_CHANGED));
+                return _keys;
+            }
             else
                 usleep(10000);
         }

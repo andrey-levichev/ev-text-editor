@@ -4,9 +4,8 @@ editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 replace key mapping table with trie based word map
 * pasting screen selection from eve doesn't copy newlines on unix
 print clear to eol code at the end of line
-* use window width instead of screen buffer width on windows
-clear/save screen on startup/build?
-* scroll screen buffer to the top after build on windows
+* get rid of global vars
+* rename readKeys to readInputEvents
 
 editor:
 * autocomplete
@@ -21,7 +20,8 @@ editor:
 * config file
 * clipboard integration
 * selection with arrows and highlighting
-* handle terminal window resizing (SIGWINCH)
+* handle console/terminal window scrolling/resizing
+SIGWINCH on UNIX, window/screen buffer on Windows
 * customizable key mappings
 * line wrapping
 

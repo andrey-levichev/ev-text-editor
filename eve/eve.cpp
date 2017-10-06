@@ -1088,16 +1088,12 @@ void Document::trimTrailingWhitespace()
 Editor::Editor() :
     _document(NULL),
     _lineSelection(false),
+    _width(0), _height(0),
+    _screenHeight(0),
     _recentLocation(NULL),
     _currentSuggestion(INVALID_POSITION)
 {
     Console::setLineMode(false);
-
-    Console::getSize(_width, _screenHeight);
-    _height = _screenHeight - 1;
-
-    _screen.ensureCapacity(_width * _height + 1);
-    _window.ensureCapacity(_width * _height + 1);
 
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
@@ -1144,6 +1140,15 @@ void Editor::run()
 
 void Editor::updateScreen(bool redrawAll)
 {
+    if (redrawAll)
+    {
+        Console::getSize(_width, _screenHeight);
+        _height = _screenHeight - 1;
+
+        _screen.ensureCapacity(_width * _height + 1);
+        _window.ensureCapacity(_width * _height + 1);
+    }
+
     if (_document)
     {
         _window.clear();
@@ -1533,6 +1538,10 @@ bool Editor::processKey()
             {
                 _document->value.insertChar(key.ch);
                 modified = update = true;
+            }
+            else if (key.code == KEY_SCREEN_SIZE_CHANGED)
+            {
+                updateScreen(true);
             }
         }
         else

@@ -146,10 +146,11 @@ typedef unsigned char32_t;
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <poll.h>
+#include <signal.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <poll.h>
 
 #endif
 

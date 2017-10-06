@@ -39,7 +39,8 @@ enum KeyCode
     KEY_F9,
     KEY_F10,
     KEY_F11,
-    KEY_F12
+    KEY_F12,
+    KEY_SCREEN_SIZE_CHANGED
 };
 
 // Key
