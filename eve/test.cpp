@@ -5153,114 +5153,153 @@ void testConsoleReadLine()
     }
 }
 
-void testConsoleReadKeys()
+void testConsoleReadInput()
 {
     Console::writeLine(STR("Press any key or key combination (ESC to exit)"));
     Console::setLineMode(false);
 
     while (true)
     {
-        const Array<Key>& keys = Console::readKeys();
+        const Array<InputEvent>& inputEvents = Console::readInput();
 
-        for (int i = 0; i < keys.size(); ++i)
+        for (int i = 0; i < inputEvents.size(); ++i)
         {
-            Key key = keys[i];
+            InputEvent event = inputEvents[i];
 
-            if (key.ctrl)
-                Console::write(STR("ctrl "));
-            if (key.alt)
-                Console::write(STR("alt "));
-            if (key.shift)
-                Console::write(STR("shift "));
-
-            switch (key.code)
+            if (event.eventType == INPUT_EVENT_TYPE_KEY)
             {
-            case KEY_ESC:
-                Console::writeLine(STR("KEY_ESC"));
-                Console::setLineMode(true);
-                return;
-            case KEY_TAB:
-                Console::writeLine(STR("KEY_TAB"));
-                break;
-            case KEY_BACKSPACE:
-                Console::writeLine(STR("KEY_BACKSPACE"));
-                break;
-            case KEY_ENTER:
-                Console::writeLine(STR("KEY_ENTER"));
-                break;
-            case KEY_UP:
-                Console::writeLine(STR("KEY_UP"));
-                break;
-            case KEY_DOWN:
-                Console::writeLine(STR("KEY_DOWN"));
-                break;
-            case KEY_LEFT:
-                Console::writeLine(STR("KEY_LEFT"));
-                break;
-            case KEY_RIGHT:
-                Console::writeLine(STR("KEY_RIGHT"));
-                break;
-            case KEY_INSERT:
-                Console::writeLine(STR("KEY_INSERT"));
-                break;
-            case KEY_DELETE:
-                Console::writeLine(STR("KEY_DELETE"));
-                break;
-            case KEY_HOME:
-                Console::writeLine(STR("KEY_HOME"));
-                break;
-            case KEY_END:
-                Console::writeLine(STR("KEY_END"));
-                break;
-            case KEY_PGUP:
-                Console::writeLine(STR("KEY_PGUP"));
-                break;
-            case KEY_PGDN:
-                Console::writeLine(STR("KEY_PGDN"));
-                break;
-            case KEY_F1:
-                Console::writeLine(STR("KEY_F1"));
-                break;
-            case KEY_F2:
-                Console::writeLine(STR("KEY_F2"));
-                break;
-            case KEY_F3:
-                Console::writeLine(STR("KEY_F3"));
-                break;
-            case KEY_F4:
-                Console::writeLine(STR("KEY_F4"));
-                break;
-            case KEY_F5:
-                Console::writeLine(STR("KEY_F5"));
-                break;
-            case KEY_F6:
-                Console::writeLine(STR("KEY_F6"));
-                break;
-            case KEY_F7:
-                Console::writeLine(STR("KEY_F7"));
-                break;
-            case KEY_F8:
-                Console::writeLine(STR("KEY_F8"));
-                break;
-            case KEY_F9:
-                Console::writeLine(STR("KEY_F9"));
-                break;
-            case KEY_F10:
-                Console::writeLine(STR("KEY_F10"));
-                break;
-            case KEY_F11:
-                Console::writeLine(STR("KEY_F11"));
-                break;
-            case KEY_F12:
-                Console::writeLine(STR("KEY_F12"));
-                break;
-            default:
-                if (charIsPrint(key.ch))
-                    Console::writeLine(key.ch);
-                else
-                    Console::writeLineFormatted(STR("\\x%02x"),
-                        static_cast<unsigned>(key.ch));
-                break;
+                KeyEvent keyEvent = event.event.keyEvent;
+
+                Console::writeFormatted(STR("key %s: "), keyEvent.keyDown ? STR("down") : STR("up"));
+
+                if (keyEvent.ctrl)
+                    Console::write(STR("ctrl "));
+                if (keyEvent.alt)
+                    Console::write(STR("alt "));
+                if (keyEvent.shift)
+                    Console::write(STR("shift "));
+
+                switch (keyEvent.key)
+                {
+                case KEY_ESC:
+                    Console::writeLine(STR("KEY_ESC"));
+                    Console::setLineMode(true);
+                    return;
+                case KEY_TAB:
+                    Console::writeLine(STR("KEY_TAB"));
+                    break;
+                case KEY_BACKSPACE:
+                    Console::writeLine(STR("KEY_BACKSPACE"));
+                    break;
+                case KEY_ENTER:
+                    Console::writeLine(STR("KEY_ENTER"));
+                    break;
+                case KEY_UP:
+                    Console::writeLine(STR("KEY_UP"));
+                    break;
+                case KEY_DOWN:
+                    Console::writeLine(STR("KEY_DOWN"));
+                    break;
+                case KEY_LEFT:
+                    Console::writeLine(STR("KEY_LEFT"));
+                    break;
+                case KEY_RIGHT:
+                    Console::writeLine(STR("KEY_RIGHT"));
+                    break;
+                case KEY_INSERT:
+                    Console::writeLine(STR("KEY_INSERT"));
+                    break;
+                case KEY_DELETE:
+                    Console::writeLine(STR("KEY_DELETE"));
+                    break;
+                case KEY_HOME:
+                    Console::writeLine(STR("KEY_HOME"));
+                    break;
+                case KEY_END:
+                    Console::writeLine(STR("KEY_END"));
+                    break;
+                case KEY_PGUP:
+                    Console::writeLine(STR("KEY_PGUP"));
+                    break;
+                case KEY_PGDN:
+                    Console::writeLine(STR("KEY_PGDN"));
+                    break;
+                case KEY_F1:
+                    Console::writeLine(STR("KEY_F1"));
+                    break;
+                case KEY_F2:
+                    Console::writeLine(STR("KEY_F2"));
+                    break;
+                case KEY_F3:
+                    Console::writeLine(STR("KEY_F3"));
+                    break;
+                case KEY_F4:
+                    Console::writeLine(STR("KEY_F4"));
+                    break;
+                case KEY_F5:
+                    Console::writeLine(STR("KEY_F5"));
+                    break;
+                case KEY_F6:
+                    Console::writeLine(STR("KEY_F6"));
+                    break;
+                case KEY_F7:
+                    Console::writeLine(STR("KEY_F7"));
+                    break;
+                case KEY_F8:
+                    Console::writeLine(STR("KEY_F8"));
+                    break;
+                case KEY_F9:
+                    Console::writeLine(STR("KEY_F9"));
+                    break;
+                case KEY_F10:
+                    Console::writeLine(STR("KEY_F10"));
+                    break;
+                case KEY_F11:
+                    Console::writeLine(STR("KEY_F11"));
+                    break;
+                case KEY_F12:
+                    Console::writeLine(STR("KEY_F12"));
+                    break;
+                default:
+                    if (charIsPrint(keyEvent.ch))
+                        Console::writeLine(keyEvent.ch);
+                    else
+                        Console::writeLineFormatted(STR("\\x%02x"),
+                            static_cast<unsigned>(keyEvent.ch));
+                    break;
+                }
+            }
+            else if (event.eventType == INPUT_EVENT_TYPE_MOUSE)
+            {
+                MouseEvent mouseEvent = event.event.mouseEvent;
+
+                switch (mouseEvent.button)
+                {
+                    case MOUSE_BUTTON_PRIMARY:
+                        Console::write(STR("primary mouse button"));
+                        break;
+                    case MOUSE_BUTTON_SECONDARY:
+                        Console::write(STR("secondary mouse button"));
+                        break;
+                    case MOUSE_BUTTON_WHEEL:
+                        Console::write(STR("mouse wheel"));
+                        break;
+                    case MOUSE_BUTTON_WHEEL_UP:
+                        Console::write(STR("mouse scrolled up"));
+                        break;
+                    case MOUSE_BUTTON_WHEEL_DOWN:
+                        Console::write(STR("mouse scrolled down"));
+                        break;
+                }
+
+                Console::writeLineFormatted(STR(": %s position: %dx%d"),
+                    mouseEvent.buttonDown ? STR("down") : STR("up"), mouseEvent.y, mouseEvent.y);
+            }
+            else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
+            {
+                WindowEvent windowEvent = event.event.windowEvent;
+                Console::writeLineFormatted(STR("window size: %dx%d"),
+                    windowEvent.width, windowEvent.height);
             }
         }
     }
@@ -5268,7 +5307,7 @@ void testConsoleReadKeys()
 
 #ifdef PLATFORM_UNIX
 
-void testKeys()
+void testInput()
 {
     char chars[16];
     bool gotChars = false;
@@ -5282,7 +5321,10 @@ void testKeys()
 
     tcsetattr(STDIN_FILENO, TCSANOW, &ta);
 
-    for (int i = 0; i < 100; ++i)
+    printf("\x1b[?1000h");
+    printf("\x1b[?1006h");
+
+    while (true)
     {
         int len = read(STDIN_FILENO, chars, sizeof(chars));
 
@@ -5293,7 +5335,16 @@ void testKeys()
             for (int i = 0; i < len; ++i)
             {
                 if (isprint(chars[i]))
+                {
                     putchar(chars[i]);
+                    if (chars[i] == 'q')
+                    {
+                        printf("\n\x1b[?1000l");
+                        ta.c_lflag |= ECHO | ICANON;
+                        tcsetattr(STDIN_FILENO, TCSANOW, &ta);
+                        return;
+                    }
+                }
                 else
                     printf("\\x%x", static_cast<uint8_t>(chars[i]));
             }
@@ -5309,9 +5360,6 @@ void testKeys()
             usleep(10000);
         }
     }
-
-    ta.c_lflag |= ECHO | ICANON;
-    tcsetattr(STDIN_FILENO, TCSANOW, &ta);
 }
 
 #endif
@@ -5398,11 +5446,11 @@ int MAIN(int argc, const char_t** argv)
 //        testSupport();
 //        testFoundation();
 //        testFile();
-        testConsole();
+//        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-//        testConsoleReadKeys();
+        testConsoleReadInput();
     }
     catch (Exception& ex)
     {

@@ -5,7 +5,6 @@ replace key mapping table with trie based word map
 * pasting screen selection from eve doesn't copy newlines on unix
 print clear to eol code at the end of line
 * get rid of global vars
-* rename readKeys to readInputEvents
 
 editor:
 * autocomplete
@@ -21,7 +20,8 @@ editor:
 * clipboard integration
 * selection with arrows and highlighting
 * handle console/terminal window scrolling/resizing
-SIGWINCH on UNIX, window/screen buffer on Windows
+handle SIGWINCH signal on UNIX, window/screen buffer events on Windows
+reset console settings on shutdown?
 * customizable key mappings
 * line wrapping
 

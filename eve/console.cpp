@@ -57,240 +57,240 @@ struct KeyMapping
 {
     int len;
     const char* chars;
-    Key key;
+    KeyEvent keyEvent;
 };
 
 static KeyMapping keyMapping[] =
     {
-        { 7, "\x1b[15;5~", Key(KEY_F5, true) },
-        { 7, "\x1b[17;5~", Key(KEY_F6, true) },
-        { 7, "\x1b[18;5~", Key(KEY_F7, true) },
-        { 7, "\x1b[19;5~", Key(KEY_F8, true) },
-        { 7, "\x1b[20;5~", Key(KEY_F9, true) },
-        { 7, "\x1b[21;5~", Key(KEY_F10, true) },
-        { 7, "\x1b[23;5~", Key(KEY_F11, true) },
-        { 7, "\x1b[24;5~", Key(KEY_F12, true) },
-        { 7, "\x1b[15;3~", Key(KEY_F5, false, true) },
-        { 7, "\x1b[17;3~", Key(KEY_F6, false, true) },
-        { 7, "\x1b[18;3~", Key(KEY_F7, false, true) },
-        { 7, "\x1b[19;3~", Key(KEY_F8, false, true) },
-        { 7, "\x1b[20;3~", Key(KEY_F9, false, true) },
-        { 7, "\x1b[21;3~", Key(KEY_F10, false, true) },
-        { 7, "\x1b[23;3~", Key(KEY_F11, false, true) },
-        { 7, "\x1b[24;3~", Key(KEY_F12, false, true) },
-        { 7, "\x1b[15;7~", Key(KEY_F5, true, true) },
-        { 7, "\x1b[17;7~", Key(KEY_F6, true, true) },
-        { 7, "\x1b[18;7~", Key(KEY_F7, true, true) },
-        { 7, "\x1b[19;7~", Key(KEY_F8, true, true) },
-        { 7, "\x1b[20;7~", Key(KEY_F9, true, true) },
-        { 7, "\x1b[21;7~", Key(KEY_F10, true, true) },
-        { 7, "\x1b[23;7~", Key(KEY_F11, true, true) },
-        { 7, "\x1b[24;7~", Key(KEY_F12, true, true) },
-        { 7, "\x1b[15;2~", Key(KEY_F5, false, false, true) },
-        { 7, "\x1b[17;2~", Key(KEY_F6, false, false, true) },
-        { 7, "\x1b[18;2~", Key(KEY_F7, false, false, true) },
-        { 7, "\x1b[19;2~", Key(KEY_F8, false, false, true) },
-        { 7, "\x1b[20;2~", Key(KEY_F9, false, false, true) },
-        { 7, "\x1b[21;2~", Key(KEY_F10, false, false, true) },
-        { 7, "\x1b[23;2~", Key(KEY_F11, false, false, true) },
-        { 7, "\x1b[24;2~", Key(KEY_F12, false, false, true) },
-        { 7, "\x1b[15;6~", Key(KEY_F5, true, false, true) },
-        { 7, "\x1b[17;6~", Key(KEY_F6, true, false, true) },
-        { 7, "\x1b[18;6~", Key(KEY_F7, true, false, true) },
-        { 7, "\x1b[19;6~", Key(KEY_F8, true, false, true) },
-        { 7, "\x1b[20;6~", Key(KEY_F9, true, false, true) },
-        { 7, "\x1b[21;6~", Key(KEY_F10, true, false, true) },
-        { 7, "\x1b[23;6~", Key(KEY_F11, true, false, true) },
-        { 7, "\x1b[24;6~", Key(KEY_F12, true, false, true) },
-        { 7, "\x1b[15;4~", Key(KEY_F5, false, true, true) },
-        { 7, "\x1b[17;4~", Key(KEY_F6, false, true, true) },
-        { 7, "\x1b[18;4~", Key(KEY_F7, false, true, true) },
-        { 7, "\x1b[19;4~", Key(KEY_F8, false, true, true) },
-        { 7, "\x1b[20;4~", Key(KEY_F9, false, true, true) },
-        { 7, "\x1b[21;4~", Key(KEY_F10, false, true, true) },
-        { 7, "\x1b[23;4~", Key(KEY_F11, false, true, true) },
-        { 7, "\x1b[24;4~", Key(KEY_F12, false, true, true) },
-        { 7, "\x1b[15;8~", Key(KEY_F5, true, true, true) },
-        { 7, "\x1b[17;8~", Key(KEY_F6, true, true, true) },
-        { 7, "\x1b[18;8~", Key(KEY_F7, true, true, true) },
-        { 7, "\x1b[19;8~", Key(KEY_F8, true, true, true) },
-        { 7, "\x1b[20;8~", Key(KEY_F9, true, true, true) },
-        { 7, "\x1b[21;8~", Key(KEY_F10, true, true, true) },
-        { 7, "\x1b[23;8~", Key(KEY_F11, true, true, true) },
-        { 7, "\x1b[24;8~", Key(KEY_F12, true, true, true) },
-        { 6, "\x1b\x1b[11~", Key(KEY_F1, false, true) },
-        { 6, "\x1b\x1b[12~", Key(KEY_F2, false, true) },
-        { 6, "\x1b\x1b[13~", Key(KEY_F3, false, true) },
-        { 6, "\x1b\x1b[14~", Key(KEY_F4, false, true) },
-        { 6, "\x1b\x1b[15~", Key(KEY_F5, false, true) },
-        { 6, "\x1b\x1b[17~", Key(KEY_F6, false, true) },
-        { 6, "\x1b\x1b[18~", Key(KEY_F7, false, true) },
-        { 6, "\x1b\x1b[19~", Key(KEY_F8, false, true) },
-        { 6, "\x1b\x1b[20~", Key(KEY_F9, false, true) },
-        { 6, "\x1b\x1b[21~", Key(KEY_F10, false, true) },
-        { 6, "\x1b\x1b[23~", Key(KEY_F11, false, true) },
-        { 6, "\x1b\x1b[24~", Key(KEY_F12, false, true) },
-        { 6, "\x1b[3;2~", Key(KEY_BACKSPACE, false, false, true) },
-        { 6, "\x1b[3;6~", Key(KEY_BACKSPACE, true, false, true) },
-        { 6, "\x1b[3;4~", Key(KEY_BACKSPACE, false, true, true) },
-        { 6, "\x1b[3;8~", Key(KEY_BACKSPACE, true, true, true) },
-        { 6, "\x1b[1;5A", Key(KEY_UP, true) },
-        { 6, "\x1b[1;5B", Key(KEY_DOWN, true) },
-        { 6, "\x1b[1;5C", Key(KEY_RIGHT, true) },
-        { 6, "\x1b[1;5D", Key(KEY_LEFT, true) },
-        { 6, "\x1b[1;3A", Key(KEY_UP, false, true) },
-        { 6, "\x1b[1;3B", Key(KEY_DOWN, false, true) },
-        { 6, "\x1b[1;3C", Key(KEY_RIGHT, false, true) },
-        { 6, "\x1b[1;3D", Key(KEY_LEFT, false, true) },
-        { 6, "\x1b[1;7A", Key(KEY_UP, true, true) },
-        { 6, "\x1b[1;7B", Key(KEY_DOWN, true, true) },
-        { 6, "\x1b[1;7C", Key(KEY_RIGHT, true, true) },
-        { 6, "\x1b[1;7D", Key(KEY_LEFT, true, true) },
-        { 6, "\x1b[1;2A", Key(KEY_UP, false, false, true) },
-        { 6, "\x1b[1;2B", Key(KEY_DOWN, false, false, true) },
-        { 6, "\x1b[1;2C", Key(KEY_RIGHT, false, false, true) },
-        { 6, "\x1b[1;2D", Key(KEY_LEFT, false, false, true) },
-        { 6, "\x1b[1;6A", Key(KEY_UP, true, false, true) },
-        { 6, "\x1b[1;6B", Key(KEY_DOWN, true, false, true) },
-        { 6, "\x1b[1;6C", Key(KEY_RIGHT, true, false, true) },
-        { 6, "\x1b[1;6D", Key(KEY_LEFT, true, false, true) },
-        { 6, "\x1b[1;4A", Key(KEY_UP, false, true, true) },
-        { 6, "\x1b[1;4B", Key(KEY_DOWN, false, true, true) },
-        { 6, "\x1b[1;4C", Key(KEY_RIGHT, false, true, true) },
-        { 6, "\x1b[1;4D", Key(KEY_LEFT, false, true, true) },
-        { 6, "\x1b[1;8A", Key(KEY_UP, true, true, true) },
-        { 6, "\x1b[1;8B", Key(KEY_DOWN, true, true, true) },
-        { 6, "\x1b[1;8C", Key(KEY_RIGHT, true, true, true) },
-        { 6, "\x1b[1;8D", Key(KEY_LEFT, true, true, true) },
-        { 6, "\x1b[2;5~", Key(KEY_INSERT, true) },
-        { 6, "\x1b[3;5~", Key(KEY_DELETE, true) },
-        { 6, "\x1b[1;5H", Key(KEY_HOME, true) },
-        { 6, "\x1b[1;5F", Key(KEY_END, true) },
-        { 6, "\x1b[5;5~", Key(KEY_PGUP, true) },
-        { 6, "\x1b[6;5~", Key(KEY_PGDN, true) },
-        { 6, "\x1b[2;3~", Key(KEY_INSERT, false, true) },
-        { 6, "\x1b[3;3~", Key(KEY_DELETE, false, true) },
-        { 6, "\x1b[1;3H", Key(KEY_HOME, false, true) },
-        { 6, "\x1b[1;3F", Key(KEY_END, false, true) },
-        { 6, "\x1b[5;3~", Key(KEY_PGUP, false, true) },
-        { 6, "\x1b[6;3~", Key(KEY_PGDN, false, true) },
-        { 6, "\x1b[2;7~", Key(KEY_INSERT, true, true) },
-        { 6, "\x1b[3;7~", Key(KEY_DELETE, true, true) },
-        { 6, "\x1b[1;7H", Key(KEY_HOME, true, true) },
-        { 6, "\x1b[1;7F", Key(KEY_END, true, true) },
-        { 6, "\x1b[5;7~", Key(KEY_PGUP, true, true) },
-        { 6, "\x1b[6;7~", Key(KEY_PGDN, true, true) },
-        { 6, "\x1b[2;2~", Key(KEY_INSERT, false, false, true) },
-        { 6, "\x1b[3;2~", Key(KEY_DELETE, false, false, true) },
-        { 6, "\x1b[1;2H", Key(KEY_HOME, false, false, true) },
-        { 6, "\x1b[1;2F", Key(KEY_END, false, false, true) },
-        { 6, "\x1b[5;2~", Key(KEY_PGUP, false, false, true) },
-        { 6, "\x1b[6;2~", Key(KEY_PGDN, false, false, true) },
-        { 6, "\x1b[2;6~", Key(KEY_INSERT, true, false, true) },
-        { 6, "\x1b[3;6~", Key(KEY_DELETE, true, false, true) },
-        { 6, "\x1b[1;6H", Key(KEY_HOME, true, false, true) },
-        { 6, "\x1b[1;6F", Key(KEY_END, true, false, true) },
-        { 6, "\x1b[5;6~", Key(KEY_PGUP, true, false, true) },
-        { 6, "\x1b[6;6~", Key(KEY_PGDN, true, false, true) },
-        { 6, "\x1b[2;4~", Key(KEY_INSERT, false, true, true) },
-        { 6, "\x1b[3;4~", Key(KEY_DELETE, false, true, true) },
-        { 6, "\x1b[1;4H", Key(KEY_HOME, false, true, true) },
-        { 6, "\x1b[1;4F", Key(KEY_END, false, true, true) },
-        { 6, "\x1b[5;4~", Key(KEY_PGUP, false, true, true) },
-        { 6, "\x1b[6;4~", Key(KEY_PGDN, false, true, true) },
-        { 6, "\x1b[2;8~", Key(KEY_INSERT, true, true, true) },
-        { 6, "\x1b[3;8~", Key(KEY_DELETE, true, true, true) },
-        { 6, "\x1b[1;8H", Key(KEY_HOME, true, true, true) },
-        { 6, "\x1b[1;8F", Key(KEY_END, true, true, true) },
-        { 6, "\x1b[5;8~", Key(KEY_PGUP, true, true, true) },
-        { 6, "\x1b[6;8~", Key(KEY_PGDN, true, true, true) },
-        { 5, "\x1b[11~", Key(KEY_F1) },
-        { 5, "\x1b[12~", Key(KEY_F2) },
-        { 5, "\x1b[13~", Key(KEY_F3) },
-        { 5, "\x1b[14~", Key(KEY_F4) },
-        { 5, "\x1b[15~", Key(KEY_F5) },
-        { 5, "\x1b[17~", Key(KEY_F6) },
-        { 5, "\x1b[18~", Key(KEY_F7) },
-        { 5, "\x1b[19~", Key(KEY_F8) },
-        { 5, "\x1b[20~", Key(KEY_F9) },
-        { 5, "\x1b[21~", Key(KEY_F10) },
-        { 5, "\x1b[23~", Key(KEY_F11) },
-        { 5, "\x1b[24~", Key(KEY_F12) },
-        { 5, "\x1b[23~", Key(KEY_F1, false, false, true) },
-        { 5, "\x1b[24~", Key(KEY_F2, false, false, true) },
-        { 5, "\x1b[25~", Key(KEY_F3, false, false, true) },
-        { 5, "\x1b[26~", Key(KEY_F4, false, false, true) },
-        { 5, "\x1b[28~", Key(KEY_F5, false, false, true) },
-        { 5, "\x1b[29~", Key(KEY_F6, false, false, true) },
-        { 5, "\x1b[31~", Key(KEY_F7, false, false, true) },
-        { 5, "\x1b[32~", Key(KEY_F8, false, false, true) },
-        { 5, "\x1b[33~", Key(KEY_F9, false, false, true) },
-        { 5, "\x1b[34~", Key(KEY_F10, false, false, true) },
-        { 5, "\x1b[23~", Key(KEY_F11, false, false, true) },
-        { 5, "\x1b[24~", Key(KEY_F12, false, false, true) },
-        { 5, "\x1b\x1b[2~", Key(KEY_INSERT, false, true) },
-        { 5, "\x1b\x1b[3~", Key(KEY_DELETE, false, true) },
-        { 5, "\x1b\x1b[1~", Key(KEY_HOME, false, true) },
-        { 5, "\x1b\x1b[4~", Key(KEY_END, false, true) },
-        { 5, "\x1b\x1b[5~", Key(KEY_PGUP, false, true) },
-        { 5, "\x1b\x1b[6~", Key(KEY_PGDN, false, true) },
-        { 4, "\x1b[2~", Key(KEY_INSERT) },
-        { 4, "\x1b[3~", Key(KEY_DELETE) },
-        { 4, "\x1b[1~", Key(KEY_HOME) },
-        { 4, "\x1b[4~", Key(KEY_END) },
-        { 4, "\x1b[5~", Key(KEY_PGUP) },
-        { 4, "\x1b[6~", Key(KEY_PGDN) },
-        { 4, "\x1b\x1b[A", Key(KEY_UP, false, true) },
-        { 4, "\x1b\x1b[B", Key(KEY_DOWN, false, true) },
-        { 4, "\x1b\x1b[C", Key(KEY_RIGHT, false, true) },
-        { 4, "\x1b\x1b[D", Key(KEY_LEFT, false, true) },
-        { 4, "\x1b\x1bOA", Key(KEY_UP, true, true) },
-        { 4, "\x1b\x1bOB", Key(KEY_DOWN, true, true) },
-        { 4, "\x1b\x1bOC", Key(KEY_RIGHT, true, true) },
-        { 4, "\x1b\x1bOD", Key(KEY_LEFT, true, true) },
-        { 4, "\x1bO5P", Key(KEY_F1, true) },
-        { 4, "\x1bO5Q", Key(KEY_F2, true) },
-        { 4, "\x1bO5R", Key(KEY_F3, true) },
-        { 4, "\x1bO5S", Key(KEY_F4, true) },
-        { 4, "\x1bO3P", Key(KEY_F1, false, true) },
-        { 4, "\x1bO3Q", Key(KEY_F2, false, true) },
-        { 4, "\x1bO3R", Key(KEY_F3, false, true) },
-        { 4, "\x1bO3S", Key(KEY_F4, false, true) },
-        { 4, "\x1bO7P", Key(KEY_F1, true, true) },
-        { 4, "\x1bO7Q", Key(KEY_F2, true, true) },
-        { 4, "\x1bO7R", Key(KEY_F3, true, true) },
-        { 4, "\x1bO7S", Key(KEY_F4, true, true) },
-        { 4, "\x1bO2P", Key(KEY_F1, false, false, true) },
-        { 4, "\x1bO2Q", Key(KEY_F2, false, false, true) },
-        { 4, "\x1bO2R", Key(KEY_F3, false, false, true) },
-        { 4, "\x1bO2S", Key(KEY_F4, false, false, true) },
-        { 4, "\x1bO6P", Key(KEY_F1, true, false, true) },
-        { 4, "\x1bO6Q", Key(KEY_F2, true, false, true) },
-        { 4, "\x1bO6R", Key(KEY_F3, true, false, true) },
-        { 4, "\x1bO6S", Key(KEY_F4, true, false, true) },
-        { 4, "\x1bO4P", Key(KEY_F1, false, true, true) },
-        { 4, "\x1bO4Q", Key(KEY_F2, false, true, true) },
-        { 4, "\x1bO4R", Key(KEY_F3, false, true, true) },
-        { 4, "\x1bO4S", Key(KEY_F4, false, true, true) },
-        { 4, "\x1bO8P", Key(KEY_F1, true, true, true) },
-        { 4, "\x1bO8Q", Key(KEY_F2, true, true, true) },
-        { 4, "\x1bO8R", Key(KEY_F3, true, true, true) },
-        { 4, "\x1bO8S", Key(KEY_F4, true, true, true) },
-        { 3, "\x1b[A", Key(KEY_UP) },
-        { 3, "\x1b[B", Key(KEY_DOWN) },
-        { 3, "\x1b[C", Key(KEY_RIGHT) },
-        { 3, "\x1b[D", Key(KEY_LEFT) },
-        { 3, "\x1bOA", Key(KEY_UP, true) },
-        { 3, "\x1bOB", Key(KEY_DOWN, true) },
-        { 3, "\x1bOC", Key(KEY_RIGHT, true) },
-        { 3, "\x1bOD", Key(KEY_LEFT, true) },
-        { 3, "\x1b[Z", Key(KEY_TAB, false, false, true) },
-        { 3, "\x1bOP", Key(KEY_F1) },
-        { 3, "\x1bOQ", Key(KEY_F2) },
-        { 3, "\x1bOR", Key(KEY_F3) },
-        { 3, "\x1bOS", Key(KEY_F4) },
-        { 3, "\x1b[H", Key(KEY_HOME) },
-        { 3, "\x1b[F", Key(KEY_END) }
+        { 7, "\x1b[15;5~", KeyEvent(KEY_F5, true) },
+        { 7, "\x1b[17;5~", KeyEvent(KEY_F6, true) },
+        { 7, "\x1b[18;5~", KeyEvent(KEY_F7, true) },
+        { 7, "\x1b[19;5~", KeyEvent(KEY_F8, true) },
+        { 7, "\x1b[20;5~", KeyEvent(KEY_F9, true) },
+        { 7, "\x1b[21;5~", KeyEvent(KEY_F10, true) },
+        { 7, "\x1b[23;5~", KeyEvent(KEY_F11, true) },
+        { 7, "\x1b[24;5~", KeyEvent(KEY_F12, true) },
+        { 7, "\x1b[15;3~", KeyEvent(KEY_F5, false, true) },
+        { 7, "\x1b[17;3~", KeyEvent(KEY_F6, false, true) },
+        { 7, "\x1b[18;3~", KeyEvent(KEY_F7, false, true) },
+        { 7, "\x1b[19;3~", KeyEvent(KEY_F8, false, true) },
+        { 7, "\x1b[20;3~", KeyEvent(KEY_F9, false, true) },
+        { 7, "\x1b[21;3~", KeyEvent(KEY_F10, false, true) },
+        { 7, "\x1b[23;3~", KeyEvent(KEY_F11, false, true) },
+        { 7, "\x1b[24;3~", KeyEvent(KEY_F12, false, true) },
+        { 7, "\x1b[15;7~", KeyEvent(KEY_F5, true, true) },
+        { 7, "\x1b[17;7~", KeyEvent(KEY_F6, true, true) },
+        { 7, "\x1b[18;7~", KeyEvent(KEY_F7, true, true) },
+        { 7, "\x1b[19;7~", KeyEvent(KEY_F8, true, true) },
+        { 7, "\x1b[20;7~", KeyEvent(KEY_F9, true, true) },
+        { 7, "\x1b[21;7~", KeyEvent(KEY_F10, true, true) },
+        { 7, "\x1b[23;7~", KeyEvent(KEY_F11, true, true) },
+        { 7, "\x1b[24;7~", KeyEvent(KEY_F12, true, true) },
+        { 7, "\x1b[15;2~", KeyEvent(KEY_F5, false, false, true) },
+        { 7, "\x1b[17;2~", KeyEvent(KEY_F6, false, false, true) },
+        { 7, "\x1b[18;2~", KeyEvent(KEY_F7, false, false, true) },
+        { 7, "\x1b[19;2~", KeyEvent(KEY_F8, false, false, true) },
+        { 7, "\x1b[20;2~", KeyEvent(KEY_F9, false, false, true) },
+        { 7, "\x1b[21;2~", KeyEvent(KEY_F10, false, false, true) },
+        { 7, "\x1b[23;2~", KeyEvent(KEY_F11, false, false, true) },
+        { 7, "\x1b[24;2~", KeyEvent(KEY_F12, false, false, true) },
+        { 7, "\x1b[15;6~", KeyEvent(KEY_F5, true, false, true) },
+        { 7, "\x1b[17;6~", KeyEvent(KEY_F6, true, false, true) },
+        { 7, "\x1b[18;6~", KeyEvent(KEY_F7, true, false, true) },
+        { 7, "\x1b[19;6~", KeyEvent(KEY_F8, true, false, true) },
+        { 7, "\x1b[20;6~", KeyEvent(KEY_F9, true, false, true) },
+        { 7, "\x1b[21;6~", KeyEvent(KEY_F10, true, false, true) },
+        { 7, "\x1b[23;6~", KeyEvent(KEY_F11, true, false, true) },
+        { 7, "\x1b[24;6~", KeyEvent(KEY_F12, true, false, true) },
+        { 7, "\x1b[15;4~", KeyEvent(KEY_F5, false, true, true) },
+        { 7, "\x1b[17;4~", KeyEvent(KEY_F6, false, true, true) },
+        { 7, "\x1b[18;4~", KeyEvent(KEY_F7, false, true, true) },
+        { 7, "\x1b[19;4~", KeyEvent(KEY_F8, false, true, true) },
+        { 7, "\x1b[20;4~", KeyEvent(KEY_F9, false, true, true) },
+        { 7, "\x1b[21;4~", KeyEvent(KEY_F10, false, true, true) },
+        { 7, "\x1b[23;4~", KeyEvent(KEY_F11, false, true, true) },
+        { 7, "\x1b[24;4~", KeyEvent(KEY_F12, false, true, true) },
+        { 7, "\x1b[15;8~", KeyEvent(KEY_F5, true, true, true) },
+        { 7, "\x1b[17;8~", KeyEvent(KEY_F6, true, true, true) },
+        { 7, "\x1b[18;8~", KeyEvent(KEY_F7, true, true, true) },
+        { 7, "\x1b[19;8~", KeyEvent(KEY_F8, true, true, true) },
+        { 7, "\x1b[20;8~", KeyEvent(KEY_F9, true, true, true) },
+        { 7, "\x1b[21;8~", KeyEvent(KEY_F10, true, true, true) },
+        { 7, "\x1b[23;8~", KeyEvent(KEY_F11, true, true, true) },
+        { 7, "\x1b[24;8~", KeyEvent(KEY_F12, true, true, true) },
+        { 6, "\x1b\x1b[11~", KeyEvent(KEY_F1, false, true) },
+        { 6, "\x1b\x1b[12~", KeyEvent(KEY_F2, false, true) },
+        { 6, "\x1b\x1b[13~", KeyEvent(KEY_F3, false, true) },
+        { 6, "\x1b\x1b[14~", KeyEvent(KEY_F4, false, true) },
+        { 6, "\x1b\x1b[15~", KeyEvent(KEY_F5, false, true) },
+        { 6, "\x1b\x1b[17~", KeyEvent(KEY_F6, false, true) },
+        { 6, "\x1b\x1b[18~", KeyEvent(KEY_F7, false, true) },
+        { 6, "\x1b\x1b[19~", KeyEvent(KEY_F8, false, true) },
+        { 6, "\x1b\x1b[20~", KeyEvent(KEY_F9, false, true) },
+        { 6, "\x1b\x1b[21~", KeyEvent(KEY_F10, false, true) },
+        { 6, "\x1b\x1b[23~", KeyEvent(KEY_F11, false, true) },
+        { 6, "\x1b\x1b[24~", KeyEvent(KEY_F12, false, true) },
+        { 6, "\x1b[3;2~", KeyEvent(KEY_BACKSPACE, false, false, true) },
+        { 6, "\x1b[3;6~", KeyEvent(KEY_BACKSPACE, true, false, true) },
+        { 6, "\x1b[3;4~", KeyEvent(KEY_BACKSPACE, false, true, true) },
+        { 6, "\x1b[3;8~", KeyEvent(KEY_BACKSPACE, true, true, true) },
+        { 6, "\x1b[1;5A", KeyEvent(KEY_UP, true) },
+        { 6, "\x1b[1;5B", KeyEvent(KEY_DOWN, true) },
+        { 6, "\x1b[1;5C", KeyEvent(KEY_RIGHT, true) },
+        { 6, "\x1b[1;5D", KeyEvent(KEY_LEFT, true) },
+        { 6, "\x1b[1;3A", KeyEvent(KEY_UP, false, true) },
+        { 6, "\x1b[1;3B", KeyEvent(KEY_DOWN, false, true) },
+        { 6, "\x1b[1;3C", KeyEvent(KEY_RIGHT, false, true) },
+        { 6, "\x1b[1;3D", KeyEvent(KEY_LEFT, false, true) },
+        { 6, "\x1b[1;7A", KeyEvent(KEY_UP, true, true) },
+        { 6, "\x1b[1;7B", KeyEvent(KEY_DOWN, true, true) },
+        { 6, "\x1b[1;7C", KeyEvent(KEY_RIGHT, true, true) },
+        { 6, "\x1b[1;7D", KeyEvent(KEY_LEFT, true, true) },
+        { 6, "\x1b[1;2A", KeyEvent(KEY_UP, false, false, true) },
+        { 6, "\x1b[1;2B", KeyEvent(KEY_DOWN, false, false, true) },
+        { 6, "\x1b[1;2C", KeyEvent(KEY_RIGHT, false, false, true) },
+        { 6, "\x1b[1;2D", KeyEvent(KEY_LEFT, false, false, true) },
+        { 6, "\x1b[1;6A", KeyEvent(KEY_UP, true, false, true) },
+        { 6, "\x1b[1;6B", KeyEvent(KEY_DOWN, true, false, true) },
+        { 6, "\x1b[1;6C", KeyEvent(KEY_RIGHT, true, false, true) },
+        { 6, "\x1b[1;6D", KeyEvent(KEY_LEFT, true, false, true) },
+        { 6, "\x1b[1;4A", KeyEvent(KEY_UP, false, true, true) },
+        { 6, "\x1b[1;4B", KeyEvent(KEY_DOWN, false, true, true) },
+        { 6, "\x1b[1;4C", KeyEvent(KEY_RIGHT, false, true, true) },
+        { 6, "\x1b[1;4D", KeyEvent(KEY_LEFT, false, true, true) },
+        { 6, "\x1b[1;8A", KeyEvent(KEY_UP, true, true, true) },
+        { 6, "\x1b[1;8B", KeyEvent(KEY_DOWN, true, true, true) },
+        { 6, "\x1b[1;8C", KeyEvent(KEY_RIGHT, true, true, true) },
+        { 6, "\x1b[1;8D", KeyEvent(KEY_LEFT, true, true, true) },
+        { 6, "\x1b[2;5~", KeyEvent(KEY_INSERT, true) },
+        { 6, "\x1b[3;5~", KeyEvent(KEY_DELETE, true) },
+        { 6, "\x1b[1;5H", KeyEvent(KEY_HOME, true) },
+        { 6, "\x1b[1;5F", KeyEvent(KEY_END, true) },
+        { 6, "\x1b[5;5~", KeyEvent(KEY_PGUP, true) },
+        { 6, "\x1b[6;5~", KeyEvent(KEY_PGDN, true) },
+        { 6, "\x1b[2;3~", KeyEvent(KEY_INSERT, false, true) },
+        { 6, "\x1b[3;3~", KeyEvent(KEY_DELETE, false, true) },
+        { 6, "\x1b[1;3H", KeyEvent(KEY_HOME, false, true) },
+        { 6, "\x1b[1;3F", KeyEvent(KEY_END, false, true) },
+        { 6, "\x1b[5;3~", KeyEvent(KEY_PGUP, false, true) },
+        { 6, "\x1b[6;3~", KeyEvent(KEY_PGDN, false, true) },
+        { 6, "\x1b[2;7~", KeyEvent(KEY_INSERT, true, true) },
+        { 6, "\x1b[3;7~", KeyEvent(KEY_DELETE, true, true) },
+        { 6, "\x1b[1;7H", KeyEvent(KEY_HOME, true, true) },
+        { 6, "\x1b[1;7F", KeyEvent(KEY_END, true, true) },
+        { 6, "\x1b[5;7~", KeyEvent(KEY_PGUP, true, true) },
+        { 6, "\x1b[6;7~", KeyEvent(KEY_PGDN, true, true) },
+        { 6, "\x1b[2;2~", KeyEvent(KEY_INSERT, false, false, true) },
+        { 6, "\x1b[3;2~", KeyEvent(KEY_DELETE, false, false, true) },
+        { 6, "\x1b[1;2H", KeyEvent(KEY_HOME, false, false, true) },
+        { 6, "\x1b[1;2F", KeyEvent(KEY_END, false, false, true) },
+        { 6, "\x1b[5;2~", KeyEvent(KEY_PGUP, false, false, true) },
+        { 6, "\x1b[6;2~", KeyEvent(KEY_PGDN, false, false, true) },
+        { 6, "\x1b[2;6~", KeyEvent(KEY_INSERT, true, false, true) },
+        { 6, "\x1b[3;6~", KeyEvent(KEY_DELETE, true, false, true) },
+        { 6, "\x1b[1;6H", KeyEvent(KEY_HOME, true, false, true) },
+        { 6, "\x1b[1;6F", KeyEvent(KEY_END, true, false, true) },
+        { 6, "\x1b[5;6~", KeyEvent(KEY_PGUP, true, false, true) },
+        { 6, "\x1b[6;6~", KeyEvent(KEY_PGDN, true, false, true) },
+        { 6, "\x1b[2;4~", KeyEvent(KEY_INSERT, false, true, true) },
+        { 6, "\x1b[3;4~", KeyEvent(KEY_DELETE, false, true, true) },
+        { 6, "\x1b[1;4H", KeyEvent(KEY_HOME, false, true, true) },
+        { 6, "\x1b[1;4F", KeyEvent(KEY_END, false, true, true) },
+        { 6, "\x1b[5;4~", KeyEvent(KEY_PGUP, false, true, true) },
+        { 6, "\x1b[6;4~", KeyEvent(KEY_PGDN, false, true, true) },
+        { 6, "\x1b[2;8~", KeyEvent(KEY_INSERT, true, true, true) },
+        { 6, "\x1b[3;8~", KeyEvent(KEY_DELETE, true, true, true) },
+        { 6, "\x1b[1;8H", KeyEvent(KEY_HOME, true, true, true) },
+        { 6, "\x1b[1;8F", KeyEvent(KEY_END, true, true, true) },
+        { 6, "\x1b[5;8~", KeyEvent(KEY_PGUP, true, true, true) },
+        { 6, "\x1b[6;8~", KeyEvent(KEY_PGDN, true, true, true) },
+        { 5, "\x1b[11~", KeyEvent(KEY_F1) },
+        { 5, "\x1b[12~", KeyEvent(KEY_F2) },
+        { 5, "\x1b[13~", KeyEvent(KEY_F3) },
+        { 5, "\x1b[14~", KeyEvent(KEY_F4) },
+        { 5, "\x1b[15~", KeyEvent(KEY_F5) },
+        { 5, "\x1b[17~", KeyEvent(KEY_F6) },
+        { 5, "\x1b[18~", KeyEvent(KEY_F7) },
+        { 5, "\x1b[19~", KeyEvent(KEY_F8) },
+        { 5, "\x1b[20~", KeyEvent(KEY_F9) },
+        { 5, "\x1b[21~", KeyEvent(KEY_F10) },
+        { 5, "\x1b[23~", KeyEvent(KEY_F11) },
+        { 5, "\x1b[24~", KeyEvent(KEY_F12) },
+        { 5, "\x1b[23~", KeyEvent(KEY_F1, false, false, true) },
+        { 5, "\x1b[24~", KeyEvent(KEY_F2, false, false, true) },
+        { 5, "\x1b[25~", KeyEvent(KEY_F3, false, false, true) },
+        { 5, "\x1b[26~", KeyEvent(KEY_F4, false, false, true) },
+        { 5, "\x1b[28~", KeyEvent(KEY_F5, false, false, true) },
+        { 5, "\x1b[29~", KeyEvent(KEY_F6, false, false, true) },
+        { 5, "\x1b[31~", KeyEvent(KEY_F7, false, false, true) },
+        { 5, "\x1b[32~", KeyEvent(KEY_F8, false, false, true) },
+        { 5, "\x1b[33~", KeyEvent(KEY_F9, false, false, true) },
+        { 5, "\x1b[34~", KeyEvent(KEY_F10, false, false, true) },
+        { 5, "\x1b[23~", KeyEvent(KEY_F11, false, false, true) },
+        { 5, "\x1b[24~", KeyEvent(KEY_F12, false, false, true) },
+        { 5, "\x1b\x1b[2~", KeyEvent(KEY_INSERT, false, true) },
+        { 5, "\x1b\x1b[3~", KeyEvent(KEY_DELETE, false, true) },
+        { 5, "\x1b\x1b[1~", KeyEvent(KEY_HOME, false, true) },
+        { 5, "\x1b\x1b[4~", KeyEvent(KEY_END, false, true) },
+        { 5, "\x1b\x1b[5~", KeyEvent(KEY_PGUP, false, true) },
+        { 5, "\x1b\x1b[6~", KeyEvent(KEY_PGDN, false, true) },
+        { 4, "\x1b[2~", KeyEvent(KEY_INSERT) },
+        { 4, "\x1b[3~", KeyEvent(KEY_DELETE) },
+        { 4, "\x1b[1~", KeyEvent(KEY_HOME) },
+        { 4, "\x1b[4~", KeyEvent(KEY_END) },
+        { 4, "\x1b[5~", KeyEvent(KEY_PGUP) },
+        { 4, "\x1b[6~", KeyEvent(KEY_PGDN) },
+        { 4, "\x1b\x1b[A", KeyEvent(KEY_UP, false, true) },
+        { 4, "\x1b\x1b[B", KeyEvent(KEY_DOWN, false, true) },
+        { 4, "\x1b\x1b[C", KeyEvent(KEY_RIGHT, false, true) },
+        { 4, "\x1b\x1b[D", KeyEvent(KEY_LEFT, false, true) },
+        { 4, "\x1b\x1bOA", KeyEvent(KEY_UP, true, true) },
+        { 4, "\x1b\x1bOB", KeyEvent(KEY_DOWN, true, true) },
+        { 4, "\x1b\x1bOC", KeyEvent(KEY_RIGHT, true, true) },
+        { 4, "\x1b\x1bOD", KeyEvent(KEY_LEFT, true, true) },
+        { 4, "\x1bO5P", KeyEvent(KEY_F1, true) },
+        { 4, "\x1bO5Q", KeyEvent(KEY_F2, true) },
+        { 4, "\x1bO5R", KeyEvent(KEY_F3, true) },
+        { 4, "\x1bO5S", KeyEvent(KEY_F4, true) },
+        { 4, "\x1bO3P", KeyEvent(KEY_F1, false, true) },
+        { 4, "\x1bO3Q", KeyEvent(KEY_F2, false, true) },
+        { 4, "\x1bO3R", KeyEvent(KEY_F3, false, true) },
+        { 4, "\x1bO3S", KeyEvent(KEY_F4, false, true) },
+        { 4, "\x1bO7P", KeyEvent(KEY_F1, true, true) },
+        { 4, "\x1bO7Q", KeyEvent(KEY_F2, true, true) },
+        { 4, "\x1bO7R", KeyEvent(KEY_F3, true, true) },
+        { 4, "\x1bO7S", KeyEvent(KEY_F4, true, true) },
+        { 4, "\x1bO2P", KeyEvent(KEY_F1, false, false, true) },
+        { 4, "\x1bO2Q", KeyEvent(KEY_F2, false, false, true) },
+        { 4, "\x1bO2R", KeyEvent(KEY_F3, false, false, true) },
+        { 4, "\x1bO2S", KeyEvent(KEY_F4, false, false, true) },
+        { 4, "\x1bO6P", KeyEvent(KEY_F1, true, false, true) },
+        { 4, "\x1bO6Q", KeyEvent(KEY_F2, true, false, true) },
+        { 4, "\x1bO6R", KeyEvent(KEY_F3, true, false, true) },
+        { 4, "\x1bO6S", KeyEvent(KEY_F4, true, false, true) },
+        { 4, "\x1bO4P", KeyEvent(KEY_F1, false, true, true) },
+        { 4, "\x1bO4Q", KeyEvent(KEY_F2, false, true, true) },
+        { 4, "\x1bO4R", KeyEvent(KEY_F3, false, true, true) },
+        { 4, "\x1bO4S", KeyEvent(KEY_F4, false, true, true) },
+        { 4, "\x1bO8P", KeyEvent(KEY_F1, true, true, true) },
+        { 4, "\x1bO8Q", KeyEvent(KEY_F2, true, true, true) },
+        { 4, "\x1bO8R", KeyEvent(KEY_F3, true, true, true) },
+        { 4, "\x1bO8S", KeyEvent(KEY_F4, true, true, true) },
+        { 3, "\x1b[A", KeyEvent(KEY_UP) },
+        { 3, "\x1b[B", KeyEvent(KEY_DOWN) },
+        { 3, "\x1b[C", KeyEvent(KEY_RIGHT) },
+        { 3, "\x1b[D", KeyEvent(KEY_LEFT) },
+        { 3, "\x1bOA", KeyEvent(KEY_UP, true) },
+        { 3, "\x1bOB", KeyEvent(KEY_DOWN, true) },
+        { 3, "\x1bOC", KeyEvent(KEY_RIGHT, true) },
+        { 3, "\x1bOD", KeyEvent(KEY_LEFT, true) },
+        { 3, "\x1b[Z", KeyEvent(KEY_TAB, false, false, true) },
+        { 3, "\x1bOP", KeyEvent(KEY_F1) },
+        { 3, "\x1bOQ", KeyEvent(KEY_F2) },
+        { 3, "\x1bOR", KeyEvent(KEY_F3) },
+        { 3, "\x1bOS", KeyEvent(KEY_F4) },
+        { 3, "\x1b[H", KeyEvent(KEY_HOME) },
+        { 3, "\x1b[F", KeyEvent(KEY_END) }
     };
 
 #endif
@@ -298,12 +298,12 @@ static KeyMapping keyMapping[] =
 // Console
 
 #ifdef PLATFORM_WINDOWS
-Array<INPUT_RECORD> Console::_input(16);
+Array<INPUT_RECORD> Console::_inputRecords(16);
 #else
-Array<char> Console::_input(16);
+Array<char> Console::_inputChars(16);
 #endif
 
-Array<Key> Console::_keys;
+Array<InputEvent> Console::_inputEvents;
 
 void Console::initialize()
 {
@@ -330,6 +330,9 @@ void Console::initialize()
 #else
     int rc = setvbuf(stdout, NULL, _IONBF, 0);
     ASSERT(rc == 0);
+
+    printf("\x1b[?1000h");
+    printf("\x1b[?1006h");
 
     signal(SIGWINCH, onSIGWINCH);
 #endif
@@ -673,9 +676,9 @@ void Console::setCursorPosition(int line, int column)
 
 #endif
 
-const Array<Key>& Console::readKeys()
+const Array<InputEvent>& Console::readInput()
 {
-    _keys.clear();
+    _inputEvents.clear();
 
 #ifdef PLATFORM_WINDOWS
 
@@ -688,120 +691,123 @@ const Array<Key>& Console::readKeys()
         BOOL rc = GetNumberOfConsoleInputEvents(handle, &numInputRec);
         ASSERT(rc);
 
-        _input.resize(numInputRec);
-        rc = ReadConsoleInput(handle, _input.values(), numInputRec, &numInputRec);
+        _inputRecords.resize(numInputRec);
+        rc = ReadConsoleInput(handle, _inputRecords.values(), numInputRec, &numInputRec);
         ASSERT(rc);
 
         for (DWORD i = 0; i < numInputRec; ++i)
         {
-            INPUT_RECORD& inputRec = _input[i];
+            INPUT_RECORD& inputRec = _inputRecords[i];
 
-            if (inputRec.EventType == KEY_EVENT && inputRec.Event.KeyEvent.bKeyDown)
+            if (inputRec.EventType == KEY_EVENT)
             {
-                Key key;
+                KeyEvent keyEvent;
+                keyEvent.keyDown = inputRec.Event.KeyEvent.bKeyDown;
 
                 switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
                 {
                 case VK_ESCAPE:
-                    key.code = KEY_ESC;
+                    keyEvent.key = KEY_ESC;
                     break;
                 case VK_TAB:
-                    key.code = KEY_TAB;
-                    key.ch = '\t';
+                    keyEvent.key = KEY_TAB;
+                    keyEvent.ch = '\t';
                     break;
                 case VK_BACK:
-                    key.code = KEY_BACKSPACE;
+                    keyEvent.key = KEY_BACKSPACE;
                     break;
                 case VK_RETURN:
-                    key.code = KEY_ENTER;
-                    key.ch = '\n';
+                    keyEvent.key = KEY_ENTER;
+                    keyEvent.ch = '\n';
                     break;
                 case VK_UP:
-                    key.code = KEY_UP;
+                    keyEvent.key = KEY_UP;
                     break;
                 case VK_DOWN:
-                    key.code = KEY_DOWN;
+                    keyEvent.key = KEY_DOWN;
                     break;
                 case VK_LEFT:
-                    key.code = KEY_LEFT;
+                    keyEvent.key = KEY_LEFT;
                     break;
                 case VK_RIGHT:
-                    key.code = KEY_RIGHT;
+                    keyEvent.key = KEY_RIGHT;
                     break;
                 case VK_INSERT:
-                    key.code = KEY_INSERT;
+                    keyEvent.key = KEY_INSERT;
                     break;
                 case VK_DELETE:
-                    key.code = KEY_DELETE;
+                    keyEvent.key = KEY_DELETE;
                     break;
                 case VK_HOME:
-                    key.code = KEY_HOME;
+                    keyEvent.key = KEY_HOME;
                     break;
                 case VK_END:
-                    key.code = KEY_END;
+                    keyEvent.key = KEY_END;
                     break;
                 case VK_PRIOR:
-                    key.code = KEY_PGUP;
+                    keyEvent.key = KEY_PGUP;
                     break;
                 case VK_NEXT:
-                    key.code = KEY_PGDN;
+                    keyEvent.key = KEY_PGDN;
                     break;
                 case VK_F1:
-                    key.code = KEY_F1;
+                    keyEvent.key = KEY_F1;
                     break;
                 case VK_F2:
-                    key.code = KEY_F2;
+                    keyEvent.key = KEY_F2;
                     break;
                 case VK_F3:
-                    key.code = KEY_F3;
+                    keyEvent.key = KEY_F3;
                     break;
                 case VK_F4:
-                    key.code = KEY_F4;
+                    keyEvent.key = KEY_F4;
                     break;
                 case VK_F5:
-                    key.code = KEY_F5;
+                    keyEvent.key = KEY_F5;
                     break;
                 case VK_F6:
-                    key.code = KEY_F6;
+                    keyEvent.key = KEY_F6;
                     break;
                 case VK_F7:
-                    key.code = KEY_F7;
+                    keyEvent.key = KEY_F7;
                     break;
                 case VK_F8:
-                    key.code = KEY_F8;
+                    keyEvent.key = KEY_F8;
                     break;
                 case VK_F9:
-                    key.code = KEY_F9;
+                    keyEvent.key = KEY_F9;
                     break;
                 case VK_F10:
-                    key.code = KEY_F10;
+                    keyEvent.key = KEY_F10;
                     break;
                 case VK_F11:
-                    key.code = KEY_F11;
+                    keyEvent.key = KEY_F11;
                     break;
                 case VK_F12:
-                    key.code = KEY_F12;
+                    keyEvent.key = KEY_F12;
                     break;
                 default:
                     if (inputRec.Event.KeyEvent.uChar.UnicodeChar == 0)
                         continue;
                     if (inputRec.Event.KeyEvent.uChar.UnicodeChar < 0x20)
-                        key.ch = controlKeys[inputRec.Event.KeyEvent.uChar.UnicodeChar];
+                        keyEvent.ch = controlKeys[inputRec.Event.KeyEvent.uChar.UnicodeChar];
                     else
-                        key.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
+                        keyEvent.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
                     break;
                 }
 
                 DWORD modifierKeys = inputRec.Event.KeyEvent.dwControlKeyState;
-                key.ctrl = (modifierKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-                key.alt = (modifierKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
-                key.shift = (modifierKeys & SHIFT_PRESSED) != 0;
+                keyEvent.ctrl = (modifierKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+                keyEvent.alt = (modifierKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+                keyEvent.shift = (modifierKeys & SHIFT_PRESSED) != 0;
 
-                _keys.addLast(key);
+                _inputEvents.addLast(keyEvent);
             }
             else if (inputRec.EventType == WINDOW_BUFFER_SIZE_EVENT)
             {
-                _keys.addLast(Key(KEY_SCREEN_SIZE_CHANGED));
+                _inputEvents.addLast(WindowEvent(
+                    inputRec.Event.WindowBufferSizeEvent.dwSize.X,
+                    inputRec.Event.WindowBufferSizeEvent.dwSize.Y));
             }
         }
     }
@@ -809,7 +815,7 @@ const Array<Key>& Console::readKeys()
 #else
 
     bool gotChars = false;
-    _input.clear();
+    _inputChars.clear();
 
     while (true)
     {
@@ -821,7 +827,7 @@ const Array<Key>& Console::readKeys()
         {
             gotChars = true;
             for (int i = 0; i < len; ++i)
-                _input.addLast(chars[i]);
+                _inputChars.addLast(chars[i]);
         }
         else
         {
@@ -830,17 +836,21 @@ const Array<Key>& Console::readKeys()
             else if (screenSizeChanged)
             {
                 screenSizeChanged = false;
-                _keys.addLast(Key(KEY_SCREEN_SIZE_CHANGED));
-                return _keys;
+
+                int width, height;
+                getSize(width, height);
+
+                _inputEvents.addLast(WindowEvent(width, height));
+                return _inputEvents;
             }
             else
                 usleep(10000);
         }
     }
 
-    const char* p = _input.values();
-    const char* e = p + _input.size();
-    _input.addLast(0);
+    const char* p = _inputChars.values();
+    const char* e = p + _inputChars.size();
+    _inputChars.addLast(0);
 
     while (p < e)
     {
@@ -851,7 +861,7 @@ const Array<Key>& Console::readKeys()
         {
             if (!strncmp(p, keyMapping[i].chars, keyMapping[i].len))
             {
-                _keys.addLast(keyMapping[i].key);
+                _inputEvents.addLast(keyMapping[i].keyEvent);
                 p += keyMapping[i].len;
                 found = true;
                 break;
@@ -860,44 +870,44 @@ const Array<Key>& Console::readKeys()
 
         if (!found)
         {
-            Key key;
+            KeyEvent keyEvent;
 
             if (*p == 0x1b)
             {
                 ++p;
 
                 if (*p)
-                    key.alt = true;
+                    keyEvent.alt = true;
                 else
                 {
-                    _keys.addLast(Key(KEY_ESC));
+                    _inputEvents.addLast(KeyEvent(KEY_ESC));
                     continue;
                 }
             }
 
             unichar_t ch;
             p += UTF_CHAR_TO_UNICODE(p, ch);
-            key.shift = charIsUpper(ch);
+            keyEvent.shift = charIsUpper(ch);
 
             if (ch == '\t')
-                key.code = KEY_TAB;
+                keyEvent.key = KEY_TAB;
             else if (ch == '\n')
-                key.code = KEY_ENTER;
+                keyEvent.key = KEY_ENTER;
             else if (ch == 0x7f)
-                key.code = KEY_BACKSPACE;
+                keyEvent.key = KEY_BACKSPACE;
             else if (ch < 0x20)
             {
-                key.ctrl = true;
-                key.ch = controlKeys[ch];
+                keyEvent.ctrl = true;
+                keyEvent.ch = controlKeys[ch];
             }
             else
-                key.ch = ch;
+                keyEvent.ch = ch;
 
-            _keys.addLast(key);
+            _inputEvents.addLast(keyEvent);
         }
     }
 
 #endif
 
-    return _keys;
+    return _inputEvents;
 }

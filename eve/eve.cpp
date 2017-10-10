@@ -1303,254 +1303,269 @@ bool Editor::processKey()
 {
     bool update = false;
     bool modified = false;
-    const Array<Key>& keys = Console::readKeys();
-    bool autoindent = keys.size() == 1;
+    const Array<InputEvent>& inputEvents = Console::readInput();
+    bool autoindent = inputEvents.size() == 1;
 
-    for (int i = 0; i < keys.size(); ++i)
+    for (int i = 0; i < inputEvents.size(); ++i)
     {
-        Key key = keys[i];
+        InputEvent event = inputEvents[i];
 
         if (_document)
         {
-            if (key.ctrl)
+            if (event.eventType == INPUT_EVENT_TYPE_KEY)
             {
-                if (key.code == KEY_LEFT)
-                {
-                    update = _document->value.moveWordBack();
-                }
-                else if (key.code == KEY_RIGHT)
-                {
-                    update = _document->value.moveWordForward();
-                }
-                else if (key.code == KEY_UP)
-                {
-                    update = _document->value.moveLinesUp(10);
-                }
-                else if (key.code == KEY_DOWN)
-                {
-                    update = _document->value.moveLinesDown(10);
-                }
-                else if (key.code == KEY_TAB || key.ch == 't')
-                {
-                    _document->value.insertChar(0x9);
-                    update = modified = true;
-                }
-            }
-            else if (key.alt)
-            {
-                if (key.code == KEY_LEFT)
-                {
-                    update = _document->value.moveCharsBack();
-                }
-                else if (key.code == KEY_RIGHT)
-                {
-                    update = _document->value.moveCharsForward();
-                }
-                else if (key.code == KEY_UP)
-                {
-                    moveToPrevRecentLocation();
-                }
-                else if (key.code == KEY_DOWN)
-                {
-                    moveToNextRecentLocation();
-                }
-                else if (key.code == KEY_DELETE)
-                {
-                    modified = update = _document->value.deleteWordForward();
-                }
-                else if (key.code == KEY_BACKSPACE)
-                {
-                    modified = update = _document->value.deleteWordBack();
-                }
-                else if (key.code == KEY_HOME)
-                {
-                    update = _document->value.moveToStart();
-                }
-                else if (key.code == KEY_END)
-                {
-                    update = _document->value.moveToEnd();
-                }
-                else if (key.code == KEY_PGUP)
-                {
-                    update = _document->value.moveLinesUp(_height / 2);
-                }
-                else if (key.code == KEY_PGDN)
-                {
-                    update = _document->value.moveLinesDown(_height / 2);
-                }
-                else if (key.ch == ',')
-                {
-                    auto doc = _document->prev ? _document->prev : _documents.last();
-                    if (doc != _document)
-                    {
-                        _document = doc;
-                        updateScreen(true);
-                    }
-                }
-                else if (key.ch == '.')
-                {
-                    auto doc = _document->next ? _document->next : _documents.first();
-                    if (doc != _document)
-                    {
-                        _document = doc;
-                        updateScreen(true);
-                    }
-                }
-                else if (key.ch == 'q')
-                {
-                    return false;
-                }
-                else if (key.ch == 's')
-                {
-                    _document->value.save();
-                    update = true;
-                }
-                else if (key.ch == 'a')
-                {
-                    saveDocuments();
-                    update = true;
-                }
-                else if (key.ch == 'x')
-                {
-                    saveDocuments();
-                    return false;
-                }
-                else if (key.ch == 'd')
-                {
-                    _lineSelection = _document->value.selection() < 0;
-                    _buffer = _document->value.copyDeleteText(false);
+                KeyEvent keyEvent = event.event.keyEvent;
 
-                    if (!_buffer.empty())
-                        modified = update = true;
-                }
-                else if (key.ch == 'c')
+                if (keyEvent.ctrl)
                 {
-                    _lineSelection = _document->value.selection() < 0;
-                    _buffer = _document->value.copyDeleteText(true);
-                }
-                else if (key.ch == 'p')
-                {
-                    if (!_buffer.empty())
+                    if (keyEvent.key == KEY_LEFT)
                     {
-                        _document->value.pasteText(_buffer, _lineSelection);
+                        update = _document->value.moveWordBack();
+                    }
+                    else if (keyEvent.key == KEY_RIGHT)
+                    {
+                        update = _document->value.moveWordForward();
+                    }
+                    else if (keyEvent.key == KEY_UP)
+                    {
+                        update = _document->value.moveLinesUp(10);
+                    }
+                    else if (keyEvent.key == KEY_DOWN)
+                    {
+                        update = _document->value.moveLinesDown(10);
+                    }
+                    else if (keyEvent.key == KEY_TAB || keyEvent.ch == 't')
+                    {
+                        _document->value.insertChar(0x9);
+                        update = modified = true;
+                    }
+                }
+                else if (keyEvent.alt)
+                {
+                    if (keyEvent.key == KEY_LEFT)
+                    {
+                        update = _document->value.moveCharsBack();
+                    }
+                    else if (keyEvent.key == KEY_RIGHT)
+                    {
+                        update = _document->value.moveCharsForward();
+                    }
+                    else if (keyEvent.key == KEY_UP)
+                    {
+                        moveToPrevRecentLocation();
+                    }
+                    else if (keyEvent.key == KEY_DOWN)
+                    {
+                        moveToNextRecentLocation();
+                    }
+                    else if (keyEvent.key == KEY_DELETE)
+                    {
+                        modified = update = _document->value.deleteWordForward();
+                    }
+                    else if (keyEvent.key == KEY_BACKSPACE)
+                    {
+                        modified = update = _document->value.deleteWordBack();
+                    }
+                    else if (keyEvent.key == KEY_HOME)
+                    {
+                        update = _document->value.moveToStart();
+                    }
+                    else if (keyEvent.key == KEY_END)
+                    {
+                        update = _document->value.moveToEnd();
+                    }
+                    else if (keyEvent.key == KEY_PGUP)
+                    {
+                        update = _document->value.moveLinesUp(_height / 2);
+                    }
+                    else if (keyEvent.key == KEY_PGDN)
+                    {
+                        update = _document->value.moveLinesDown(_height / 2);
+                    }
+                    else if (keyEvent.ch == ',')
+                    {
+                        auto doc = _document->prev ? _document->prev : _documents.last();
+                        if (doc != _document)
+                        {
+                            _document = doc;
+                            updateScreen(true);
+                        }
+                    }
+                    else if (keyEvent.ch == '.')
+                    {
+                        auto doc = _document->next ? _document->next : _documents.first();
+                        if (doc != _document)
+                        {
+                            _document = doc;
+                            updateScreen(true);
+                        }
+                    }
+                    else if (keyEvent.ch == 'q')
+                    {
+                        return false;
+                    }
+                    else if (keyEvent.ch == 's')
+                    {
+                        _document->value.save();
+                        update = true;
+                    }
+                    else if (keyEvent.ch == 'a')
+                    {
+                        saveDocuments();
+                        update = true;
+                    }
+                    else if (keyEvent.ch == 'x')
+                    {
+                        saveDocuments();
+                        return false;
+                    }
+                    else if (keyEvent.ch == 'd')
+                    {
+                        _lineSelection = _document->value.selection() < 0;
+                        _buffer = _document->value.copyDeleteText(false);
+
+                        if (!_buffer.empty())
+                            modified = update = true;
+                    }
+                    else if (keyEvent.ch == 'c')
+                    {
+                        _lineSelection = _document->value.selection() < 0;
+                        _buffer = _document->value.copyDeleteText(true);
+                    }
+                    else if (keyEvent.ch == 'p')
+                    {
+                        if (!_buffer.empty())
+                        {
+                            _document->value.pasteText(_buffer, _lineSelection);
+                            modified = update = true;
+                        }
+                    }
+                    else if (keyEvent.ch == 'b')
+                    {
+                        buildProject();
+                        return true;
+                    }
+                    else if (keyEvent.ch == 'm')
+                    {
+                        _document->value.markSelection();
+                    }
+                    else if (keyEvent.ch == 'w')
+                    {
+                        _searchStr = _document->value.currentWord();
+                        update = _document->value.find(_searchStr, true);
+                    }
+                    else if (keyEvent.ch == 'f')
+                    {
+                        update = _document->value.find(_searchStr, true);
+                    }
+                    else if (keyEvent.ch == 'r')
+                    {
+                        modified = update = _document->value.replace(_searchStr, _replaceStr);
+                    }
+                    else if (keyEvent.ch == '/')
+                    {
+                        _document->value.toggleComment();
                         modified = update = true;
                     }
                 }
-                else if (key.ch == 'b')
+                else if (keyEvent.shift && keyEvent.key == KEY_TAB)
                 {
-                    buildProject();
-                    return true;
+                    _document->value.unindentLines();
+                    modified = update = true;
                 }
-                else if (key.ch == 'm')
+                else if (keyEvent.key == KEY_BACKSPACE)
                 {
-                    _document->value.markSelection();
+                    modified = update = _document->value.deleteCharBack();
                 }
-                else if (key.ch == 'w')
+                else if (keyEvent.key == KEY_DELETE)
                 {
-                    _searchStr = _document->value.currentWord();
-                    update = _document->value.find(_searchStr, true);
+                    modified = update = _document->value.deleteCharForward();
                 }
-                else if (key.ch == 'f')
+                else if (keyEvent.key == KEY_LEFT)
                 {
-                    update = _document->value.find(_searchStr, true);
+                    update = _document->value.moveBack();
                 }
-                else if (key.ch == 'r')
+                else if (keyEvent.key == KEY_RIGHT)
                 {
-                    modified = update = _document->value.replace(_searchStr, _replaceStr);
+                    update = _document->value.moveForward();
                 }
-                else if (key.ch == '/')
+                else if (keyEvent.key == KEY_UP)
                 {
-                    _document->value.toggleComment();
+                    update = _document->value.moveUp();
+                }
+                else if (keyEvent.key == KEY_DOWN)
+                {
+                    update = _document->value.moveDown();
+                }
+                else if (keyEvent.key == KEY_HOME)
+                {
+                    update = _document->value.moveToLineStart();
+                }
+                else if (keyEvent.key == KEY_END)
+                {
+                    update = _document->value.moveToLineEnd();
+                }
+                else if (keyEvent.key == KEY_PGUP)
+                {
+                    update = _document->value.moveLinesUp(_height - 1);
+                }
+                else if (keyEvent.key == KEY_PGDN)
+                {
+                    update = _document->value.moveLinesDown(_height - 1);
+                }
+                else if (keyEvent.key == KEY_ENTER)
+                {
+                    if (autoindent)
+                        _document->value.insertNewLine();
+                    else
+                        _document->value.insertChar('\n');
+                    modified = update = true;
+                }
+                else if (keyEvent.key == KEY_TAB)
+                {
+                    _document->value.indentLines();
+                    modified = update = true;
+                }
+                else if (keyEvent.key == KEY_ESC)
+                {
+                    try
+                    {
+                        processCommand();
+                        update = true;
+                    }
+                    catch (Exception& ex)
+                    {
+                        Console::write(_screenHeight, 1, ex.message());
+                    }
+                }
+                else if (charIsPrint(keyEvent.ch))
+                {
+                    _document->value.insertChar(keyEvent.ch);
                     modified = update = true;
                 }
             }
-            else if (key.shift && key.code == KEY_TAB)
+            else if (event.eventType == INPUT_EVENT_TYPE_MOUSE)
             {
-                _document->value.unindentLines();
-                modified = update = true;
+                MouseEvent mouseEvent = event.event.mouseEvent;
             }
-            else if (key.code == KEY_BACKSPACE)
+            else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
             {
-                modified = update = _document->value.deleteCharBack();
-            }
-            else if (key.code == KEY_DELETE)
-            {
-                modified = update = _document->value.deleteCharForward();
-            }
-            else if (key.code == KEY_LEFT)
-            {
-                update = _document->value.moveBack();
-            }
-            else if (key.code == KEY_RIGHT)
-            {
-                update = _document->value.moveForward();
-            }
-            else if (key.code == KEY_UP)
-            {
-                update = _document->value.moveUp();
-            }
-            else if (key.code == KEY_DOWN)
-            {
-                update = _document->value.moveDown();
-            }
-            else if (key.code == KEY_HOME)
-            {
-                update = _document->value.moveToLineStart();
-            }
-            else if (key.code == KEY_END)
-            {
-                update = _document->value.moveToLineEnd();
-            }
-            else if (key.code == KEY_PGUP)
-            {
-                update = _document->value.moveLinesUp(_height - 1);
-            }
-            else if (key.code == KEY_PGDN)
-            {
-                update = _document->value.moveLinesDown(_height - 1);
-            }
-            else if (key.code == KEY_ENTER)
-            {
-                if (autoindent)
-                    _document->value.insertNewLine();
-                else
-                    _document->value.insertChar('\n');
-                modified = update = true;
-            }
-            else if (key.code == KEY_TAB)
-            {
-                _document->value.indentLines();
-                modified = update = true;
-            }
-            else if (key.code == KEY_ESC)
-            {
-                try
-                {
-                    processCommand();
-                    update = true;
-                }
-                catch (Exception& ex)
-                {
-                    Console::write(_screenHeight, 1, ex.message());
-                }
-            }
-            else if (charIsPrint(key.ch))
-            {
-                _document->value.insertChar(key.ch);
-                modified = update = true;
-            }
-            else if (key.code == KEY_SCREEN_SIZE_CHANGED)
-            {
+                WindowEvent windowEvent = event.event.windowEvent;
                 updateScreen(true);
             }
         }
         else
         {
-            if (key.alt)
+            if (event.eventType == INPUT_EVENT_TYPE_KEY)
             {
-                if (key.ch == 'q')
+                KeyEvent keyEvent = event.event.keyEvent;
+
+                if (keyEvent.alt)
                 {
-                    return false;
+                    if (keyEvent.ch == 'q')
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -1664,28 +1679,33 @@ String Editor::getCommand(const char_t* prompt)
 
         Console::setCursorPosition(_screenHeight, p);
 
-        const Array<Key>& keys = Console::readKeys();
+        const Array<InputEvent>& inputEvents = Console::readInput();
 
-        for (int i = 0; i < keys.size(); ++i)
+        for (int i = 0; i < inputEvents.size(); ++i)
         {
-            Key key = keys[i];
+            InputEvent event = inputEvents[i];
 
-            if (key.code == KEY_ENTER)
+            if (event.eventType == INPUT_EVENT_TYPE_KEY)
             {
-                return cmdLine.substr(promptLength);
-            }
-            else if (key.code == KEY_ESC)
-            {
-                return String();
-            }
-            else if (key.code == KEY_BACKSPACE)
-            {
-                if (cmdLine.length() > promptLength)
-                    cmdLine.erase(cmdLine.charBack(cmdLine.length()));
-            }
-            else if (charIsPrint(key.ch))
-            {
-                cmdLine += key.ch;
+                KeyEvent keyEvent = event.event.keyEvent;
+
+                if (keyEvent.key == KEY_ENTER)
+                {
+                    return cmdLine.substr(promptLength);
+                }
+                else if (keyEvent.key == KEY_ESC)
+                {
+                    return String();
+                }
+                else if (keyEvent.key == KEY_BACKSPACE)
+                {
+                    if (cmdLine.length() > promptLength)
+                        cmdLine.erase(cmdLine.charBack(cmdLine.length()));
+                }
+                else if (charIsPrint(keyEvent.ch))
+                {
+                    cmdLine += keyEvent.ch;
+                }
             }
         }
     }
