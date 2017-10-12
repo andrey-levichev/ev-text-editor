@@ -202,7 +202,8 @@ public:
 
 protected:
     void updateScreen(bool redrawAll = false);
-    bool processKey();
+    void setDimensions(int width, int height);
+    bool processInput();
 
     void updateRecentLocations();
     void moveToNextRecentLocation();

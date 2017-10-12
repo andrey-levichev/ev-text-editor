@@ -97,6 +97,11 @@ struct MouseEvent
     MouseButton button;
     bool buttonDown;
     int x, y;
+
+    MouseEvent(MouseButton button, bool buttonDown, int x, int y) :
+        button(button), buttonDown(buttonDown), x(x), y(y)
+    {
+    }
 };
 
 // WindowEvent

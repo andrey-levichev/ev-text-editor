@@ -21,7 +21,8 @@ editor:
 * selection with arrows and highlighting
 * handle console/terminal window scrolling/resizing
 handle SIGWINCH signal on UNIX, window/screen buffer events on Windows
-reset console settings on shutdown?
+rewrite screen update code to draw line by line
+reset console settings on shutdown
 * customizable key mappings
 * line wrapping
 
