@@ -304,8 +304,9 @@ Array<char> Console::_inputChars(16);
 #endif
 
 Array<InputEvent> Console::_inputEvents;
+Console::Constructor Console::constructor;
 
-void Console::initialize()
+Console::Constructor::Constructor()
 {
     setlocale(LC_ALL, "");
 
@@ -335,6 +336,13 @@ void Console::initialize()
     printf("\x1b[?1006h");
 
     signal(SIGWINCH, onSIGWINCH);
+#endif
+}
+
+Console::Constructor::~Constructor()
+{
+#ifndef PLATFORM_WINDOWS
+    printf("\x1b[?1000l");
 #endif
 }
 
@@ -701,7 +709,7 @@ const Array<InputEvent>& Console::readInput()
 
             if (inputRec.EventType == KEY_EVENT)
             {
-                KeyEvent keyEvent;
+                KeyEvent keyEvent(KEY_NONE);
                 keyEvent.keyDown = inputRec.Event.KeyEvent.bKeyDown;
 
                 switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
@@ -803,6 +811,13 @@ const Array<InputEvent>& Console::readInput()
 
                 _inputEvents.addLast(keyEvent);
             }
+            else if (inputRec.EventType == MOUSE_EVENT)
+            {
+                MouseEvent mouseEvent(inputRec.Event.MouseEvent.dwMousePosition.X,
+                    inputRec.Event.MouseEvent.dwMousePosition.Y);
+                mouseEvent.button = MOUSE_BUTTON_PRIMARY;
+                _inputEvents.addLast(mouseEvent);
+            }
             else if (inputRec.EventType == WINDOW_BUFFER_SIZE_EVENT)
             {
                 _inputEvents.addLast(WindowEvent(
@@ -870,14 +885,72 @@ const Array<InputEvent>& Console::readInput()
 
         if (!found)
         {
-            KeyEvent keyEvent;
+            bool alt = false;
 
             if (*p == 0x1b)
             {
                 ++p;
 
                 if (*p)
-                    keyEvent.alt = true;
+                {
+                    if (*p == '[' && *(p + 1) == '<')
+                    {
+                        int button, x, y, n;
+                        char down;
+
+                        if (sscanf(p + 2, "%d;%d;%d%c%n", &button, &x, &y, &down, &n) == 4)
+                        {
+                            MouseEvent mouseEvent(x, y);
+                            mouseEvent.buttonDown = down == 'M';
+
+                            switch (button)
+                            {
+                                case 0:
+                                    mouseEvent.button = MOUSE_BUTTON_PRIMARY;
+                                    break;
+                                case 1:
+                                    mouseEvent.button = MOUSE_BUTTON_WHEEL;
+                                    break;
+                                case 2:
+                                    mouseEvent.button = MOUSE_BUTTON_SECONDARY;
+                                    break;
+                                case 64:
+                                    mouseEvent.button = MOUSE_BUTTON_WHEEL_UP;
+                                    break;
+                                case 65:
+                                    mouseEvent.button = MOUSE_BUTTON_WHEEL_DOWN;
+                                    break;
+                                case 16:
+                                    mouseEvent.button = MOUSE_BUTTON_PRIMARY;
+                                    mouseEvent.ctrl = true;
+                                    break;
+                                case 17:
+                                    mouseEvent.button = MOUSE_BUTTON_WHEEL;
+                                    mouseEvent.ctrl = true;
+                                    break;
+                                case 18:
+                                    mouseEvent.button = MOUSE_BUTTON_SECONDARY;
+                                    mouseEvent.ctrl = true;
+                                    break;
+                                case 80:
+                                    mouseEvent.button = MOUSE_BUTTON_WHEEL_UP;
+                                    mouseEvent.ctrl = true;
+                                    break;
+                                case 81:
+                                    mouseEvent.button = MOUSE_BUTTON_WHEEL_DOWN;
+                                    mouseEvent.ctrl = true;
+                                    break;
+                            }
+
+                             _inputEvents.addLast(mouseEvent);
+                             p += 2 + n;
+
+                             continue;
+                        }
+                    }
+
+                    alt = true;
+                }
                 else
                 {
                     _inputEvents.addLast(KeyEvent(KEY_ESC));
@@ -887,7 +960,8 @@ const Array<InputEvent>& Console::readInput()
 
             unichar_t ch;
             p += UTF_CHAR_TO_UNICODE(p, ch);
-            keyEvent.shift = charIsUpper(ch);
+
+            KeyEvent keyEvent(ch, false, alt, charIsUpper(ch));
 
             if (ch == '\t')
                 keyEvent.key = KEY_TAB;

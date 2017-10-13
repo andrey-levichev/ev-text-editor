@@ -5276,24 +5276,38 @@ void testConsoleReadInput()
                 switch (mouseEvent.button)
                 {
                     case MOUSE_BUTTON_PRIMARY:
-                        Console::write(STR("primary mouse button"));
+                        Console::writeFormatted(STR("primary mouse button: %s "),
+                            mouseEvent.buttonDown ? STR("down") : STR("up"));
                         break;
                     case MOUSE_BUTTON_SECONDARY:
-                        Console::write(STR("secondary mouse button"));
+                        Console::writeFormatted(STR("secondary mouse button: %s "),
+                            mouseEvent.buttonDown ? STR("down") : STR("up"));
                         break;
                     case MOUSE_BUTTON_WHEEL:
-                        Console::write(STR("mouse wheel"));
+                        Console::writeFormatted(STR("mouse wheel: %s "),
+                            mouseEvent.buttonDown ? STR("down") : STR("up"));
                         break;
                     case MOUSE_BUTTON_WHEEL_UP:
-                        Console::write(STR("mouse scrolled up"));
+                        Console::writeFormatted(STR("mouse scrolled up "));
                         break;
                     case MOUSE_BUTTON_WHEEL_DOWN:
-                        Console::write(STR("mouse scrolled down"));
+                        Console::writeFormatted(STR("mouse scrolled down "));
+                        break;
+                    default:
+                        Console::writeFormatted(STR("mouse moved "));
                         break;
                 }
 
-                Console::writeLineFormatted(STR(": %s position: %dx%d"),
-                    mouseEvent.buttonDown ? STR("down") : STR("up"), mouseEvent.y, mouseEvent.y);
+                Console::writeFormatted(STR("position: %dx%d"), mouseEvent.x, mouseEvent.y);
+
+                if (mouseEvent.ctrl)
+                    Console::write(STR(" ctrl"));
+                if (mouseEvent.alt)
+                    Console::write(STR(" alt"));
+                if (mouseEvent.shift)
+                    Console::write(STR(" shift"));
+
+                Console::writeLine();
             }
             else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
             {
@@ -5439,7 +5453,6 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        Console::initialize();
         Console::setLineMode(true);
         printPlatformInfo();
 

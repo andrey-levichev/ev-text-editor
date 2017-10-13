@@ -93,6 +93,7 @@ public:
     bool moveLinesUp(int lines);
     bool moveLinesDown(int lines);
     bool moveToLine(int line);
+    bool moveToLineColumn(int line, int column);
 
     void insertNewLine();
     void insertChar(unichar_t ch);

@@ -60,12 +60,6 @@ struct KeyEvent
     bool keyDown;
     bool ctrl, alt, shift;
 
-    KeyEvent() :
-        key(KEY_NONE), ch(0), keyDown(true),
-        ctrl(false), alt(false), shift(false)
-    {
-    }
-
     KeyEvent(Key key, bool ctrl = false, bool alt = false, bool shift = false) :
         key(key), ch(0), keyDown(true),
         ctrl(ctrl), alt(alt), shift(shift)
@@ -83,6 +77,7 @@ struct KeyEvent
 
 enum MouseButton
 {
+    MOUSE_BUTTON_NONE,
     MOUSE_BUTTON_PRIMARY,
     MOUSE_BUTTON_SECONDARY,
     MOUSE_BUTTON_WHEEL,
@@ -97,9 +92,11 @@ struct MouseEvent
     MouseButton button;
     bool buttonDown;
     int x, y;
+    bool ctrl, alt, shift;
 
-    MouseEvent(MouseButton button, bool buttonDown, int x, int y) :
-        button(button), buttonDown(buttonDown), x(x), y(y)
+    MouseEvent(int x, int y) :
+        button(MOUSE_BUTTON_NONE), buttonDown(true), x(x), y(y),
+        ctrl(false), alt(false), shift(false)
     {
     }
 };
@@ -165,7 +162,6 @@ struct InputEvent
 class Console
 {
 public:
-    static void initialize();
     static void setLineMode(bool lineMode);
 
     static void write(const String& str);
@@ -206,6 +202,14 @@ protected:
 #endif
 
     static Array<InputEvent> _inputEvents;
+
+    struct Constructor
+    {
+        Constructor();
+        ~Constructor();
+    };
+
+    static Constructor constructor;
 };
 
 #endif

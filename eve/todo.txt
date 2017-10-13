@@ -5,6 +5,8 @@ replace key mapping table with trie based word map
 * pasting screen selection from eve doesn't copy newlines on unix
 print clear to eol code at the end of line
 * get rid of global vars
+* preserve column position after line delete
+* remember last edited line in recent places
 
 editor:
 * autocomplete
@@ -20,9 +22,9 @@ editor:
 * clipboard integration
 * selection with arrows and highlighting
 * handle console/terminal window scrolling/resizing
-handle SIGWINCH signal on UNIX, window/screen buffer events on Windows
+handle window resize event on Windows
 rewrite screen update code to draw line by line
-reset console settings on shutdown
+review logic with preferred column
 * customizable key mappings
 * line wrapping
 

@@ -390,6 +390,24 @@ bool Document::moveToLine(int line)
         return false;
 }
 
+bool Document::moveToLineColumn(int line, int column)
+{
+    ASSERT(line > 0);
+    ASSERT(column > 0);
+
+    line = _top + line - 1;
+    column = _left + column - 1;
+
+    if (line == _line && column == _column)
+        return false;
+
+    _line = line;
+    _preferredColumn = column;
+    lineColumnToPosition();
+
+    return true;
+}
+
 void Document::insertNewLine()
 {
     int p = _position, q = p;
@@ -1555,8 +1573,20 @@ bool Editor::processInput()
             else if (event.eventType == INPUT_EVENT_TYPE_MOUSE)
             {
                 MouseEvent mouseEvent = event.event.mouseEvent;
+
+                if (mouseEvent.buttonDown)
+                {
+                    if (mouseEvent.button == MOUSE_BUTTON_PRIMARY)
+                        update = _document->value.moveToLineColumn(mouseEvent.y, mouseEvent.x);
+                    else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_UP)
+                        update = _document->value.moveLinesUp(10);
+                    else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_DOWN)
+                        update = _document->value.moveLinesDown(10);
+                }
+
             }
             else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
+
             {
                 WindowEvent windowEvent = event.event.windowEvent;
                 setDimensions(windowEvent.width, windowEvent.height);
@@ -1906,8 +1936,6 @@ int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion)
 
 int MAIN(int argc, const char_t** argv)
 {
-    Console::initialize();
-
     try
     {
         if (argc < 2)
