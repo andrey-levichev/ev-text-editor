@@ -590,10 +590,16 @@ String Document::copyDeleteText(bool copy)
 
         if (!copy)
         {
-            _position = start;
             _text.erase(start, end - start);
 
-            positionToLineColumn();
+            if (_selection < 0)
+                lineColumnToPosition();
+            else
+            {
+                _position = start;
+                positionToLineColumn();
+            }
+
             _modified = true;
         }
 
@@ -1631,7 +1637,10 @@ void Editor::updateRecentLocations()
     {
         if (node->value.document == _document &&
                 abs(node->value.line - _document->value.line()) <= 5)
+        {
+            node->value.line = _document->value.line();
             break;
+        }
     }
 
     if (node)

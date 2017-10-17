@@ -60,6 +60,12 @@ struct KeyEvent
     bool keyDown;
     bool ctrl, alt, shift;
 
+    KeyEvent() :
+        key(KEY_NONE), ch(0), keyDown(true),
+        ctrl(false), alt(false), shift(false)
+    {
+    }
+
     KeyEvent(Key key, bool ctrl = false, bool alt = false, bool shift = false) :
         key(key), ch(0), keyDown(true),
         ctrl(ctrl), alt(alt), shift(shift)
@@ -94,6 +100,12 @@ struct MouseEvent
     int x, y;
     bool ctrl, alt, shift;
 
+    MouseEvent() :
+        button(MOUSE_BUTTON_NONE), buttonDown(true), x(0), y(0),
+        ctrl(false), alt(false), shift(false)
+    {
+    }
+
     MouseEvent(int x, int y) :
         button(MOUSE_BUTTON_NONE), buttonDown(true), x(x), y(y),
         ctrl(false), alt(false), shift(false)
@@ -106,6 +118,11 @@ struct MouseEvent
 struct WindowEvent
 {
     int width, height;
+
+    WindowEvent() :
+        width(0), height(0)
+    {
+    }
 
     WindowEvent(int width, int height) :
         width(width), height(height)

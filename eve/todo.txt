@@ -5,8 +5,6 @@ replace key mapping table with trie based word map
 * pasting screen selection from eve doesn't copy newlines on unix
 print clear to eol code at the end of line
 * get rid of global vars
-* preserve column position after line delete
-* remember last edited line in recent places
 
 editor:
 * autocomplete
