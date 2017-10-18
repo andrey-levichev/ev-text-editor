@@ -619,6 +619,7 @@ void Document::pasteText(const String& text, bool lineSelection)
 
     _position += text.length();
     positionToLineColumn();
+
     _modified = true;
     _selectionMode = false;
     _selection = -1;
@@ -680,6 +681,35 @@ String Document::autocompletePrefix() const
     }
 
     return _text.substr(pos, _position - pos);
+}
+
+void Document::completeWord(const String& word)
+{
+    int start = _position;
+    while (start > 0)
+    {
+        int p = _text.charBack(start);
+        if (!charIsIdent(_text.charAt(p)))
+            break;
+        start = p;
+    }
+
+    int end = _position;
+    while (end < _text.length())
+    {
+        if (!charIsIdent(_text.charAt(end)))
+            break;
+        end = _text.charForward(end);
+    }
+
+    if (start < end)
+    {
+        _text.replace(start, word, end - start);
+
+        _modified = true;
+        _selectionMode = false;
+        _selection = -1;
+    }
 }
 
 int Document::findPosition(const String& searchStr, bool next)
@@ -1157,6 +1187,13 @@ void Editor::saveDocuments()
 
 void Editor::run()
 {
+    for (auto doc = _documents.first(); doc; doc = doc->next)
+        findUniqueWords(doc->value);
+
+    auto it = _uniqueWords.constIterator();
+    while (it.moveNext())
+        _suggestions.addLast(AutocompleteSuggestion(it.value(), 0));
+
     _document = _documents.first();
 
     int width, height;
@@ -1498,6 +1535,40 @@ bool Editor::processInput()
                         {
                             _document->value.toggleComment();
                             modified = update = true;
+                        }
+                        else if (keyEvent.ch == '[')
+                        {
+                            String prefix = _document->value.autocompletePrefix();
+
+                            if (!prefix.empty())
+                            {
+                                int i = findPrevSuggestion(prefix, _currentSuggestion);
+                                if (i != _currentSuggestion)
+                                {
+                                    _currentSuggestion = i;
+                                    _document->value.completeWord(i == INVALID_POSITION ?
+                                        prefix : _suggestions[i].word);
+
+                                    modified = update = true;
+                                }
+                            }
+                        }
+                        else if (keyEvent.ch == ']')
+                        {
+                            String prefix = _document->value.autocompletePrefix();
+
+                            if (!prefix.empty())
+                            {
+                                int i = findNextSuggestion(prefix, _currentSuggestion);
+                                if (i != _currentSuggestion)
+                                {
+                                    _currentSuggestion = i;
+                                    _document->value.completeWord(i == INVALID_POSITION ?
+                                        prefix : _suggestions[i].word);
+
+                                    modified = update = true;
+                                }
+                            }
                         }
                     }
                     else if (keyEvent.shift && keyEvent.key == KEY_TAB)
@@ -1857,7 +1928,7 @@ void Editor::buildProject()
     updateScreen(true);
 }
 
-void Editor::addAutocompleteSuggestions(const Document& document)
+void Editor::findUniqueWords(const Document& document)
 {
     const String& text = document.text();
     String word;
@@ -1871,37 +1942,37 @@ void Editor::addAutocompleteSuggestions(const Document& document)
         else if (!word.empty())
         {
             if (word.charLength() > 1)
-                _autocompleteSuggestions.addLast(AutocompleteSuggestion(word, 0));
+                _uniqueWords.add(word);
 
             word.clear();
         }
     }
 
     if (word.charLength() > 1)
-        _autocompleteSuggestions.addLast(AutocompleteSuggestion(word, 0));
+        _uniqueWords.add(word);
 }
 
 int Editor::findNextSuggestion(const String& prefix, int currentSuggestion)
 {
     ASSERT(!prefix.empty());
     ASSERT(currentSuggestion == INVALID_POSITION ||
-        (currentSuggestion >= 0 && currentSuggestion < _autocompleteSuggestions.size()));
+        (currentSuggestion >= 0 && currentSuggestion < _suggestions.size()));
 
-    if (_autocompleteSuggestions.size() > 0)
+    if (_suggestions.size() > 0)
     {
         int i = currentSuggestion == INVALID_POSITION ? 0 : currentSuggestion + 1;
 
-        for (; i < _autocompleteSuggestions.size(); ++i)
-            if (_autocompleteSuggestions[i].word.startsWith(prefix))
+        for (; i < _suggestions.size(); ++i)
+            if (_suggestions[i].word.startsWith(prefix))
                 break;
 
-        if (i < _autocompleteSuggestions.size())
+        if (i < _suggestions.size())
             return i;
 
         if (currentSuggestion != INVALID_POSITION)
         {
             for (i = 0; i < currentSuggestion; ++i)
-                if (_autocompleteSuggestions[i].word.startsWith(prefix))
+                if (_suggestions[i].word.startsWith(prefix))
                     break;
 
             if (i < currentSuggestion)
@@ -1916,15 +1987,15 @@ int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion)
 {
     ASSERT(!prefix.empty());
     ASSERT(currentSuggestion == INVALID_POSITION ||
-        (currentSuggestion >= 0 && currentSuggestion < _autocompleteSuggestions.size()));
+        (currentSuggestion >= 0 && currentSuggestion < _suggestions.size()));
 
-    if (_autocompleteSuggestions.size() > 0)
+    if (_suggestions.size() > 0)
     {
         int i = currentSuggestion == INVALID_POSITION ?
-            _autocompleteSuggestions.size() - 1 : currentSuggestion - 1;
+            _suggestions.size() - 1 : currentSuggestion - 1;
 
         for (; i >= 0; --i)
-            if (_autocompleteSuggestions[i].word.startsWith(prefix))
+            if (_suggestions[i].word.startsWith(prefix))
                 break;
 
         if (i >= 0)
@@ -1932,8 +2003,8 @@ int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion)
 
         if (currentSuggestion != INVALID_POSITION)
         {
-            for (i = _autocompleteSuggestions.size() - 1; i > currentSuggestion; --i)
-                if (_autocompleteSuggestions[i].word.startsWith(prefix))
+            for (i = _suggestions.size() - 1; i > currentSuggestion; --i)
+                if (_suggestions[i].word.startsWith(prefix))
                     break;
 
             if (i > currentSuggestion)

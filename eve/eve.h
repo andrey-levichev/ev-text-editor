@@ -117,6 +117,7 @@ public:
 
     String currentWord() const;
     String autocompletePrefix() const;
+    void completeWord(const String& word);
 
     int findPosition(const String& searchStr, bool next);
     bool find(const String& searchStr, bool next);
@@ -215,7 +216,7 @@ protected:
 
     void buildProject();
 
-    void addAutocompleteSuggestions(const Document& document);
+    void findUniqueWords(const Document& document);
     int findNextSuggestion(const String& prefix, int currentSuggestion);
     int findPrevSuggestion(const String& prefix, int currentSuggestion);
 
@@ -239,7 +240,8 @@ protected:
     List<RecentLocation> _recentLocations;
     ListNode<RecentLocation>* _recentLocation;
 
-    Array<AutocompleteSuggestion> _autocompleteSuggestions;
+    Set<String> _uniqueWords;
+    Array<AutocompleteSuggestion> _suggestions;
     int _currentSuggestion;
 };
 
