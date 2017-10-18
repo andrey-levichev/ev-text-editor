@@ -2556,7 +2556,6 @@ void testArray()
     // Array(int size, const _Type* values)
 
     ASSERT_EXCEPTION(Exception, Array<int>(-1, np));
-    ASSERT_EXCEPTION(Exception, Array<int>(0, ep));
     ASSERT_EXCEPTION(Exception, Array<int>(1, np));
 
     {
@@ -2909,7 +2908,6 @@ void testArray()
     // void assign(int size, const _Type* values)
 
     ASSERT_EXCEPTION(Exception, Array<int>().assign(-1, ep));
-    ASSERT_EXCEPTION(Exception, Array<int>().assign(0, ep));
     ASSERT_EXCEPTION(Exception, Array<int>().assign(1, np));
 
     {
@@ -3440,7 +3438,6 @@ void testList()
     // List(int size, const _Type* values)
 
     ASSERT_EXCEPTION(Exception, List<int>(-1, ep));
-    ASSERT_EXCEPTION(Exception, List<int>(0, ep));
     ASSERT_EXCEPTION(Exception, List<int>(1, np));
 
     {
@@ -5456,14 +5453,14 @@ int MAIN(int argc, const char_t** argv)
         Console::setLineMode(true);
         printPlatformInfo();
 
-//        testSupport();
-//        testFoundation();
+        testSupport();
+        testFoundation();
 //        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-        testConsoleReadInput();
+//        testConsoleReadInput();
     }
     catch (Exception& ex)
     {

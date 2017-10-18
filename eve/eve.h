@@ -96,7 +96,7 @@ public:
     bool moveToLineColumn(int line, int column);
 
     void insertNewLine();
-    void insertChar(unichar_t ch);
+    void insertChar(unichar_t ch, bool afterIdent = false);
 
     bool deleteCharForward();
     bool deleteCharBack();
@@ -198,6 +198,7 @@ public:
     ~Editor();
 
     void openDocument(const char_t* filename);
+    void saveDocument(Document& docment);
     void saveDocuments();
 
     void run();
@@ -217,8 +218,11 @@ protected:
     void buildProject();
 
     void findUniqueWords(const Document& document);
-    int findNextSuggestion(const String& prefix, int currentSuggestion);
-    int findPrevSuggestion(const String& prefix, int currentSuggestion);
+    void prepareSuggestions();
+
+    int findNextSuggestion(const String& prefix, int currentSuggestion) const;
+    int findPrevSuggestion(const String& prefix, int currentSuggestion) const;
+    bool completeWord(Document& document, bool next);
 
 protected:
     List<Document> _documents;

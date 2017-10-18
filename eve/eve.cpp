@@ -405,6 +405,9 @@ bool Document::moveToLineColumn(int line, int column)
     _preferredColumn = column;
     lineColumnToPosition();
 
+    if (!_selectionMode)
+        _selection = -1;
+
     return true;
 }
 
@@ -446,9 +449,15 @@ void Document::insertNewLine()
     _selection = -1;
 }
 
-void Document::insertChar(unichar_t ch)
+void Document::insertChar(unichar_t ch, bool afterIdent)
 {
     ASSERT(ch != 0);
+
+    if (afterIdent)
+    {
+        while (charIsIdent(_text.charAt(_position)))
+            _position = _text.charForward(_position);
+    }
 
     _text.insert(_position, ch);
     _position = _text.charForward(_position);
@@ -670,17 +679,17 @@ String Document::currentWord() const
 
 String Document::autocompletePrefix() const
 {
-    int pos = _position;
+    int p = _position;
 
-    while (pos > 0)
+    while (p > 0)
     {
-        int p = _text.charBack(pos);
-        if (!charIsIdent(_text.charAt(p)))
+        int q = _text.charBack(p);
+        if (!charIsIdent(_text.charAt(q)))
             break;
-        pos = p;
+        p = q;
     }
 
-    return _text.substr(pos, _position - pos);
+    return _text.substr(p, _position - p);
 }
 
 void Document::completeWord(const String& word)
@@ -903,15 +912,15 @@ void Document::changeLines(int(Document::* lineOp)(int))
         }
 
         start = findLineStart(start);
-        int pos = end, n = 0;
+        int p = end, n = 0;
 
         do
         {
-            pos = (this->*lineOp)(pos);
-            pos = findPreviousLine(pos);
+            p = (this->*lineOp)(p);
+            p = findPreviousLine(p);
             ++n;
         }
-        while (pos != INVALID_POSITION && pos >= start);
+        while (p != INVALID_POSITION && p >= start);
 
         end = start;
         while (--n > 0)
@@ -1174,6 +1183,18 @@ void Editor::openDocument(const char_t* filename)
     _documents.addLast(Document());
     _document = _documents.last();
     _document->value.open(filename);
+    findUniqueWords(_document->value);
+}
+
+void Editor::saveDocument(Document& document)
+{
+    if (document.modified())
+    {
+        document.save();
+        findUniqueWords(document);
+    }
+
+    prepareSuggestions();
 }
 
 void Editor::saveDocuments()
@@ -1181,25 +1202,24 @@ void Editor::saveDocuments()
     for (auto doc = _documents.first(); doc; doc = doc->next)
     {
         if (doc->value.modified())
+        {
             doc->value.save();
+            findUniqueWords(doc->value);
+        }
     }
+
+    prepareSuggestions();
 }
 
 void Editor::run()
 {
-    for (auto doc = _documents.first(); doc; doc = doc->next)
-        findUniqueWords(doc->value);
-
-    auto it = _uniqueWords.constIterator();
-    while (it.moveNext())
-        _suggestions.addLast(AutocompleteSuggestion(it.value(), 0));
-
     _document = _documents.first();
 
     int width, height;
     Console::getSize(width, height);
     setDimensions(width, height);
 
+    prepareSuggestions();
     updateScreen(true);
 
     while (processInput());
@@ -1475,7 +1495,7 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.ch == 's')
                         {
-                            _document->value.save();
+                            saveDocument(_document->value);
                             update = true;
                         }
                         else if (keyEvent.ch == 'a')
@@ -1538,37 +1558,13 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.ch == '[')
                         {
-                            String prefix = _document->value.autocompletePrefix();
-
-                            if (!prefix.empty())
-                            {
-                                int i = findPrevSuggestion(prefix, _currentSuggestion);
-                                if (i != _currentSuggestion)
-                                {
-                                    _currentSuggestion = i;
-                                    _document->value.completeWord(i == INVALID_POSITION ?
-                                        prefix : _suggestions[i].word);
-
-                                    modified = update = true;
-                                }
-                            }
+                            if (completeWord(_document->value, false))
+                                modified = update = true;
                         }
                         else if (keyEvent.ch == ']')
                         {
-                            String prefix = _document->value.autocompletePrefix();
-
-                            if (!prefix.empty())
-                            {
-                                int i = findNextSuggestion(prefix, _currentSuggestion);
-                                if (i != _currentSuggestion)
-                                {
-                                    _currentSuggestion = i;
-                                    _document->value.completeWord(i == INVALID_POSITION ?
-                                        prefix : _suggestions[i].word);
-
-                                    modified = update = true;
-                                }
-                            }
+                            if (completeWord(_document->value, true))
+                                modified = update = true;
                         }
                     }
                     else if (keyEvent.shift && keyEvent.key == KEY_TAB)
@@ -1643,7 +1639,21 @@ bool Editor::processInput()
                     }
                     else if (charIsPrint(keyEvent.ch))
                     {
-                        _document->value.insertChar(keyEvent.ch);
+                        if (charIsIdent(keyEvent.ch))
+                        {
+                            _document->value.insertChar(keyEvent.ch);
+
+                            _currentSuggestion = INVALID_POSITION;
+                            completeWord(_document->value, true);
+                        }
+                        else
+                        {
+                            if (_currentSuggestion != INVALID_POSITION)
+                                _currentSuggestion = INVALID_POSITION;
+
+                            _document->value.insertChar(keyEvent.ch, true);
+                        }
+
                         modified = update = true;
                     }
                 }
@@ -1933,9 +1943,9 @@ void Editor::findUniqueWords(const Document& document)
     const String& text = document.text();
     String word;
 
-    for (int pos = 0; pos < text.length(); pos = text.charForward(pos))
+    for (int p = 0; p < text.length(); p = text.charForward(p))
     {
-        unichar_t ch = text.charAt(pos);
+        unichar_t ch = text.charAt(p);
 
         if (charIsIdent(ch))
             word += ch;
@@ -1952,7 +1962,17 @@ void Editor::findUniqueWords(const Document& document)
         _uniqueWords.add(word);
 }
 
-int Editor::findNextSuggestion(const String& prefix, int currentSuggestion)
+void Editor::prepareSuggestions()
+{
+    _suggestions.clear();
+    _suggestions.ensureCapacity(_uniqueWords.size());
+
+    auto it = _uniqueWords.constIterator();
+    while (it.moveNext())
+        _suggestions.addLast(AutocompleteSuggestion(it.value(), 0));
+}
+
+int Editor::findNextSuggestion(const String& prefix, int currentSuggestion) const
 {
     ASSERT(!prefix.empty());
     ASSERT(currentSuggestion == INVALID_POSITION ||
@@ -1983,7 +2003,7 @@ int Editor::findNextSuggestion(const String& prefix, int currentSuggestion)
     return INVALID_POSITION;
 }
 
-int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion)
+int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion) const
 {
     ASSERT(!prefix.empty());
     ASSERT(currentSuggestion == INVALID_POSITION ||
@@ -2013,6 +2033,29 @@ int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion)
     }
 
     return INVALID_POSITION;
+}
+
+bool Editor::completeWord(Document& document, bool next)
+{
+    String prefix = document.autocompletePrefix();
+
+    if (!prefix.empty())
+    {
+        int suggestion = next ?
+            findNextSuggestion(prefix, _currentSuggestion) :
+            findPrevSuggestion(prefix, _currentSuggestion);
+
+        if (suggestion != _currentSuggestion)
+        {
+            _currentSuggestion = suggestion;
+            document.completeWord(suggestion == INVALID_POSITION ?
+                prefix : _suggestions[suggestion].word);
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int MAIN(int argc, const char_t** argv)

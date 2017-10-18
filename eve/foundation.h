@@ -705,7 +705,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 template<typename _Type>
 inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 {
-    ASSERT((size == 0 && !values) || (size > 0 && values));
+    ASSERT(size == 0 || (size > 0 && values));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -728,7 +728,7 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 template<typename _Type>
 inline _Type* createArrayMove(int size, int capacity, _Type* values)
 {
-    ASSERT((size == 0 && !values) || (size > 0 && values));
+    ASSERT(size == 0 || (size > 0 && values));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -1609,7 +1609,7 @@ public:
 
     Array(int size, const _Type* values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(size == 0 || (size > 0 && values));
 
         _size = size;
         _capacity = size;
@@ -1815,7 +1815,7 @@ public:
 
     void assign(int size, const _Type* values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values && values != _values));
+        ASSERT(size == 0 || (size > 0 && values && values != _values));
 
         if (size <= _capacity)
         {
@@ -1964,7 +1964,7 @@ protected:
     Array(int size, int capacity, _Type* values) :
         _size(size), _capacity(capacity), _values(values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(size == 0 || (size > 0 && values));
         ASSERT(capacity >= 0 && size <= capacity);
     }
 
@@ -2163,7 +2163,7 @@ public:
     List(int size, const _Type* values) :
         _first(NULL), _last(NULL)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(size == 0 || (size > 0 && values));
 
         try
         {
