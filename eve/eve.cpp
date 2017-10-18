@@ -579,9 +579,6 @@ String Document::copyDeleteText(bool copy)
             start = _position;
             end = _selection;
         }
-
-        _selectionMode = false;
-        _selection = -1;
     }
 
     if (start < end)
@@ -603,9 +600,13 @@ String Document::copyDeleteText(bool copy)
             _modified = true;
         }
 
+        _selectionMode = false;
+        _selection = -1;
         return text;
     }
 
+    _selectionMode = false;
+    _selection = -1;
     return String();
 }
 

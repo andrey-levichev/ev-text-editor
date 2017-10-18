@@ -44,9 +44,9 @@ void printArgs(const char_t* format, va_list args)
 
 static const char* controlKeys = "@abcdefghijklmnopqrstuvwxyz[\\]^_";
 
-volatile bool screenSizeChanged = false;
-
 #ifdef PLATFORM_UNIX
+
+static volatile bool screenSizeChanged = false;
 
 extern "C" void onSIGWINCH(int sig)
 {

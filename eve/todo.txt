@@ -4,7 +4,9 @@ editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 replace key mapping table with trie based word map
 * pasting screen selection from eve doesn't copy newlines on unix
 print clear to eol code at the end of line
-* get rid of global vars
+* handle console/terminal window scrolling/resizing
+handle window resize event on Windows
+rewrite screen update code to draw line by line
 
 editor:
 * autocomplete
@@ -19,10 +21,6 @@ editor:
 * config file
 * clipboard integration
 * selection with arrows and highlighting
-* handle console/terminal window scrolling/resizing
-handle window resize event on Windows
-rewrite screen update code to draw line by line
-review logic with preferred column
 * customizable key mappings
 * line wrapping
 
