@@ -7,14 +7,14 @@ print clear to eol code at the end of line
 * handle console/terminal window scrolling/resizing
 handle window resize event on Windows
 rewrite screen update code to draw line by line
-* isIdent shouldn't allow digits in the front
 * review checking text position vs checking terminating zero
 
 editor:
 * autocomplete
-sort suggestions
-dictionary, suggestions with frequency
-complete any character sequence
+disable autocomplete when inserting multiple characters
+english dictionary with frequency
+hanlde identifiers with numbers
+start autocomplete after two chars?
 * new/open/save
 * switch between documents with alt+number
 * find/replace all, ignore case

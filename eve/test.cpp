@@ -3131,6 +3131,40 @@ void testArray()
         ASSERT(a.capacity() == 3);
     }
 
+    // void sort()
+
+    {
+        Array<int> a;
+        a.sort();
+    }
+
+    {
+        int elems[] = { 12 };
+        int sorted[] = { 12 };
+
+        Array<int> a(1, elems);
+        a.sort();
+        ASSERT(compareArray(a, 1, sorted));
+    }
+
+    {
+        int elems[] = { 45, 12 };
+        int sorted[] = { 12, 45 };
+
+        Array<int> a(2, elems);
+        a.sort();
+        ASSERT(compareArray(a, 2, sorted));
+    }
+
+    {
+        int elems[] = { 97, 80, 51, 53, 38, 44, 28, 58, 91, 78 };
+        int sorted[] = { 28, 38, 44, 51, 53, 58, 78, 80, 91, 97 };
+
+        Array<int> a(10, elems);
+        a.sort();
+        ASSERT(compareArray(a, 10, sorted));
+    }
+
     // void clear()
 
     {

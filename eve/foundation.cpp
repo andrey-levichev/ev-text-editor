@@ -319,6 +319,11 @@ bool charIsPrint(unichar_t ch)
     return iswprint(ch);
 }
 
+bool charIsAlpha(unichar_t ch)
+{
+    return iswalpha(ch);
+}
+
 bool charIsAlphaNum(unichar_t ch)
 {
     return iswalnum(ch);

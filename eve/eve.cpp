@@ -4,7 +4,7 @@ const int TAB_SIZE = 4;
 
 bool charIsIdent(unichar_t ch)
 {
-    return charIsAlphaNum(ch) || ch == '_';
+    return charIsAlpha(ch) || ch == '_';
 }
 
 bool isWordBoundary(unichar_t prevCh, unichar_t ch)
@@ -1649,7 +1649,7 @@ bool Editor::processInput()
                             _document->value.insertChar(keyEvent.ch);
 
                             _currentSuggestion = INVALID_POSITION;
-                            completeWord(true);
+                            completeWord(false);
                         }
                         else
                         {
@@ -1959,15 +1959,13 @@ void Editor::findUniqueWords(const Document& document)
             word += ch;
         else if (!word.empty())
         {
-            if (word.charLength() > 1)
-                _uniqueWords.add(word);
-
+            ++_uniqueWords[word];
             word.clear();
         }
     }
 
     if (word.charLength() > 1)
-        _uniqueWords.add(word);
+        ++_uniqueWords[word];
 }
 
 void Editor::prepareSuggestions()
@@ -1977,7 +1975,9 @@ void Editor::prepareSuggestions()
 
     auto it = _uniqueWords.constIterator();
     while (it.moveNext())
-        _suggestions.addLast(AutocompleteSuggestion(it.value(), 0));
+        _suggestions.addLast(AutocompleteSuggestion(it.value().key, it.value().value));
+
+    _suggestions.sort();
 }
 
 int Editor::findNextSuggestion(const String& prefix, int currentSuggestion) const

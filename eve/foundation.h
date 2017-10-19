@@ -228,6 +228,7 @@ double strToDouble(const char_t* str, char_t** end);
 
 bool charIsSpace(unichar_t ch);
 bool charIsPrint(unichar_t ch);
+bool charIsAlpha(unichar_t ch);
 bool charIsAlphaNum(unichar_t ch);
 bool charIsUpper(unichar_t ch);
 bool charIsLower(unichar_t ch);
@@ -420,6 +421,14 @@ template<typename _Type>
 inline bool equalsTo(const _Type& left, const _Type& right)
 {
     return left == right;
+}
+
+// less than function
+
+template<typename _Type>
+inline bool lessThan(const _Type& left, const _Type& right)
+{
+    return left < right;
 }
 
 // hash function
@@ -1923,6 +1932,12 @@ public:
         Memory::destruct(_values + _size);
     }
 
+    void sort()
+    {
+        if (_size > 0)
+            quicksort(0, _size - 1);
+    }
+
     void clear()
     {
         Memory::destructArray(_size, _values);
@@ -1976,6 +1991,35 @@ protected:
         Memory::destroyArray(_size, _values);
         _values = values;
         _capacity = capacity;
+    }
+
+    void quicksort(int low, int high)
+    {
+        if (low < high)
+        {
+            int p = partition(low, high);
+            quicksort(low, p);
+            quicksort(p + 1, high);
+        }
+    }
+
+    int partition(int low, int high)
+    {
+        _Type pivot = _values[low];
+        int i = low - 1;
+        int j = high + 1;
+
+        while (true)
+        {
+            do ++i; while (lessThan(_values[i], pivot));
+
+            do --j; while (lessThan(pivot, _values[j]));
+
+            if (i >= j)
+                return j;
+
+            swap(_values[i], _values[j]);
+        }
     }
 
 protected:
@@ -2537,12 +2581,12 @@ struct KeyValue
     _Value value;
 
     KeyValue(const _Key& key) :
-        key(key)
+        key(key), value()
     {
     }
 
     KeyValue(_Key&& key) :
-        key(static_cast<_Key&&>(key))
+        key(static_cast<_Key&&>(key)), value()
     {
     }
 

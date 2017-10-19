@@ -187,6 +187,22 @@ struct AutocompleteSuggestion
         word(word), rank(rank)
     {
     }
+
+    friend void swap(AutocompleteSuggestion& left, AutocompleteSuggestion& right)
+    {
+        swap(left.word, right.word);
+        swap(left.rank, right.rank);
+    }
+
+    friend bool lessThan(const AutocompleteSuggestion& left, const AutocompleteSuggestion& right)
+    {
+        if (left.rank < right.rank)
+            return true;
+        else if (left.rank == right.rank)
+            return left.word < right.word;
+        else
+            return false;
+    }
 };
 
 // Editor
@@ -245,7 +261,7 @@ protected:
     List<RecentLocation> _recentLocations;
     ListNode<RecentLocation>* _recentLocation;
 
-    Set<String> _uniqueWords;
+    Map<String, int> _uniqueWords;
     Array<AutocompleteSuggestion> _suggestions;
     int _currentSuggestion;
 };
