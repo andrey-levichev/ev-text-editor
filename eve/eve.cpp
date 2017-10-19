@@ -1558,13 +1558,25 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.ch == '[')
                         {
-                            if (completeWord(_document->value, false))
-                                modified = update = true;
+                            completeWord(false);
+                            modified = update = true;
                         }
                         else if (keyEvent.ch == ']')
                         {
-                            if (completeWord(_document->value, true))
-                                modified = update = true;
+                            completeWord(true);
+                            modified = update = true;
+                        }
+                        else if (keyEvent.ch == '`')
+                        {
+                            try
+                            {
+                                processCommand();
+                                update = true;
+                            }
+                            catch (Exception& ex)
+                            {
+                                Console::write(_screenHeight, 1, ex.message());
+                            }
                         }
                     }
                     else if (keyEvent.shift && keyEvent.key == KEY_TAB)
@@ -1627,15 +1639,8 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_ESC)
                     {
-                        try
-                        {
-                            processCommand();
-                            update = true;
-                        }
-                        catch (Exception& ex)
-                        {
-                            Console::write(_screenHeight, 1, ex.message());
-                        }
+                        cancelCompletion();
+                        modified = update = true;
                     }
                     else if (charIsPrint(keyEvent.ch))
                     {
@@ -1644,14 +1649,17 @@ bool Editor::processInput()
                             _document->value.insertChar(keyEvent.ch);
 
                             _currentSuggestion = INVALID_POSITION;
-                            completeWord(_document->value, true);
+                            completeWord(true);
                         }
                         else
                         {
                             if (_currentSuggestion != INVALID_POSITION)
+                            {
                                 _currentSuggestion = INVALID_POSITION;
-
-                            _document->value.insertChar(keyEvent.ch, true);
+                                _document->value.insertChar(keyEvent.ch, true);
+                            }
+                            else
+                                _document->value.insertChar(keyEvent.ch);
                         }
 
                         modified = update = true;
@@ -2035,9 +2043,9 @@ int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion) cons
     return INVALID_POSITION;
 }
 
-bool Editor::completeWord(Document& document, bool next)
+void Editor::completeWord(bool next)
 {
-    String prefix = document.autocompletePrefix();
+    String prefix = _document->value.autocompletePrefix();
 
     if (!prefix.empty())
     {
@@ -2045,17 +2053,17 @@ bool Editor::completeWord(Document& document, bool next)
             findNextSuggestion(prefix, _currentSuggestion) :
             findPrevSuggestion(prefix, _currentSuggestion);
 
-        if (suggestion != _currentSuggestion)
-        {
-            _currentSuggestion = suggestion;
-            document.completeWord(suggestion == INVALID_POSITION ?
-                prefix : _suggestions[suggestion].word);
-
-            return true;
-        }
+        _currentSuggestion = suggestion;
+        _document->value.completeWord(suggestion == INVALID_POSITION ?
+            prefix : _suggestions[suggestion].word);
     }
+}
 
-    return false;
+void Editor::cancelCompletion()
+{
+    _currentSuggestion = INVALID_POSITION;
+    String prefix = _document->value.autocompletePrefix();
+    _document->value.completeWord(prefix);
 }
 
 int MAIN(int argc, const char_t** argv)
@@ -2064,7 +2072,7 @@ int MAIN(int argc, const char_t** argv)
     {
         if (argc < 2)
         {
-            Console::writeLine(STR("eve text editor version 1.0\n"
+            Console::writeLine(STR("eve text editor version 1.1\n"
                 "Copyright (C) Andrey Levichev, 2017\n\n"
                 "usage: eve filename ...\n\n"
                 "keys:\n"
@@ -2098,7 +2106,8 @@ int MAIN(int argc, const char_t** argv)
                 "alt+a - save all\n"
                 "alt+x - save all and quit\n"
                 "alt+q - quit without saving\n"
-                "ESC - enter command\n\n"
+                "alt+` - command line\n"
+                "ESC - cancel current suggestion\n\n"
                 "commands:\n"
                 "g number - go to line number\n"
                 "f string - find string\n"

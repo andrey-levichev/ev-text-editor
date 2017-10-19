@@ -222,7 +222,8 @@ protected:
 
     int findNextSuggestion(const String& prefix, int currentSuggestion) const;
     int findPrevSuggestion(const String& prefix, int currentSuggestion) const;
-    bool completeWord(Document& document, bool next);
+    void completeWord(bool next);
+    void cancelCompletion();
 
 protected:
     List<Document> _documents;
