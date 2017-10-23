@@ -1,4 +1,5 @@
 #include <eve.h>
+#include <dictionary.h>
 
 const int TAB_SIZE = 4;
 
@@ -1649,7 +1650,7 @@ bool Editor::processInput()
                             _document->value.insertChar(keyEvent.ch);
 
                             _currentSuggestion = INVALID_POSITION;
-                            completeWord(false);
+                            completeWord(true);
                         }
                         else
                         {
@@ -1970,12 +1971,19 @@ void Editor::findUniqueWords(const Document& document)
 
 void Editor::prepareSuggestions()
 {
+    int n = 0;
+    while (*dictionary[n])
+        ++n;
+
     _suggestions.clear();
-    _suggestions.ensureCapacity(_uniqueWords.size());
+    _suggestions.ensureCapacity(_uniqueWords.size() + n);
 
     auto it = _uniqueWords.constIterator();
     while (it.moveNext())
-        _suggestions.addLast(AutocompleteSuggestion(it.value().key, it.value().value));
+        _suggestions.addLast(AutocompleteSuggestion(it.value().key, n + it.value().value));
+
+    for (int i = 0; i < n; ++i)
+        _suggestions.addLast(AutocompleteSuggestion(dictionary[i], n - i));
 
     _suggestions.sort();
 }

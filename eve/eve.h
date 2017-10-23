@@ -194,12 +194,12 @@ struct AutocompleteSuggestion
         swap(left.rank, right.rank);
     }
 
-    friend bool lessThan(const AutocompleteSuggestion& left, const AutocompleteSuggestion& right)
+    friend bool operator<(const AutocompleteSuggestion& left, const AutocompleteSuggestion& right)
     {
-        if (left.rank < right.rank)
+        if (left.rank > right.rank)
             return true;
         else if (left.rank == right.rank)
-            return left.word < right.word;
+            return left.word > right.word;
         else
             return false;
     }

@@ -17,24 +17,6 @@ int hash(const UniquePtr<int>& val)
     return val ? *val : 0;
 }
 
-bool equalsTo(const UniquePtr<int>& left, const UniquePtr<int>& right)
-{
-    if (left)
-    {
-        if (right)
-            return *left == *right;
-        else
-            return false;
-    }
-    else
-    {
-        if (right)
-            return false;
-        else
-            return true;
-    }
-}
-
 template<typename _Char>
 int compareUniString(const _Char* str1, const _Char* str2)
 {
@@ -254,16 +236,16 @@ void testUniquePtr()
     // bool operator==(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>();
-        UniquePtr<Test> p2 = createUnique<Test>();
-        ASSERT(!(p1 == p2));
+        UniquePtr<Test> p1 = createUnique<Test>(1);
+        UniquePtr<Test> p2 = createUnique<Test>(1);
+        ASSERT(p1 == p2);
     }
 
     // bool operator!=(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>();
-        UniquePtr<Test> p2 = createUnique<Test>();
+        UniquePtr<Test> p1 = createUnique<Test>(1);
+        UniquePtr<Test> p2 = createUnique<Test>(2);
         ASSERT(p1 != p2);
     }
 

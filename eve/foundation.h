@@ -415,22 +415,6 @@ inline void swapBytes(uint64_t* values, int len)
 
 #endif
 
-// equality function
-
-template<typename _Type>
-inline bool equalsTo(const _Type& left, const _Type& right)
-{
-    return left == right;
-}
-
-// less than function
-
-template<typename _Type>
-inline bool lessThan(const _Type& left, const _Type& right)
-{
-    return left < right;
-}
-
 // hash function
 
 template<typename _Type1, typename _Type2>
@@ -852,12 +836,25 @@ public:
 
     friend bool operator==(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
     {
-        return left._ptr == right._ptr;
+        if (left)
+        {
+            if (right)
+                return *left == *right;
+            else
+                return false;
+        }
+        else
+        {
+            if (right)
+                return false;
+            else
+                return true;
+        }
     }
 
     friend bool operator!=(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
     {
-        return left._ptr != right._ptr;
+        return !operator==(left, right);
     }
 
     template<typename _T>
@@ -944,7 +941,7 @@ public:
     _Type* operator->() const
     {
         if (_sharedPtr)
-            return reinterpret_cast<_Type*>(_sharedPtr);
+            return &_sharedPtr->object;
         else
             throw NullPointerException();
     }
@@ -962,7 +959,7 @@ public:
     _Type* ptr() const
     {
         if (_sharedPtr)
-            return reinterpret_cast<_Type*>(_sharedPtr);
+            return &_sharedPtr->object;
         else
             return NULL;
     }
@@ -1745,7 +1742,7 @@ public:
     int find(const _Type& value) const
     {
         for (int i = 0; i < _size; ++i)
-            if (equalsTo(_values[i], value))
+            if (_values[i] == value)
                 return i;
 
         return INVALID_POSITION;
@@ -2011,9 +2008,9 @@ protected:
 
         while (true)
         {
-            do ++i; while (lessThan(_values[i], pivot));
+            do ++i; while (_values[i] < pivot);
 
-            do --j; while (lessThan(pivot, _values[j]));
+            do --j; while (pivot < _values[j]);
 
             if (i >= j)
                 return j;
@@ -2310,7 +2307,7 @@ public:
     ListNode<_Type>* find(const _Type& value)
     {
         for (auto node = _first; node; node = node->next)
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return node;
 
         return NULL;
@@ -2319,7 +2316,7 @@ public:
     const ListNode<_Type>* find(const _Type& value) const
     {
         for (auto node = _first; node; node = node->next)
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return node;
 
         return NULL;
@@ -2863,7 +2860,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value.key, key))
+            if (node->value.key == key)
                 return node->value.value;
         }
 
@@ -2882,7 +2879,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value.key, key))
+            if (node->value.key == key)
                 return node->value.value;
         }
 
@@ -2909,7 +2906,7 @@ public:
 
             for (auto node = bucket.first(); node; node = node->next)
             {
-                if (equalsTo(node->value.key, key))
+                if (node->value.key == key)
                     return &node->value.value;
             }
         }
@@ -2925,7 +2922,7 @@ public:
 
             for (auto node = bucket.first(); node; node = node->next)
             {
-                if (equalsTo(node->value.key, key))
+                if (node->value.key == key)
                     return &node->value.value;
             }
         }
@@ -2948,7 +2945,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value.key, key))
+            if (node->value.key == key)
             {
                 node->value.value = value;
                 return;
@@ -2968,7 +2965,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value.key, key))
+            if (node->value.key == key)
             {
                 node->value.value = static_cast<_Value&&>(value);
                 return;
@@ -2989,7 +2986,7 @@ public:
 
             for (auto node = bucket.first(); node; node = node->next)
             {
-                if (equalsTo(node->value.key, key))
+                if (node->value.key == key)
                 {
                     bucket.remove(node);
                     --_size;
@@ -3210,7 +3207,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return true;
         }
 
@@ -3232,7 +3229,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return;
         }
 
@@ -3249,7 +3246,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return;
         }
 
@@ -3281,7 +3278,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value, value))
+            if (node->value == value)
             {
                 bucket.remove(node);
                 --_size;

@@ -12,8 +12,7 @@ rewrite screen update code to draw line by line
 editor:
 * autocomplete
 disable autocomplete when inserting multiple characters
-english dictionary with frequency
-hanlde identifiers with numbers
+hanlde identifiers with numbers, dashes etc
 start autocomplete after two chars?
 * new/open/save
 * switch between documents with alt+number
@@ -82,4 +81,4 @@ unicode char literals don't work on solaris/aix
 how to minimize the use of raw pointers?
 list vs array - when to use?
 get rid of underscores?
-equals/less - function or overloaded operator?
+compare smart pointers or their contents?
