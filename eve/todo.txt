@@ -11,9 +11,9 @@ rewrite screen update code to draw line by line
 
 editor:
 * autocomplete
-disable autocomplete when inserting multiple characters
-hanlde identifiers with numbers, dashes etc
-start autocomplete after two chars?
+typing all chars should produce same result as without autocomplete
+review the sorting routine
+improve performance, reduce memory allocations
 * new/open/save
 * switch between documents with alt+number
 * find/replace all, ignore case

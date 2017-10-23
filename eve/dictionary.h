@@ -1,6 +1,8 @@
 #ifndef DICTIONARY_INCLUDED
 #define DICTIONARY_INCLUDED
 
-extern const char* dictionary[];
+#include <foundation.h>
+
+extern const char_t* dictionary[];
 
 #endif

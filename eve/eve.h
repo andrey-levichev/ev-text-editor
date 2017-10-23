@@ -183,7 +183,7 @@ struct AutocompleteSuggestion
     String word;
     float rank;
 
-    AutocompleteSuggestion(String word, float rank) :
+    AutocompleteSuggestion(const String& word, float rank) :
         word(word), rank(rank)
     {
     }

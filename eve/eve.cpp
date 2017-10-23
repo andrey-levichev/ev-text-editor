@@ -3,15 +3,15 @@
 
 const int TAB_SIZE = 4;
 
-bool charIsIdent(unichar_t ch)
+bool charIsWord(unichar_t ch)
 {
-    return charIsAlpha(ch) || ch == '_';
+    return charIsAlphaNum(ch) || ch == '_' || ch == '-' || ch == '\'';
 }
 
 bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 {
-    return (!charIsIdent(prevCh) && charIsIdent(ch)) ||
-        ((charIsIdent(prevCh) || charIsSpace(prevCh)) && !(charIsIdent(ch) || charIsSpace(ch))) ||
+    return (!charIsWord(prevCh) && charIsWord(ch)) ||
+        ((charIsWord(prevCh) || charIsSpace(prevCh)) && !(charIsWord(ch) || charIsSpace(ch))) ||
         (prevCh != '\n' && ch == '\n');
 }
 
@@ -456,7 +456,7 @@ void Document::insertChar(unichar_t ch, bool afterIdent)
 
     if (afterIdent)
     {
-        while (charIsIdent(_text.charAt(_position)))
+        while (charIsWord(_text.charAt(_position)))
             _position = _text.charForward(_position);
     }
 
@@ -654,12 +654,12 @@ String Document::currentWord() const
 {
     int start = _position;
 
-    if (charIsIdent(_text.charAt(start)))
+    if (charIsWord(_text.charAt(start)))
     {
         while (start > 0)
         {
             int p = _text.charBack(start);
-            if (!charIsIdent(_text.charAt(p)))
+            if (!charIsWord(_text.charAt(p)))
                 break;
             start = p;
         }
@@ -667,7 +667,7 @@ String Document::currentWord() const
         int end = _text.charForward(_position);
         while (end < _text.length())
         {
-            if (!charIsIdent(_text.charAt(end)))
+            if (!charIsWord(_text.charAt(end)))
                 break;
             end = _text.charForward(end);
         }
@@ -685,7 +685,7 @@ String Document::autocompletePrefix() const
     while (p > 0)
     {
         int q = _text.charBack(p);
-        if (!charIsIdent(_text.charAt(q)))
+        if (!charIsWord(_text.charAt(q)))
             break;
         p = q;
     }
@@ -699,7 +699,7 @@ void Document::completeWord(const String& word)
     while (start > 0)
     {
         int p = _text.charBack(start);
-        if (!charIsIdent(_text.charAt(p)))
+        if (!charIsWord(_text.charAt(p)))
             break;
         start = p;
     }
@@ -707,7 +707,7 @@ void Document::completeWord(const String& word)
     int end = _position;
     while (end < _text.length())
     {
-        if (!charIsIdent(_text.charAt(end)))
+        if (!charIsWord(_text.charAt(end)))
             break;
         end = _text.charForward(end);
     }
@@ -1645,23 +1645,28 @@ bool Editor::processInput()
                     }
                     else if (charIsPrint(keyEvent.ch))
                     {
-                        if (charIsIdent(keyEvent.ch))
+                        if (inputEvents.size() == 1)
                         {
-                            _document->value.insertChar(keyEvent.ch);
-
-                            _currentSuggestion = INVALID_POSITION;
-                            completeWord(true);
-                        }
-                        else
-                        {
-                            if (_currentSuggestion != INVALID_POSITION)
+                            if (charIsWord(keyEvent.ch))
                             {
+                                _document->value.insertChar(keyEvent.ch);
+
                                 _currentSuggestion = INVALID_POSITION;
-                                _document->value.insertChar(keyEvent.ch, true);
+                                completeWord(true);
                             }
                             else
-                                _document->value.insertChar(keyEvent.ch);
+                            {
+                                if (_currentSuggestion != INVALID_POSITION)
+                                {
+                                    _currentSuggestion = INVALID_POSITION;
+                                    _document->value.insertChar(keyEvent.ch, true);
+                                }
+                                else
+                                    _document->value.insertChar(keyEvent.ch);
+                            }
                         }
+                        else
+                            _document->value.insertChar(keyEvent.ch);
 
                         modified = update = true;
                     }
@@ -1956,7 +1961,7 @@ void Editor::findUniqueWords(const Document& document)
     {
         unichar_t ch = text.charAt(p);
 
-        if (charIsIdent(ch))
+        if (charIsWord(ch))
             word += ch;
         else if (!word.empty())
         {
@@ -1965,7 +1970,7 @@ void Editor::findUniqueWords(const Document& document)
         }
     }
 
-    if (word.charLength() > 1)
+    if (!word.empty())
         ++_uniqueWords[word];
 }
 
@@ -2055,7 +2060,7 @@ void Editor::completeWord(bool next)
 {
     String prefix = _document->value.autocompletePrefix();
 
-    if (!prefix.empty())
+    if (prefix.length() > 1)
     {
         int suggestion = next ?
             findNextSuggestion(prefix, _currentSuggestion) :
