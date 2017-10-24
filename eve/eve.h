@@ -119,9 +119,11 @@ public:
     String autocompletePrefix() const;
     void completeWord(const String& word);
 
-    int findPosition(const String& searchStr, bool next);
-    bool find(const String& searchStr, bool next);
-    bool replace(const String& searchStr, const String& replaceStr);
+    int findPosition(const String& searchStr, bool caseSesitive, bool next);
+    bool find(const String& searchStr, bool caseSesitive, bool next);
+
+    bool replace(const String& searchStr, const String& replaceStr, bool caseSesitive);
+    bool replaceAll(const String& searchStr, const String& replaceStr, bool caseSesitive);
 
     void open(const String& filename);
     void save();
@@ -250,6 +252,7 @@ protected:
 
     String _command;
     String _searchStr, _replaceStr;
+    bool _caseSesitive;
 
     String _screen;
     String _window;

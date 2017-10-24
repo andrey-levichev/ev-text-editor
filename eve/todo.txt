@@ -7,13 +7,9 @@ print clear to eol code at the end of line
 * handle console/terminal window scrolling/resizing
 handle window resize event on Windows
 rewrite screen update code to draw line by line
-* review checking text position vs checking terminating zero
+* case sensitive replace all
 
 editor:
-* autocomplete
-typing all chars should produce same result as without autocomplete
-review the sorting routine
-improve performance, reduce memory allocations
 * new/open/save
 * switch between documents with alt+number
 * find/replace all, ignore case
@@ -27,10 +23,20 @@ improve performance, reduce memory allocations
 * selection with arrows and highlighting
 * customizable key mappings
 * line wrapping
+* graphical user interface
+* autocomplete improvements
+trie based suggestions
+scan all documents in current directory
+better dictionary (spelling dictionary without frequency)
+prefer the shortest match
+can't insert punctuation in front of the word
+handle ' and - as part of the word
+pasting multiple chars still doesn't work
+it seems that words are not completed
+ignore case when completing?
 
 release:
-* graphical user interface
-* webpage, payment system
+* webpage, payments
 * registration code generation/checking
 * license, relase notes, documentation
 * install package, auto-update

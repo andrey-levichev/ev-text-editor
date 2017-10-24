@@ -393,8 +393,7 @@ bool Document::moveToLine(int line)
 
 bool Document::moveToLineColumn(int line, int column)
 {
-    ASSERT(line > 0);
-    ASSERT(column > 0);
+    ASSERT(line > 0 && column > 0);
 
     line = _top + line - 1;
     column = _left + column - 1;
@@ -622,6 +621,8 @@ String Document::copyDeleteText(bool copy)
 
 void Document::pasteText(const String& text, bool lineSelection)
 {
+    ASSERT(!text.empty());
+
     if (lineSelection)
         _text.insert(findLineStart(_position), text);
     else
@@ -695,6 +696,8 @@ String Document::autocompletePrefix() const
 
 void Document::completeWord(const String& word)
 {
+    ASSERT(!word.empty());
+
     int start = _position;
     while (start > 0)
     {
@@ -722,30 +725,31 @@ void Document::completeWord(const String& word)
     }
 }
 
-int Document::findPosition(const String& searchStr, bool next)
+int Document::findPosition(const String& searchStr, bool caseSesitive, bool next)
 {
+    ASSERT(!searchStr.empty());
+
     int p = INVALID_POSITION;
 
-    if (!searchStr.empty())
+    if (_position < _text.length())
     {
-        if (_position < _text.length())
-        {
-            p = next ? _text.charForward(_position) : _position;
+        p = next ? _text.charForward(_position) : _position;
 
-            p = _text.find(searchStr, p);
-            if (p == INVALID_POSITION)
-                p = _text.find(searchStr);
-        }
-        else
-			p = _text.find(searchStr);
+        p = caseSesitive ? _text.find(searchStr, p) : _text.findNoCase(searchStr, p);
+        if (p == INVALID_POSITION)
+            p = caseSesitive ? _text.find(searchStr) : _text.findNoCase(searchStr);
     }
+    else
+        p = caseSesitive ? _text.find(searchStr) : _text.findNoCase(searchStr);
 
     return p;
 }
 
-bool Document::find(const String& searchStr, bool next)
+bool Document::find(const String& searchStr, bool caseSesitive, bool next)
 {
-    int p = findPosition(searchStr, next);
+    ASSERT(!searchStr.empty());
+
+    int p = findPosition(searchStr, caseSesitive, next);
 
 	if (p != INVALID_POSITION && p != _position)
 	{
@@ -761,16 +765,18 @@ bool Document::find(const String& searchStr, bool next)
     return false;
 }
 
-bool Document::replace(const String& searchStr, const String& replaceStr)
+bool Document::replace(const String& searchStr, const String& replaceStr, bool caseSesitive)
 {
-    int p = findPosition(searchStr, false);
+    ASSERT(!searchStr.empty());
+
+    int p = findPosition(searchStr, caseSesitive, false);
 
 	if (p == _position)
 	{
         _text.replace(p, replaceStr, searchStr.length());
 
         _position = p + replaceStr.length();
-        p = findPosition(searchStr, false);
+        p = findPosition(searchStr, caseSesitive, false);
         if (p != INVALID_POSITION)
             _position = p;
 
@@ -783,6 +789,20 @@ bool Document::replace(const String& searchStr, const String& replaceStr)
     }
 
     return false;
+}
+
+bool Document::replaceAll(const String& searchStr, const String& replaceStr, bool caseSesitive)
+{
+    ASSERT(!searchStr.empty());
+
+    _text.replaceString(searchStr, replaceStr);
+
+    lineColumnToPosition();
+    _modified = true;
+    _selectionMode = false;
+    _selection = -1;
+
+    return true;
 }
 
 void Document::open(const String& filename)
@@ -892,6 +912,8 @@ int Document::findPreviousLine(int pos) const
 
 void Document::changeLines(int(Document::* lineOp)(int))
 {
+    ASSERT(lineOp);
+
     if (_selection < 0)
         _position = (this->*lineOp)(_position);
     else
@@ -1153,6 +1175,7 @@ void Document::trimTrailingWhitespace()
 Editor::Editor() :
     _document(NULL),
     _lineSelection(false),
+    _caseSesitive(true),
     _width(0), _height(0),
     _screenHeight(0),
     _recentLocation(NULL),
@@ -1380,6 +1403,8 @@ void Editor::updateScreen(bool redrawAll)
 
 void Editor::setDimensions(int width, int height)
 {
+    ASSERT(width > 0 && height > 0);
+
     _width = width;
     _screenHeight = height;
     _height = _screenHeight - 1;
@@ -1542,15 +1567,16 @@ bool Editor::processInput()
                         else if (keyEvent.ch == 'w')
                         {
                             _searchStr = _document->value.currentWord();
-                            update = _document->value.find(_searchStr, true);
+                            _caseSesitive = true;
+                            update = _document->value.find(_searchStr, _caseSesitive, true);
                         }
                         else if (keyEvent.ch == 'f')
                         {
-                            update = _document->value.find(_searchStr, true);
+                            update = _document->value.find(_searchStr, _caseSesitive, true);
                         }
                         else if (keyEvent.ch == 'r')
                         {
-                            modified = update = _document->value.replace(_searchStr, _replaceStr);
+                            modified = update = _document->value.replace(_searchStr, _replaceStr, _caseSesitive);
                         }
                         else if (keyEvent.ch == '/')
                         {
@@ -1867,69 +1893,104 @@ void Editor::processCommand()
 
     if (_command.empty())
         return;
-    else
+
+    int p = 0;
+    unichar_t ch = _command.charAt(p);
+
+    if (ch == 'f')
     {
-        int p = 0;
-        unichar_t ch = _command.charAt(p);
+        _caseSesitive = true;
 
-        if (ch == 'f')
+        while (true)
         {
             p = _command.charForward(p);
-            if (_command.charAt(p) == ' ')
-            {
-                p = _command.charForward(p);
-                _searchStr = _command.substr(p);
-                _document->value.find(_searchStr, false);
-                return;
-            }
+            ch = _command.charAt(p);
+
+            if (ch == 'i')
+                _caseSesitive = false;
+            else if (ch == ' ')
+                break;
+            else
+                throw Exception(STR("invalid command"));
         }
-        else if (ch == 'r')
+
+        p = _command.charForward(p);
+        if (p < _command.length())
         {
-            p = _command.charForward(p);
-            unichar_t sep = _command.charAt(p);
-
-            if (sep != 0)
-            {
-                p = _command.charForward(p);
-
-                if (p < _command.length())
-                {
-                    int q = _command.find(sep, p);
-                    if (q == INVALID_POSITION)
-                    {
-                        _searchStr = _command.substr(p);
-                        _replaceStr.clear();
-                    }
-                    else
-                    {
-                        _searchStr = _command.substr(p, q - p);
-                        _replaceStr = _command.substr(q + 1);
-                    }
-
-                    _document->value.find(_searchStr, false);
-                    return;
-                }
-            }
+            _searchStr = _command.substr(p);
+            _document->value.find(_searchStr, _caseSesitive, false);
         }
-        else if (ch == 'g')
-        {
-            p = _command.charForward(p);
-            if (_command.charAt(p) == ' ')
-            {
-                p = _command.charForward(p);
-                int line = _command.substr(p).toInt();
-
-                if (line > 0)
-                    _document->value.moveToLine(line);
-                else
-                    throw Exception(STR("invalid line number"));
-
-                return;
-            }
-        }
+        else
+            throw Exception(STR("invalid command"));
     }
+    else if (ch == 'r')
+    {
+        _caseSesitive = true;
+        unichar_t replaceScope = 0;
 
-    throw Exception(STR("invalid command"));
+        while (true)
+        {
+            p = _command.charForward(p);
+            ch = _command.charAt(p);
+
+            if (ch == 'i')
+                _caseSesitive = false;
+            else if (ch == 'd' || ch == 'a')
+                replaceScope = ch;
+            else if (ch == 0)
+                throw Exception(STR("invalid command"));
+            else
+                break;
+        }
+
+        p = _command.charForward(p);
+        if (p < _command.length())
+        {
+            int q = _command.find(ch, p);
+            if (q == INVALID_POSITION)
+            {
+                _searchStr = _command.substr(p);
+                _replaceStr.clear();
+            }
+            else
+            {
+                _searchStr = _command.substr(p, q - p);
+                _replaceStr = _command.substr(q + 1);
+            }
+
+            if (replaceScope == 'd')
+            {
+                _document->value.replaceAll(_searchStr, _replaceStr, _caseSesitive);
+            }
+            else if (replaceScope == 'a')
+            {
+                for (auto doc = _documents.first(); doc; doc = doc->next)
+                    doc->value.replaceAll(_searchStr, _replaceStr, _caseSesitive);
+            }
+            else
+                _document->value.find(_searchStr, _caseSesitive, false);
+        }
+        else
+            throw Exception(STR("invalid command"));
+    }
+    else if (ch == 'g')
+    {
+        p = _command.charForward(p);
+        if (_command.charAt(p) == ' ')
+        {
+            p = _command.charForward(p);
+            int line = _command.substr(p).toInt();
+
+            if (line > 0)
+                _document->value.moveToLine(line);
+            else
+                throw Exception(STR("invalid line number"));
+        }
+        else
+            throw Exception(STR("invalid command"));
+    }
+    else
+        throw Exception(STR("invalid command"));
 }
 
 void Editor::buildProject()
@@ -2085,7 +2146,7 @@ int MAIN(int argc, const char_t** argv)
     {
         if (argc < 2)
         {
-            Console::writeLine(STR("eve text editor version 1.1\n"
+            Console::writeLine(STR("eve text editor version 1.2\n"
                 "Copyright (C) Andrey Levichev, 2017\n\n"
                 "usage: eve filename ...\n\n"
                 "keys:\n"
@@ -2120,11 +2181,18 @@ int MAIN(int argc, const char_t** argv)
                 "alt+x - save all and quit\n"
                 "alt+q - quit without saving\n"
                 "alt+` - command line\n"
+                "alt+[ - previous autocomplete suggestion\n"
+                "alt+] - next autocomplete suggestion\n"
                 "ESC - cancel current suggestion\n\n"
-                "commands:\n"
-                "g number - go to line number\n"
-                "f string - find string\n"
-                "r searchString replaceString - replace string (use any character as string separator)\n"));
+                "commands (optional parameters in square brackets):\n"
+                "g <number> - go to line number\n"
+                "f[i] <string> - find string\n"
+                "\ti - ignore case\n"
+                "r[ida] <searchString> <replaceString> - replace string\n"
+                "\ti - ignore case\n"
+                "\td - replace all matches in current document\n"
+                "\ta - replace all matches in all documents\n"
+                "\tuse any character as string separator instead of space\n"));
 
             return 1;
         }
