@@ -7,12 +7,10 @@ print clear to eol code at the end of line
 * handle console/terminal window scrolling/resizing
 handle window resize event on Windows
 rewrite screen update code to draw line by line
-* case sensitive replace all
 
 editor:
 * new/open/save
 * switch between documents with alt+number
-* find/replace all, ignore case
 * syntax highlighting
 * parse build output for errors
 * undo/redo
@@ -23,6 +21,7 @@ editor:
 * selection with arrows and highlighting
 * customizable key mappings
 * line wrapping
+* find/replace back, find in all documents
 * graphical user interface
 * autocomplete improvements
 trie based suggestions

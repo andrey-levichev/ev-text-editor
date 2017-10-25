@@ -1181,41 +1181,32 @@ public:
 
     String substr(int pos, int len = -1) const;
 
-    int compare(const String& str) const
+    int compare(const String& str, bool caseSensitive = true) const
     {
-        return strCompare(this->chars(), str.chars());
+        return caseSensitive ?
+            strCompare(this->chars(), str.chars()) :
+            strCompareNoCase(this->chars(), str.chars());
     }
 
-    int compare(const char_t* chars) const
+    int compare(const char_t* chars, bool caseSensitive = true) const
     {
-        return strCompare(this->chars(), chars ? chars : STR(""));
+        return caseSensitive ?
+            strCompare(this->chars(), chars ? chars : STR("")) :
+            strCompareNoCase(this->chars(), chars ? chars : STR(""));
     }
 
-    int compareNoCase(const String& str) const
-    {
-        return strCompareNoCase(this->chars(), str.chars());
-    }
+    int find(const String& str, bool caseSensitive = true, int pos = 0) const;
+    int find(const char_t* chars, bool caseSensitive = true, int pos = 0) const;
+    int find(unichar_t ch, bool caseSensitive = true, int pos = 0) const;
 
-    int compareNoCase(const char_t* chars) const
-    {
-        return strCompareNoCase(this->chars(), chars ? chars : STR(""));
-    }
+    bool startsWith(const String& str, bool caseSensitive = true) const;
+    bool startsWith(const char_t* chars, bool caseSensitive = true) const;
 
-    int find(const String& str, int pos = 0) const;
-    int find(const char_t* chars, int pos = 0) const;
-    int find(unichar_t ch, int pos = 0) const;
-    int findNoCase(const String& str, int pos = 0) const;
-    int findNoCase(const char_t* chars, int pos = 0) const;
-    int findNoCase(unichar_t ch, int pos = 0) const;
+    bool endsWith(const String& str, bool caseSensitive = true) const;
+    bool endsWith(const char_t* chars, bool caseSensitive = true) const;
 
-    bool startsWith(const String& str) const;
-    bool startsWith(const char_t* chars) const;
-
-    bool endsWith(const String& str) const;
-    bool endsWith(const char_t* chars) const;
-
-    bool contains(const String& str) const;
-    bool contains(const char_t* chars) const;
+    bool contains(const String& str, bool caseSensitive = true) const;
+    bool contains(const char_t* chars, bool caseSensitive = true) const;
 
     void ensureCapacity(int capacity);
     void shrinkToLength();
@@ -1236,13 +1227,13 @@ public:
     void insert(int pos, unichar_t ch, int n = 1);
 
     void erase(int pos, int len = -1);
-    void eraseString(const String& str);
-    void eraseString(const char_t* chars);
+    void eraseString(const String& str, bool caseSensitive = true);
+    void eraseString(const char_t* chars, bool caseSensitive = true);
 
     void replace(int pos, const String& str, int len = -1);
     void replace(int pos, const char_t* chars, int len = -1);
-    void replaceString(const String& searchStr, const String& replaceStr);
-    void replaceString(const char_t* searchChars, const char_t* replaceChars);
+    void replaceString(const String& searchStr, const String& replaceStr, bool caseSensitive = true);
+    void replaceString(const char_t* searchChars, const char_t* replaceChars, bool caseSensitive = true);
 
     void trim();
     void trimRight();

@@ -735,12 +735,12 @@ int Document::findPosition(const String& searchStr, bool caseSesitive, bool next
     {
         p = next ? _text.charForward(_position) : _position;
 
-        p = caseSesitive ? _text.find(searchStr, p) : _text.findNoCase(searchStr, p);
+        p = _text.find(searchStr, caseSesitive, p);
         if (p == INVALID_POSITION)
-            p = caseSesitive ? _text.find(searchStr) : _text.findNoCase(searchStr);
+            p = _text.find(searchStr, caseSesitive);
     }
     else
-        p = caseSesitive ? _text.find(searchStr) : _text.findNoCase(searchStr);
+        p = _text.find(searchStr, caseSesitive);
 
     return p;
 }
@@ -795,7 +795,7 @@ bool Document::replaceAll(const String& searchStr, const String& replaceStr, boo
 {
     ASSERT(!searchStr.empty());
 
-    _text.replaceString(searchStr, replaceStr);
+    _text.replaceString(searchStr, replaceStr, caseSesitive);
 
     lineColumnToPosition();
     _modified = true;
@@ -1946,7 +1946,7 @@ void Editor::processCommand()
         p = _command.charForward(p);
         if (p < _command.length())
         {
-            int q = _command.find(ch, p);
+            int q = _command.find(ch, true, p);
             if (q == INVALID_POSITION)
             {
                 _searchStr = _command.substr(p);

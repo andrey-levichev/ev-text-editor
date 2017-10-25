@@ -4,16 +4,18 @@ eve is simple cross-platform text editor written in C++ with minimal dependencie
 
 eve stands for "excellent visual editor", "extremely versatile editor" or "eradicate vi and emacs" whichever you prefer :-)
 
-Supported features:
+Supported features (run eve without parameters to see keyboard shortcuts):
 * open/save documents
-* basic text editing operations
-* indent/unindent line, autoindent
-* copy/delete/paste text blocks or lines
 * multiple open documents
-* basic find/replace
+* basic text editing operations
+* find/replace
+* copy/delete/paste text blocks or lines
+* indent/unindent line, autoindent
+* toggle comment
 * go to line
 * ability to execute make and use eve as a simple IDE
 * basic Unicode support (can read/write UTF-8 and UTF-16, aware of multibyte characters)
+* autocomplete based on words in open documents
 
 Known issues:
 

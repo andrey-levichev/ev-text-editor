@@ -890,7 +890,7 @@ void testString()
         ASSERT(s.substr(1) == STR("bcd"));
     }
 
-    // int compare(const String& str) const
+    // int compare(const String& str, bool caseSensitive = true) const
 
     ASSERT(String(STR("a")).compare(String()) > 0);
     ASSERT(String().compare(String(STR("a"))) < 0);
@@ -899,7 +899,14 @@ void testString()
     ASSERT(String(STR("a")).compare(String(STR("ab"))) < 0);
     ASSERT(String(STR("a")).compare(String(STR("a"))) == 0);
 
-    // int compare(const char_t* chars) const
+    ASSERT(String(STR("a")).compare(String(), false) > 0);
+    ASSERT(String().compare(String(STR("a")), false) < 0);
+    ASSERT(String().compare(String(), false) == 0);
+    ASSERT(String(STR("AB")).compare(String(STR("a")), false) > 0);
+    ASSERT(String(STR("A")).compare(String(STR("ab")), false) < 0);
+    ASSERT(String(STR("A")).compare(String(STR("a")), false) == 0);
+
+    // int compare(const char_t* chars, bool caseSensitive = true) const
 
     ASSERT(String(STR("a")).compare(NULL) > 0);
     ASSERT(String().compare(NULL) == 0);
@@ -907,24 +914,13 @@ void testString()
     ASSERT(String(STR("a")).compare(STR("ab")) < 0);
     ASSERT(String(STR("a")).compare(STR("a")) == 0);
 
-    // int compareNoCase(const String& str) const
+    ASSERT(String(STR("a")).compare(NULL, false) > 0);
+    ASSERT(String().compare(NULL, false) == 0);
+    ASSERT(String(STR("AB")).compare(STR("a"), false) > 0);
+    ASSERT(String(STR("A")).compare(STR("ab"), false) < 0);
+    ASSERT(String(STR("A")).compare(STR("a"), false) == 0);
 
-    ASSERT(String(STR("a")).compareNoCase(String()) > 0);
-    ASSERT(String().compareNoCase(String(STR("a"))) < 0);
-    ASSERT(String().compareNoCase(String()) == 0);
-    ASSERT(String(STR("AB")).compareNoCase(String(STR("a"))) > 0);
-    ASSERT(String(STR("A")).compareNoCase(String(STR("ab"))) < 0);
-    ASSERT(String(STR("A")).compareNoCase(String(STR("a"))) == 0);
-
-    // int compareNoCase(const char_t* chars) const
-
-    ASSERT(String(STR("a")).compareNoCase(NULL) > 0);
-    ASSERT(String().compareNoCase(NULL) == 0);
-    ASSERT(String(STR("AB")).compareNoCase(STR("a")) > 0);
-    ASSERT(String(STR("A")).compareNoCase(STR("ab")) < 0);
-    ASSERT(String(STR("A")).compareNoCase(STR("a")) == 0);
-
-    // int find(const String& str, int pos = 0) const
+    // int find(const String& str, bool caseSensitive = true, int pos = 0) const
 
     {
         String s;
@@ -935,16 +931,34 @@ void testString()
     {
         String s(STR("abcdabcd"));
         ASSERT(s.find(String(STR("bc"))) == 1);
-        ASSERT(s.find(String(STR("bc")), 2) == 5);
-        ASSERT(s.find(String(STR("bc")), 6) == INVALID_POSITION);
+        ASSERT(s.find(String(STR("bc")), true, 2) == 5);
+        ASSERT(s.find(String(STR("bc")), true, 6) == INVALID_POSITION);
         ASSERT(s.find(String(STR("xy"))) == INVALID_POSITION);
 
-        ASSERT_EXCEPTION(Exception, s.find(String(), -1));
-        ASSERT_EXCEPTION(Exception, s.find(String(), s.length() + 1));
+        ASSERT_EXCEPTION(Exception, s.find(String(), true, -1));
+        ASSERT_EXCEPTION(Exception, s.find(String(), true, s.length() + 1));
         ASSERT(s.find(String()) == INVALID_POSITION);
     }
 
-    // int find(const char_t* chars, int pos = 0) const
+    {
+        String s;
+        ASSERT(s.find(String(), false) == INVALID_POSITION);
+        ASSERT(s.find(String(STR("a"), false)) == INVALID_POSITION);
+    }
+
+    {
+        String s(STR("ABCDABCD"));
+        ASSERT(s.find(String(STR("bc")), false) == 1);
+        ASSERT(s.find(String(STR("bc")), false, 2) == 5);
+        ASSERT(s.find(String(STR("bc")), false, 6) == INVALID_POSITION);
+        ASSERT(s.find(String(STR("xy")), false) == INVALID_POSITION);
+
+        ASSERT_EXCEPTION(Exception, s.find(String(), false, -1));
+        ASSERT_EXCEPTION(Exception, s.find(String(), false, s.length() + 1));
+        ASSERT(s.find(String(), false) == INVALID_POSITION);
+    }
+
+    // int find(const char_t* chars, bool caseSensitive = true, int pos = 0) const
 
     {
         String s;
@@ -956,17 +970,37 @@ void testString()
     {
         String s(STR("abcdabcd"));
         ASSERT(s.find(STR("bc")) == 1);
-        ASSERT(s.find(STR("bc"), 2) == 5);
-        ASSERT(s.find(STR("bc"), 6) == INVALID_POSITION);
+        ASSERT(s.find(STR("bc"), true, 2) == 5);
+        ASSERT(s.find(STR("bc"), true, 6) == INVALID_POSITION);
         ASSERT(s.find(STR("xy")) == INVALID_POSITION);
 
-        ASSERT_EXCEPTION(Exception, s.find(STR(""), -1));
-        ASSERT_EXCEPTION(Exception, s.find(STR(""), s.length() + 1));
+        ASSERT_EXCEPTION(Exception, s.find(STR(""), true, -1));
+        ASSERT_EXCEPTION(Exception, s.find(STR(""), true, s.length() + 1));
         ASSERT(s.find(np) == INVALID_POSITION);
         ASSERT(s.find(STR("")) == INVALID_POSITION);
     }
 
-    // int find(unichar_t ch, int pos = 0) const
+    {
+        String s;
+        ASSERT(s.find(np, false) == INVALID_POSITION);
+        ASSERT(s.find(STR(""), false) == INVALID_POSITION);
+        ASSERT(s.find(STR("a"), false) == INVALID_POSITION);
+    }
+
+    {
+        String s(STR("ABCDABCD"));
+        ASSERT(s.find(STR("bc"), false) == 1);
+        ASSERT(s.find(STR("bc"), false, 2) == 5);
+        ASSERT(s.find(STR("bc"), false, 6) == INVALID_POSITION);
+        ASSERT(s.find(STR("xy"), false) == INVALID_POSITION);
+
+        ASSERT_EXCEPTION(Exception, s.find(STR(""), false, -1));
+        ASSERT_EXCEPTION(Exception, s.find(STR(""), false, s.length() + 1));
+        ASSERT(s.find(np, false) == INVALID_POSITION);
+        ASSERT(s.find(STR(""), false) == INVALID_POSITION);
+    }
+
+    // int find(unichar_t ch, bool caseSensitive = true, int pos = 0) const
 
     {
         String s;
@@ -976,77 +1010,33 @@ void testString()
     {
         String s(STR("abcabc"));
         ASSERT(s.find('b') == 1);
-        ASSERT(s.find('b', 2) == 4);
-        ASSERT(s.find('b', 5) == INVALID_POSITION);
+        ASSERT(s.find('b', true, 2) == 4);
+        ASSERT(s.find('b', true, 5) == INVALID_POSITION);
         ASSERT(s.find('x') == INVALID_POSITION);
 
         ASSERT_EXCEPTION(Exception, s.find(zc));
-        ASSERT_EXCEPTION(Exception, s.find('a', -1));
-        ASSERT_EXCEPTION(Exception, s.find('a', s.length() + 1));
+        ASSERT_EXCEPTION(Exception, s.find('a', true, -1));
+        ASSERT_EXCEPTION(Exception, s.find('a', true, s.length() + 1));
     }
-
-    // int findNoCase(const String& str, int pos = 0) const
 
     {
         String s;
-        ASSERT(s.findNoCase(String()) == INVALID_POSITION);
-        ASSERT(s.findNoCase(String(STR("a"))) == INVALID_POSITION);
-    }
-
-    {
-        String s(STR("ABCDABCD"));
-        ASSERT(s.findNoCase(String(STR("bc"))) == 1);
-        ASSERT(s.findNoCase(String(STR("bc")), 2) == 5);
-        ASSERT(s.findNoCase(String(STR("bc")), 6) == INVALID_POSITION);
-        ASSERT(s.findNoCase(String(STR("xy"))) == INVALID_POSITION);
-
-        ASSERT_EXCEPTION(Exception, s.findNoCase(String(), -1));
-        ASSERT_EXCEPTION(Exception, s.findNoCase(String(), s.length() + 1));
-        ASSERT(s.findNoCase(String()) == INVALID_POSITION);
-    }
-
-    // int findNoCase(const char_t* chars, int pos = 0) const
-
-    {
-        String s;
-        ASSERT(s.findNoCase(np) == INVALID_POSITION);
-        ASSERT(s.findNoCase(STR("")) == INVALID_POSITION);
-        ASSERT(s.findNoCase(STR("a")) == INVALID_POSITION);
-    }
-
-    {
-        String s(STR("ABCDABCD"));
-        ASSERT(s.findNoCase(STR("bc")) == 1);
-        ASSERT(s.findNoCase(STR("bc"), 2) == 5);
-        ASSERT(s.findNoCase(STR("bc"), 6) == INVALID_POSITION);
-        ASSERT(s.findNoCase(STR("xy")) == INVALID_POSITION);
-
-        ASSERT_EXCEPTION(Exception, s.findNoCase(STR(""), -1));
-        ASSERT_EXCEPTION(Exception, s.findNoCase(STR(""), s.length() + 1));
-        ASSERT(s.findNoCase(np) == INVALID_POSITION);
-        ASSERT(s.findNoCase(STR("")) == INVALID_POSITION);
-    }
-
-    // int findNoCase(unichar_t ch, int pos = 0) const
-
-    {
-        String s;
-        ASSERT(s.findNoCase('a') == INVALID_POSITION);
+        ASSERT(s.find('a', false) == INVALID_POSITION);
     }
 
     {
         String s(STR("ABCABC"));
-        ASSERT(s.findNoCase('b') == 1);
-        ASSERT(s.findNoCase('b', 2) == 4);
-        ASSERT(s.findNoCase('b', 5) == INVALID_POSITION);
-        ASSERT(s.findNoCase('x') == INVALID_POSITION);
+        ASSERT(s.find('b', false) == 1);
+        ASSERT(s.find('b', false, 2) == 4);
+        ASSERT(s.find('b', false, 5) == INVALID_POSITION);
+        ASSERT(s.find('x', false) == INVALID_POSITION);
 
-        ASSERT_EXCEPTION(Exception, s.findNoCase(zc));
-        ASSERT_EXCEPTION(Exception, s.findNoCase('a', -1));
-        ASSERT_EXCEPTION(Exception, s.findNoCase('a', s.length() + 1));
+        ASSERT_EXCEPTION(Exception, s.find(zc, false));
+        ASSERT_EXCEPTION(Exception, s.find('a', false, -1));
+        ASSERT_EXCEPTION(Exception, s.find('a', false, s.length() + 1));
     }
 
-    // bool startsWith(const String& str) const
+    // bool startsWith(const String& str, bool caseSensitive = true) const
 
     ASSERT(String().startsWith(String()) == false);
     ASSERT(String().startsWith(String(STR("a"))) == false);
@@ -1054,8 +1044,11 @@ void testString()
     ASSERT(String(STR("a")).startsWith(String(STR("a"))) == true);
     ASSERT(String(STR("ab")).startsWith(String(STR("a"))) == true);
     ASSERT(String(STR("a")).startsWith(String(STR("ab"))) == false);
+    ASSERT(String(STR("A")).startsWith(String(STR("a")), false) == true);
+    ASSERT(String(STR("AB")).startsWith(String(STR("a")), false) == true);
+    ASSERT(String(STR("A")).startsWith(String(STR("ab")), false) == false);
 
-    // bool startsWith(const char_t* chars) const
+    // bool startsWith(const char_t* chars, bool caseSensitive = true) const
 
     ASSERT(String().startsWith(STR("")) == false);
     ASSERT(String().startsWith(STR("a")) == false);
@@ -1063,8 +1056,11 @@ void testString()
     ASSERT(String(STR("a")).startsWith(STR("a")) == true);
     ASSERT(String(STR("ab")).startsWith(STR("a")) == true);
     ASSERT(String(STR("a")).startsWith(STR("ab")) == false);
+    ASSERT(String(STR("A")).startsWith(STR("a"), false) == true);
+    ASSERT(String(STR("AB")).startsWith(STR("a"), false) == true);
+    ASSERT(String(STR("A")).startsWith(STR("ab"), false) == false);
 
-    // bool endsWith(const String& str) const
+    // bool endsWith(const String& str, bool caseSensitive = true) const
 
     ASSERT(String().endsWith(String()) == false);
     ASSERT(String().endsWith(String(STR("a"))) == false);
@@ -1072,8 +1068,11 @@ void testString()
     ASSERT(String(STR("a")).endsWith(String(STR("a"))) == true);
     ASSERT(String(STR("ab")).endsWith(String(STR("b"))) == true);
     ASSERT(String(STR("a")).endsWith(String(STR("ab"))) == false);
+    ASSERT(String(STR("A")).endsWith(String(STR("a")), false) == true);
+    ASSERT(String(STR("AB")).endsWith(String(STR("b")), false) == true);
+    ASSERT(String(STR("A")).endsWith(String(STR("ab")), false) == false);
 
-    // bool endsWith(const char_t* chars) const
+    // bool endsWith(const char_t* chars, bool caseSensitive = true) const
 
     ASSERT(String().endsWith(STR("")) == false);
     ASSERT(String().endsWith(STR("a")) == false);
@@ -1081,18 +1080,25 @@ void testString()
     ASSERT(String(STR("a")).endsWith(STR("a")) == true);
     ASSERT(String(STR("ab")).endsWith(STR("b")) == true);
     ASSERT(String(STR("a")).endsWith(STR("ab")) == false);
+    ASSERT(String(STR("A")).endsWith(STR("a"), false) == true);
+    ASSERT(String(STR("AB")).endsWith(STR("b"), false) == true);
+    ASSERT(String(STR("A")).endsWith(STR("ab"), false) == false);
 
     // bool contains(const String& str) const
 
     ASSERT(String(STR("abc")).contains(String(STR("bc"))) == true);
     ASSERT(String(STR("abc")).contains(String(STR("xy"))) == false);
+    ASSERT(String(STR("ABC")).contains(String(STR("bc")), false) == true);
+    ASSERT(String(STR("ABC")).contains(String(STR("xy")), false) == false);
 
-    // bool contains(const char_t* chars) const
+    // bool contains(const char_t* chars, bool caseSensitive = true) const
 
     ASSERT(String(STR("abc")).contains(STR("bc")) == true);
     ASSERT(String(STR("abc")).contains(STR("xy")) == false);
+    ASSERT(String(STR("ABC")).contains(STR("bc"), false) == true);
+    ASSERT(String(STR("ABC")).contains(STR("xy"), false) == false);
 
-    // void ensureCapacity(int capacity)
+    // void ensureCapacity(int capacity, bool caseSensitive = true)
 
     ASSERT_EXCEPTION(Exception, String().ensureCapacity(-1));
 
@@ -1636,7 +1642,7 @@ void testString()
         ASSERT_EXCEPTION(Exception, s.erase(1, 3));
     }
 
-    // void eraseString(const String& str)
+    // void eraseString(const String& str, bool caseSensitive = true)
 
     {
         String s(STR("abc"));
@@ -1706,7 +1712,14 @@ void testString()
         ASSERT(s.capacity() == 6);
     }
 
-    // void eraseString(const char_t* chars)
+    {
+        String s(STR("ABCBD"));
+        s.eraseString(String(STR("b")), false);
+        ASSERT(s == STR("ACD"));
+        ASSERT(s.capacity() == 6);
+    }
+
+    // void eraseString(const char_t* chars, bool caseSensitive = true)
 
     {
         String s(STR("abc"));
@@ -1777,9 +1790,9 @@ void testString()
     }
 
     {
-        String s(STR("abcbd"));
-        s.eraseString(STR("b"));
-        ASSERT(s == STR("acd"));
+        String s(STR("ABCBD"));
+        s.eraseString(STR("b"), false);
+        ASSERT(s == STR("ACD"));
         ASSERT(s.capacity() == 6);
     }
 
@@ -1973,7 +1986,7 @@ void testString()
         ASSERT_EXCEPTION(Exception, s.replace(1, STR("xyz"), 4));
     }
 
-    // void replaceString(const String& searchStr, const String& replaceStr)
+    // void replaceString(const String& searchStr, const String& replaceStr, bool caseSensitive = true)
 
     {
         String s;
@@ -2053,7 +2066,15 @@ void testString()
         ASSERT(s.capacity() == 8);
     }
 
-    // void replaceString(const char_t* searchChars, const char_t* replaceChars)
+    {
+        String s(STR("ABCBD"));
+        s.replaceString(String(STR("b")), String(STR("xy")), false);
+        ASSERT(s == STR("AxyCxyD"));
+        ASSERT(s.length() == 7);
+        ASSERT(s.capacity() == 8);
+    }
+
+    // void replaceString(const char_t* searchChars, const char_t* replaceChars, bool caseSensitive = true)
 
     {
         String s;
@@ -2137,6 +2158,14 @@ void testString()
         String s(STR("abcbd"));
         s.replaceString(STR("b"), STR("xy"));
         ASSERT(s == STR("axycxyd"));
+        ASSERT(s.length() == 7);
+        ASSERT(s.capacity() == 8);
+    }
+
+    {
+        String s(STR("ABCBD"));
+        s.replaceString(STR("b"), STR("xy"), false);
+        ASSERT(s == STR("AxyCxyD"));
         ASSERT(s.length() == 7);
         ASSERT(s.capacity() == 8);
     }
