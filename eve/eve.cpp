@@ -861,10 +861,8 @@ void Document::setDimensions(int width, int height)
     _height = height;
 }
 
-void Document::drawWindow(String& window, bool unicodeLimit16)
+void Document::draw(int x, int y, int width, UniCharArray& screen, bool unicodeLimit16)
 {
-    window.clear();
-
     if (_line < _top)
         _top = _line;
     else if (_line >= _top + _height)
@@ -875,12 +873,14 @@ void Document::drawWindow(String& window, bool unicodeLimit16)
     else if (_column >= _left + _width)
         _left = _column - _width + 1;
 
-    int p = findLine(_top);
+    int p = findLine(_top), q;
     int len = _left + _width - 1;
     unichar_t ch;
 
     for (int j = 1; j <= _height; ++j)
     {
+        q = (y + j - 2) * width + x - 1;
+
         for (int i = 1; i <= len; ++i)
         {
             ch = _text.charAt(p);
@@ -899,9 +899,9 @@ void Document::drawWindow(String& window, bool unicodeLimit16)
             if (i >= _left)
             {
                 if (unicodeLimit16 && ch > 0xffff)
-                    window += '?';
+                    screen[q++] = '?';
                 else
-                    window += ch;
+                    screen[q++] = ch;
             }
         }
 
@@ -1304,21 +1304,21 @@ void Editor::run()
 
 void Editor::updateScreen(bool redrawAll)
 {
-    if (_document)
-        _document->value.drawWindow(_window, _unicodeLimit16);
-    else
-        _window.assign(_width * (_height - 1), ' ');
-
-    ASSERT(_window.charLength() == _width * (_height - 1));
-
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(false);
 #endif
 
-    Console::write(1, 1, _window);
-
     if (_document)
     {
+        _screen.assign(_width * _height, ' ');
+        _output.clear();
+
+        int x = 2, y = 2;
+        _document->value.draw(x, y, _width, _screen, _unicodeLimit16);
+
+        for (int i = 0; i < _width * (_height - 1); ++i)
+            _output += _screen[i];
+
         _status = _document->value.filename();
 
         if (_document->value.modified())
@@ -1332,22 +1332,25 @@ void Editor::updateScreen(bool redrawAll)
 
         if (len <= _width)
         {
-            Console::write(_height, 1, ' ', _width - len);
-            Console::write(_height, _width - len + 1, _status);
+            _output.append(' ', _width - len);
+            _output.append(_status);
         }
         else
         {
-            Console::write(_height, 1, STR("..."), 3);
-            Console::write(_height, 4, _status.charBack(
-                    _status.length(), _width - 3));
+            int p = _status.charBack(_status.length(), _width - 3);
+            _output.append(STR("..."), 3);
+            _output.append(_status.chars() + p, _status.length() - p);
         }
 
+        ASSERT(_output.charLength() == _width * _height);
+
+        Console::write(1, 1, _output);
         Console::setCursorPosition(
-            _document->value.line() - _document->value.top() + 1,
-            _document->value.column() - _document->value.left() + 1);
+            _document->value.line() - _document->value.top() + x,
+            _document->value.column() - _document->value.left() + y);
     }
     else
-        Console::setCursorPosition(1, 1);
+        Console::clear();
 
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(true);
@@ -1362,9 +1365,9 @@ void Editor::setDimensions(int width, int height)
     _height = height;
 
     for (auto doc = _documents.first(); doc; doc = doc->next)
-        doc->value.setDimensions(width, height - 1);
+        doc->value.setDimensions(20, 10);
 
-    _window.ensureCapacity(_width * (_height - 1) + 1);
+    _screen.ensureCapacity(_width * _height);
 }
 
 bool Editor::processInput()
@@ -2093,7 +2096,9 @@ void Editor::cancelCompletion()
 {
     _currentSuggestion = INVALID_POSITION;
     String prefix = _document->value.autocompletePrefix();
-    _document->value.completeWord(prefix);
+
+    if (prefix.length() > 1)
+        _document->value.completeWord(prefix);
 }
 
 int MAIN(int argc, const char_t** argv)

@@ -7,6 +7,7 @@ print clear to eol code at the end of line
 * handle console/terminal window scrolling/resizing
 handle window resize event on Windows
 rewrite screen update code to draw line by line
+use zero based screen coords
 
 editor:
 * new/open/save
