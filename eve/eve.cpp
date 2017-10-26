@@ -395,9 +395,6 @@ bool Document::moveToLineColumn(int line, int column)
 {
     ASSERT(line > 0 && column > 0);
 
-    line = _top + line - 1;
-    column = _left + column - 1;
-
     if (line == _line && column == _column)
         return false;
 
@@ -636,21 +633,6 @@ void Document::pasteText(const String& text, bool lineSelection)
     _selection = -1;
 }
 
-int Document::findLine(int line) const
-{
-    ASSERT(line > 0);
-    int p = 0;
-
-    while (p < _text.length() && line > 1)
-    {
-        if (_text.charAt(p) == '\n')
-            --line;
-        p = _text.charForward(p);
-    }
-
-    return p;
-}
-
 String Document::currentWord() const
 {
     int start = _position;
@@ -723,6 +705,21 @@ void Document::completeWord(const String& word)
         _selectionMode = false;
         _selection = -1;
     }
+}
+
+int Document::findLine(int line) const
+{
+    ASSERT(line > 0);
+    int p = 0;
+
+    while (p < _text.length() && line > 1)
+    {
+        if (_text.charAt(p) == '\n')
+            --line;
+        p = _text.charForward(p);
+    }
+
+    return p;
 }
 
 int Document::findPosition(const String& searchStr, bool caseSesitive, bool next)
@@ -848,10 +845,82 @@ void Document::clear()
 
     _line = _column = 1;
     _preferredColumn = 1;
+
     _top = _left = 1;
+    _width = 100; _height = 50;
 
     _selection = -1;
     _selectionMode = false;
+}
+
+void Document::setDimensions(int width, int height)
+{
+    ASSERT(width > 0 && height > 0);
+
+    _width = width;
+    _height = height;
+}
+
+void Document::drawWindow(String& window, bool unicodeLimit16)
+{
+    window.clear();
+
+    if (_line < _top)
+        _top = _line;
+    else if (_line >= _top + _height)
+        _top = _line - _height + 1;
+
+    if (_column < _left)
+        _left = _column;
+    else if (_column >= _left + _width)
+        _left = _column - _width + 1;
+
+    int p = findLine(_top);
+    int len = _left + _width - 1;
+    unichar_t ch;
+
+    for (int j = 1; j <= _height; ++j)
+    {
+        for (int i = 1; i <= len; ++i)
+        {
+            ch = _text.charAt(p);
+
+            if (ch == '\t')
+            {
+                ch = ' ';
+                if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
+                    p = _text.charForward(p);
+            }
+            else if (ch && ch != '\n')
+                p = _text.charForward(p);
+            else
+                ch = ' ';
+
+            if (i >= _left)
+            {
+                if (unicodeLimit16 && ch > 0xffff)
+                    window += '?';
+                else
+                    window += ch;
+            }
+        }
+
+        ch = _text.charAt(p);
+
+        if (ch == '\n')
+            p = _text.charForward(p);
+        else
+        {
+            while (ch && ch != '\n')
+            {
+                p = _text.charForward(p);
+                ch = _text.charAt(p);
+            }
+
+            if (ch == '\n')
+                p = _text.charForward(p);
+        }
+    }
 }
 
 int Document::findLineStart(int pos) const
@@ -1116,21 +1185,6 @@ void Document::lineColumnToPosition()
     _position = p;
 }
 
-void Document::lineColumnToTopLeft(int width, int height)
-{
-    ASSERT(width > 0 && height > 0);
-
-    if (_line < _top)
-        _top = _line;
-    else if (_line >= _top + height)
-        _top = _line - height + 1;
-
-    if (_column < _left)
-        _left = _column;
-    else if (_column >= _left + width)
-        _left = _column - width + 1;
-}
-
 void Document::trimTrailingWhitespace()
 {
     String trimmed;
@@ -1177,7 +1231,6 @@ Editor::Editor() :
     _lineSelection(false),
     _caseSesitive(true),
     _width(0), _height(0),
-    _screenHeight(0),
     _recentLocation(NULL),
     _currentSuggestion(INVALID_POSITION)
 {
@@ -1252,117 +1305,17 @@ void Editor::run()
 void Editor::updateScreen(bool redrawAll)
 {
     if (_document)
-    {
-        _window.clear();
-        _document->value.lineColumnToTopLeft(_width, _height);
-
-        int p = _document->value.findLine(_document->value.top());
-        int left = _document->value.left();
-        int len = left + _width - 1;
-        unichar_t ch;
-
-        for (int j = 1; j <= _height; ++j)
-        {
-            for (int i = 1; i <= len; ++i)
-            {
-                ch = _document->value.text().charAt(p);
-
-                if (ch == '\t')
-                {
-                    ch = ' ';
-                    if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
-                        p = _document->value.text().charForward(p);
-                }
-                else if (ch && ch != '\n')
-                    p = _document->value.text().charForward(p);
-                else
-                    ch = ' ';
-
-                if (i >= left)
-                {
-                    if (_unicodeLimit16 && ch > 0xffff)
-                        _window += '?';
-                    else
-                        _window += ch;
-                }
-            }
-
-            ch = _document->value.text().charAt(p);
-
-            if (ch == '\n')
-                p = _document->value.text().charForward(p);
-            else
-            {
-                while (ch && ch != '\n')
-                {
-                    p = _document->value.text().charForward(p);
-                    ch = _document->value.text().charAt(p);
-                }
-
-                if (ch == '\n')
-                    p = _document->value.text().charForward(p);
-            }
-        }
-    }
+        _document->value.drawWindow(_window, _unicodeLimit16);
     else
-        _window.assign(_width * _height, ' ');
+        _window.assign(_width * (_height - 1), ' ');
 
-    ASSERT(_window.charLength() == _width * _height);
+    ASSERT(_window.charLength() == _width * (_height - 1));
 
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(false);
 #endif
 
-    if (redrawAll)
-    {
-        Console::write(1, 1, _window);
-    }
-    else
-    {
-        int windowIndex = 0, screenIndex = 0, matchingStartIndex = 0;
-        int matchingStartCharIndex = 0, charIndex = 0;
-        bool matching = true;
-
-        while (windowIndex < _window.length())
-        {
-            if (_window.charAt(windowIndex) == _screen.charAt(screenIndex))
-            {
-                if (!matching)
-                {
-                    Console::write(matchingStartCharIndex / _width + 1, matchingStartCharIndex % _width + 1,
-                        _window.chars() + matchingStartIndex, windowIndex - matchingStartIndex);
-                    matchingStartIndex = windowIndex;
-                    matchingStartCharIndex = charIndex;
-                    matching = true;
-                }
-            }
-            else
-            {
-                if (matching)
-                {
-                    matchingStartIndex = windowIndex;
-                    matchingStartCharIndex = charIndex;
-                    matching = false;
-                }
-            }
-
-            windowIndex = _window.charForward(windowIndex);
-            screenIndex = _screen.charForward(screenIndex);
-            ++charIndex;
-        }
-
-        ASSERT(windowIndex == _window.length());
-        ASSERT(screenIndex == _screen.length());
-        ASSERT(charIndex == _width * _height);
-
-        if (!matching)
-        {
-            Console::write(matchingStartCharIndex / _width + 1, matchingStartCharIndex % _width + 1,
-                _window.chars() + matchingStartIndex, windowIndex - matchingStartIndex);
-        }
-    }
-
-    swap(_window, _screen);
+    Console::write(1, 1, _window);
 
     if (_document)
     {
@@ -1379,13 +1332,13 @@ void Editor::updateScreen(bool redrawAll)
 
         if (len <= _width)
         {
-            Console::write(_screenHeight, 1, ' ', _width - len);
-            Console::write(_screenHeight, _width - len + 1, _status);
+            Console::write(_height, 1, ' ', _width - len);
+            Console::write(_height, _width - len + 1, _status);
         }
         else
         {
-            Console::write(_screenHeight, 1, STR("..."), 3);
-            Console::write(_screenHeight, 4, _status.charBack(
+            Console::write(_height, 1, STR("..."), 3);
+            Console::write(_height, 4, _status.charBack(
                     _status.length(), _width - 3));
         }
 
@@ -1403,14 +1356,15 @@ void Editor::updateScreen(bool redrawAll)
 
 void Editor::setDimensions(int width, int height)
 {
-    ASSERT(width > 0 && height > 0);
+    ASSERT(width > 0 && height > 1);
 
     _width = width;
-    _screenHeight = height;
-    _height = _screenHeight - 1;
+    _height = height;
 
-    _screen.ensureCapacity(_width * _height + 1);
-    _window.ensureCapacity(_width * _height + 1);
+    for (auto doc = _documents.first(); doc; doc = doc->next)
+        doc->value.setDimensions(width, height - 1);
+
+    _window.ensureCapacity(_width * (_height - 1) + 1);
 }
 
 bool Editor::processInput()
@@ -1602,7 +1556,7 @@ bool Editor::processInput()
                             }
                             catch (Exception& ex)
                             {
-                                Console::write(_screenHeight, 1, ex.message());
+                                Console::write(_height, 1, ex.message());
                             }
                         }
                     }
@@ -1705,7 +1659,9 @@ bool Editor::processInput()
                 if (mouseEvent.buttonDown)
                 {
                     if (mouseEvent.button == MOUSE_BUTTON_PRIMARY)
-                        update = _document->value.moveToLineColumn(mouseEvent.y, mouseEvent.x);
+                        update = _document->value.moveToLineColumn(
+                            _document->value.top() + mouseEvent.y - 1,
+                            _document->value.left() +  mouseEvent.x - 1);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_UP)
                         update = _document->value.moveLinesUp(10);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_DOWN)
@@ -1840,17 +1796,17 @@ String Editor::getCommand(const char_t* prompt)
         if (len < _width)
         {
             p = len + 1;
-            Console::write(_screenHeight, 1, cmdLine);
-            Console::write(_screenHeight, len + 1, ' ', _width - len);
+            Console::write(_height, 1, cmdLine);
+            Console::write(_height, len + 1, ' ', _width - len);
         }
         else
         {
             p = _width;
-            Console::write(_screenHeight, 1,
+            Console::write(_height, 1,
                 cmdLine.chars() + cmdLine.charBack(cmdLine.length(), _width - 1), _width - 1);
         }
 
-        Console::setCursorPosition(_screenHeight, p);
+        Console::setCursorPosition(_height, p);
 
         const Array<InputEvent>& inputEvents = Console::readInput();
 

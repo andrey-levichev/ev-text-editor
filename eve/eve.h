@@ -67,6 +67,16 @@ public:
         return _left;
     }
 
+    int width() const
+    {
+        return _width;
+    }
+
+    int height() const
+    {
+        return _height;
+    }
+
     int selection() const
     {
         return _selection;
@@ -112,13 +122,11 @@ public:
     String copyDeleteText(bool copy);
     void pasteText(const String& text, bool lineSelection);
 
-    void lineColumnToTopLeft(int width, int height);
-    int findLine(int line) const;
-
     String currentWord() const;
     String autocompletePrefix() const;
     void completeWord(const String& word);
 
+    int findLine(int line) const;
     int findPosition(const String& searchStr, bool caseSesitive, bool next);
     bool find(const String& searchStr, bool caseSesitive, bool next);
 
@@ -128,6 +136,9 @@ public:
     void open(const String& filename);
     void save();
     void clear();
+
+    void setDimensions(int width, int height);
+    void drawWindow(String& window, bool unicodeLimit16);
 
 protected:
     int findLineStart(int pos) const;
@@ -156,8 +167,11 @@ protected:
     bool _bom;
     bool _crLf;
 
-    int _line, _column, _preferredColumn;
+    int _line, _column;
+    int _preferredColumn;
+
     int _top, _left;
+    int _width, _height;
 
     int _selection;
     bool _selectionMode;
@@ -254,11 +268,10 @@ protected:
     String _searchStr, _replaceStr;
     bool _caseSesitive;
 
-    String _screen;
     String _window;
     String _status;
 
-    int _width, _height, _screenHeight;
+    int _width, _height;
     bool _unicodeLimit16;
 
     List<RecentLocation> _recentLocations;
