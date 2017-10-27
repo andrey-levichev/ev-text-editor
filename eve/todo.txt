@@ -2,12 +2,12 @@ bugs & misc:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 replace key mapping table with trie based word map
-* pasting screen selection from eve doesn't copy newlines on unix
-print clear to eol code at the end of line
-* handle console/terminal window scrolling/resizing
-handle window resize event on Windows
-rewrite screen update code to draw line by line
-use zero based screen coords
+* refactoring screen update code
+put back code for minimal screen update
+change command line to use editor
+move text drawing to window class?
+redraw only current window not the entire screen?
+* readChar/readString don't work on windows
 
 editor:
 * new/open/save
@@ -34,6 +34,11 @@ handle ' and - as part of the word
 pasting multiple chars still doesn't work
 it seems that words are not completed
 ignore case when completing?
+can't change the word in the middle
+* performance optimization
+group small changes and apply together
+stores text as a list of lines
+redraw only one line for small changes
 
 release:
 * webpage, payments

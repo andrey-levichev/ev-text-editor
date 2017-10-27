@@ -894,7 +894,7 @@ void Document::draw(int x, int y, int width, UniCharArray& screen, bool unicodeL
             else if (ch && ch != '\n')
                 p = _text.charForward(p);
             else
-                ch = ' ';
+                ch = 0;
 
             if (i >= _left)
             {
@@ -1313,11 +1313,36 @@ void Editor::updateScreen(bool redrawAll)
         _screen.assign(_width * _height, ' ');
         _output.clear();
 
-        int x = 2, y = 2;
-        _document->value.draw(x, y, _width, _screen, _unicodeLimit16);
+        _document->value.draw(1, 1, _width, _screen, _unicodeLimit16);
 
-        for (int i = 0; i < _width * (_height - 1); ++i)
-            _output += _screen[i];
+        for (int j = 0; j < _height - 1; ++j)
+        {
+            int p = j * _width;
+            _output.clear();
+
+            for (int i = 0; i < _width; ++i)
+            {
+#ifdef PLATFORM_WINDOWS
+                if (_screen[p])
+                    _output += _screen[p++];
+                else
+                {
+                    _output += ' ';
+                    ++p;
+                }
+#else
+                if (_screen[p])
+                    _output += _screen[p++];
+                else
+                {
+                    _output += STR("\x1b[K");
+                    break;
+                }
+#endif
+            }
+
+            Console::write(j + 1, 1, _output);
+        }
 
         _status = _document->value.filename();
 
@@ -1332,22 +1357,19 @@ void Editor::updateScreen(bool redrawAll)
 
         if (len <= _width)
         {
-            _output.append(' ', _width - len);
-            _output.append(_status);
+            Console::write(_height, 1, ' ', _width - len);
+            Console::write(_height, _width - len + 1, _status);
         }
         else
         {
             int p = _status.charBack(_status.length(), _width - 3);
-            _output.append(STR("..."), 3);
-            _output.append(_status.chars() + p, _status.length() - p);
+            Console::write(_height, 1, STR("..."), 3);
+            Console::write(_height, 4, _status.chars() + p, _status.length() - p);
         }
 
-        ASSERT(_output.charLength() == _width * _height);
-
-        Console::write(1, 1, _output);
         Console::setCursorPosition(
-            _document->value.line() - _document->value.top() + x,
-            _document->value.column() - _document->value.left() + y);
+            _document->value.line() - _document->value.top() + 1,
+            _document->value.column() - _document->value.left() + 1);
     }
     else
         Console::clear();
@@ -1365,7 +1387,7 @@ void Editor::setDimensions(int width, int height)
     _height = height;
 
     for (auto doc = _documents.first(); doc; doc = doc->next)
-        doc->value.setDimensions(20, 10);
+        doc->value.setDimensions(_width, _height - 1);
 
     _screen.ensureCapacity(_width * _height);
 }

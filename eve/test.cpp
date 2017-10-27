@@ -5498,8 +5498,14 @@ int MAIN(int argc, const char_t** argv)
         Console::setLineMode(true);
         printPlatformInfo();
 
-        testSupport();
-        testFoundation();
+        Console::clear();
+        Console::write('*', 140);
+        Console::write(STR("\0x1b[K"));
+        Console::write(1, 1, STR("abc"));
+        Console::write(2, 1, STR("def"));
+
+//        testSupport();
+//        testFoundation();
 //        testFile();
 //        testConsole();
 //        testConsoleWrite();
