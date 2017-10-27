@@ -67,6 +67,16 @@ public:
         return _left;
     }
 
+    int x() const
+    {
+        return _x;
+    }
+
+    int y() const
+    {
+        return _y;
+    }
+
     int width() const
     {
         return _width;
@@ -137,8 +147,8 @@ public:
     void save();
     void clear();
 
-    void setDimensions(int width, int height);
-    void draw(int x, int y, int width, UniCharArray& screen, bool unicodeLimit16);
+    void setDimensions(int x, int y, int width, int height);
+    void draw(int screenWidth, UniCharArray& screen, bool unicodeLimit16);
 
 protected:
     int findLineStart(int pos) const;
@@ -171,6 +181,7 @@ protected:
     int _preferredColumn;
 
     int _top, _left;
+    int _x, _y;
     int _width, _height;
 
     int _selection;
@@ -236,17 +247,15 @@ public:
     void run();
 
 protected:
-    void updateScreen(bool redrawAll = false);
+    void updateScreen();
     void setDimensions(int width, int height);
     bool processInput();
 
     void updateRecentLocations();
-    void moveToNextRecentLocation();
-    void moveToPrevRecentLocation();
+    bool moveToNextRecentLocation();
+    bool moveToPrevRecentLocation();
 
-    String getCommand(const char_t* prompt);
-    void processCommand();
-
+    void processCommand(const String& command);
     void buildProject();
 
     void findUniqueWords(const Document& document);
@@ -264,7 +273,6 @@ protected:
     String _buffer;
     bool _lineSelection;
 
-    String _command;
     String _searchStr, _replaceStr;
     bool _caseSesitive;
 

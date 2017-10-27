@@ -6,7 +6,6 @@ replace key mapping table with trie based word map
 put back code for minimal screen update
 change command line to use editor
 move text drawing to window class?
-redraw only current window not the entire screen?
 * readChar/readString don't work on windows
 
 editor:
@@ -35,6 +34,7 @@ pasting multiple chars still doesn't work
 it seems that words are not completed
 ignore case when completing?
 can't change the word in the middle
+exclude - and ' from word chars
 * performance optimization
 group small changes and apply together
 stores text as a list of lines
