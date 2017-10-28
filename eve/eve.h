@@ -67,6 +67,26 @@ public:
         return _left;
     }
 
+    int x() const
+    {
+        return _x;
+    }
+
+    int y() const
+    {
+        return _y;
+    }
+
+    int width() const
+    {
+        return _width;
+    }
+
+    int height() const
+    {
+        return _height;
+    }
+
     int selection() const
     {
         return _selection;
@@ -96,7 +116,7 @@ public:
     bool moveToLineColumn(int line, int column);
 
     void insertNewLine();
-    void insertChar(unichar_t ch);
+    void insertChar(unichar_t ch, bool afterIdent = false);
 
     bool deleteCharForward();
     bool deleteCharBack();
@@ -112,19 +132,23 @@ public:
     String copyDeleteText(bool copy);
     void pasteText(const String& text, bool lineSelection);
 
-    void lineColumnToTopLeft(int width, int height);
-    int findLine(int line) const;
-
     String currentWord() const;
     String autocompletePrefix() const;
+    void completeWord(const String& word);
 
-    int findPosition(const String& searchStr, bool next);
-    bool find(const String& searchStr, bool next);
-    bool replace(const String& searchStr, const String& replaceStr);
+    int findLine(int line) const;
+    int findPosition(const String& searchStr, bool caseSesitive, bool next);
+    bool find(const String& searchStr, bool caseSesitive, bool next);
+
+    bool replace(const String& searchStr, const String& replaceStr, bool caseSesitive);
+    bool replaceAll(const String& searchStr, const String& replaceStr, bool caseSesitive);
 
     void open(const String& filename);
     void save();
     void clear();
+
+    void setDimensions(int x, int y, int width, int height);
+    void draw(int screenWidth, UniCharArray& screen, bool unicodeLimit16);
 
 protected:
     int findLineStart(int pos) const;
@@ -153,8 +177,12 @@ protected:
     bool _bom;
     bool _crLf;
 
-    int _line, _column, _preferredColumn;
+    int _line, _column;
+    int _preferredColumn;
+
     int _top, _left;
+    int _x, _y;
+    int _width, _height;
 
     int _selection;
     bool _selectionMode;
@@ -182,9 +210,25 @@ struct AutocompleteSuggestion
     String word;
     float rank;
 
-    AutocompleteSuggestion(String word, float rank) :
+    AutocompleteSuggestion(const String& word, float rank) :
         word(word), rank(rank)
     {
+    }
+
+    friend void swap(AutocompleteSuggestion& left, AutocompleteSuggestion& right)
+    {
+        swap(left.word, right.word);
+        swap(left.rank, right.rank);
+    }
+
+    friend bool operator<(const AutocompleteSuggestion& left, const AutocompleteSuggestion& right)
+    {
+        if (left.rank > right.rank)
+            return true;
+        else if (left.rank == right.rank)
+            return left.word > right.word;
+        else
+            return false;
     }
 };
 
@@ -197,27 +241,30 @@ public:
     ~Editor();
 
     void openDocument(const char_t* filename);
+    void saveDocument(Document& docment);
     void saveDocuments();
 
     void run();
 
 protected:
-    void updateScreen(bool redrawAll = false);
+    void updateScreen();
     void setDimensions(int width, int height);
     bool processInput();
 
     void updateRecentLocations();
-    void moveToNextRecentLocation();
-    void moveToPrevRecentLocation();
+    bool moveToNextRecentLocation();
+    bool moveToPrevRecentLocation();
 
-    String getCommand(const char_t* prompt);
-    void processCommand();
-
+    void processCommand(const String& command);
     void buildProject();
 
-    void addAutocompleteSuggestions(const Document& document);
-    int findNextSuggestion(const String& prefix, int currentSuggestion);
-    int findPrevSuggestion(const String& prefix, int currentSuggestion);
+    void findUniqueWords(const Document& document);
+    void prepareSuggestions();
+
+    int findNextSuggestion(const String& prefix, int currentSuggestion) const;
+    int findPrevSuggestion(const String& prefix, int currentSuggestion) const;
+    void completeWord(bool next);
+    void cancelCompletion();
 
 protected:
     List<Document> _documents;
@@ -226,20 +273,20 @@ protected:
     String _buffer;
     bool _lineSelection;
 
-    String _command;
     String _searchStr, _replaceStr;
+    bool _caseSesitive;
 
-    String _screen;
-    String _window;
-    String _status;
+    UniCharArray _screen;
+    String _output, _status;
 
-    int _width, _height, _screenHeight;
+    int _width, _height;
     bool _unicodeLimit16;
 
     List<RecentLocation> _recentLocations;
     ListNode<RecentLocation>* _recentLocation;
 
-    Array<AutocompleteSuggestion> _autocompleteSuggestions;
+    Map<String, int> _uniqueWords;
+    Array<AutocompleteSuggestion> _suggestions;
     int _currentSuggestion;
 };
 

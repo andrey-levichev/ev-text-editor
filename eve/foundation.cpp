@@ -319,6 +319,11 @@ bool charIsPrint(unichar_t ch)
     return iswprint(ch);
 }
 
+bool charIsAlpha(unichar_t ch)
+{
+    return iswalpha(ch);
+}
+
 bool charIsAlphaNum(unichar_t ch)
 {
     return iswalnum(ch);
@@ -760,13 +765,15 @@ String String::substr(int pos, int len) const
     }
 }
 
-int String::find(const String& str, int pos) const
+int String::find(const String& str, bool caseSensitive, int pos) const
 {
     ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0 && str._length > 0)
     {
-        const char_t* p = strFind(_chars + pos, str._chars);
+        const char_t* p = caseSensitive ?
+            strFind(_chars + pos, str._chars) : strFindNoCase(_chars + pos, str._chars);
+
         if (p)
             return p - _chars;
     }
@@ -774,13 +781,15 @@ int String::find(const String& str, int pos) const
     return INVALID_POSITION;
 }
 
-int String::find(const char_t* chars, int pos) const
+int String::find(const char_t* chars, bool caseSensitive, int pos) const
 {
     ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0 && chars && *chars)
     {
-        const char_t* p = strFind(_chars + pos, chars);
+        const char_t* p = caseSensitive ?
+            strFind(_chars + pos, chars) : strFindNoCase(_chars + pos, chars);
+
         if (p)
             return p - _chars;
     }
@@ -788,120 +797,101 @@ int String::find(const char_t* chars, int pos) const
     return INVALID_POSITION;
 }
 
-int String::find(unichar_t ch, int pos) const
+int String::find(unichar_t ch, bool caseSensitive, int pos) const
 {
     ASSERT(ch != 0);
     ASSERT(pos >= 0 && pos <= _length);
 
     if (_length > 0)
     {
-        while (pos < _length)
+        if (caseSensitive)
         {
-            if (charAt(pos) == ch)
-                return pos;
-            pos = charForward(pos);
+            while (pos < _length)
+            {
+                if (charAt(pos) == ch)
+                    return pos;
+                pos = charForward(pos);
+            }
+        }
+        else
+        {
+            ch = charToLower(ch);
+            while (pos < _length)
+            {
+                if (charToLower(charAt(pos)) == ch)
+                    return pos;
+                pos = charForward(pos);
+            }
         }
     }
 
     return INVALID_POSITION;
 }
 
-int String::findNoCase(const String& str, int pos) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-
-    if (_length > 0 && str._length > 0)
-    {
-        const char_t* p = strFindNoCase(_chars + pos, str._chars);
-        if (p)
-            return p - _chars;
-    }
-
-    return INVALID_POSITION;
-}
-
-int String::findNoCase(const char_t* chars, int pos) const
-{
-    ASSERT(pos >= 0 && pos <= _length);
-
-    if (_length > 0 && chars && *chars)
-    {
-        const char_t* p = strFindNoCase(_chars + pos, chars);
-        if (p)
-            return p - _chars;
-    }
-
-    return INVALID_POSITION;
-}
-
-int String::findNoCase(unichar_t ch, int pos) const
-{
-    ASSERT(ch != 0);
-    ASSERT(pos >= 0 && pos <= _length);
-
-    if (_length > 0)
-    {
-        ch = charToLower(ch);
-
-        while (pos < _length)
-        {
-            if (charToLower(charAt(pos)) == ch)
-                return pos;
-            pos = charForward(pos);
-        }
-    }
-
-    return INVALID_POSITION;
-}
-
-bool String::startsWith(const String& str) const
+bool String::startsWith(const String& str, bool caseSensitive) const
 {
     if (str._length > 0 && _length > 0)
-        return strCompareLen(_chars, str._chars, str._length) == 0;
+    {
+        return caseSensitive ?
+            strCompareLen(_chars, str._chars, str._length) == 0 :
+            strCompareLenNoCase(_chars, str._chars, str._length) == 0;
+    }
     else
         return false;
 }
 
-bool String::startsWith(const char_t* chars) const
+bool String::startsWith(const char_t* chars, bool caseSensitive) const
 {
     if (chars)
     {
         int len = strLen(chars);
         if (len > 0 && _length > 0)
-            return strCompareLen(_chars, chars, len) == 0;
+        {
+            return caseSensitive ?
+                strCompareLen(_chars, chars, len) == 0 :
+                strCompareLenNoCase(_chars, chars, len) == 0;
+        }
     }
 
     return false;
 }
 
-bool String::endsWith(const String& str) const
+bool String::endsWith(const String& str, bool caseSensitive) const
 {
     if (str._length > 0 && _length > 0 && str._length <= _length)
-        return strCompare(_chars + _length - str._length, str._chars) == 0;
+    {
+        return caseSensitive ?
+            strCompare(_chars + _length - str._length, str._chars) == 0 :
+            strCompareNoCase(_chars + _length - str._length, str._chars) == 0;
+    }
     else
         return false;
 }
 
-bool String::endsWith(const char_t* chars) const
+bool String::endsWith(const char_t* chars, bool caseSensitive) const
 {
     if (chars)
     {
         int len = strLen(chars);
         if (len > 0 && _length > 0 && len <= _length)
-            return strCompare(_chars + _length - len, chars) == 0;
+        {
+            return caseSensitive ?
+                strCompare(_chars + _length - len, chars) == 0 :
+                strCompareNoCase(_chars + _length - len, chars) == 0;
+        }
     }
 
     return false;
 }
 
-bool String::contains(const String& str) const
+bool String::contains(const String& str, bool caseSensitive) const
 {
-    return find(str) >= 0;
+    return find(str, caseSensitive) >= 0;
 }
 
-bool String::contains(const char_t* chars) const
+bool String::contains(const char_t* chars, bool caseSensitive) const
 {
-    return find(chars) >= 0;
+    return find(chars, caseSensitive) >= 0;
 }
 
 void String::ensureCapacity(int capacity)
@@ -1158,7 +1148,7 @@ void String::erase(int pos, int len)
         ASSERT(len <= 0);
 }
 
-void String::eraseString(const String& str)
+void String::eraseString(const String& str, bool caseSensitive)
 {
     if (_length > 0)
     {
@@ -1166,11 +1156,15 @@ void String::eraseString(const String& str)
         {
             ASSERT(this != &str);
 
+            char_t* (*findFunc)(char_t*, const char_t*) = strFindNoCase;
+            if (caseSensitive)
+                findFunc = strFind;
+
             char_t* from = _chars;
             char_t* found;
             int foundCnt = 0;
 
-            while ((found = strFind(from, str._chars)) != NULL)
+            while ((found = findFunc(from, str._chars)) != NULL)
             {
                 ++foundCnt;
                 from = found + str._length;
@@ -1182,7 +1176,7 @@ void String::eraseString(const String& str)
                 if (newLen > 0)
                 {
                     from = _chars;
-                    while ((found = strFind(from, str._chars)) != NULL)
+                    while ((found = findFunc(from, str._chars)) != NULL)
                     {
                         strMove(found, found + str._length,
                             _chars + _length - found - str._length + 1);
@@ -1198,7 +1192,7 @@ void String::eraseString(const String& str)
     }
 }
 
-void String::eraseString(const char_t* chars)
+void String::eraseString(const char_t* chars, bool caseSensitive)
 {
     if (_length > 0)
     {
@@ -1206,11 +1200,15 @@ void String::eraseString(const char_t* chars)
         {
             ASSERT(_chars != chars);
 
+            char_t* (*findFunc)(char_t*, const char_t*) = strFindNoCase;
+            if (caseSensitive)
+                findFunc = strFind;
+
             char_t* from = _chars;
             char_t* found;
             int foundCnt = 0, len = strLen(chars);
 
-            while ((found = strFind(from, chars)) != NULL)
+            while ((found = findFunc(from, chars)) != NULL)
             {
                 ++foundCnt;
                 from = found + len;
@@ -1222,7 +1220,7 @@ void String::eraseString(const char_t* chars)
                 if (newLen > 0)
                 {
                     from = _chars;
-                    while ((found = strFind(from, chars)) != NULL)
+                    while ((found = findFunc(from, chars)) != NULL)
                     {
                         strMove(found, found + len,
                             _chars + _length - found - len + 1);
@@ -1315,7 +1313,7 @@ void String::replace(int pos, const char_t* chars, int len)
     }
 }
 
-void String::replaceString(const String& searchStr, const String& replaceStr)
+void String::replaceString(const String& searchStr, const String& replaceStr, bool caseSensitive)
 {
     if (_length > 0)
     {
@@ -1327,11 +1325,15 @@ void String::replaceString(const String& searchStr, const String& replaceStr)
             {
                 ASSERT(this != &replaceStr);
 
+                char_t* (*findFunc)(char_t*, const char_t*) = strFindNoCase;
+                if (caseSensitive)
+                    findFunc = strFind;
+
                 char_t* from = _chars;
                 char_t* found;
                 int foundCnt = 0;
 
-                while ((found = strFind(from, searchStr._chars)) != NULL)
+                while ((found = findFunc(from, searchStr._chars)) != NULL)
                 {
                     ++foundCnt;
                     from = found + searchStr._length;
@@ -1343,7 +1345,7 @@ void String::replaceString(const String& searchStr, const String& replaceStr)
                     ensureCapacity(capacity);
 
                     from = _chars;
-                    while ((found = strFind(from, searchStr._chars)) != NULL)
+                    while ((found = findFunc(from, searchStr._chars)) != NULL)
                     {
                         strMove(found + replaceStr._length, found + searchStr._length,
                             _chars + _length - found - searchStr._length + 1);
@@ -1360,7 +1362,7 @@ void String::replaceString(const String& searchStr, const String& replaceStr)
     }
 }
 
-void String::replaceString(const char_t* searchChars, const char_t* replaceChars)
+void String::replaceString(const char_t* searchChars, const char_t* replaceChars, bool caseSensitive)
 {
     if (_length > 0)
     {
@@ -1372,12 +1374,16 @@ void String::replaceString(const char_t* searchChars, const char_t* replaceChars
             {
                 ASSERT(_chars != replaceChars);
 
+                char_t* (*findFunc)(char_t*, const char_t*) = strFindNoCase;
+                if (caseSensitive)
+                    findFunc = strFind;
+
                 char_t* from = _chars;
                 char_t* found;
                 int foundCnt = 0;
                 int searchLen = strLen(searchChars);
 
-                while ((found = strFind(from, searchChars)) != NULL)
+                while ((found = findFunc(from, searchChars)) != NULL)
                 {
                     ++foundCnt;
                     from = found + searchLen;
@@ -1390,7 +1396,7 @@ void String::replaceString(const char_t* searchChars, const char_t* replaceChars
                     ensureCapacity(capacity);
 
                     from = _chars;
-                    while ((found = strFind(from, searchChars)) != NULL)
+                    while ((found = findFunc(from, searchChars)) != NULL)
                     {
                         strMove(found + replaceLen, found + searchLen,
                             _chars + _length - found - searchLen + 1);
@@ -1572,9 +1578,9 @@ char_t* String::release()
 
 bool String::toBool() const
 {
-    if (compareNoCase(STR("true")) == 0)
+    if (compare(STR("true"), false) == 0)
         return true;
-    else if (compareNoCase(STR("false")) == 0)
+    else if (compare(STR("false"), false) == 0)
         return false;
     else
         throw Exception(STR("invalid boolean value"));

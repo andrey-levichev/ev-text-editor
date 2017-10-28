@@ -2,17 +2,15 @@ bugs & misc:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 replace key mapping table with trie based word map
-* pasting screen selection from eve doesn't copy newlines on unix
-print clear to eol code at the end of line
-* get rid of global vars
-* preserve column position after line delete
-* remember last edited line in recent places
+* refactoring screen update code
+put back code for minimal screen update
+change command line to use editor
+move text drawing to window class?
+* readChar/readString don't work on windows
 
 editor:
-* autocomplete
 * new/open/save
 * switch between documents with alt+number
-* find/replace all, ignore case
 * syntax highlighting
 * parse build output for errors
 * undo/redo
@@ -21,16 +19,29 @@ editor:
 * config file
 * clipboard integration
 * selection with arrows and highlighting
-* handle console/terminal window scrolling/resizing
-handle window resize event on Windows
-rewrite screen update code to draw line by line
-review logic with preferred column
 * customizable key mappings
 * line wrapping
+* find/replace back, find in all documents
+* graphical user interface
+* autocomplete improvements
+trie based suggestions
+scan all documents in current directory
+better dictionary (spelling dictionary without frequency)
+prefer the shortest match
+can't insert punctuation in front of the word
+handle ' and - as part of the word
+pasting multiple chars still doesn't work
+it seems that words are not completed
+ignore case when completing?
+can't change the word in the middle
+exclude - and ' from word chars
+* performance optimization
+group small changes and apply together
+stores text as a list of lines
+redraw only one line for small changes
 
 release:
-* graphical user interface
-* webpage, payment system
+* webpage, payments
 * registration code generation/checking
 * license, relase notes, documentation
 * install package, auto-update
@@ -81,4 +92,4 @@ unicode char literals don't work on solaris/aix
 how to minimize the use of raw pointers?
 list vs array - when to use?
 get rid of underscores?
-equals/less - function or overloaded operator?
+compare smart pointers or their contents?

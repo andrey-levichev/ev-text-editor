@@ -44,9 +44,9 @@ void printArgs(const char_t* format, va_list args)
 
 static const char* controlKeys = "@abcdefghijklmnopqrstuvwxyz[\\]^_";
 
-volatile bool screenSizeChanged = false;
-
 #ifdef PLATFORM_UNIX
+
+static volatile bool screenSizeChanged = false;
 
 extern "C" void onSIGWINCH(int sig)
 {
@@ -323,8 +323,7 @@ Console::Constructor::Constructor()
     ASSERT(handle);
 
     BOOL rc2 = SetConsoleMode(handle, ENABLE_EXTENDED_FLAGS |
-        ENABLE_INSERT_MODE | ENABLE_QUICK_EDIT_MODE |
-        ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT);
+        ENABLE_INSERT_MODE | ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT);
     ASSERT(rc2);
 #endif
 
@@ -813,10 +812,45 @@ const Array<InputEvent>& Console::readInput()
             }
             else if (inputRec.EventType == MOUSE_EVENT)
             {
-                MouseEvent mouseEvent(inputRec.Event.MouseEvent.dwMousePosition.X,
-                    inputRec.Event.MouseEvent.dwMousePosition.Y);
-                mouseEvent.button = MOUSE_BUTTON_PRIMARY;
-                _inputEvents.addLast(mouseEvent);
+                HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+                ASSERT(handle);
+
+                CONSOLE_SCREEN_BUFFER_INFO csbi;
+                BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
+                ASSERT(rc);
+
+                MouseEvent mouseEvent(
+                    inputRec.Event.MouseEvent.dwMousePosition.X - csbi.srWindow.Left + 1,
+                    inputRec.Event.MouseEvent.dwMousePosition.Y - csbi.srWindow.Top + 1);
+
+                if (inputRec.Event.MouseEvent.dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED)
+                    mouseEvent.button = MOUSE_BUTTON_PRIMARY;
+                else if (inputRec.Event.MouseEvent.dwButtonState & FROM_LEFT_2ND_BUTTON_PRESSED)
+                    mouseEvent.button = MOUSE_BUTTON_WHEEL;
+                else if (inputRec.Event.MouseEvent.dwButtonState & RIGHTMOST_BUTTON_PRESSED)
+                    mouseEvent.button = MOUSE_BUTTON_SECONDARY;
+                else if (inputRec.Event.MouseEvent.dwEventFlags & MOUSE_WHEELED)
+                {
+                    mouseEvent.button = *reinterpret_cast<int*>(
+                        &inputRec.Event.MouseEvent.dwButtonState) > 0 ?
+                        MOUSE_BUTTON_WHEEL_UP : MOUSE_BUTTON_WHEEL_DOWN;
+                }
+
+                if (mouseEvent.button != MOUSE_BUTTON_NONE)
+                {
+                    if (inputRec.Event.MouseEvent.dwControlKeyState & LEFT_ALT_PRESSED)
+                        mouseEvent.alt = true;
+                    else if (inputRec.Event.MouseEvent.dwControlKeyState & RIGHT_ALT_PRESSED)
+                        mouseEvent.alt = true;
+                    else if (inputRec.Event.MouseEvent.dwControlKeyState & LEFT_CTRL_PRESSED)
+                        mouseEvent.ctrl = true;
+                    else if (inputRec.Event.MouseEvent.dwControlKeyState & RIGHT_CTRL_PRESSED)
+                        mouseEvent.ctrl = true;
+                    else if (inputRec.Event.MouseEvent.dwControlKeyState & SHIFT_PRESSED)
+                        mouseEvent.shift = true;
+
+                    _inputEvents.addLast(mouseEvent);
+                }
             }
             else if (inputRec.EventType == WINDOW_BUFFER_SIZE_EVENT)
             {
@@ -895,7 +929,7 @@ const Array<InputEvent>& Console::readInput()
                 {
                     if (*p == '[' && *(p + 1) == '<')
                     {
-                        int button, x, y, n;
+                        int button, x, y;
                         char down;
 
                         if (sscanf(p + 2, "%d;%d;%d%c%n", &button, &x, &y, &down, &n) == 4)

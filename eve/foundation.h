@@ -228,6 +228,7 @@ double strToDouble(const char_t* str, char_t** end);
 
 bool charIsSpace(unichar_t ch);
 bool charIsPrint(unichar_t ch);
+bool charIsAlpha(unichar_t ch);
 bool charIsAlphaNum(unichar_t ch);
 bool charIsUpper(unichar_t ch);
 bool charIsLower(unichar_t ch);
@@ -413,14 +414,6 @@ inline void swapBytes(uint64_t* values, int len)
 #define ASSERT_EXCEPTION_MSG(exception, msg, ...)
 
 #endif
-
-// equality function
-
-template<typename _Type>
-inline bool equalsTo(const _Type& left, const _Type& right)
-{
-    return left == right;
-}
 
 // hash function
 
@@ -705,7 +698,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 template<typename _Type>
 inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 {
-    ASSERT((size == 0 && !values) || (size > 0 && values));
+    ASSERT(size == 0 || (size > 0 && values));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -728,7 +721,7 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 template<typename _Type>
 inline _Type* createArrayMove(int size, int capacity, _Type* values)
 {
-    ASSERT((size == 0 && !values) || (size > 0 && values));
+    ASSERT(size == 0 || (size > 0 && values));
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -843,12 +836,25 @@ public:
 
     friend bool operator==(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
     {
-        return left._ptr == right._ptr;
+        if (left)
+        {
+            if (right)
+                return *left == *right;
+            else
+                return false;
+        }
+        else
+        {
+            if (right)
+                return false;
+            else
+                return true;
+        }
     }
 
     friend bool operator!=(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
     {
-        return left._ptr != right._ptr;
+        return !operator==(left, right);
     }
 
     template<typename _T>
@@ -935,7 +941,7 @@ public:
     _Type* operator->() const
     {
         if (_sharedPtr)
-            return reinterpret_cast<_Type*>(_sharedPtr);
+            return &_sharedPtr->object;
         else
             throw NullPointerException();
     }
@@ -953,7 +959,7 @@ public:
     _Type* ptr() const
     {
         if (_sharedPtr)
-            return reinterpret_cast<_Type*>(_sharedPtr);
+            return &_sharedPtr->object;
         else
             return NULL;
     }
@@ -1175,41 +1181,32 @@ public:
 
     String substr(int pos, int len = -1) const;
 
-    int compare(const String& str) const
+    int compare(const String& str, bool caseSensitive = true) const
     {
-        return strCompare(this->chars(), str.chars());
+        return caseSensitive ?
+            strCompare(this->chars(), str.chars()) :
+            strCompareNoCase(this->chars(), str.chars());
     }
 
-    int compare(const char_t* chars) const
+    int compare(const char_t* chars, bool caseSensitive = true) const
     {
-        return strCompare(this->chars(), chars ? chars : STR(""));
+        return caseSensitive ?
+            strCompare(this->chars(), chars ? chars : STR("")) :
+            strCompareNoCase(this->chars(), chars ? chars : STR(""));
     }
 
-    int compareNoCase(const String& str) const
-    {
-        return strCompareNoCase(this->chars(), str.chars());
-    }
+    int find(const String& str, bool caseSensitive = true, int pos = 0) const;
+    int find(const char_t* chars, bool caseSensitive = true, int pos = 0) const;
+    int find(unichar_t ch, bool caseSensitive = true, int pos = 0) const;
 
-    int compareNoCase(const char_t* chars) const
-    {
-        return strCompareNoCase(this->chars(), chars ? chars : STR(""));
-    }
+    bool startsWith(const String& str, bool caseSensitive = true) const;
+    bool startsWith(const char_t* chars, bool caseSensitive = true) const;
 
-    int find(const String& str, int pos = 0) const;
-    int find(const char_t* chars, int pos = 0) const;
-    int find(unichar_t ch, int pos = 0) const;
-    int findNoCase(const String& str, int pos = 0) const;
-    int findNoCase(const char_t* chars, int pos = 0) const;
-    int findNoCase(unichar_t ch, int pos = 0) const;
+    bool endsWith(const String& str, bool caseSensitive = true) const;
+    bool endsWith(const char_t* chars, bool caseSensitive = true) const;
 
-    bool startsWith(const String& str) const;
-    bool startsWith(const char_t* chars) const;
-
-    bool endsWith(const String& str) const;
-    bool endsWith(const char_t* chars) const;
-
-    bool contains(const String& str) const;
-    bool contains(const char_t* chars) const;
+    bool contains(const String& str, bool caseSensitive = true) const;
+    bool contains(const char_t* chars, bool caseSensitive = true) const;
 
     void ensureCapacity(int capacity);
     void shrinkToLength();
@@ -1230,13 +1227,13 @@ public:
     void insert(int pos, unichar_t ch, int n = 1);
 
     void erase(int pos, int len = -1);
-    void eraseString(const String& str);
-    void eraseString(const char_t* chars);
+    void eraseString(const String& str, bool caseSensitive = true);
+    void eraseString(const char_t* chars, bool caseSensitive = true);
 
     void replace(int pos, const String& str, int len = -1);
     void replace(int pos, const char_t* chars, int len = -1);
-    void replaceString(const String& searchStr, const String& replaceStr);
-    void replaceString(const char_t* searchChars, const char_t* replaceChars);
+    void replaceString(const String& searchStr, const String& replaceStr, bool caseSensitive = true);
+    void replaceString(const char_t* searchChars, const char_t* replaceChars, bool caseSensitive = true);
 
     void trim();
     void trimRight();
@@ -1609,7 +1606,7 @@ public:
 
     Array(int size, const _Type* values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(size == 0 || (size > 0 && values));
 
         _size = size;
         _capacity = size;
@@ -1736,7 +1733,7 @@ public:
     int find(const _Type& value) const
     {
         for (int i = 0; i < _size; ++i)
-            if (equalsTo(_values[i], value))
+            if (_values[i] == value)
                 return i;
 
         return INVALID_POSITION;
@@ -1815,7 +1812,7 @@ public:
 
     void assign(int size, const _Type* values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values && values != _values));
+        ASSERT(size == 0 || (size > 0 && values && values != _values));
 
         if (size <= _capacity)
         {
@@ -1923,6 +1920,12 @@ public:
         Memory::destruct(_values + _size);
     }
 
+    void sort()
+    {
+        if (_size > 0)
+            quicksort(0, _size - 1);
+    }
+
     void clear()
     {
         Memory::destructArray(_size, _values);
@@ -1964,7 +1967,7 @@ protected:
     Array(int size, int capacity, _Type* values) :
         _size(size), _capacity(capacity), _values(values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(size == 0 || (size > 0 && values));
         ASSERT(capacity >= 0 && size <= capacity);
     }
 
@@ -1976,6 +1979,35 @@ protected:
         Memory::destroyArray(_size, _values);
         _values = values;
         _capacity = capacity;
+    }
+
+    void quicksort(int low, int high)
+    {
+        if (low < high)
+        {
+            int p = partition(low, high);
+            quicksort(low, p);
+            quicksort(p + 1, high);
+        }
+    }
+
+    int partition(int low, int high)
+    {
+        _Type pivot = _values[low];
+        int i = low - 1;
+        int j = high + 1;
+
+        while (true)
+        {
+            do ++i; while (_values[i] < pivot);
+
+            do --j; while (pivot < _values[j]);
+
+            if (i >= j)
+                return j;
+
+            swap(_values[i], _values[j]);
+        }
     }
 
 protected:
@@ -2163,7 +2195,7 @@ public:
     List(int size, const _Type* values) :
         _first(NULL), _last(NULL)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(size == 0 || (size > 0 && values));
 
         try
         {
@@ -2266,7 +2298,7 @@ public:
     ListNode<_Type>* find(const _Type& value)
     {
         for (auto node = _first; node; node = node->next)
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return node;
 
         return NULL;
@@ -2275,7 +2307,7 @@ public:
     const ListNode<_Type>* find(const _Type& value) const
     {
         for (auto node = _first; node; node = node->next)
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return node;
 
         return NULL;
@@ -2537,12 +2569,12 @@ struct KeyValue
     _Value value;
 
     KeyValue(const _Key& key) :
-        key(key)
+        key(key), value()
     {
     }
 
     KeyValue(_Key&& key) :
-        key(static_cast<_Key&&>(key))
+        key(static_cast<_Key&&>(key)), value()
     {
     }
 
@@ -2819,7 +2851,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value.key, key))
+            if (node->value.key == key)
                 return node->value.value;
         }
 
@@ -2838,7 +2870,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value.key, key))
+            if (node->value.key == key)
                 return node->value.value;
         }
 
@@ -2865,7 +2897,7 @@ public:
 
             for (auto node = bucket.first(); node; node = node->next)
             {
-                if (equalsTo(node->value.key, key))
+                if (node->value.key == key)
                     return &node->value.value;
             }
         }
@@ -2881,7 +2913,7 @@ public:
 
             for (auto node = bucket.first(); node; node = node->next)
             {
-                if (equalsTo(node->value.key, key))
+                if (node->value.key == key)
                     return &node->value.value;
             }
         }
@@ -2904,7 +2936,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value.key, key))
+            if (node->value.key == key)
             {
                 node->value.value = value;
                 return;
@@ -2924,7 +2956,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value.key, key))
+            if (node->value.key == key)
             {
                 node->value.value = static_cast<_Value&&>(value);
                 return;
@@ -2945,7 +2977,7 @@ public:
 
             for (auto node = bucket.first(); node; node = node->next)
             {
-                if (equalsTo(node->value.key, key))
+                if (node->value.key == key)
                 {
                     bucket.remove(node);
                     --_size;
@@ -3166,7 +3198,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return true;
         }
 
@@ -3188,7 +3220,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return;
         }
 
@@ -3205,7 +3237,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value, value))
+            if (node->value == value)
                 return;
         }
 
@@ -3237,7 +3269,7 @@ public:
 
         for (auto node = bucket.first(); node; node = node->next)
         {
-            if (equalsTo(node->value, value))
+            if (node->value == value)
             {
                 bucket.remove(node);
                 --_size;

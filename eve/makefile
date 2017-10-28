@@ -2,8 +2,8 @@ HEADERS=foundation.h console.h file.h
 SOURCES=foundation.cpp console.cpp file.cpp
 TEST_HEADERS=test.h $(HEADERS)
 TEST_SOURCES=test.cpp $(SOURCES)
-EVE_HEADERS=eve.h $(HEADERS)
-EVE_SOURCES=eve.cpp $(SOURCES)
+EVE_HEADERS=eve.h dictionary.h $(HEADERS)
+EVE_SOURCES=eve.cpp dictionary.cpp $(SOURCES)
 
 TRASH=eve.dbg.vcpp.exe eve.vcpp.exe test.dbg.vcpp.exe test.vcpp.exe *.obj *.ilk *.pdb \
 	eve.dbg.gcc eve.dbg.clang eve.dbg.sol eve.dbg.xlc \
@@ -33,7 +33,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: test.dbg.vcpp.exe
+all: eve.dbg.gcc
 
 eve.dbg.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)
