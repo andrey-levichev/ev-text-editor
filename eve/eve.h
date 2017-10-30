@@ -248,6 +248,8 @@ public:
 
 protected:
     void updateScreen();
+    void updateStatusLine();
+
     void setDimensions(int width, int height);
     bool processInput();
 
@@ -269,6 +271,8 @@ protected:
 protected:
     List<Document> _documents;
     ListNode<Document>* _document;
+    ListNode<Document>* _lastDocument;
+    ListNode<Document> _commandLine;
 
     String _buffer;
     bool _lineSelection;
@@ -277,7 +281,10 @@ protected:
     bool _caseSesitive;
 
     UniCharArray _screen;
-    String _output, _status;
+    UniCharArray _prevScreen;
+    String _output;
+
+    String _status, _message;
 
     int _width, _height;
     bool _unicodeLimit16;
