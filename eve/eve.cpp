@@ -3,6 +3,20 @@
 
 const int TAB_SIZE = 4;
 
+uint64_t timer()
+{
+#ifdef PLATFORM_WINDOWS
+    LARGE_INTEGER freq, time;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&time);
+    return time.QuadPart * 1000000 / freq.QuadPart;
+#else
+    timespec time;
+    clock_gettime(CLOCK_REALTIME, &time);
+    return time.tv_sec * 1000000 + time.tv_nsec / 1000;
+#endif
+}
+
 bool charIsWord(unichar_t ch)
 {
     return charIsAlphaNum(ch) || ch == '_' || ch == '-' || ch == '\'';
@@ -1309,11 +1323,13 @@ void Editor::run()
     while (processInput());
 }
 
-void Editor::updateScreen()
+void Editor::updateScreen(bool showUpdateRegion)
 {
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(false);
 #endif
+
+    uint64_t time = timer();
 
     if (_document)
     {
@@ -1325,40 +1341,92 @@ void Editor::updateScreen()
         else
             updateStatusLine();
 
+//        for (int j = 0; j < _height; ++j)
+//        {
+//            int p = j * _width;
+//            _output.clear();
+//
+//            for (int i = 0; i < _width; ++i)
+//            {
+//#ifdef PLATFORM_WINDOWS
+//                if (_screen[p])
+//                    _output += _screen[p++];
+//                else
+//                {
+//                    _output += ' ';
+//                    ++p;
+//                }
+//#else
+//                if (_screen[p])
+//                    _output += _screen[p++];
+//                else
+//                {
+//                    _output += STR("\x1b[K");
+//                    break;
+//                }
+//#endif
+//            }
+//
+//            Console::write(j + 1, 1, _output);
+//        }
+
         for (int j = 0; j < _height; ++j)
         {
-            int p = j * _width, i = 0, start = 0;
-            bool matching = true;
+            int p = j * _width, start = p, end = p + _width - 1;
+            _output.clear();
 
-            for (; i < _width; ++i, ++p)
-            {
-                if (_screen[p] == _prevScreen[p])
-                {
-                    if (!matching)
-                    {
-                        Console::write(j + 1, start + 1, _output);
-                        start = i;
-                        matching = true;
-                    }
-                }
-                else
-                {
-                    if (matching)
-                    {
-                        start = i;
-                        matching = false;
-                        _output.clear();
-                    }
+            while (start <= end && _screen[start] == _prevScreen[start])
+                ++start;
 
-                    _output += _screen[p];
-                }
-            }
+            while (start <= end && _screen[end] == _prevScreen[end])
+                --end;
 
-            if (!matching)
-                 Console::write(j + 1, start + 1, _output);
+            for (int i = start; i <= end; ++i)
+                _output += showUpdateRegion ? '#' : _screen[i];
+
+            Console::write(j + 1, start - p + 1, _output);
         }
 
-        swap(_screen, _prevScreen);
+//        for (int j = 0; j < _height; ++j)
+//        {
+//            int p = j * _width, i = 0, start = 0;
+//            bool matching = true;
+//
+//            for (; i < _width; ++i, ++p)
+//            {
+//                if (_screen[p] == _prevScreen[p])
+//                {
+//                    if (!matching)
+//                    {
+//                        Console::write(j + 1, start + 1, _output);
+//                        start = i;
+//                        matching = true;
+//                    }
+//                }
+//                else
+//                {
+//                    if (matching)
+//                    {
+//                        start = i;
+//                        matching = false;
+//                        _output.clear();
+//                    }
+//
+//                    _output += showUpdateRegion ? '#' : _screen[p];
+//                }
+//            }
+//
+//            if (!matching)
+//                 Console::write(j + 1, start + 1, _output);
+//        }
+
+        if (!showUpdateRegion)
+        {
+            swap(_prevScreen, _screen);
+
+            Console::setCursorPosition(_height, 1);
+            Console::writeFormatted(STR("%6lu"), timer() - time);
+        }
 
         Console::setCursorPosition(
             doc.line() - doc.top() + doc.y(),
@@ -1805,7 +1873,11 @@ bool Editor::processInput()
     }
 
     if (update)
+    {
+//        updateScreen(true);
+//        sleep(1);
         updateScreen();
+    }
 
     if (modified)
         updateRecentLocations();

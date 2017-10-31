@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <locale.h>
+#include <time.h>
 
 // 32/64 bit
 
