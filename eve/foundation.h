@@ -505,6 +505,14 @@ inline int hash(const _Type1& val1, const _Type2& val2)
 typedef unsigned char byte_t;
 #define INVALID_POSITION -1
 
+// Timer
+
+struct Timer
+{
+    static void sleep(uint64_t usec);
+    static uint64_t ticks();
+};
+
 // Exception
 
 class Exception

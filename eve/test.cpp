@@ -5177,6 +5177,7 @@ void testConsoleReadChar()
     {
         unichar_t ch = Console::readChar();
         Console::write(ch);
+
         if (ch == 'q')
             break;
     }
@@ -5190,6 +5191,7 @@ void testConsoleReadLine()
     {
         String line = Console::readLine();
         Console::writeLine(line);
+
         if (line == STR("quit"))
             break;
     }
@@ -5495,14 +5497,7 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        Console::setLineMode(true);
         printPlatformInfo();
-
-        Console::clear();
-        Console::write('*', 140);
-        Console::write(STR("\0x1b[K"));
-        Console::write(1, 1, STR("abc"));
-        Console::write(2, 1, STR("def"));
 
 //        testSupport();
 //        testFoundation();
@@ -5510,7 +5505,7 @@ int MAIN(int argc, const char_t** argv)
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
-//        testConsoleReadLine();
+        testConsoleReadLine();
 //        testConsoleReadInput();
     }
     catch (Exception& ex)

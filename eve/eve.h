@@ -247,7 +247,7 @@ public:
     void run();
 
 protected:
-    void updateScreen(bool showUpdateRegion = false);
+    void updateScreen(bool redrawAll);
     void updateStatusLine();
 
     void setDimensions(int width, int height);

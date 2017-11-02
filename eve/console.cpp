@@ -308,46 +308,55 @@ Console::Constructor Console::constructor;
 
 Console::Constructor::Constructor()
 {
-    setlocale(LC_ALL, "");
-
+    try
+    {
 #ifdef PLATFORM_WINDOWS
+        int rc = _setmode(_fileno(stdin), _O_U16TEXT);
+        ASSERT(rc >= 0);
 
-#ifdef CHAR_ENCODING_UTF16
-    int rc = _setmode(_fileno(stdin), _O_U16TEXT);
-    ASSERT(rc >= 0);
-
-    rc = _setmode(_fileno(stdout), _O_U16TEXT);
-    ASSERT(rc >= 0);
-
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    ASSERT(handle);
-
-    BOOL rc2 = SetConsoleMode(handle, ENABLE_EXTENDED_FLAGS |
-        ENABLE_INSERT_MODE | ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT);
-    ASSERT(rc2);
-#endif
-
+        rc = _setmode(_fileno(stdout), _O_U16TEXT);
+        ASSERT(rc >= 0);
 #else
-    int rc = setvbuf(stdout, NULL, _IONBF, 0);
-    ASSERT(rc == 0);
+        int rc = setvbuf(stdout, NULL, _IONBF, 0);
+        ASSERT(rc == 0);
 
-    printf("\x1b[?1000h");
-    printf("\x1b[?1006h");
-
-    signal(SIGWINCH, onSIGWINCH);
+        signal(SIGWINCH, onSIGWINCH);
 #endif
-}
 
-Console::Constructor::~Constructor()
-{
-#ifndef PLATFORM_WINDOWS
-    printf("\x1b[?1000l");
-#endif
+        setlocale(LC_ALL, "");
+        setLineMode(true);
+    }
+    catch (Exception& ex)
+    {
+        Console::writeLine(ex.message());
+        abort();
+    }
+    catch (...)
+    {
+        Console::writeLine(STR("unknown error"));
+        abort();
+    }
 }
 
 void Console::setLineMode(bool lineMode)
 {
-#ifndef PLATFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    ASSERT(handle);
+
+    BOOL rc = SetConsoleMode(handle, lineMode ?
+        ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT |
+            ENABLE_EXTENDED_FLAGS | ENABLE_INSERT_MODE | ENABLE_QUICK_EDIT_MODE :
+        ENABLE_EXTENDED_FLAGS | ENABLE_INSERT_MODE | ENABLE_MOUSE_INPUT |
+            ENABLE_WINDOW_INPUT);
+    ASSERT(rc);
+
+    handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    rc = SetConsoleMode(handle, ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT);
+    ASSERT(rc);
+#else
     if (lineMode)
     {
         termios ta;
@@ -358,6 +367,8 @@ void Console::setLineMode(bool lineMode)
         ta.c_lflag |= ECHO | ICANON;
         rc = tcsetattr(STDIN_FILENO, TCSANOW, &ta);
         ASSERT(rc == 0);
+
+        printf("\x1b[?1000l");
     }
     else
     {
@@ -372,6 +383,9 @@ void Console::setLineMode(bool lineMode)
 
         rc = tcsetattr(STDIN_FILENO, TCSANOW, &ta);
         ASSERT(rc == 0);
+
+        printf("\x1b[?1000h");
+        printf("\x1b[?1006h");
     }
 #endif
 }
@@ -513,7 +527,7 @@ void Console::writeLineFormatted(const char_t* format, va_list args)
     write('\n');
 }
 
-char32_t Console::readChar()
+unichar_t Console::readChar()
 {
 #ifdef PLATFORM_WINDOWS
     DWORD written;

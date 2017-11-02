@@ -223,7 +223,6 @@ protected:
     struct Constructor
     {
         Constructor();
-        ~Constructor();
     };
 
     static Constructor constructor;

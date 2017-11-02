@@ -3,6 +3,8 @@ bugs & misc:
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 replace key mapping table with trie based word map
 * review new screen update code
+* issues with mouse and scrolling on windows
+* mouse stops working after doing a build on windows
 * readChar/readString don't work on windows
 
 editor:

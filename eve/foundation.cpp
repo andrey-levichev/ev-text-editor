@@ -608,6 +608,31 @@ int utf16StringLength(const char16_t* str)
     return len;
 }
 
+// Timer
+
+void Timer::sleep(uint64_t usec)
+{
+#ifdef PLATFORM_WINDOWS
+    Sleep(usec / 1000);
+#else
+    usleep(usec);
+#endif
+}
+
+uint64_t Timer::ticks()
+{
+#ifdef PLATFORM_WINDOWS
+    LARGE_INTEGER freq, time;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&time);
+    return time.QuadPart * 1000000 / freq.QuadPart;
+#else
+    timespec time;
+    clock_gettime(CLOCK_REALTIME, &time);
+    return time.tv_sec * 1000000 + time.tv_nsec / 1000;
+#endif
+}
+
 // String
 
 String::String(const String& other)
