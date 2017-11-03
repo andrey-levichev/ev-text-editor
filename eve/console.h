@@ -59,24 +59,6 @@ struct KeyEvent
     unichar_t ch;
     bool keyDown;
     bool ctrl, alt, shift;
-
-    KeyEvent() :
-        key(KEY_NONE), ch(0), keyDown(true),
-        ctrl(false), alt(false), shift(false)
-    {
-    }
-
-    KeyEvent(Key key, bool ctrl = false, bool alt = false, bool shift = false) :
-        key(key), ch(0), keyDown(true),
-        ctrl(ctrl), alt(alt), shift(shift)
-    {
-    }
-
-    KeyEvent(unichar_t ch, bool ctrl = false, bool alt = false, bool shift = false) :
-        key(KEY_NONE), ch(ch), keyDown(true),
-        ctrl(ctrl), alt(alt), shift(shift)
-    {
-    }
 };
 
 // MouseButton
@@ -99,18 +81,6 @@ struct MouseEvent
     bool buttonDown;
     int x, y;
     bool ctrl, alt, shift;
-
-    MouseEvent() :
-        button(MOUSE_BUTTON_NONE), buttonDown(true), x(0), y(0),
-        ctrl(false), alt(false), shift(false)
-    {
-    }
-
-    MouseEvent(int x, int y) :
-        button(MOUSE_BUTTON_NONE), buttonDown(true), x(x), y(y),
-        ctrl(false), alt(false), shift(false)
-    {
-    }
 };
 
 // WindowEvent
@@ -118,16 +88,6 @@ struct MouseEvent
 struct WindowEvent
 {
     int width, height;
-
-    WindowEvent() :
-        width(0), height(0)
-    {
-    }
-
-    WindowEvent(int width, int height) :
-        width(width), height(height)
-    {
-    }
 };
 
 // InputEvent
@@ -136,41 +96,29 @@ struct InputEvent
 {
     InputEventType eventType;
 
-    union Event
+    union
     {
         KeyEvent keyEvent;
         MouseEvent mouseEvent;
         WindowEvent windowEvent;
-
-        Event(const KeyEvent& keyEvent) :
-            keyEvent(keyEvent)
-        {
-        }
-
-        Event(const MouseEvent& mouseEvent) :
-            mouseEvent(mouseEvent)
-        {
-        }
-
-        Event(const WindowEvent& windowEvent) :
-            windowEvent(windowEvent)
-        {
-        }
     } event;
 
     InputEvent(KeyEvent keyEvent) :
-        eventType(INPUT_EVENT_TYPE_KEY), event(keyEvent)
+        eventType(INPUT_EVENT_TYPE_KEY)
     {
+        event.keyEvent = keyEvent;
     }
 
     InputEvent(MouseEvent mouseEvent) :
-        eventType(INPUT_EVENT_TYPE_MOUSE), event(mouseEvent)
+        eventType(INPUT_EVENT_TYPE_MOUSE)
     {
+        event.mouseEvent = mouseEvent;
     }
 
     InputEvent(WindowEvent windowEvent) :
-        eventType(INPUT_EVENT_TYPE_WINDOW), event(windowEvent)
+        eventType(INPUT_EVENT_TYPE_WINDOW)
     {
+        event.windowEvent = windowEvent;
     }
 };
 

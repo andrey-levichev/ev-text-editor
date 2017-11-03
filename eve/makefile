@@ -21,11 +21,11 @@ GCC_OPTIONS=-Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -l
 GCC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 GCC_RELEASE_OPTIONS=-O3
 
-CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable
+CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -lrt
 CLANG_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 CLANG_RELEASE_OPTIONS=-O3
 
-SOL_OPTIONS=-m64 -std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2
+SOL_OPTIONS=-m64 -std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2,wvarhidenmem
 SOL_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 SOL_RELEASE_OPTIONS=-O3
 
