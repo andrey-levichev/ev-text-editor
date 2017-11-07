@@ -762,31 +762,31 @@ void swap(_Type& left, _Type& right)
     right = static_cast<_Type&&>(tmp);
 }
 
-// UniquePtr
+// Unique
 
 template<typename _Type>
-class UniquePtr
+class Unique
 {
 public:
-    UniquePtr() :
+    Unique() :
         _ptr(NULL)
     {
     }
 
-    UniquePtr(UniquePtr<_Type>&& other)
+    Unique(Unique<_Type>&& other)
     {
         _ptr = other._ptr;
         other._ptr = NULL;
     }
 
-    ~UniquePtr()
+    ~Unique()
     {
         Memory::destroy(_ptr);
     }
 
-    UniquePtr<_Type>& operator=(UniquePtr<_Type>&& other)
+    Unique<_Type>& operator=(Unique<_Type>&& other)
     {
-        UniquePtr<_Type> tmp(static_cast<UniquePtr<_Type>&&>(other));
+        Unique<_Type> tmp(static_cast<Unique<_Type>&&>(other));
         swap(*this, tmp);
         return *this;
     }
@@ -803,6 +803,14 @@ public:
     {
         if (_ptr)
             return _ptr;
+        else
+            throw NullPointerException();
+    }
+
+    operator _Type&() const
+    {
+        if (_ptr)
+            return *_ptr;
         else
             throw NullPointerException();
     }
@@ -835,15 +843,15 @@ public:
         _ptr = NULL;
     }
 
-    friend void swap(UniquePtr<_Type>& left, UniquePtr<_Type>& right)
+    friend void swap(Unique<_Type>& left, Unique<_Type>& right)
     {
         swap(left._ptr, right._ptr);
     }
 
     template<typename _T, typename... _Args>
-    friend UniquePtr<_T> createUnique(_Args&&... args);
+    friend Unique<_T> createUnique(_Args&&... args);
 
-    friend bool operator==(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
+    friend bool operator==(const Unique<_Type>& left, const Unique<_Type>& right)
     {
         if (left)
         {
@@ -861,80 +869,80 @@ public:
         }
     }
 
-    friend bool operator!=(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
+    friend bool operator!=(const Unique<_Type>& left, const Unique<_Type>& right)
     {
         return !operator==(left, right);
     }
 
     template<typename _T>
-    friend int hash(const UniquePtr<_T>& val);
+    friend int hash(const Unique<_T>& val);
 
 protected:
-    UniquePtr(_Type* ptr)
+    Unique(_Type* ptr)
         : _ptr(ptr)
     {
     }
 
 private:
-    UniquePtr(const UniquePtr<_Type>&);
-    UniquePtr<_Type>& operator=(const UniquePtr<_Type>&);
+    Unique(const Unique<_Type>&);
+    Unique<_Type>& operator=(const Unique<_Type>&);
 
 protected:
     _Type* _ptr;
 };
 
 template<typename _Type, typename... _Args>
-inline UniquePtr<_Type> createUnique(_Args&&... args)
+inline Unique<_Type> createUnique(_Args&&... args)
 {
-    return UniquePtr<_Type>(Memory::create<_Type>(static_cast<_Args&&>(args)...));
+    return Unique<_Type>(Memory::create<_Type>(static_cast<_Args&&>(args)...));
 }
 
 template<typename _Type>
-inline int hash(const UniquePtr<_Type>& val)
+inline int hash(const Unique<_Type>& val)
 {
     return hash(*reinterpret_cast<const intptr_t*>(&val._ptr));
 }
 
-// SharedPtr
+// Shared
 
 template<typename _Type>
-class SharedPtr
+class Shared
 {
 public:
-    SharedPtr() :
+    Shared() :
         _sharedPtr(NULL)
     {
     }
 
-    SharedPtr(const SharedPtr<_Type>& other)
+    Shared(const Shared<_Type>& other)
     {
         _sharedPtr = other._sharedPtr;
         if (_sharedPtr)
             addRef();
     }
 
-    SharedPtr(SharedPtr<_Type>&& other)
+    Shared(Shared<_Type>&& other)
     {
         _sharedPtr = other._sharedPtr;
         other._sharedPtr = NULL;
     }
 
-    ~SharedPtr()
+    ~Shared()
     {
         if (_sharedPtr)
             releaseRef();
     }
 
-    SharedPtr<_Type>& operator=(const SharedPtr<_Type>& other)
+    Shared<_Type>& operator=(const Shared<_Type>& other)
     {
-        SharedPtr<_Type> tmp(other);
+        Shared<_Type> tmp(other);
         swap(*this, tmp);
         return *this;
     }
 
-    SharedPtr<_Type>& operator=(SharedPtr<_Type>&& other)
+    Shared<_Type>& operator=(Shared<_Type>&& other)
     {
-        SharedPtr<_Type> tmp(static_cast<SharedPtr<_Type>&&>(other));
+        Shared<_Type> tmp(static_cast<Shared<_Type>&&>(other));
         swap(*this, tmp);
         return *this;
     }
@@ -942,7 +950,7 @@ public:
     _Type& operator*() const
     {
         if (_sharedPtr)
-            return *reinterpret_cast<_Type*>(_sharedPtr);
+            return _sharedPtr->object;
         else
             throw NullPointerException();
     }
@@ -951,6 +959,14 @@ public:
     {
         if (_sharedPtr)
             return &_sharedPtr->object;
+        else
+            throw NullPointerException();
+    }
+
+    operator _Type&() const
+    {
+        if (_sharedPtr)
+            return _sharedPtr->object;
         else
             throw NullPointerException();
     }
@@ -996,26 +1012,26 @@ public:
         _sharedPtr = NULL;
     }
 
-    friend void swap(SharedPtr<_Type>& left, SharedPtr<_Type>& right)
+    friend void swap(Shared<_Type>& left, Shared<_Type>& right)
     {
         swap(left._sharedPtr, right._sharedPtr);
     }
 
     template<typename _T, typename... _Args>
-    friend SharedPtr<_T> createShared(_Args&&... args);
+    friend Shared<_T> createShared(_Args&&... args);
 
-    friend bool operator==(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
+    friend bool operator==(const Shared<_Type>& left, const Shared<_Type>& right)
     {
         return left._sharedPtr == right._sharedPtr;
     }
 
-    friend bool operator!=(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
+    friend bool operator!=(const Shared<_Type>& left, const Shared<_Type>& right)
     {
         return left._sharedPtr != right._sharedPtr;
     }
 
     template<typename _T>
-    friend int hash(const SharedPtr<_T>& val);
+    friend int hash(const Shared<_T>& val);
 
 protected:
     struct RefCountedObject
@@ -1032,7 +1048,7 @@ protected:
     };
 
 protected:
-    SharedPtr(RefCountedObject* sharedPtr)
+    Shared(RefCountedObject* sharedPtr)
         : _sharedPtr(sharedPtr)
     {
     }
@@ -1053,13 +1069,13 @@ protected:
 };
 
 template<typename _Type, typename... _Args>
-inline SharedPtr<_Type> createShared(_Args&&... args)
+inline Shared<_Type> createShared(_Args&&... args)
 {
-    return SharedPtr<_Type>(Memory::create<typename SharedPtr<_Type>::RefCountedObject>(static_cast<_Args&&>(args)...));
+    return Shared<_Type>(Memory::create<typename Shared<_Type>::RefCountedObject>(static_cast<_Args&&>(args)...));
 }
 
 template<typename _Type>
-inline int hash(const SharedPtr<_Type>& val)
+inline int hash(const Shared<_Type>& val)
 {
     return hash(*reinterpret_cast<const intptr_t*>(&val._sharedPtr));
 }

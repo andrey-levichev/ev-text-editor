@@ -2214,6 +2214,7 @@ int MAIN(int argc, const char_t** argv)
                 "alt+` - command line\n"
                 "alt+[ - previous autocomplete suggestion\n"
                 "alt+] - next autocomplete suggestion\n"
+                "alt+' - redraw screen\n"
                 "ESC - cancel current suggestion\n\n"
                 "commands (optional parameters in square brackets):\n"
                 "g <number> - go to line number\n"

@@ -1,12 +1,6 @@
 bugs & misc:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
-replace key mapping table with trie based word map
-
-done:
-* find word stopped working
-* can't insert punctuation in front of the word after autocomplete
-* issues with updating screen and scrolling on windows
 
 editor:
 * new/open/save
@@ -52,6 +46,7 @@ create element in place
 move node pointers instead of nodes when rehashing to avoid allocation
 benchmark/improve hash function
 * strings
+string constructor that accepts ascii strings
 split/join, tokenizer
 conversion to binary/hex
 simple parsing a la scanf
@@ -67,20 +62,10 @@ file system access
 * type traits
 * foundation improvements
 prohibit write access to container data via pointer?
+how to minimize the use of raw pointers?
+make sure app code doens't do low level stuff and relies on foundation
 acquire with capacity?
 blob class for array of value types?
 simple string too?
-make sure app code doens't do low level stuff and relies on foundation
-StringWithEncoding - string with encoding information
-support for zero chars in string?
-replace smart pointers with smart references
-scoped pointer, copy object when pointer is copied
-rename the types to make int 64 bit?
-string constructor that accepts ascii strings
+less than and equals for smart pointers - compare pointers or values?
 log memory allocations
-move assignment is called when string is assigned an r-value freeing string storage
-unicode char literals don't work on solaris/aix
-how to minimize the use of raw pointers?
-list vs array - when to use?
-get rid of underscores?
-compare smart pointers or their contents?

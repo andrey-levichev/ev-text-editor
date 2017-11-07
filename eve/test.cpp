@@ -12,7 +12,7 @@ const char_t* CHARS = CHARS16;
 const char_t* BIG_CHAR = u"\xd800\xdf48";
 #endif
 
-int hash(const UniquePtr<int>& val)
+int hash(const Unique<int>& val)
 {
     return val ? *val : 0;
 }
@@ -146,39 +146,39 @@ void testSupport()
     }
 }
 
-void testUniquePtr()
+void testUnique()
 {
-    // UniquePtr()
+    // Unique()
 
     {
-        UniquePtr<Test> p;
+        Unique<Test> p;
         ASSERT_EXCEPTION(NullPointerException, *p);
         ASSERT_EXCEPTION(NullPointerException, p->val());
         ASSERT(!p);
         ASSERT(!p.ptr());
     }
 
-    // UniquePtr(UniquePtr<_Type>&& other)
+    // Unique(Unique<_Type>&& other)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>();
+        Unique<Test> p1 = createUnique<Test>();
         Test* p = p1.ptr();
         ASSERT(p1);
 
-        UniquePtr<Test> p2 = static_cast<UniquePtr<Test>&&>(p1);
+        Unique<Test> p2 = static_cast<Unique<Test>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
     }
 
-    // UniquePtr& operator=(UniquePtr<_Type>&& other)
+    // Unique& operator=(Unique<_Type>&& other)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>();
+        Unique<Test> p1 = createUnique<Test>();
         Test* p = p1.ptr();
         ASSERT(p1);
 
-        UniquePtr<Test> p2;
-        p2 = static_cast<UniquePtr<Test>&&>(p1);
+        Unique<Test> p2;
+        p2 = static_cast<Unique<Test>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
     }
@@ -186,6 +186,8 @@ void testUniquePtr()
     // _Type& operator*() const
 
     // _Type* operator->() const
+
+    // operator _Type&() const
 
     // operator bool() const
 
@@ -196,7 +198,7 @@ void testUniquePtr()
     // void create(_Args&&... args)
 
     {
-        UniquePtr<Test> p;
+        Unique<Test> p;
         ASSERT(!p);
         ASSERT(p.empty());
 
@@ -206,6 +208,9 @@ void testUniquePtr()
         ASSERT((*p).val() == 1);
         ASSERT(p->val() == 1);
         ASSERT(!p.empty());
+
+        Test& t = p;
+        ASSERT(t == *p);
 
         p.create(2);
         ASSERT(p);
@@ -218,14 +223,14 @@ void testUniquePtr()
     // void reset()
 
     {
-        UniquePtr<Test> p;
+        Unique<Test> p;
         ASSERT(!p);
         p.reset();
         ASSERT(!p);
     }
 
     {
-        UniquePtr<Test> p;
+        Unique<Test> p;
         ASSERT(!p);
         p.create();
         ASSERT(p);
@@ -233,26 +238,26 @@ void testUniquePtr()
         ASSERT(!p);
     }
 
-    // bool operator==(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
+    // bool operator==(const Unique<_Type>& left, const Unique<_Type>& right)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>(1);
-        UniquePtr<Test> p2 = createUnique<Test>(1);
+        Unique<Test> p1 = createUnique<Test>(1);
+        Unique<Test> p2 = createUnique<Test>(1);
         ASSERT(p1 == p2);
     }
 
-    // bool operator!=(const UniquePtr<_Type>& left, const UniquePtr<_Type>& right)
+    // bool operator!=(const Unique<_Type>& left, const Unique<_Type>& right)
 
     {
-        UniquePtr<Test> p1 = createUnique<Test>(1);
-        UniquePtr<Test> p2 = createUnique<Test>(2);
+        Unique<Test> p1 = createUnique<Test>(1);
+        Unique<Test> p2 = createUnique<Test>(2);
         ASSERT(p1 != p2);
     }
 
-    // UniquePtr<_T> createUnique(_Args&&... args)
+    // Unique<_T> createUnique(_Args&&... args)
 
     {
-        UniquePtr<Test> p = createUnique<Test>(1);
+        Unique<Test> p = createUnique<Test>(1);
         ASSERT(p);
         ASSERT(p.ptr());
         ASSERT((*p).val() == 1);
@@ -260,12 +265,12 @@ void testUniquePtr()
     }
 }
 
-void testSharedPtr()
+void testShared()
 {
-    // SharedPtr()
+    // Shared()
 
     {
-        SharedPtr<Test> p;
+        Shared<Test> p;
         ASSERT_EXCEPTION(NullPointerException, *p);
         ASSERT_EXCEPTION(NullPointerException, p->val());
         ASSERT(!p);
@@ -273,15 +278,15 @@ void testSharedPtr()
         ASSERT(p.refCount() == 0);
     }
 
-    // SharedPtr(const SharedPtr<_Type>& other)
+    // Shared(const Shared<_Type>& other)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
+        Shared<Test> p1 = createShared<Test>();
         Test* p = p1.ptr();
         ASSERT(p1);
 
         {
-            SharedPtr<Test> p2 = p1;
+            Shared<Test> p2 = p1;
             ASSERT(p1 && p1.ptr() == p);
             ASSERT(p2 && p2.ptr() == p);
             ASSERT(p1.refCount() == 2 && p2.refCount() == 2);
@@ -291,28 +296,28 @@ void testSharedPtr()
         ASSERT(p1.refCount() == 1);
     }
 
-    // SharedPtr(SharedPtr<_Type>&& other)
+    // Shared(Shared<_Type>&& other)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
+        Shared<Test> p1 = createShared<Test>();
         Test* p = p1.ptr();
         ASSERT(p1);
 
-        SharedPtr<Test> p2 = static_cast<SharedPtr<Test>&&>(p1);
+        Shared<Test> p2 = static_cast<Shared<Test>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
     }
 
-    // SharedPtr<_Type>& operator=(const SharedPtr<_Type>& other)
+    // Shared<_Type>& operator=(const Shared<_Type>& other)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
+        Shared<Test> p1 = createShared<Test>();
         Test* p = p1.ptr();
         ASSERT(p1);
 
         {
-            SharedPtr<Test> p2;
+            Shared<Test> p2;
             p2 = p1;
             ASSERT(p1 && p1.ptr() == p);
             ASSERT(p2 && p2.ptr() == p);
@@ -323,15 +328,15 @@ void testSharedPtr()
         ASSERT(p1.refCount() == 1);
     }
 
-    // SharedPtr<_Type>& operator=(SharedPtr<_Type>&& other)
+    // Shared<_Type>& operator=(Shared<_Type>&& other)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
+        Shared<Test> p1 = createShared<Test>();
         Test* p = p1.ptr();
         ASSERT(p1);
 
-        SharedPtr<Test> p2;
-        p2 = static_cast<SharedPtr<Test>&&>(p1);
+        Shared<Test> p2;
+        p2 = static_cast<Shared<Test>&&>(p1);
         ASSERT(!p1);
         ASSERT(p2 && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
@@ -340,6 +345,8 @@ void testSharedPtr()
     // _Type& operator*() const
 
     // _Type* operator->() const
+
+    // operator _Type&() const
 
     // operator bool() const
 
@@ -352,7 +359,7 @@ void testSharedPtr()
     // void create(_Args&&... args)
 
     {
-        SharedPtr<Test> p;
+        Shared<Test> p;
         ASSERT(!p);
         ASSERT(p.empty());
 
@@ -362,6 +369,9 @@ void testSharedPtr()
         ASSERT((*p).val() == 1);
         ASSERT(p->val() == 1);
         ASSERT(!p.empty());
+
+        Test& t = p;
+        ASSERT(t == *p);
 
         p.create(2);
         ASSERT(p);
@@ -374,14 +384,14 @@ void testSharedPtr()
     // void reset()
 
     {
-        SharedPtr<Test> p;
+        Shared<Test> p;
         ASSERT(!p);
         p.reset();
         ASSERT(!p);
     }
 
     {
-        SharedPtr<Test> p;
+        Shared<Test> p;
         ASSERT(!p);
         p.create();
         ASSERT(p);
@@ -389,26 +399,26 @@ void testSharedPtr()
         ASSERT(!p);
     }
 
-    // bool operator==(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
+    // bool operator==(const Shared<_Type>& left, const Shared<_Type>& right)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
-        SharedPtr<Test> p2 = p1;
+        Shared<Test> p1 = createShared<Test>();
+        Shared<Test> p2 = p1;
         ASSERT(p1 == p2);
     }
 
-    // bool operator!=(const SharedPtr<_Type>& left, const SharedPtr<_Type>& right)
+    // bool operator!=(const Shared<_Type>& left, const Shared<_Type>& right)
 
     {
-        SharedPtr<Test> p1 = createShared<Test>();
-        SharedPtr<Test> p2 = createShared<Test>();
+        Shared<Test> p1 = createShared<Test>();
+        Shared<Test> p2 = createShared<Test>();
         ASSERT(p1 != p2);
     }
 
-    // SharedPtr<_T> createShared(_Args&&... args)
+    // Shared<_T> createShared(_Args&&... args)
 
     {
-        SharedPtr<Test> p = createShared<Test>(1);
+        Shared<Test> p = createShared<Test>(1);
         ASSERT(p);
         ASSERT(p.ptr());
         ASSERT((*p).val() == 1);
@@ -3235,15 +3245,15 @@ void testArray()
         Memory::deallocate(e);
     }
 
-    // UniquePtr
+    // Unique
 
     {
-        Array<UniquePtr<int>> a1;
-        Array<UniquePtr<int>> a2(2);
+        Array<Unique<int>> a1;
+        Array<Unique<int>> a2(2);
     }
 
     {
-        Array<UniquePtr<int>> a;
+        Array<Unique<int>> a;
         a.addLast(createUnique<int>(1));
         a.addLast(createUnique<int>(2));
         ASSERT(*a[0] == 1);
@@ -3253,7 +3263,7 @@ void testArray()
     }
 
     {
-        Array<UniquePtr<int>> a;
+        Array<Unique<int>> a;
         a.ensureCapacity(2);
         ASSERT(a.capacity() == 2);
         a.addLast(createUnique<int>(1));
@@ -3264,7 +3274,7 @@ void testArray()
     }
 
     {
-        Array<UniquePtr<int>> a;
+        Array<Unique<int>> a;
         a.insert(0, createUnique<int>(1));
         a.insert(0, createUnique<int>(2));
         a.removeLast();
@@ -3272,7 +3282,7 @@ void testArray()
     }
 
     {
-        Array<UniquePtr<int>> a;
+        Array<Unique<int>> a;
         a.addLast(createUnique<int>(1));
         a.addLast(createUnique<int>(2));
         a.remove(0);
@@ -3280,7 +3290,7 @@ void testArray()
     }
 
     {
-        Array<UniquePtr<int>> a;
+        Array<Unique<int>> a;
         a.addLast(createUnique<int>(1));
         a.addLast(createUnique<int>(2));
         a.clear();
@@ -3890,15 +3900,15 @@ void testList()
         ASSERT(l.empty());
     }
 
-    // UniquePtr
+    // Unique
 
     {
-        List<UniquePtr<int>> l1;
-        List<UniquePtr<int>> l2(2);
+        List<Unique<int>> l1;
+        List<Unique<int>> l2(2);
     }
 
     {
-         List<UniquePtr<int>> l;
+         List<Unique<int>> l;
          l.addLast(createUnique<int>(1));
          l.addLast(createUnique<int>(2));
          ASSERT(!l.find(createUnique<int>(0)));
@@ -3906,7 +3916,7 @@ void testList()
     }
 
     {
-         List<UniquePtr<int>> l;
+         List<Unique<int>> l;
          l.addLast(createUnique<int>(1));
          l.insertBefore(l.first(), createUnique<int>(2));
          l.removeFirst();
@@ -3914,7 +3924,7 @@ void testList()
     }
 
     {
-         List<UniquePtr<int>> l;
+         List<Unique<int>> l;
          l.addFirst(createUnique<int>(1));
          l.insertAfter(l.last(), createUnique<int>(2));
          l.removeLast();
@@ -3922,7 +3932,7 @@ void testList()
     }
 
     {
-         List<UniquePtr<int>> l;
+         List<Unique<int>> l;
          l.addLast(createUnique<int>(1));
          l.addLast(createUnique<int>(2));
          l.remove(l.first());
@@ -3930,7 +3940,7 @@ void testList()
     }
 
     {
-         List<UniquePtr<int>> l;
+         List<Unique<int>> l;
          l.addLast(createUnique<int>(1));
          l.addLast(createUnique<int>(2));
          l.clear();
@@ -4419,19 +4429,19 @@ void testMap()
         ASSERT(m.numBuckets() == 10);
     }
 
-    // UniquePtr
+    // Unique
 
     {
-        Map<UniquePtr<int>, UniquePtr<int>> m;
+        Map<Unique<int>, Unique<int>> m;
         m[createUnique<int>(1)] = createUnique<int>(10);
         ASSERT(**m.find(createUnique<int>(1)) == 10);
-        const Map<UniquePtr<int>, UniquePtr<int>>& cm = m;
+        const Map<Unique<int>, Unique<int>>& cm = m;
         ASSERT(*cm[createUnique<int>(1)] == 10);
         ASSERT(**cm.find(createUnique<int>(1)) == 10);
     }
 
     {
-        Map<UniquePtr<int>, UniquePtr<int>> m;
+        Map<Unique<int>, Unique<int>> m;
         m.add(createUnique<int>(1), createUnique<int>(10));
         m.add(createUnique<int>(1), createUnique<int>(20));
         m.add(createUnique<int>(2), createUnique<int>(20));
@@ -4442,7 +4452,7 @@ void testMap()
     }
 
     {
-        Map<UniquePtr<int>, UniquePtr<int>> m;
+        Map<Unique<int>, Unique<int>> m;
         m.add(createUnique<int>(1), createUnique<int>(10));
         m.add(createUnique<int>(2), createUnique<int>(20));
         m.rehash(10);
@@ -4828,30 +4838,30 @@ void testSet()
         ASSERT(s.numBuckets() == 10);
     }
 
-    // UniquePtr
+    // Unique
 
     {
-        Set<UniquePtr<int>> s;
+        Set<Unique<int>> s;
         s.add(createUnique<int>(1));
         ASSERT(s.contains(createUnique<int>(1)));
     }
 
     {
-        Set<UniquePtr<int>> s;
+        Set<Unique<int>> s;
         s.add(createUnique<int>(1));
-        UniquePtr<int> p = s.remove();
+        Unique<int> p = s.remove();
         ASSERT(*p == 1);
     }
 
     {
-        Set<UniquePtr<int>> s;
+        Set<Unique<int>> s;
         s.add(createUnique<int>(1));
         ASSERT(!s.remove(createUnique<int>(2)));
         ASSERT(s.remove(createUnique<int>(1)));
     }
 
     {
-        Set<UniquePtr<int>> s;
+        Set<Unique<int>> s;
         s.add(createUnique<int>(1));
         s.add(createUnique<int>(2));
         s.rehash(10);
@@ -4907,8 +4917,8 @@ void testSetIterator()
 
 void testFoundation()
 {
-    testUniquePtr();
-    testSharedPtr();
+    testUnique();
+    testShared();
     testString();
     testStringIterator();
     testArray();
@@ -5506,7 +5516,7 @@ int MAIN(int argc, const char_t** argv)
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-        testConsoleReadInput();
+//        testConsoleReadInput();
     }
     catch (Exception& ex)
     {
