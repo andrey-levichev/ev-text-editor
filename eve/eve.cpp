@@ -1,11 +1,10 @@
 #include <eve.h>
-#include <dictionary.h>
 
 const int TAB_SIZE = 4;
 
 bool charIsWord(unichar_t ch)
 {
-    return charIsAlphaNum(ch) || ch == '_' || ch == '-' || ch == '\'';
+    return charIsAlphaNum(ch) || ch == '_';
 }
 
 bool isWordBoundary(unichar_t prevCh, unichar_t ch)
@@ -1473,8 +1472,7 @@ void Editor::setDimensions(int width, int height)
 bool Editor::processInput()
 {
     Document& doc = _document->value;
-    bool update = false;
-    bool modified = false;
+    bool update = false, modified = false, insertedChar = false;
 
     auto& inputEvents = Console::readInput();
 
@@ -1629,7 +1627,7 @@ bool Editor::processInput()
                         {
                             _searchStr = doc.currentWord();
 
-                            if (_searchStr.empty())
+                            if (!_searchStr.empty())
                             {
                                 _caseSesitive = true;
                                 update = doc.find(_searchStr, _caseSesitive, true);
@@ -1672,6 +1670,10 @@ bool Editor::processInput()
                             }
 
                             update = true;
+                        }
+                        else if (keyEvent.ch == '\'')
+                        {
+                            updateScreen(true);
                         }
                     }
                     else if (keyEvent.shift && keyEvent.key == KEY_TAB)
@@ -1781,6 +1783,7 @@ bool Editor::processInput()
                             doc.insertChar(keyEvent.ch);
 
                         modified = update = true;
+                        insertedChar = true;
                     }
                 }
             }
@@ -1830,7 +1833,11 @@ bool Editor::processInput()
     }
 
     if (update)
+    {
+        if (_currentSuggestion != INVALID_POSITION && !insertedChar)
+            _currentSuggestion = INVALID_POSITION;
         updateScreen(false);
+    }
 
     if (modified)
         updateRecentLocations();
@@ -2066,19 +2073,12 @@ void Editor::findUniqueWords(const Document& document)
 
 void Editor::prepareSuggestions()
 {
-    int n = 0;
-    while (*dictionary[n])
-        ++n;
-
     _suggestions.clear();
-    _suggestions.ensureCapacity(_uniqueWords.size() + n);
+    _suggestions.ensureCapacity(_uniqueWords.size());
 
     auto it = _uniqueWords.constIterator();
     while (it.moveNext())
-        _suggestions.addLast(AutocompleteSuggestion(it.value().key, n + it.value().value));
-
-    for (int i = 0; i < n; ++i)
-        _suggestions.addLast(AutocompleteSuggestion(dictionary[i], n - i));
+        _suggestions.addLast(AutocompleteSuggestion(it.value().key, it.value().value));
 
     _suggestions.sort();
 }
@@ -2177,7 +2177,7 @@ int MAIN(int argc, const char_t** argv)
     {
         if (argc < 2)
         {
-            Console::writeLine(STR("eve text editor version 1.2\n"
+            Console::writeLine(STR("eve text editor version 1.3\n"
                 "Copyright (C) Andrey Levichev, 2017\n\n"
                 "usage: eve filename ...\n\n"
                 "keys:\n"

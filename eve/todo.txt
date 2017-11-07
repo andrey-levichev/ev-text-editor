@@ -2,9 +2,11 @@ bugs & misc:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 replace key mapping table with trie based word map
-* review new screen update code
-* issues with mouse and scrolling on windows
-* find word doesn't work
+
+done:
+* find word stopped working
+* can't insert punctuation in front of the word after autocomplete
+* issues with updating screen and scrolling on windows
 
 editor:
 * new/open/save
@@ -19,18 +21,11 @@ editor:
 * selection with arrows and highlighting
 * customizable key mappings
 * line wrapping
-* find/replace back, find in all documents
+* find/replace back
 * graphical user interface
 * autocomplete improvements
 trie based suggestions
 scan all documents in current directory
-better dictionary (spelling dictionary without frequency)
-prefer the shortest match?
-can't insert punctuation in front of the word
-pasting multiple chars still doesn't work
-ignore case when completing?
-can't change the word in the middle
-exclude - and ' from word chars
 * performance optimization
 group small changes and apply together
 store text as a list of lines
