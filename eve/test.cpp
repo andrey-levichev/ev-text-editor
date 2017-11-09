@@ -154,7 +154,7 @@ void testUnique()
         Unique<Test> p;
         ASSERT_EXCEPTION(NullPointerException, *p);
         ASSERT_EXCEPTION(NullPointerException, p->val());
-        ASSERT(!p);
+        ASSERT(p.empty());
         ASSERT(!p.ptr());
     }
 
@@ -163,11 +163,11 @@ void testUnique()
     {
         Unique<Test> p1 = createUnique<Test>();
         Test* p = p1.ptr();
-        ASSERT(p1);
+        ASSERT(!p1.empty());
 
         Unique<Test> p2 = static_cast<Unique<Test>&&>(p1);
-        ASSERT(!p1);
-        ASSERT(p2 && p2.ptr() == p);
+        ASSERT(p1.empty());
+        ASSERT(!p2.empty() && p2.ptr() == p);
     }
 
     // Unique& operator=(Unique<_Type>&& other)
@@ -175,12 +175,12 @@ void testUnique()
     {
         Unique<Test> p1 = createUnique<Test>();
         Test* p = p1.ptr();
-        ASSERT(p1);
+        ASSERT(!p1.empty());
 
         Unique<Test> p2;
         p2 = static_cast<Unique<Test>&&>(p1);
-        ASSERT(!p1);
-        ASSERT(p2 && p2.ptr() == p);
+        ASSERT(p1.empty());
+        ASSERT(!p2.empty() && p2.ptr() == p);
     }
 
     // _Type& operator*() const
@@ -188,8 +188,6 @@ void testUnique()
     // _Type* operator->() const
 
     // operator _Type&() const
-
-    // operator bool() const
 
     // bool empty() const
 
@@ -199,11 +197,9 @@ void testUnique()
 
     {
         Unique<Test> p;
-        ASSERT(!p);
         ASSERT(p.empty());
 
         p.create(1);
-        ASSERT(p);
         ASSERT(p.ptr());
         ASSERT((*p).val() == 1);
         ASSERT(p->val() == 1);
@@ -213,7 +209,6 @@ void testUnique()
         ASSERT(t == *p);
 
         p.create(2);
-        ASSERT(p);
         ASSERT(p.ptr());
         ASSERT((*p).val() == 2);
         ASSERT(p->val() == 2);
@@ -224,18 +219,18 @@ void testUnique()
 
     {
         Unique<Test> p;
-        ASSERT(!p);
+        ASSERT(p.empty());
         p.reset();
-        ASSERT(!p);
+        ASSERT(p.empty());
     }
 
     {
         Unique<Test> p;
-        ASSERT(!p);
+        ASSERT(p.empty());
         p.create();
-        ASSERT(p);
+        ASSERT(!p.empty());
         p.reset();
-        ASSERT(!p);
+        ASSERT(p.empty());
     }
 
     // bool operator==(const Unique<_Type>& left, const Unique<_Type>& right)
@@ -258,7 +253,7 @@ void testUnique()
 
     {
         Unique<Test> p = createUnique<Test>(1);
-        ASSERT(p);
+        ASSERT(!p.empty());
         ASSERT(p.ptr());
         ASSERT((*p).val() == 1);
         ASSERT(p->val() == 1);
@@ -273,7 +268,7 @@ void testShared()
         Shared<Test> p;
         ASSERT_EXCEPTION(NullPointerException, *p);
         ASSERT_EXCEPTION(NullPointerException, p->val());
-        ASSERT(!p);
+        ASSERT(p.empty());
         ASSERT(!p.ptr());
         ASSERT(p.refCount() == 0);
     }
@@ -283,16 +278,16 @@ void testShared()
     {
         Shared<Test> p1 = createShared<Test>();
         Test* p = p1.ptr();
-        ASSERT(p1);
+        ASSERT(!p1.empty());
 
         {
             Shared<Test> p2 = p1;
-            ASSERT(p1 && p1.ptr() == p);
-            ASSERT(p2 && p2.ptr() == p);
+            ASSERT(!p1.empty() && p1.ptr() == p);
+            ASSERT(!p2.empty() && p2.ptr() == p);
             ASSERT(p1.refCount() == 2 && p2.refCount() == 2);
         }
 
-        ASSERT(p1 && p1.ptr() == p);
+        ASSERT(!p1.empty() && p1.ptr() == p);
         ASSERT(p1.refCount() == 1);
     }
 
@@ -301,11 +296,11 @@ void testShared()
     {
         Shared<Test> p1 = createShared<Test>();
         Test* p = p1.ptr();
-        ASSERT(p1);
+        ASSERT(!p1.empty());
 
         Shared<Test> p2 = static_cast<Shared<Test>&&>(p1);
-        ASSERT(!p1);
-        ASSERT(p2 && p2.ptr() == p);
+        ASSERT(p1.empty());
+        ASSERT(!p2.empty() && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
     }
 
@@ -314,17 +309,17 @@ void testShared()
     {
         Shared<Test> p1 = createShared<Test>();
         Test* p = p1.ptr();
-        ASSERT(p1);
+        ASSERT(!p1.empty());
 
         {
             Shared<Test> p2;
             p2 = p1;
-            ASSERT(p1 && p1.ptr() == p);
-            ASSERT(p2 && p2.ptr() == p);
+            ASSERT(!p1.empty() && p1.ptr() == p);
+            ASSERT(!p2.empty() && p2.ptr() == p);
             ASSERT(p1.refCount() == 2 && p2.refCount() == 2);
         }
 
-        ASSERT(p1 && p1.ptr() == p);
+        ASSERT(!p1.empty() && p1.ptr() == p);
         ASSERT(p1.refCount() == 1);
     }
 
@@ -333,12 +328,12 @@ void testShared()
     {
         Shared<Test> p1 = createShared<Test>();
         Test* p = p1.ptr();
-        ASSERT(p1);
+        ASSERT(!p1.empty());
 
         Shared<Test> p2;
         p2 = static_cast<Shared<Test>&&>(p1);
-        ASSERT(!p1);
-        ASSERT(p2 && p2.ptr() == p);
+        ASSERT(p1.empty());
+        ASSERT(!p2.empty() && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
     }
 
@@ -347,8 +342,6 @@ void testShared()
     // _Type* operator->() const
 
     // operator _Type&() const
-
-    // operator bool() const
 
     // bool empty() const
 
@@ -360,11 +353,9 @@ void testShared()
 
     {
         Shared<Test> p;
-        ASSERT(!p);
         ASSERT(p.empty());
 
         p.create(1);
-        ASSERT(p);
         ASSERT(p.ptr());
         ASSERT((*p).val() == 1);
         ASSERT(p->val() == 1);
@@ -374,7 +365,6 @@ void testShared()
         ASSERT(t == *p);
 
         p.create(2);
-        ASSERT(p);
         ASSERT(p.ptr());
         ASSERT((*p).val() == 2);
         ASSERT(p->val() == 2);
@@ -385,33 +375,39 @@ void testShared()
 
     {
         Shared<Test> p;
-        ASSERT(!p);
+        ASSERT(p.empty());
         p.reset();
-        ASSERT(!p);
+        ASSERT(p.empty());
     }
 
     {
         Shared<Test> p;
-        ASSERT(!p);
+        ASSERT(p.empty());
         p.create();
-        ASSERT(p);
+        ASSERT(!p.empty());
         p.reset();
-        ASSERT(!p);
+        ASSERT(p.empty());
     }
 
     // bool operator==(const Shared<_Type>& left, const Shared<_Type>& right)
 
     {
-        Shared<Test> p1 = createShared<Test>();
+        Shared<Test> p1 = createShared<Test>(1);
         Shared<Test> p2 = p1;
+        ASSERT(p1 == p2);
+    }
+
+    {
+        Shared<Test> p1 = createShared<Test>(1);
+        Shared<Test> p2 = createShared<Test>(1);
         ASSERT(p1 == p2);
     }
 
     // bool operator!=(const Shared<_Type>& left, const Shared<_Type>& right)
 
     {
-        Shared<Test> p1 = createShared<Test>();
-        Shared<Test> p2 = createShared<Test>();
+        Shared<Test> p1 = createShared<Test>(1);
+        Shared<Test> p2 = createShared<Test>(2);
         ASSERT(p1 != p2);
     }
 
@@ -419,7 +415,7 @@ void testShared()
 
     {
         Shared<Test> p = createShared<Test>(1);
-        ASSERT(p);
+        ASSERT(!p.empty());
         ASSERT(p.ptr());
         ASSERT((*p).val() == 1);
         ASSERT(p->val() == 1);
@@ -3296,6 +3292,15 @@ void testArray()
         a.clear();
         ASSERT(a.empty());
     }
+
+    {
+        Array<Unique<int>> a;
+        a.addLast(createUnique<int>(3));
+        a.addLast(createUnique<int>(2));
+        a.addLast(createUnique<int>(1));
+        a.sort();
+        ASSERT(a[0] == 1 && a[1] == 2 && a[2] == 3);
+    }
 }
 
 void testArrayIterator()
@@ -5503,14 +5508,18 @@ void printPlatformInfo()
     Console::writeLineFormatted(STR(" version %d"), COMPILER_VERSION);
 }
 
+void test()
+{
+}
+
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
         printPlatformInfo();
 
-//        testSupport();
-//        testFoundation();
+        testSupport();
+        testFoundation();
 //        testFile();
 //        testConsole();
 //        testConsoleWrite();

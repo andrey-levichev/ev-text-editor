@@ -815,11 +815,6 @@ public:
             throw NullPointerException();
     }
 
-    operator bool() const
-    {
-        return _ptr != NULL;
-    }
-
     bool empty() const
     {
         return _ptr == NULL;
@@ -850,29 +845,6 @@ public:
 
     template<typename _T, typename... _Args>
     friend Unique<_T> createUnique(_Args&&... args);
-
-    friend bool operator==(const Unique<_Type>& left, const Unique<_Type>& right)
-    {
-        if (left)
-        {
-            if (right)
-                return *left == *right;
-            else
-                return false;
-        }
-        else
-        {
-            if (right)
-                return false;
-            else
-                return true;
-        }
-    }
-
-    friend bool operator!=(const Unique<_Type>& left, const Unique<_Type>& right)
-    {
-        return !operator==(left, right);
-    }
 
     template<typename _T>
     friend int hash(const Unique<_T>& val);
@@ -971,11 +943,6 @@ public:
             throw NullPointerException();
     }
 
-    operator bool() const
-    {
-        return _sharedPtr != NULL;
-    }
-
     bool empty() const
     {
         return _sharedPtr == NULL;
@@ -1019,16 +986,6 @@ public:
 
     template<typename _T, typename... _Args>
     friend Shared<_T> createShared(_Args&&... args);
-
-    friend bool operator==(const Shared<_Type>& left, const Shared<_Type>& right)
-    {
-        return left._sharedPtr == right._sharedPtr;
-    }
-
-    friend bool operator!=(const Shared<_Type>& left, const Shared<_Type>& right)
-    {
-        return left._sharedPtr != right._sharedPtr;
-    }
 
     template<typename _T>
     friend int hash(const Shared<_T>& val);
@@ -2018,7 +1975,7 @@ protected:
 
     int partition(int low, int high)
     {
-        _Type pivot = _values[low];
+        _Type& pivot = _values[low];
         int i = low - 1;
         int j = high + 1;
 

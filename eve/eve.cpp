@@ -1472,7 +1472,7 @@ void Editor::setDimensions(int width, int height)
 bool Editor::processInput()
 {
     Document& doc = _document->value;
-    bool update = false, modified = false, insertedChar = false;
+    bool update = false, modified = false, autocomplete = false;
 
     auto& inputEvents = Console::readInput();
 
@@ -1652,11 +1652,13 @@ bool Editor::processInput()
                         {
                             completeWord(false);
                             modified = update = true;
+                            autocomplete = true;
                         }
                         else if (keyEvent.ch == ']')
                         {
                             completeWord(true);
                             modified = update = true;
+                            autocomplete = true;
                         }
                         else if (keyEvent.ch == '`')
                         {
@@ -1783,7 +1785,7 @@ bool Editor::processInput()
                             doc.insertChar(keyEvent.ch);
 
                         modified = update = true;
-                        insertedChar = true;
+                        autocomplete = true;
                     }
                 }
             }
@@ -1834,7 +1836,7 @@ bool Editor::processInput()
 
     if (update)
     {
-        if (_currentSuggestion != INVALID_POSITION && !insertedChar)
+        if (_currentSuggestion != INVALID_POSITION && !autocomplete)
             _currentSuggestion = INVALID_POSITION;
         updateScreen(false);
     }

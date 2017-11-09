@@ -3,6 +3,7 @@ bugs & misc:
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 
 editor:
+* copy/delete lines
 * new/open/save
 * switch between documents with alt+number
 * syntax highlighting
@@ -12,7 +13,9 @@ editor:
 * command history
 * config file
 * clipboard integration
-* selection with arrows and highlighting
+* selection improvements
+screen selection
+with arrows and highlighting
 * customizable key mappings
 * line wrapping
 * find/replace back
@@ -61,11 +64,7 @@ file system access
 * function objects (function/bind)
 * type traits
 * foundation improvements
-prohibit write access to container data via pointer?
-how to minimize the use of raw pointers?
-make sure app code doens't do low level stuff and relies on foundation
-acquire with capacity?
+prohibit write access to array data via pointer
 blob class for array of value types?
 simple string too?
-less than and equals for smart pointers - compare pointers or values?
 log memory allocations
