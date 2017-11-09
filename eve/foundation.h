@@ -1037,6 +1037,132 @@ inline int hash(const Shared<_Type>& val)
     return hash(*reinterpret_cast<const intptr_t*>(&val._sharedPtr));
 }
 
+// Buffer
+
+template<typename _Type>
+class Buffer
+{
+public:
+    Buffer() :
+        _values(NULL)
+    {
+    }
+
+    Buffer(int size)
+    {
+        ASSERT(size >= 0);
+        _values = Memory::allocate<_Type>(size);
+    }
+
+    Buffer(int size, const _Type& value)
+    {
+        ASSERT(size >= 0);
+        _values = Memory::allocate<_Type>(size);
+        assign(size, value);
+    }
+
+    Buffer(int size, const _Type* values)
+    {
+        ASSERT(size >= 0);
+        ASSERT(values);
+        _values = Memory::allocate<_Type>(size);
+        assign(size, values);
+    }
+
+    Buffer(Buffer<_Type>&& other)
+    {
+        _values = other._values;
+        other._values = NULL;
+    }
+
+    ~Buffer()
+    {
+        Memory::deallocate(_values);
+    }
+
+    Buffer<_Type>& operator=(Buffer<_Type>&& other)
+    {
+        Buffer<_Type> tmp(static_cast<Buffer<_Type>&&>(other));
+        swap(*this, tmp);
+        return *this;
+    }
+
+    bool empty() const
+    {
+        return !_values;
+    }
+
+    _Type* values()
+    {
+        return _values;
+    }
+
+    const _Type* values() const
+    {
+        return _values;
+    }
+
+    void resize(int size)
+    {
+        ASSERT(size >= 0);
+        _values = Memory::reallocate(_values, size);
+    }
+
+    void assign(int size, const _Type& value)
+    {
+        ASSERT(size >= 0);
+        for (int i = 0; i < size; ++i)
+            _values[i] = value;
+    }
+
+    void assign(int size, const _Type* values)
+    {
+        ASSERT(size >= 0);
+        ASSERT(values);
+        memcpy(_values, values, size * sizeof(_Type));
+    }
+
+    void reset()
+    {
+        Memory::deallocate(_values);
+        _values = NULL;
+    }
+
+    static Buffer<_Type> acquire(_Type* values)
+    {
+        return Buffer<_Type>(values);
+    }
+
+    _Type* release()
+    {
+        _Type* values = _values;
+        _values = NULL;
+        return values;
+    }
+
+    friend void swap(Buffer<_Type>& left, Buffer<_Type>& right)
+    {
+        swap(left._values, right._values);
+    }
+
+protected:
+    Buffer(_Type* values) :
+        _values(values)
+    {
+    }
+
+private:
+    Buffer(const Buffer<_Type>&);
+    Buffer<_Type>& operator=(const Buffer<_Type>&);
+
+protected:
+    _Type* _values;
+};
+
+typedef Buffer<byte_t> ByteBuffer;
+typedef Buffer<char_t> CharBuffer;
+typedef Buffer<unichar_t> UniCharBuffer;
+
 // ConstStringIterator
 
 class String;
