@@ -100,7 +100,7 @@ void File::close()
 
 String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
 {
-    ByteArray bytes = read<byte_t>();
+    ByteBuffer bytes = read<byte_t>();
     int bomOffset = 0;
 
     if (bytes.size() >= 2 && bytes[0] == 0xfe && bytes[1] == 0xff)
@@ -204,22 +204,24 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
     }
 
     p = str.chars();
-    ByteArray bytes;
-    bytes.ensureCapacity(len);
+
+    ByteBuffer bytes;
+    bytes.resize(len);
+    int i = 0;
 
     if (bom)
     {
         if (encoding == TEXT_ENCODING_UTF8)
         {
-            bytes.addLast(0xef);
-            bytes.addLast(0xbb);
-            bytes.addLast(0xbf);
+            bytes[i++] = 0xef;
+            bytes[i++] = 0xbb;
+            bytes[i++] = 0xbf;
         }
         else
         {
             char16_t bomch = 0xfeff;
-            bytes.addLast(*(reinterpret_cast<byte_t*>(&bomch)));
-            bytes.addLast(*(reinterpret_cast<byte_t*>(&bomch) + 1));
+            bytes[i++] = *(reinterpret_cast<byte_t*>(&bomch));
+            bytes[i++] = *(reinterpret_cast<byte_t*>(&bomch) + 1);
         }
     }
 
@@ -228,8 +230,27 @@ void File::writeString(const String& str, TextEncoding encoding, bool bom, bool 
         p += UTF_CHAR_TO_UNICODE(p, ch);
 
         if (ch == '\n' && crLf)
-            appendChar(bytes, encoding, '\r');
-        appendChar(bytes, encoding, ch);
+        {
+            if (encoding == TEXT_ENCODING_UTF8)
+                bytes[i++] = '\r';
+            else
+            {
+                char16_t lfch = '\r';
+                bytes[i++] = *(reinterpret_cast<byte_t*>(&lfch));
+                bytes[i++] = *(reinterpret_cast<byte_t*>(&lfch) + 1);
+            }
+        }
+
+        byte_t s[4];
+        int n;
+
+        if (encoding == TEXT_ENCODING_UTF8)
+            n = unicodeCharToUtf8(ch, reinterpret_cast<char*>(s));
+        else
+            n = unicodeCharToUtf16(ch, reinterpret_cast<char16_t*>(s)) * 2;
+
+        for (int j = 0; j < n; ++j)
+            bytes[i++] = s[j];
     }
 
 #ifdef ARCH_LITTLE_ENDIAN
@@ -260,18 +281,4 @@ int64_t File::size() const
     ASSERT(rc == 0);
     return st.st_size;
 #endif
-}
-
-void File::appendChar(ByteArray& bytes, TextEncoding encoding, unichar_t ch)
-{
-    byte_t s[4];
-    int n;
-
-    if (encoding == TEXT_ENCODING_UTF8)
-        n = unicodeCharToUtf8(ch, reinterpret_cast<char*>(s));
-    else
-        n = unicodeCharToUtf16(ch, reinterpret_cast<char16_t*>(s)) * 2;
-
-    for (int i = 0; i < n; ++i)
-        bytes.addLast(s[i]);
 }

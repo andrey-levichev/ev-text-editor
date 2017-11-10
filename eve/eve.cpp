@@ -863,7 +863,7 @@ void Document::setDimensions(int x, int y, int width, int height)
     _height = height;
 }
 
-void Document::draw(int screenWidth, UniCharArray& screen, bool unicodeLimit16)
+void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
 {
     if (_line < _top)
         _top = _line;

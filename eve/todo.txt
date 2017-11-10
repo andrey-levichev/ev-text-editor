@@ -50,6 +50,7 @@ move node pointers instead of nodes when rehashing to avoid allocation
 benchmark/improve hash function
 * strings
 string constructor that accepts ascii strings
+store short strings in place
 split/join, tokenizer
 conversion to binary/hex
 simple parsing a la scanf
@@ -64,7 +65,4 @@ file system access
 * function objects (function/bind)
 * type traits
 * foundation improvements
-prohibit write access to array data via pointer
-blob class for array of value types?
-simple string too?
 log memory allocations

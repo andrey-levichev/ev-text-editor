@@ -42,7 +42,7 @@ public:
     void close();
 
     template<typename _Type>
-    Array<_Type> read()
+    Buffer<_Type> read()
     {
         if (_handle == INVALID_HANDLE_VALUE)
             throw Exception(STR("file not open"));
@@ -55,7 +55,7 @@ public:
         if (bytesSize % sizeof(_Type) != 0)
             throw Exception(STR("file size must be a multiple of type size"));
 
-        Array<_Type> data(bytesSize / sizeof(_Type));
+        Buffer<_Type> data(bytesSize / sizeof(_Type));
 
 #ifdef PLATFORM_WINDOWS
         LARGE_INTEGER offset = { { 0 } };
@@ -80,7 +80,7 @@ public:
     }
 
     template<typename _Type>
-    void write(const Array<_Type>& data)
+    void write(const Buffer<_Type>& data)
     {
         write(data.size(), data.values());
     }
@@ -121,9 +121,6 @@ public:
     void writeString(const String& str, TextEncoding encoding, bool bom, bool crLf);
 
     int64_t size() const;
-
-protected:
-    void appendChar(ByteArray& bytes, TextEncoding encoding, unichar_t ch);
 
 private:
     File(const File&);

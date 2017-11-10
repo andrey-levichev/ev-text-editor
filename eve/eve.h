@@ -148,7 +148,7 @@ public:
     void clear();
 
     void setDimensions(int x, int y, int width, int height);
-    void draw(int screenWidth, UniCharArray& screen, bool unicodeLimit16);
+    void draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16);
 
 protected:
     int findLineStart(int pos) const;
@@ -280,8 +280,8 @@ protected:
     String _searchStr, _replaceStr;
     bool _caseSesitive;
 
-    UniCharArray _screen;
-    UniCharArray _prevScreen;
+    UniCharBuffer _screen;
+    UniCharBuffer _prevScreen;
     String _output;
 
     String _status, _message;

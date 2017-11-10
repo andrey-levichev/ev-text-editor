@@ -298,7 +298,7 @@ static KeyMapping keyMapping[] =
 // Console
 
 #ifdef PLATFORM_WINDOWS
-Array<INPUT_RECORD> Console::_inputRecords(16);
+Buffer<INPUT_RECORD> Console::_inputRecords(16);
 #else
 Array<char> Console::_inputChars(16);
 #endif

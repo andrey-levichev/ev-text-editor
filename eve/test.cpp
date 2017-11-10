@@ -4944,11 +4944,11 @@ void testFile()
     const char_t* str = u"\x0024\x00a2\n\x20ac\xd800\xdf48\n";
 #endif
 
-    byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
-    byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
-    byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
-    byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
-    byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
+    const byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
+    const byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
+    const byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
+    const byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
+    const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
 
     // File()
     // File(const String& fileName, FileMode openMode = FILE_MODE_OPEN_EXISTING)
@@ -4982,24 +4982,24 @@ void testFile()
     }
 
     // template<typename _Type>
-    // void write(const Array<_Type>& data)
+    // void write(const Buffer<_Type>& data)
     // int64_t size() const
 
     {
         File f;
-        ASSERT_EXCEPTION(Exception, f.write(Array<byte_t>()));
+        ASSERT_EXCEPTION(Exception, f.write(ByteBuffer()));
         ASSERT_EXCEPTION(Exception, f.size());
     }
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
-        Array<byte_t> bytes(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX);
+        ByteBuffer bytes(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX);
         f.write(bytes);
         ASSERT(f.size() == bytes.size());
     }
 
     // template<typename _Type>
-    // Array<_Type> read()
+    // Buffer<_Type> read()
 
     {
         File f;
@@ -5008,7 +5008,7 @@ void testFile()
 
     {
         File f(STR("test.txt"));
-        ByteArray bytes = f.read<byte_t>();
+        ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
     }
 
@@ -5016,7 +5016,7 @@ void testFile()
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
-        f.write(Array<byte_t>(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX));
+        f.write(ByteBuffer(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX));
 
         TextEncoding encoding;
         bool bom, crLf;
@@ -5030,7 +5030,7 @@ void testFile()
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
-        f.write(Array<byte_t>(sizeof(BYTES_UTF8_BOM_UNIX), BYTES_UTF8_BOM_UNIX));
+        f.write(ByteBuffer(sizeof(BYTES_UTF8_BOM_UNIX), BYTES_UTF8_BOM_UNIX));
 
         TextEncoding encoding;
         bool bom, crLf;
@@ -5044,7 +5044,7 @@ void testFile()
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
-        f.write(Array<byte_t>(sizeof(BYTES_UTF16_LE_WIN), BYTES_UTF16_LE_WIN));
+        f.write(ByteBuffer(sizeof(BYTES_UTF16_LE_WIN), BYTES_UTF16_LE_WIN));
 
         TextEncoding encoding;
         bool bom, crLf;
@@ -5057,7 +5057,7 @@ void testFile()
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
-        f.write(Array<byte_t>(sizeof(BYTES_UTF16_LE_UNIX), BYTES_UTF16_LE_UNIX));
+        f.write(ByteBuffer(sizeof(BYTES_UTF16_LE_UNIX), BYTES_UTF16_LE_UNIX));
 
         TextEncoding encoding;
         bool bom, crLf;
@@ -5070,7 +5070,7 @@ void testFile()
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
-        f.write(Array<byte_t>(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX));
+        f.write(ByteBuffer(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX));
 
         TextEncoding encoding;
         bool bom, crLf;
@@ -5086,35 +5086,35 @@ void testFile()
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.writeString(str, TEXT_ENCODING_UTF8, false, false);
-        ByteArray bytes = f.read<byte_t>();
+        ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
     }
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.writeString(str, TEXT_ENCODING_UTF8, true, false);
-        ByteArray bytes = f.read<byte_t>();
+        ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF8_BOM_UNIX, sizeof(BYTES_UTF8_BOM_UNIX)) == 0);
     }
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.writeString(str, TEXT_ENCODING_UTF16_LE, true, true);
-        ByteArray bytes = f.read<byte_t>();
+        ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_WIN, sizeof(BYTES_UTF16_LE_WIN)) == 0);
     }
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.writeString(str, TEXT_ENCODING_UTF16_LE, true, false);
-        ByteArray bytes = f.read<byte_t>();
+        ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_UNIX, sizeof(BYTES_UTF16_LE_UNIX)) == 0);
     }
 
     {
         File f(STR("test.txt"), FILE_MODE_CREATE);
         f.writeString(str, TEXT_ENCODING_UTF16_BE, true, false);
-        ByteArray bytes = f.read<byte_t>();
+        ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF16_BE_UNIX, sizeof(BYTES_UTF16_BE_UNIX)) == 0);
     }
 }
@@ -5219,7 +5219,7 @@ void testConsoleReadInput()
 
     while (true)
     {
-        const Array<InputEvent>& inputEvents = Console::readInput();
+        auto& inputEvents = Console::readInput();
 
         for (int i = 0; i < inputEvents.size(); ++i)
         {

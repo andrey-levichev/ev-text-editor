@@ -161,7 +161,7 @@ public:
 
 protected:
 #ifdef PLATFORM_WINDOWS
-    static Array<INPUT_RECORD> _inputRecords;
+    static Buffer<INPUT_RECORD> _inputRecords;
 #else
     static Array<char> _inputChars;
 #endif
