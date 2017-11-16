@@ -1465,8 +1465,8 @@ void Editor::setDimensions(int width, int height)
     for (auto doc = _documents.first(); doc; doc = doc->next)
         doc->value.setDimensions(1, 1, _width, _height - 1);
 
-    _screen.resize(_width * _height, ' ');
-    _prevScreen.resize(_width * _height, ' ');
+    _screen.assign(_width * _height, ' ');
+    _prevScreen.assign(_width * _height, ' ');
 }
 
 bool Editor::processInput()

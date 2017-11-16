@@ -423,6 +423,367 @@ void testShared()
     }
 }
 
+void testBuffer()
+{
+    int z = 0;
+    int elem[] = { 1, 2, 3 };
+    const int* np = NULL;
+    const int* ep = elem;
+
+    // Buffer()
+
+    {
+        Buffer<int> b;
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    // Buffer(int size)
+
+    ASSERT_EXCEPTION(Exception, Buffer<int>(-1));
+
+    {
+        Buffer<int> b(0);
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    {
+        Buffer<int> b(3);
+        ASSERT(b.size() == 3);
+        ASSERT(b.values());
+    }
+
+    // Buffer(int size, const _Type& value)
+
+    ASSERT_EXCEPTION(Exception, Buffer<int>(-1, z));
+
+    {
+        Buffer<int> b(0, z);
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    {
+        Buffer<int> b(3, 123);
+        ASSERT(b.size() == 3);
+        ASSERT(b.values());
+        ASSERT(b[0] == 123 && b[1] == 123 && b[2] == 123);
+    }
+
+    // Buffer(int size, const _Type* values)
+
+    ASSERT_EXCEPTION(Exception, Buffer<int>(-1, np));
+    ASSERT_EXCEPTION(Exception, Buffer<int>(1, np));
+
+    {
+        Buffer<int> b(0, np);
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    {
+        Buffer<int> b(3, ep);
+        ASSERT(b.size() == 3);
+        ASSERT(b.values());
+        ASSERT(b[0] == 1 && b[1] == 2 && b[2] == 3);
+    }
+
+    // Buffer(const Buffer<_Type>& other)
+
+    {
+        Buffer<int> b1, b2(b1);
+        ASSERT(b2.size() == 0);
+        ASSERT(!b2.values());
+    }
+
+    {
+        Buffer<int> b1(3, ep), b2(b1);
+        ASSERT(b2.size() == 3);
+        ASSERT(b2.values());
+        ASSERT(b2[0] == 1 && b2[1] == 2 && b2[2] == 3);
+    }
+
+    // Buffer(Buffer<_Type>&& other)
+
+    {
+        Buffer<int> b1(3, ep), b2(static_cast<Buffer<int>&&>(b1));
+
+        ASSERT(b1.size() == 0);
+        ASSERT(!b1.values());
+
+        ASSERT(b2.size() == 3);
+        ASSERT(b2.values());
+        ASSERT(b2[0] == 1 && b2[1] == 2 && b2[2] == 3);
+    }
+
+    // Buffer<_Type>& operator=(const Buffer<_Type>& other)
+
+    {
+        Buffer<int> b1(3, ep), b2;
+        b2 = b1;
+        ASSERT(b2.size() == 3);
+        ASSERT(b2.values());
+        ASSERT(b2[0] == 1 && b2[1] == 2 && b2[2] == 3);
+    }
+
+    // Buffer<_Type>& operator=(Buffer<_Type>&& other)
+
+    {
+        Buffer<int> b1(3, ep), b2;
+        b2 = static_cast<Buffer<int>&&>(b1);
+
+        ASSERT(b1.size() == 0);
+        ASSERT(!b1.values());
+
+        ASSERT(b2.size() == 3);
+        ASSERT(b2.values());
+        ASSERT(b2[0] == 1 && b2[1] == 2 && b2[2] == 3);
+    }
+
+    // _Type& operator[](int index)
+
+    {
+        Buffer<int> b(3, ep);
+        ASSERT_EXCEPTION(Exception, b[-1]);
+        ASSERT_EXCEPTION(Exception, b[3]);
+        ASSERT(b[0] == 1 && b[1] == 2 && b[2] == 3);
+    }
+
+    // const _Type& operator[](int index) const
+
+    {
+        Buffer<int> b(3, ep);
+        const Buffer<int>& cb = b;
+        ASSERT_EXCEPTION(Exception, cb[-1]);
+        ASSERT_EXCEPTION(Exception, cb[3]);
+        ASSERT(cb[0] == 1 && cb[1] == 2 && cb[2] == 3);
+    }
+
+    // _Type& value(int index)
+
+    {
+        Buffer<int> b(3, ep);
+        ASSERT_EXCEPTION(Exception, b.value(-1));
+        ASSERT_EXCEPTION(Exception, b.value(3));
+        ASSERT(b.value(0) == 1 && b.value(1) == 2 && b.value(2) == 3);
+    }
+
+    // const _Type& operator[](int index) const
+
+    {
+        Buffer<int> b(3, ep);
+        const Buffer<int>& cb = b;
+        ASSERT_EXCEPTION(Exception, cb.value(-1));
+        ASSERT_EXCEPTION(Exception, cb.value(3));
+        ASSERT(cb.value(0) == 1 && cb.value(1) == 2 && cb.value(2) == 3);
+    }
+
+    // int size() const
+    // bool empty() const
+    // _Type* values()
+    // const _Type* values() const
+
+    {
+        Buffer<int> b(0, np);
+        const Buffer<int>& cb = b;
+        ASSERT(b.size() == 0);
+        ASSERT(b.empty());
+        ASSERT(!b.values());
+        ASSERT(!cb.values());
+    }
+
+    {
+        Buffer<int> b(3, ep);
+        const Buffer<int>& cb = b;
+        ASSERT(b.size() == 3);
+        ASSERT(!b.empty());
+        ASSERT(b.values());
+        ASSERT(cb.values());
+    }
+
+    // void resize(int size)
+
+    ASSERT_EXCEPTION(Exception, Buffer<int>().resize(-1));
+
+    {
+        Buffer<int> b;
+        b.resize(3);
+        ASSERT(b.size() == 3);
+        ASSERT(b.values());
+    }
+
+    {
+        Buffer<int> b(3, 0);
+        b.resize(0);
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    // void assign(const Buffer<_Type>& other)
+
+    {
+        Buffer<int> b1(3, ep), b2;
+        b2.assign(b1);
+        ASSERT(b2.size() == 3);
+        ASSERT(b2.values());
+        ASSERT(b2[0] == 1 && b2[1] == 2 && b2[2] == 3);
+    }
+
+    // void assign(int size, const _Type& value)
+
+    ASSERT_EXCEPTION(Exception, Buffer<int>().assign(-1, z));
+
+    {
+        Buffer<int> b;
+        b.assign(0, z);
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    {
+        Buffer<int> b;
+        b.assign(3, 123);
+        ASSERT(b.size() == 3);
+        ASSERT(b.values());
+        ASSERT(b[0] == 123 && b[1] == 123 && b[2] == 123);
+    }
+
+    // void assign(int size, const _Type* values)
+
+    ASSERT_EXCEPTION(Exception, Buffer<int>().assign(-1, np));
+    ASSERT_EXCEPTION(Exception, Buffer<int>().assign(1, np));
+
+    {
+        Buffer<int> b;
+        b.assign(0, np);
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    {
+        Buffer<int> b;
+        b.assign(3, ep);
+        ASSERT(b.size() == 3);
+        ASSERT(b.values());
+        ASSERT(b[0] == 1 && b[1] == 2 && b[2] == 3);
+    }
+
+    // void append(const Buffer<_Type>& other)
+
+    {
+        Buffer<int> b1(3, ep), b2(1, 123);
+        b2.append(b1);
+        ASSERT(b2.size() == 4);
+        ASSERT(b2[0] == 123 && b2[1] == 1 && b2[2] == 2 && b2[3] == 3);
+    }
+
+    // void append(int size, const _Type& value)
+
+    ASSERT_EXCEPTION(Exception, Buffer<int>().append(-1, z));
+
+    {
+        Buffer<int> b(1, 123);
+        b.append(0, z);
+        ASSERT(b.size() == 1);
+        ASSERT(b[0] == 123);
+    }
+
+    {
+        Buffer<int> b(1, 123);
+        b.append(3, 456);
+        ASSERT(b.size() == 4);
+        ASSERT(b[0] == 123 && b[1] == 456 && b[2] == 456 && b[3] == 456);
+    }
+
+    // void append(int size, const _Type* values)
+
+    ASSERT_EXCEPTION(Exception, Buffer<int>().append(-1, np));
+    ASSERT_EXCEPTION(Exception, Buffer<int>().append(1, np));
+
+    {
+        Buffer<int> b(1, 123);
+        b.append(0, np);
+        ASSERT(b.size() == 1);
+        ASSERT(b[0] == 123);
+    }
+
+    {
+        Buffer<int> b(1, 123);
+        b.append(3, ep);
+        ASSERT(b.size() == 4);
+        ASSERT(b[0] == 123 && b[1] == 1 && b[2] == 2 && b[3] == 3);
+    }
+
+    // void clear()
+
+    {
+        Buffer<int> b;
+        b.clear();
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    {
+        Buffer<int> b(3, ep);
+        b.clear();
+        ASSERT(b.size() == 3);
+        ASSERT(b.values());
+        ASSERT(b[0] == 0 && b[1] == 0 && b[2] == 0);
+    }
+
+    // void reset()
+
+    {
+        Buffer<int> b;
+        b.reset();
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    {
+        Buffer<int> b(3, ep);
+        b.reset();
+        ASSERT(b.size() == 0);
+        ASSERT(!b.values());
+    }
+
+    // Buffer<_Type> acquire(int size, _Type* values)
+    // _Type* release()
+
+    {
+        int v;
+        ASSERT_EXCEPTION(Exception, Buffer<int>::acquire(0, &v));
+        ASSERT_EXCEPTION(Exception, Buffer<int>::acquire(1, NULL));
+    }
+
+    {
+        Buffer<int> b1;
+        int size = b1.size();
+        int* values = b1.release();
+        ASSERT(b1.size() == 0);
+        ASSERT(!b1.values());
+
+        Buffer<int> b2;
+        b2.acquire(size, values);
+        ASSERT(b2.size() == 0);
+        ASSERT(!b2.values());
+    }
+
+    {
+        Buffer<int> b1(3, ep);
+        int size = b1.size();
+        int* values = b1.release();
+        ASSERT(b1.size() == 0);
+        ASSERT(!b1.values());
+
+        Buffer<int> b2 = b2.acquire(size, values);
+        ASSERT(b2.size() == 3);
+        ASSERT(b2.values());
+        ASSERT(b2[0] == 1 && b2[1] == 2 && b2[2] == 3);
+    }
+}
+
 void testString()
 {
     unichar_t zc = 0;
@@ -4924,6 +5285,7 @@ void testFoundation()
 {
     testUnique();
     testShared();
+    testBuffer();
     testString();
     testStringIterator();
     testArray();
@@ -5506,10 +5868,6 @@ void printPlatformInfo()
     Console::write(STR(" IBM XL C/C++"));
 #endif
     Console::writeLineFormatted(STR(" version %d"), COMPILER_VERSION);
-}
-
-void test()
-{
 }
 
 int MAIN(int argc, const char_t** argv)

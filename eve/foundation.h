@@ -600,12 +600,20 @@ inline _Type* reallocate(_Type* ptr, int size)
 {
     ASSERT(size >= 0);
 
-    ptr = static_cast<_Type*>(realloc(ptr, sizeof(_Type) * size));
+    if (size > 0)
+    {
+        ptr = static_cast<_Type*>(realloc(ptr, sizeof(_Type) * size));
 
-    if (size > 0 && !ptr)
-        throw OutOfMemoryException();
+        if (!ptr)
+            throw OutOfMemoryException();
+        else
+            return ptr;
+    }
     else
-        return ptr;
+    {
+        free(ptr);
+        return NULL;
+    }
 }
 
 inline void deallocate(void* ptr)
@@ -1052,17 +1060,25 @@ public:
     {
         ASSERT(size >= 0);
         _size = size;
-        _values = Memory::allocate<_Type>(size);
+        _values = Memory::allocate<_Type>(_size);
     }
 
     Buffer(int size, const _Type& value)
     {
-        assign(size, value);
+        ASSERT(size >= 0);
+        _size = size;
+        _values = Memory::allocate<_Type>(_size);
+
+        for (int i = 0; i < _size; ++i)
+            _values[i] = value;
     }
 
     Buffer(int size, const _Type* values)
     {
-        assign(size, values);
+        ASSERT(size == 0 || (size > 0 && values));
+        _size = size;
+        _values = Memory::allocate<_Type>(_size);
+        memcpy(_values, values, _size * sizeof(_Type));
     }
 
     Buffer(const Buffer<_Type>& other)
@@ -1144,50 +1160,44 @@ public:
     {
         ASSERT(size >= 0);
         _size = size;
-        _values = Memory::reallocate(_values, size);
+        _values = Memory::reallocate(_values, _size);
     }
 
     void assign(const Buffer<_Type>& other)
     {
-        _size = size;
-        _values = Memory::reallocate(_values, size);
-        memcpy(_values, other._values, size * sizeof(_Type));
+        _size = other._size;
+        _values = Memory::reallocate(_values, _size);
+        memcpy(_values, other._values, _size * sizeof(_Type));
     }
 
     void assign(int size, const _Type& value)
     {
         ASSERT(size >= 0);
-        ASSERT(values);
-
         _size = size;
-        _values = Memory::reallocate(_values, size);
+        _values = Memory::reallocate(_values, _size);
 
-        for (int i = 0; i < size; ++i)
+        for (int i = 0; i < _size; ++i)
             _values[i] = value;
     }
 
     void assign(int size, const _Type* values)
     {
-        ASSERT(size >= 0);
-        ASSERT(values);
-
+        ASSERT(size == 0 || (size > 0 && values));
         _size = size;
-        _values = Memory::reallocate(_values, size);
-        memcpy(_values, values, size * sizeof(_Type));
+        _values = Memory::reallocate(_values, _size);
+        memcpy(_values, values, _size * sizeof(_Type));
     }
 
     void append(const Buffer<_Type>& other)
     {
-        _values = Memory::reallocate(_values, _size + size);
-        memcpy(_values + _size, other._values, size * sizeof(_Type));
-        _size += size;
+        _values = Memory::reallocate(_values, _size + other._size);
+        memcpy(_values + _size, other._values, other._size * sizeof(_Type));
+        _size += other._size;
     }
 
     void append(int size, const _Type& value)
     {
         ASSERT(size >= 0);
-        ASSERT(values);
-
         _values = Memory::reallocate(_values, _size + size);
 
         for (int i = _size; i < _size + size; ++i)
@@ -1198,15 +1208,19 @@ public:
 
     void append(int size, const _Type* values)
     {
-        ASSERT(size >= 0);
-        ASSERT(values);
-
+        ASSERT(size == 0 || (size > 0 && values));
         _values = Memory::reallocate(_values, _size + size);
         memcpy(_values + _size, values, size * sizeof(_Type));
         _size += size;
     }
 
     void clear()
+    {
+        if (_size > 0)
+            memset(_values, 0, _size * sizeof(_Type));
+    }
+
+    void reset()
     {
         Memory::deallocate(_values);
         _size = 0;
@@ -1236,8 +1250,7 @@ protected:
     Buffer(int size, _Type* values) :
         _size(size), _values(values)
     {
-        ASSERT(size >= 0);
-        ASSERT(values);
+        ASSERT((size == 0 && !values) || (size > 0 && values));
     }
 
 protected:
@@ -2156,7 +2169,7 @@ protected:
     Array(int size, int capacity, _Type* values) :
         _size(size), _capacity(capacity), _values(values)
     {
-        ASSERT(size == 0 || (size > 0 && values));
+        ASSERT((size == 0 && !values) || (size > 0 && values));
         ASSERT(capacity >= 0 && size <= capacity);
     }
 
