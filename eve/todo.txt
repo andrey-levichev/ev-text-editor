@@ -1,6 +1,11 @@
 bugs & misc:
+
+release:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
+* finalize autocomplete
+* editor is slow on large files
+* webpage, install package, license, release notes, documentation
 
 editor:
 * switch between documents with alt+number
@@ -35,18 +40,11 @@ group small changes and apply together
 store text as a list of lines
 redraw only one line for small changes
 
-release:
-* webpage, payments
-* registration code generation/checking
-* license, relase notes, documentation
-* install package, auto-update
-* package for app stores, linux distros
-* version for iOS/Android?
-
 foundation:
+* foundation improvements
+log memory allocations
 * international support
 locales (formatting, string compare/search/case conversion)
-support both UTF encodings on any platform or same encoding everywhere?
 encoding conversion
 handle invalid Unicode sequences
 * containers
@@ -55,6 +53,7 @@ conversion between containers (array to list etc)
 create element in place
 move node pointers instead of nodes when rehashing to avoid allocation
 benchmark/improve hash function
+append for Array? merge Buffer and Array?
 * strings
 string constructor that accepts ascii strings
 store short strings in place
@@ -71,6 +70,3 @@ file system access
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
-* foundation improvements
-log memory allocations
-append for Array? merge Buffer and Array?

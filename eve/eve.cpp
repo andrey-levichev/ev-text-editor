@@ -17,7 +17,7 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 // Document
 
 Document::Document() :
-    _top(1), _left(1),
+    _top(1), _left(1), _topPos(0),
     _x(1), _y(1),
     _width(100), _height(50)
 {
@@ -866,16 +866,22 @@ void Document::setDimensions(int x, int y, int width, int height)
 void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
 {
     if (_line < _top)
+    {
         _top = _line;
+        _topPos = findLine(_top);
+    }
     else if (_line >= _top + _height)
+    {
         _top = _line - _height + 1;
+        _topPos = findLine(_top);
+    }
 
     if (_column < _left)
         _left = _column;
     else if (_column >= _left + _width)
         _left = _column - _width + 1;
 
-    int p = findLine(_top), q;
+    int p = _topPos, q;
     int len = _left + _width - 1;
     unichar_t ch;
 
@@ -1317,12 +1323,16 @@ void Editor::updateScreen(bool redrawAll)
     if (_document)
     {
         Document& doc = _document->value;
+        uint64_t ticks1 = Timer::ticks();
+
         doc.draw(_width, _screen, _unicodeLimit16);
 
         if (_document == &_commandLine)
             _screen[(_height - 1) * _width] = ':';
         else
             updateStatusLine();
+
+        uint64_t ticks2 = Timer::ticks();
 
         if (redrawAll)
         {
@@ -1383,6 +1393,10 @@ void Editor::updateScreen(bool redrawAll)
         }
 
         _prevScreen = _screen;
+
+        uint64_t ticks3 = Timer::ticks();
+        Console::setCursorPosition(_height, 1);
+        Console::writeFormatted(STR("%lu  %lu\x1b[K"), ticks2 - ticks1, ticks3 - ticks2);
 
         Console::setCursorPosition(
             doc.line() - doc.top() + doc.y(),
