@@ -1841,7 +1841,7 @@ bool Editor::processInput()
         updateScreen(false);
     }
 
-    if (modified)
+    if (modified && _document != &_commandLine)
         updateRecentLocations();
 
     return true;
@@ -2046,7 +2046,7 @@ void Editor::buildProject()
 #endif
 
     Console::writeLine(STR("Press any key to continue..."));
-    Console::readChar();
+    Console::readLine();
 
     Console::setLineMode(false);
 }

@@ -293,46 +293,6 @@ int utf16StringLength(const char16_t* str);
 
 #endif
 
-// byte swap
-
-inline uint16_t swapBytes(uint16_t value)
-{
-    return (value << 8) | (value >> 8 );
-}
-
-inline uint32_t swapBytes(uint32_t value)
-{
-    value = ((value << 8) & 0xff00ff00) | ((value >> 8) & 0xff00ff);
-    return (value << 16) | (value >> 16);
-}
-
-inline uint64_t swapBytes(uint64_t value)
-{
-    value = ((value << 8) & 0xff00ff00ff00ff00ull) |
-        ((value >> 8) & 0x00ff00ff00ff00ffull);
-    value = ((value << 16) & 0xffff0000ffff0000ull) |
-        ((value >> 16) & 0x0000ffff0000ffffull);
-    return (value << 32) | (value >> 32);
-}
-
-inline void swapBytes(uint16_t* values, int len)
-{
-    for (int i = 0; i < len; ++i)
-        values[i] = swapBytes(values[i]);
-}
-
-inline void swapBytes(uint32_t* values, int len)
-{
-    for (int i = 0; i < len; ++i)
-        values[i] = swapBytes(values[i]);
-}
-
-inline void swapBytes(uint64_t* values, int len)
-{
-    for (int i = 0; i < len; ++i)
-        values[i] = swapBytes(values[i]);
-}
-
 // assert macros
 
 #define TO_STR(arg) #arg
@@ -415,6 +375,52 @@ inline void swapBytes(uint64_t* values, int len)
 #define ASSERT_EXCEPTION_MSG(exception, msg, ...)
 
 #endif
+
+// Exception
+
+class Exception
+{
+public:
+    Exception() : _message(STR("operation failed"))
+    {
+    }
+
+    Exception(const char_t* message) : _message(message)
+    {
+    }
+
+    virtual ~Exception()
+    {
+    }
+
+    const char_t* message() const
+    {
+        return _message;
+    }
+
+protected:
+    const char_t* _message;
+};
+
+// OutOfMemoryException
+
+class OutOfMemoryException : public Exception
+{
+public:
+    OutOfMemoryException() : Exception(STR("out of memory"))
+    {
+    }
+};
+
+// NullPointerException
+
+class NullPointerException : public Exception
+{
+public:
+    NullPointerException() : Exception(STR("null pointer"))
+    {
+    }
+};
 
 // hash function
 
@@ -500,11 +506,6 @@ inline int hash(const _Type1& val1, const _Type2& val2)
     return 33 * hash(val1) + hash(val2);
 }
 
-// misc
-
-typedef unsigned char byte_t;
-#define INVALID_POSITION -1
-
 // Timer
 
 struct Timer
@@ -513,51 +514,56 @@ struct Timer
     static uint64_t ticks();
 };
 
-// Exception
+// byte swap
 
-class Exception
+inline uint16_t swapBytes(uint16_t value)
 {
-public:
-    Exception() : _message(STR("operation failed"))
-    {
-    }
+    return (value << 8) | (value >> 8 );
+}
 
-    Exception(const char_t* message) : _message(message)
-    {
-    }
-
-    virtual ~Exception()
-    {
-    }
-
-    const char_t* message() const
-    {
-        return _message;
-    }
-
-protected:
-    const char_t* _message;
-};
-
-// OutOfMemoryException
-
-class OutOfMemoryException : public Exception
+inline uint32_t swapBytes(uint32_t value)
 {
-public:
-    OutOfMemoryException() : Exception(STR("out of memory"))
-    {
-    }
-};
+    value = ((value << 8) & 0xff00ff00) | ((value >> 8) & 0xff00ff);
+    return (value << 16) | (value >> 16);
+}
 
-// NullPointerException
-
-class NullPointerException : public Exception
+inline uint64_t swapBytes(uint64_t value)
 {
-public:
-    NullPointerException() : Exception(STR("null pointer"))
-    {
-    }
-};
+    value = ((value << 8) & 0xff00ff00ff00ff00ull) |
+        ((value >> 8) & 0x00ff00ff00ff00ffull);
+    value = ((value << 16) & 0xffff0000ffff0000ull) |
+        ((value >> 16) & 0x0000ffff0000ffffull);
+    return (value << 32) | (value >> 32);
+}
+
+inline void swapBytes(uint16_t* values, int len)
+{
+    ASSERT(len == 0 || (values && len > 0));
+
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
+
+inline void swapBytes(uint32_t* values, int len)
+{
+    ASSERT(len == 0 || (values && len > 0));
+
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
+
+inline void swapBytes(uint64_t* values, int len)
+{
+    ASSERT(len == 0 || (values && len > 0));
+
+    for (int i = 0; i < len; ++i)
+        values[i] = swapBytes(values[i]);
+}
+
+// misc
+
+typedef unsigned char byte_t;
+#define INVALID_POSITION -1
 
 // Memory
 

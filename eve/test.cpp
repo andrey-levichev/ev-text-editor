@@ -146,6 +146,45 @@ void testSupport()
     }
 }
 
+void testSwapBytes()
+{
+    {
+        uint16_t v = 0x1122;
+        ASSERT(swapBytes(v) == 0x2211);
+    }
+
+    {
+        uint32_t v = 0x11223344;
+        ASSERT(swapBytes(v) == 0x44332211);
+    }
+
+    {
+        uint64_t v = 0x1122334455667788ull;
+        ASSERT(swapBytes(v) == 0x8877665544332211ull);
+    }
+
+    {
+        uint16_t v[] = { 0x1122, 0x3344 };
+        swapBytes(v, 2);
+        ASSERT(v[0] == 0x2211);
+        ASSERT(v[1] == 0x4433);
+    }
+
+    {
+        uint32_t v[] = { 0x11223344, 0x44332211 };
+        swapBytes(v, 2);
+        ASSERT(v[0] == 0x44332211);
+        ASSERT(v[1] == 0x11223344);
+    }
+
+    {
+        uint64_t v[] = { 0x1122334455667788ull, 0x8877665544332211ull };
+        swapBytes(v, 2);
+        ASSERT(v[0] == 0x8877665544332211ull);
+        ASSERT(v[1] == 0x1122334455667788ull);
+    }
+}
+
 void testUnique()
 {
     // Unique()
@@ -5283,6 +5322,7 @@ void testSetIterator()
 
 void testFoundation()
 {
+    testSwapBytes();
     testUnique();
     testShared();
     testBuffer();
@@ -5490,15 +5530,15 @@ void testConsole()
     Console::writeFormatted(STR("console size: %dx%d"), width, height);
     Console::setCursorPosition(height - 3, 2);
     Console::write(STR("press ENTER to hide cursor"));
-    Console::readChar();
+    Console::readLine();
     Console::showCursor(false);
     Console::setCursorPosition(height - 2, 2);
     Console::write(STR("press ENTER to show cursor"));
-    Console::readChar();
+    Console::readLine();
     Console::showCursor(true);
     Console::setCursorPosition(height - 1, 2);
     Console::write(STR("press ENTER to exit"));
-    Console::readChar();
+    Console::readLine();
 }
 
 void writeFormatted(const char_t* format, ...)
@@ -5878,7 +5918,7 @@ int MAIN(int argc, const char_t** argv)
 
         testSupport();
         testFoundation();
-//        testFile();
+        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();

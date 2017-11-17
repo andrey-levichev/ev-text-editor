@@ -1,20 +1,13 @@
 bugs & misc:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
-* editor is slow only large files
-* jumping to previous location opens command line
+
+editor:
 * switch between documents with alt+number
 sort documents in most recently used order
 * copy/delete lines
-* clipboard integration
-* autocomplete
-disable autocomplete for text files
-initiate autocomplete after user pauses typing
-* repeat last character sequence
-* use readString in 'press enter' prompts
-* tests for Memory
-
-editor:
+* find/replace in files (with alt+shift)
+* clipboard integration on windows
 * new/open/save
 * syntax highlighting
 * parse build output for errors
@@ -29,13 +22,17 @@ with arrows and highlighting
 * line wrapping
 * find/replace back
 * graphical user interface
+* repeat last input sequence
 * autocomplete improvements
-trie based suggestions
+disable autocomplete for text files
+initiate autocomplete after user pauses typing
 scan all documents in current directory
+trie based suggestions
 * performance optimization
+editor is slow on large files
+don't scan text from beginning when drawing the screen
 group small changes and apply together
 store text as a list of lines
-don't scan text from beginning when drawing the screen
 redraw only one line for small changes
 
 release:
@@ -76,4 +73,4 @@ file system access
 * type traits
 * foundation improvements
 log memory allocations
-append for Array?
+append for Array? merge Buffer and Array?
