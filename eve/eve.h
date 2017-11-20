@@ -136,10 +136,7 @@ public:
     String autocompletePrefix() const;
     void completeWord(const String& word);
 
-    int findLine(int line) const;
-    int findPosition(const String& searchStr, bool caseSesitive, bool next);
     bool find(const String& searchStr, bool caseSesitive, bool next);
-
     bool replace(const String& searchStr, const String& replaceStr, bool caseSesitive);
     bool replaceAll(const String& searchStr, const String& replaceStr, bool caseSesitive);
 
@@ -151,19 +148,27 @@ public:
     void draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16);
 
 protected:
+    void positionToLineColumn();
+    void lineColumnToPosition();
+
+    void positionToLineColumn2(int pos, int line, int column,
+        int newPos, int& newLine, int& newColumn);
+
+    int lineColumnToPosition2(int pos, int line, int column, int newLine, int newColumn);
+
+    int findLine(int line) const;
     int findLineStart(int pos) const;
     int findLineEnd(int pos) const;
     int findNextLine(int pos) const;
     int findPreviousLine(int pos) const;
+
+    int findPosition(const String& searchStr, bool caseSesitive, bool next) const;
 
     void changeLines(int(Document::* lineOp)(int));
 
     int indentLine(int pos);
     int unindentLine(int pos);
     int toggleComment(int pos);
-
-    void positionToLineColumn();
-    void lineColumnToPosition();
 
     void trimTrailingWhitespace();
 

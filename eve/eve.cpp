@@ -709,41 +709,6 @@ void Document::completeWord(const String& word)
     }
 }
 
-int Document::findLine(int line) const
-{
-    ASSERT(line > 0);
-    int p = 0;
-
-    while (p < _text.length() && line > 1)
-    {
-        if (_text.charAt(p) == '\n')
-            --line;
-        p = _text.charForward(p);
-    }
-
-    return p;
-}
-
-int Document::findPosition(const String& searchStr, bool caseSesitive, bool next)
-{
-    ASSERT(!searchStr.empty());
-
-    int p = INVALID_POSITION;
-
-    if (_position < _text.length())
-    {
-        p = next ? _text.charForward(_position) : _position;
-
-        p = _text.find(searchStr, caseSesitive, p);
-        if (p == INVALID_POSITION)
-            p = _text.find(searchStr, caseSesitive);
-    }
-    else
-        p = _text.find(searchStr, caseSesitive);
-
-    return p;
-}
-
 bool Document::find(const String& searchStr, bool caseSesitive, bool next)
 {
     ASSERT(!searchStr.empty());
@@ -806,6 +771,8 @@ bool Document::replaceAll(const String& searchStr, const String& replaceStr, boo
 
 void Document::open(const String& filename)
 {
+    ASSERT(!filename.empty());
+
     clear();
     _filename = filename;
 
@@ -865,6 +832,8 @@ void Document::setDimensions(int x, int y, int width, int height)
 
 void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
 {
+    ASSERT(screenWidth > 0);
+
     if (_line < _top)
     {
         _top = _line;
@@ -931,9 +900,190 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
     }
 }
 
+void Document::positionToLineColumn()
+{
+    int p = 0;
+    _line = 1, _column = 1;
+
+    while (p < _position)
+    {
+        unichar_t ch = _text.charAt(p);
+
+        if (ch == '\n')
+        {
+            ++_line;
+            _column = 1;
+        }
+        else if (ch == '\t')
+            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+        else
+            ++_column;
+
+        p = _text.charForward(p);
+    }
+
+    _preferredColumn = _column;
+}
+
+void Document::lineColumnToPosition()
+{
+    int p = 0;
+    int preferredLine = _line;
+    _line = 1; _column = 1;
+    unichar_t ch = _text.charAt(p);
+
+    while (p < _text.length() && _line < preferredLine)
+    {
+        if (ch == '\n')
+            ++_line;
+
+        p = _text.charForward(p);
+		ch = _text.charAt(p);
+    }
+
+    while (p < _text.length() && ch != '\n' && _column < _preferredColumn)
+    {
+        if (ch == '\t')
+            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+        else
+            ++_column;
+
+        p = _text.charForward(p);
+		ch = _text.charAt(p);
+    }
+
+    _position = p;
+}
+
+void Document::positionToLineColumn2(int pos, int line, int column,
+    int newPos, int& newLine, int& newColumn)
+{
+    ASSERT(pos >= 0 && pos <= _text.length());
+    ASSERT(line > 0 && column > 0);
+    ASSERT(newPos >= 0 && newPos <= _text.length());
+
+    if (pos < newPos)
+    {
+        while (pos < newPos)
+        {
+            unichar_t ch = _text.charAt(pos);
+
+            if (ch == '\n')
+            {
+                ++line;
+                column = 1;
+            }
+            else if (ch == '\t')
+                column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+            else
+                ++column;
+
+            pos = _text.charForward(pos);
+        }
+    }
+    else if (pos > newPos)
+    {
+        while (pos > newPos)
+        {
+            pos = _text.charBack(pos);
+            unichar_t ch = _text.charAt(pos);
+
+            if (ch == '\n')
+            {
+                --line;
+                column = 1;
+            }
+            else if (ch == '\t')
+                column = ((column - 1) / TAB_SIZE) * TAB_SIZE + 1;
+            else
+                --column;
+        }
+    }
+
+    newLine = line;
+    newColumn = column;
+}
+
+int Document::lineColumnToPosition2(int pos, int line, int column, int newLine, int newColumn)
+{
+    ASSERT(pos >= 0 && pos <= _text.length());
+    ASSERT(line > 0 && column > 0);
+    ASSERT(newLine > 0 && newColumn > 0);
+
+    if (line < newLine || (line == newLine && column < newColumn))
+    {
+        unichar_t ch = _text.charAt(pos);
+
+        while (pos < _text.length() && line < newLine)
+        {
+            if (ch == '\n')
+                ++line;
+
+            pos = _text.charForward(pos);
+            ch = _text.charAt(pos);
+        }
+
+        while (pos < _text.length() && ch != '\n' && column < newColumn)
+        {
+            if (ch == '\t')
+                column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+            else
+                ++column;
+
+            pos = _text.charForward(pos);
+            ch = _text.charAt(pos);
+        }
+    }
+    else if (line > newLine || (line == newLine && column > newColumn))
+    {
+        if (pos > 0)
+        {
+            pos = _text.charBack(pos);
+            unichar_t ch = _text.charAt(pos);
+
+            while (pos > 0 && line > newLine)
+            {
+                if (ch == '\n')
+                    --line;
+
+                pos = _text.charBack(pos);
+                ch = _text.charAt(pos);
+            }
+
+            while (pos > 0 && ch != '\n' && column > newColumn)
+            {
+                if (ch == '\t')
+                    column = ((column - 1) / TAB_SIZE) * TAB_SIZE + 1;
+                else
+                    --column;
+
+                pos = _text.charBack(pos);
+                ch = _text.charAt(pos);
+            }
+        }
+    }
+
+    return pos;
+}
+
+int Document::findLine(int line) const
+{
+    ASSERT(line > 0);
+    int p = 0;
+
+    while (p < _text.length() && line > 1)
+    {
+        if (_text.charAt(p) == '\n')
+            --line;
+        p = _text.charForward(p);
+    }
+
+    return p;
+}
+
 int Document::findLineStart(int pos) const
 {
-    ASSERT(pos >= 0);
+    ASSERT(pos >= 0 && pos <= _text.length());
 
     while (pos > 0)
     {
@@ -948,7 +1098,7 @@ int Document::findLineStart(int pos) const
 
 int Document::findLineEnd(int pos) const
 {
-    ASSERT(pos >= 0);
+    ASSERT(pos >= 0 && pos <= _text.length());
 
     while (pos < _text.length())
     {
@@ -962,7 +1112,7 @@ int Document::findLineEnd(int pos) const
 
 int Document::findNextLine(int pos) const
 {
-    ASSERT(pos >= 0);
+    ASSERT(pos >= 0 && pos <= _text.length());
 
     pos = findLineEnd(pos);
 
@@ -974,7 +1124,7 @@ int Document::findNextLine(int pos) const
 
 int Document::findPreviousLine(int pos) const
 {
-    ASSERT(pos >= 0);
+    ASSERT(pos >= 0 && pos <= _text.length());
 
     pos = findLineStart(pos);
 
@@ -985,6 +1135,26 @@ int Document::findPreviousLine(int pos) const
     }
     else
         return INVALID_POSITION;
+}
+
+int Document::findPosition(const String& searchStr, bool caseSesitive, bool next) const
+{
+    ASSERT(!searchStr.empty());
+
+    int p = INVALID_POSITION;
+
+    if (_position < _text.length())
+    {
+        p = next ? _text.charForward(_position) : _position;
+
+        p = _text.find(searchStr, caseSesitive, p);
+        if (p == INVALID_POSITION)
+            p = _text.find(searchStr, caseSesitive);
+    }
+    else
+        p = _text.find(searchStr, caseSesitive);
+
+    return p;
 }
 
 void Document::changeLines(int(Document::* lineOp)(int))
@@ -1048,7 +1218,7 @@ void Document::changeLines(int(Document::* lineOp)(int))
 
 int Document::indentLine(int pos)
 {
-    ASSERT(pos >= 0);
+    ASSERT(pos >= 0 && pos <= _text.length());
 
     int start = findLineStart(pos), p = start;
     unichar_t ch;
@@ -1075,7 +1245,7 @@ int Document::indentLine(int pos)
 
 int Document::unindentLine(int pos)
 {
-    ASSERT(pos >= 0);
+    ASSERT(pos >= 0 && pos <= _text.length());
 
     int start = findLineStart(pos), p = start;
     unichar_t ch;
@@ -1109,7 +1279,7 @@ int Document::unindentLine(int pos)
 
 int Document::toggleComment(int pos)
 {
-    ASSERT(pos >= 0);
+    ASSERT(pos >= 0 && pos <= _text.length());
 
     int start = findLineStart(pos), p = start;
     unichar_t ch;
@@ -1136,61 +1306,6 @@ int Document::toggleComment(int pos)
 
     _text.insert(start, STR("//"));
     return start;
-}
-
-void Document::positionToLineColumn()
-{
-    int p = 0;
-    _line = 1, _column = 1;
-
-    while (p < _position)
-    {
-        unichar_t ch = _text.charAt(p);
-
-        if (ch == '\n')
-        {
-            ++_line;
-            _column = 1;
-        }
-        else if (ch == '\t')
-            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-        else
-            ++_column;
-
-        p = _text.charForward(p);
-    }
-
-    _preferredColumn = _column;
-}
-
-void Document::lineColumnToPosition()
-{
-    int p = 0;
-    int preferredLine = _line;
-    _line = 1; _column = 1;
-    unichar_t ch = _text.charAt(p);
-
-    while (p < _text.length() && _line < preferredLine)
-    {
-        if (ch == '\n')
-            ++_line;
-
-        p = _text.charForward(p);
-		ch = _text.charAt(p);
-    }
-
-    while (p < _text.length() && ch != '\n' && _column < _preferredColumn)
-    {
-        if (ch == '\t')
-            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-        else
-            ++_column;
-
-        p = _text.charForward(p);
-		ch = _text.charAt(p);
-    }
-
-    _position = p;
 }
 
 void Document::trimTrailingWhitespace()
