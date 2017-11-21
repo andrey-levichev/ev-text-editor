@@ -5916,9 +5916,20 @@ int MAIN(int argc, const char_t** argv)
     {
         printPlatformInfo();
 
-        testSupport();
-        testFoundation();
-        testFile();
+        ByteBuffer bytes(100000000);
+        bytes.clear();
+        bytes[bytes.size() - 1] = 1;
+
+        auto ticks1 = Timer::ticks();
+//        memmove(bytes.values() + 1, bytes.values(), bytes.size() - 1);
+        byte_t* p = (byte_t*)memchr(bytes.values(), 1, bytes.size());
+        ASSERT(p && p - bytes.values() == bytes.size() - 1);
+        auto ticks2 = Timer::ticks();
+        Console::writeLineFormatted(STR("%lu"), ticks2 - ticks1);
+
+//        testSupport();
+//        testFoundation();
+//        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();

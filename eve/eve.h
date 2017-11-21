@@ -151,11 +151,6 @@ protected:
     void positionToLineColumn();
     void lineColumnToPosition();
 
-    void positionToLineColumn2(int pos, int line, int column,
-        int newPos, int& newLine, int& newColumn);
-
-    int lineColumnToPosition2(int pos, int line, int column, int newLine, int newColumn);
-
     int findLine(int line) const;
     int findLineStart(int pos) const;
     int findLineEnd(int pos) const;
@@ -270,7 +265,7 @@ protected:
 
     int findNextSuggestion(const String& prefix, int currentSuggestion) const;
     int findPrevSuggestion(const String& prefix, int currentSuggestion) const;
-    void completeWord(bool next);
+    bool completeWord(bool next);
     void cancelCompletion();
 
 protected:

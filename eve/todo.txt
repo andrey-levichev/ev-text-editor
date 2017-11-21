@@ -29,10 +29,13 @@ with arrows and highlighting
 * graphical user interface
 * repeat last input sequence
 * autocomplete improvements
-disable autocomplete for text files
-initiate autocomplete after user pauses typing
+disable autocomplete for text files?
+initiate autocomplete after user pauses typing?
+enable autocomplete only for words that were completed before?
+bring back dictionary based autocomplete?
+perfer recently used words
 scan all documents in current directory
-trie based suggestions
+trie or another efficient data structure
 * performance optimization
 editor is slow on large files
 don't scan text from beginning when drawing the screen

@@ -955,117 +955,6 @@ void Document::lineColumnToPosition()
     _position = p;
 }
 
-void Document::positionToLineColumn2(int pos, int line, int column,
-    int newPos, int& newLine, int& newColumn)
-{
-    ASSERT(pos >= 0 && pos <= _text.length());
-    ASSERT(line > 0 && column > 0);
-    ASSERT(newPos >= 0 && newPos <= _text.length());
-
-    if (pos < newPos)
-    {
-        while (pos < newPos)
-        {
-            unichar_t ch = _text.charAt(pos);
-
-            if (ch == '\n')
-            {
-                ++line;
-                column = 1;
-            }
-            else if (ch == '\t')
-                column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-            else
-                ++column;
-
-            pos = _text.charForward(pos);
-        }
-    }
-    else if (pos > newPos)
-    {
-        while (pos > newPos)
-        {
-            pos = _text.charBack(pos);
-            unichar_t ch = _text.charAt(pos);
-
-            if (ch == '\n')
-            {
-                --line;
-                column = 1;
-            }
-            else if (ch == '\t')
-                column = ((column - 1) / TAB_SIZE) * TAB_SIZE + 1;
-            else
-                --column;
-        }
-    }
-
-    newLine = line;
-    newColumn = column;
-}
-
-int Document::lineColumnToPosition2(int pos, int line, int column, int newLine, int newColumn)
-{
-    ASSERT(pos >= 0 && pos <= _text.length());
-    ASSERT(line > 0 && column > 0);
-    ASSERT(newLine > 0 && newColumn > 0);
-
-    if (line < newLine || (line == newLine && column < newColumn))
-    {
-        unichar_t ch = _text.charAt(pos);
-
-        while (pos < _text.length() && line < newLine)
-        {
-            if (ch == '\n')
-                ++line;
-
-            pos = _text.charForward(pos);
-            ch = _text.charAt(pos);
-        }
-
-        while (pos < _text.length() && ch != '\n' && column < newColumn)
-        {
-            if (ch == '\t')
-                column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-            else
-                ++column;
-
-            pos = _text.charForward(pos);
-            ch = _text.charAt(pos);
-        }
-    }
-    else if (line > newLine || (line == newLine && column > newColumn))
-    {
-        if (pos > 0)
-        {
-            pos = _text.charBack(pos);
-            unichar_t ch = _text.charAt(pos);
-
-            while (pos > 0 && line > newLine)
-            {
-                if (ch == '\n')
-                    --line;
-
-                pos = _text.charBack(pos);
-                ch = _text.charAt(pos);
-            }
-
-            while (pos > 0 && ch != '\n' && column > newColumn)
-            {
-                if (ch == '\t')
-                    column = ((column - 1) / TAB_SIZE) * TAB_SIZE + 1;
-                else
-                    --column;
-
-                pos = _text.charBack(pos);
-                ch = _text.charAt(pos);
-            }
-        }
-    }
-
-    return pos;
-}
-
 int Document::findLine(int line) const
 {
     ASSERT(line > 0);
@@ -1438,16 +1327,12 @@ void Editor::updateScreen(bool redrawAll)
     if (_document)
     {
         Document& doc = _document->value;
-        uint64_t ticks1 = Timer::ticks();
-
         doc.draw(_width, _screen, _unicodeLimit16);
 
         if (_document == &_commandLine)
             _screen[(_height - 1) * _width] = ':';
         else
             updateStatusLine();
-
-        uint64_t ticks2 = Timer::ticks();
 
         if (redrawAll)
         {
@@ -1508,10 +1393,6 @@ void Editor::updateScreen(bool redrawAll)
         }
 
         _prevScreen = _screen;
-
-        uint64_t ticks3 = Timer::ticks();
-        Console::setCursorPosition(_height, 1);
-        Console::writeFormatted(STR("%lu  %lu\x1b[K"), ticks2 - ticks1, ticks3 - ticks2);
 
         Console::setCursorPosition(
             doc.line() - doc.top() + doc.y(),
@@ -1779,15 +1660,13 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.ch == '[')
                         {
-                            completeWord(false);
+                            doc.unindentLines();
                             modified = update = true;
-                            autocomplete = true;
                         }
                         else if (keyEvent.ch == ']')
                         {
-                            completeWord(true);
+                            doc.indentLines();
                             modified = update = true;
-                            autocomplete = true;
                         }
                         else if (keyEvent.ch == '`')
                         {
@@ -1809,7 +1688,11 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.shift && keyEvent.key == KEY_TAB)
                     {
-                        doc.unindentLines();
+                        if (completeWord(false))
+                            autocomplete = true;
+                        else
+                            doc.unindentLines();
+
                         modified = update = true;
                     }
                     else if (keyEvent.key == KEY_BACKSPACE)
@@ -1880,7 +1763,11 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_TAB)
                     {
-                        doc.indentLines();
+                        if (completeWord(true))
+                            autocomplete = true;
+                        else
+                            doc.indentLines();
+
                         modified = update = true;
                     }
                     else if (keyEvent.key == KEY_ESC)
@@ -1890,31 +1777,20 @@ bool Editor::processInput()
                     }
                     else if (charIsPrint(keyEvent.ch))
                     {
-                        if (inputEvents.size() == 1)
+                        if (charIsWord(keyEvent.ch))
+                            doc.insertChar(keyEvent.ch);
+                        else
                         {
-                            if (charIsWord(keyEvent.ch))
+                            if (_currentSuggestion != INVALID_POSITION)
                             {
-                                doc.insertChar(keyEvent.ch);
-
                                 _currentSuggestion = INVALID_POSITION;
-                                completeWord(true);
+                                doc.insertChar(keyEvent.ch, true);
                             }
                             else
-                            {
-                                if (_currentSuggestion != INVALID_POSITION)
-                                {
-                                    _currentSuggestion = INVALID_POSITION;
-                                    doc.insertChar(keyEvent.ch, true);
-                                }
-                                else
-                                    doc.insertChar(keyEvent.ch);
-                            }
+                                doc.insertChar(keyEvent.ch);
                         }
-                        else
-                            doc.insertChar(keyEvent.ch);
 
                         modified = update = true;
-                        autocomplete = true;
                     }
                 }
             }
@@ -2277,11 +2153,11 @@ int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion) cons
     return INVALID_POSITION;
 }
 
-void Editor::completeWord(bool next)
+bool Editor::completeWord(bool next)
 {
     String prefix = _document->value.autocompletePrefix();
 
-    if (prefix.length() > 1)
+    if (prefix.length() > 0)
     {
         int suggestion = next ?
             findNextSuggestion(prefix, _currentSuggestion) :
@@ -2290,7 +2166,11 @@ void Editor::completeWord(bool next)
         _currentSuggestion = suggestion;
         _document->value.completeWord(suggestion == INVALID_POSITION ?
             prefix : _suggestions[suggestion].word);
+
+        return true;
     }
+
+    return false;
 }
 
 void Editor::cancelCompletion()
@@ -2298,7 +2178,7 @@ void Editor::cancelCompletion()
     _currentSuggestion = INVALID_POSITION;
     String prefix = _document->value.autocompletePrefix();
 
-    if (prefix.length() > 1)
+    if (prefix.length() > 0)
         _document->value.completeWord(prefix);
 }
 
@@ -2321,8 +2201,8 @@ int MAIN(int argc, const char_t** argv)
                 "alt+home/end - start/end of file\n"
                 "pgup/pgdn - page up/down\n"
                 "alt+pgup/pgdn - half page up/down\n"
-                "tab - indent line/selection\n"
-                "shift+tab - unindent line/selection\n"
+                "tab - indent line/selection, next autocomplete suggestion\n"
+                "shift+tab - unindent line/selection, previous autocomplete suggestion\n"
                 "delete - delete character at cursor position\n"
                 "backspace - delete character to the left of cursor position\n"
                 "alt+del - delete word at cursor position\n"
