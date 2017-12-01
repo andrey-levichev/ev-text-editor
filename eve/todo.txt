@@ -3,9 +3,9 @@ bugs & misc:
 release:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
-* finalize autocomplete
-* editor is slow on large files
 * webpage, install package, license, release notes, documentation
+* keep or discard unprintable chars?
+* force saving files to trim whitespace and remove non-printable chars?
 
 editor:
 * switch between documents with alt+number
@@ -29,13 +29,16 @@ with arrows and highlighting
 * graphical user interface
 * repeat last input sequence
 * autocomplete improvements
+use tab? put cursor at the end after completion?
+trigger autocomplete automatically?
 disable autocomplete for text files?
 initiate autocomplete after user pauses typing?
 enable autocomplete only for words that were completed before?
+compete longest common string or next match?
 bring back dictionary based autocomplete?
 perfer recently used words
 scan all documents in current directory
-trie or another efficient data structure
+more efficient data structure
 * performance optimization
 editor is slow on large files
 don't scan text from beginning when drawing the screen
