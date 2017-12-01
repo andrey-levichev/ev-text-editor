@@ -180,7 +180,7 @@ protected:
     int _line, _column;
     int _preferredColumn;
 
-    int _top, _left, _topPos;
+    int _top, _left;
     int _x, _y;
     int _width, _height;
 
