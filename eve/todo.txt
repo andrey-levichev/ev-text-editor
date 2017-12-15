@@ -4,17 +4,14 @@ release:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 * webpage, install package, license, release notes, documentation
-* keep or discard unprintable chars?
-* force saving files to trim whitespace and remove non-printable chars?
-* preserve existing single line comments when toggling comments
+* clipboard integration on windows/macos
+* new/open/save commands
 
 editor:
 * switch between documents with alt+number
 sort documents in most recently used order
 * copy/delete lines
 * find/replace in files (with alt+shift)
-* clipboard integration on windows
-* new/open/save
 * syntax highlighting
 * parse build output for errors
 * undo/redo
