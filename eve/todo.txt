@@ -79,8 +79,8 @@ file system access
 keyboard input:
 
 safe keyboard shortcuts:
-ctrl: abdefghklmnprtuwx]_
-ctrl+shift: @^
+ctrl: abdefghklmnprtuwx]
+ctrl+shift: @^_
 alt: all printable chars
-special keys: F1 to F10, arrows
+special keys: F2 to F10, arrows
 tab (^I), enter (^J), esc (^[), delete (^?), backspace

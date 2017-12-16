@@ -33,7 +33,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: eve.dbg.vcpp.exe
+all: test.dbg.gcc
 
 eve.dbg.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)
