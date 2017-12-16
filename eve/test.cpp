@@ -5923,7 +5923,7 @@ int MAIN(int argc, const char_t** argv)
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-//        testConsoleReadInput();
+        testConsoleReadInput();
     }
     catch (Exception& ex)
     {

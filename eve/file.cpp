@@ -151,7 +151,7 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
         else
             p += utf16CharToUnicode(reinterpret_cast<char16_t*>(p), ch) * 2;
 
-        if (charIsPrint(ch) || ch == '\n' || ch == '\t')
+        if (ch >= 0x20 || ch == '\n' || ch == '\t')
             len += UTF_CHAR_LENGTH(ch);
     }
 
@@ -168,7 +168,7 @@ String File::readString(TextEncoding& encoding, bool& bom, bool& crLf)
         else
             p += utf16CharToUnicode(reinterpret_cast<char16_t*>(p), ch) * 2;
 
-        if (charIsPrint(ch))
+        if (ch >= 0x20)
             str += ch;
         else
         {

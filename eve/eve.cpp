@@ -902,7 +902,7 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
 void Document::positionToLineColumn()
 {
     int p = 0;
-    _line = 1, _column = 1;
+    _line = 1; _column = 1;
 
     while (p < _position)
     {

@@ -3,6 +3,7 @@ bugs & misc:
 release:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
+unix style input on windows
 * webpage, install package, license, release notes, documentation
 * clipboard integration on windows/macos
 * new/open/save commands
@@ -74,3 +75,12 @@ file system access
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
+
+keyboard input:
+
+safe keyboard shortcuts:
+ctrl: abdefghklmnprtuwx]_
+ctrl+shift: @^
+alt: all printable chars
+special keys: F1 to F10, arrows
+tab (^I), enter (^J), esc (^[), delete (^?), backspace
