@@ -552,9 +552,14 @@ void Document::unindentLines()
     changeLines(&Document::unindentLine);
 }
 
-void Document::toggleComment()
+void Document::commentLines()
 {
-    changeLines(&Document::toggleComment);
+    changeLines(&Document::commentLine);
+}
+
+void Document::uncommentLines()
+{
+    changeLines(&Document::uncommentLine);
 }
 
 void Document::markSelection()
@@ -1160,7 +1165,25 @@ int Document::unindentLine(int pos)
     return pos;
 }
 
-int Document::toggleComment(int pos)
+int Document::commentLine(int pos)
+{
+    ASSERT(pos >= 0 && pos <= _text.length());
+
+    int start = findLineStart(pos), p = start;
+    unichar_t ch;
+
+    ch = _text.charAt(p);
+    while (ch == ' ' || ch == '\t')
+    {
+        p = _text.charForward(p);
+        ch = _text.charAt(p);
+    }
+
+    _text.insert(start, STR("//"));
+    return start;
+}
+
+int Document::uncommentLine(int pos)
 {
     ASSERT(pos >= 0 && pos <= _text.length());
 
@@ -1183,11 +1206,9 @@ int Document::toggleComment(int pos)
         {
             q = _text.charForward(q);
             _text.erase(p, q - p);
-            return start;
         }
     }
 
-    _text.insert(start, STR("//"));
     return start;
 }
 
@@ -1649,7 +1670,12 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.ch == '/')
                         {
-                            doc.toggleComment();
+                            doc.commentLines();
+                            modified = update = true;
+                        }
+                        else if (keyEvent.ch == '?')
+                        {
+                            doc.uncommentLines();
                             modified = update = true;
                         }
                         else if (keyEvent.ch == '[')

@@ -126,7 +126,8 @@ public:
 
     void indentLines();
     void unindentLines();
-    void toggleComment();
+    void commentLines();
+    void uncommentLines();
 
     void markSelection();
     String copyDeleteText(bool copy);
@@ -163,7 +164,8 @@ protected:
 
     int indentLine(int pos);
     int unindentLine(int pos);
-    int toggleComment(int pos);
+    int commentLine(int pos);
+    int uncommentLine(int pos);
 
     void trimTrailingWhitespace();
 
