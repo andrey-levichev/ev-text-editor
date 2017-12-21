@@ -3,12 +3,13 @@ bugs & misc:
 release:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
-unix style input on windows
+unix style keyboard input on windows?
+backspace to unindent?
 * webpage, install package, license, release notes, documentation
-* clipboard integration on windows/macos
-* new/open/save commands
 
 editor:
+* new/open/save commands
+* clipboard integration on windows/macos
 * switch between documents with alt+number
 sort documents in most recently used order
 * copy/delete lines
@@ -75,12 +76,3 @@ file system access
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
-
-keyboard input:
-
-safe keyboard shortcuts:
-ctrl: abdefghklmnprtuwx]
-ctrl+shift: @^_
-alt: all printable chars
-special keys: F2 to F10, arrows
-tab (^I), enter (^J), esc (^[), delete (^?), backspace

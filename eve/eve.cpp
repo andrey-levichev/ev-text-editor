@@ -1515,45 +1515,102 @@ bool Editor::processInput()
                 {
                     if (keyEvent.ctrl)
                     {
-                        if (keyEvent.key == KEY_LEFT)
+                        if (keyEvent.ch == 'b' || keyEvent.key == KEY_LEFT)
                         {
                             update = doc.moveWordBack();
                         }
-                        else if (keyEvent.key == KEY_RIGHT)
+                        else if (keyEvent.ch == 'w' || keyEvent.key == KEY_RIGHT)
                         {
                             update = doc.moveWordForward();
                         }
-                        else if (keyEvent.key == KEY_UP)
-                        {
-                            update = doc.moveLinesUp(10);
-                        }
-                        else if (keyEvent.key == KEY_DOWN)
-                        {
-                            update = doc.moveLinesDown(10);
-                        }
-                        else if (keyEvent.key == KEY_TAB || keyEvent.ch == 't')
+                        else if (keyEvent.ch == 't' || keyEvent.key == KEY_TAB)
                         {
                             doc.insertChar(0x9);
                             update = modified = true;
                         }
-                    }
-                    else if (keyEvent.alt)
-                    {
-                        if (keyEvent.key == KEY_LEFT)
+                        else if (keyEvent.ch == 'h')
                         {
-                            update = doc.moveCharsBack();
+                            update = doc.moveToLineStart();
                         }
-                        else if (keyEvent.key == KEY_RIGHT)
+                        else if (keyEvent.ch == 'e')
                         {
-                            update = doc.moveCharsForward();
+                            update = doc.moveToLineEnd();
                         }
-                        else if (keyEvent.key == KEY_UP)
+                        else if (keyEvent.ch == 'p')
+                        {
+                            update = doc.moveLinesUp(_height - 1);
+                        }
+                        else if (keyEvent.ch == 'n')
+                        {
+                            update = doc.moveLinesDown(_height - 1);
+                        }
+                        else if (keyEvent.ch == 'k')
+                        {
+                            modified = update = doc.deleteWordForward();
+                        }
+                        else if (keyEvent.ch == ']')
+                        {
+                            modified = update = doc.deleteWordBack();
+                        }
+                        else if (keyEvent.ch == 'o')
+                        {
+                            _searchStr = doc.currentWord();
+
+                            if (!_searchStr.empty())
+                            {
+                                _caseSesitive = true;
+                                update = doc.find(_searchStr, _caseSesitive, true);
+                            }
+                        }
+                        else if (keyEvent.ch == 'f')
+                        {
+                            if (!_searchStr.empty())
+                                update = doc.find(_searchStr, _caseSesitive, true);
+                        }
+                        else if (keyEvent.ch == 'r')
+                        {
+                            if (!_searchStr.empty())
+                                modified = update = doc.replace(_searchStr, _replaceStr, _caseSesitive);
+                        }
+                        else if (keyEvent.ch == 'a')
+                        {
+                            doc.markSelection();
+                        }
+                        else if (keyEvent.ch == 'x')
+                        {
+                            _lineSelection = doc.selection() < 0;
+                            _buffer = doc.copyDeleteText(false);
+
+                            if (!_buffer.empty())
+                                modified = update = true;
+                        }
+                        else if (keyEvent.ch == 'c' || keyEvent.ch == 'y')
+                        {
+                            _lineSelection = doc.selection() < 0;
+                            _buffer = doc.copyDeleteText(true);
+                        }
+                        else if (keyEvent.ch == 'v')
+                        {
+                            if (!_buffer.empty())
+                            {
+                                doc.pasteText(_buffer, _lineSelection);
+                                modified = update = true;
+                            }
+                        }
+                        else if (keyEvent.ch == 'l')
                         {
                             update = moveToPrevRecentLocation();
                         }
-                        else if (keyEvent.key == KEY_DOWN)
+                    }
+                    else if (keyEvent.alt)
+                    {
+                        if (keyEvent.ch == 'b' || keyEvent.key == KEY_LEFT)
                         {
-                            update = moveToNextRecentLocation();
+                            update = doc.moveCharsBack();
+                        }
+                        else if (keyEvent.ch == 'w' || keyEvent.key == KEY_RIGHT)
+                        {
+                            update = doc.moveCharsForward();
                         }
                         else if (keyEvent.key == KEY_DELETE)
                         {
@@ -1563,21 +1620,21 @@ bool Editor::processInput()
                         {
                             modified = update = doc.deleteWordBack();
                         }
-                        else if (keyEvent.key == KEY_HOME)
+                        else if (keyEvent.ch == 'h' || keyEvent.key == KEY_HOME)
                         {
                             update = doc.moveToStart();
                         }
-                        else if (keyEvent.key == KEY_END)
+                        else if (keyEvent.ch == 'e' || keyEvent.key == KEY_END)
                         {
                             update = doc.moveToEnd();
                         }
-                        else if (keyEvent.key == KEY_PGUP)
+                        else if (keyEvent.ch == 'p' || keyEvent.key == KEY_PGUP)
                         {
-                            update = doc.moveLinesUp(_height / 2);
+                            update = doc.moveLinesUp(20);
                         }
-                        else if (keyEvent.key == KEY_PGDN)
+                        else if (keyEvent.ch == 'n' || keyEvent.key == KEY_PGDN)
                         {
-                            update = doc.moveLinesDown(_height / 2);
+                            update = doc.moveLinesDown(20);
                         }
                         else if (keyEvent.ch == ',')
                         {
@@ -1599,75 +1656,6 @@ bool Editor::processInput()
                                 update = true;
                             }
                         }
-                        else if (keyEvent.ch == 'q')
-                        {
-                            return false;
-                        }
-                        else if (keyEvent.ch == 's')
-                        {
-                            saveDocument(doc);
-                            update = true;
-                        }
-                        else if (keyEvent.ch == 'a')
-                        {
-                            saveDocuments();
-                            update = true;
-                        }
-                        else if (keyEvent.ch == 'x')
-                        {
-                            saveDocuments();
-                            return false;
-                        }
-                        else if (keyEvent.ch == 'd')
-                        {
-                            _lineSelection = doc.selection() < 0;
-                            _buffer = doc.copyDeleteText(false);
-
-                            if (!_buffer.empty())
-                                modified = update = true;
-                        }
-                        else if (keyEvent.ch == 'c')
-                        {
-                            _lineSelection = doc.selection() < 0;
-                            _buffer = doc.copyDeleteText(true);
-                        }
-                        else if (keyEvent.ch == 'p')
-                        {
-                            if (!_buffer.empty())
-                            {
-                                doc.pasteText(_buffer, _lineSelection);
-                                modified = update = true;
-                            }
-                        }
-                        else if (keyEvent.ch == 'b')
-                        {
-                            buildProject();
-                            updateScreen(true);
-                        }
-                        else if (keyEvent.ch == 'm')
-                        {
-                            doc.markSelection();
-                        }
-                        else if (keyEvent.ch == 'w')
-                        {
-                            _searchStr = doc.currentWord();
-
-                            if (!_searchStr.empty())
-                            {
-                                _caseSesitive = true;
-                                update = doc.find(_searchStr, _caseSesitive, true);
-                            }
-                        }
-                        else if (keyEvent.ch == 'f')
-                        {
-                            if (!_searchStr.empty())
-                                update = doc.find(_searchStr, _caseSesitive, true);
-                        }
-                        else if (keyEvent.ch == 'r')
-                        {
-                            if (!_searchStr.empty())
-                                modified = update = doc.replace(_searchStr, _replaceStr, _caseSesitive);
-                        }
                         else if (keyEvent.ch == '/')
                         {
                             doc.commentLines();
@@ -1688,40 +1676,43 @@ bool Editor::processInput()
                             doc.indentLines();
                             modified = update = true;
                         }
-                        else if (keyEvent.ch == '`')
-                        {
-                            if (_document == &_commandLine)
-                                _document = _lastDocument;
-                            else
-                            {
-                                _lastDocument = _document;
-                                _document = &_commandLine;
-                                _commandLine.value.clear();
-                            }
-
-                            update = true;
-                        }
                         else if (keyEvent.ch == '\'')
                         {
                             updateScreen(true);
                         }
                     }
-                    else if (keyEvent.shift && keyEvent.key == KEY_TAB)
+                    else if (keyEvent.key == KEY_F2)
                     {
-                        if (completeWord(false))
-                            autocomplete = true;
+                        if (_document == &_commandLine)
+                            _document = _lastDocument;
                         else
-                            doc.unindentLines();
+                        {
+                            _lastDocument = _document;
+                            _document = &_commandLine;
+                            _commandLine.value.clear();
+                        }
 
-                        modified = update = true;
+                        update = true;
                     }
-                    else if (keyEvent.key == KEY_BACKSPACE)
+                    else if (keyEvent.key == KEY_F7)
                     {
-                        modified = update = doc.deleteCharBack();
+                        saveDocument(doc);
+                        update = true;
                     }
-                    else if (keyEvent.key == KEY_DELETE)
+                    else if (keyEvent.key == KEY_F8)
                     {
-                        modified = update = doc.deleteCharForward();
+                        saveDocuments();
+                        update = true;
+                    }
+                    else if (keyEvent.key == KEY_F9)
+                    {
+                        buildProject();
+                        updateScreen(true);
+                    }
+                    else if (keyEvent.key == KEY_F10)
+                    {
+                        saveDocuments();
+                        return false;
                     }
                     else if (keyEvent.key == KEY_LEFT)
                     {
@@ -1738,6 +1729,14 @@ bool Editor::processInput()
                     else if (keyEvent.key == KEY_DOWN)
                     {
                         update = doc.moveDown();
+                    }
+                    else if (keyEvent.key == KEY_BACKSPACE)
+                    {
+                        modified = update = doc.deleteCharBack();
+                    }
+                    else if (keyEvent.key == KEY_DELETE)
+                    {
+                        modified = update = doc.deleteCharForward();
                     }
                     else if (keyEvent.key == KEY_HOME)
                     {
@@ -1783,17 +1782,15 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_TAB)
                     {
-                        if (completeWord(true))
+                        if (completeWord(!keyEvent.shift))
+                        {
                             autocomplete = true;
-                        else
-                            doc.indentLines();
-
-                        modified = update = true;
+                            modified = update = true;
+                        }
                     }
                     else if (keyEvent.key == KEY_ESC)
                     {
-                        cancelCompletion();
-                        modified = update = true;
+                        return false;
                     }
                     else if (charIsPrint(keyEvent.ch))
                     {
@@ -1825,9 +1822,9 @@ bool Editor::processInput()
                             doc.top() + mouseEvent.y - 1,
                             doc.left() +  mouseEvent.x - 1);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_UP)
-                        update = doc.moveLinesUp(10);
+                        update = doc.moveLinesUp(20);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_DOWN)
-                        update = doc.moveLinesDown(10);
+                        update = doc.moveLinesDown(20);
                 }
 
             }
@@ -1847,12 +1844,9 @@ bool Editor::processInput()
 
                 if (keyEvent.keyDown)
                 {
-                    if (keyEvent.alt)
+                    if (keyEvent.key == KEY_ESC)
                     {
-                        if (keyEvent.ch == 'q')
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
             }
@@ -2208,45 +2202,45 @@ int MAIN(int argc, const char_t** argv)
     {
         if (argc < 2)
         {
-            Console::writeLine(STR("eve text editor version 1.3\n"
+            Console::writeLine(STR("eve text editor version 1.4\n"
                 "Copyright (C) Andrey Levichev, 2017\n\n"
                 "usage: eve filename ...\n\n"
                 "keys:\n"
                 "arrows - move cursor\n"
-                "ctrl+left/right - word (identifier) left/right\n"
-                "ctrl+up/down - 10 lines up/down\n"
-                "alt+left/right - word (space separated) left/right\n"
-                "alt+up/down - previous/next edited location\n"
-                "home/end - start/end of line\n"
-                "alt+home/end - start/end of file\n"
-                "pgup/pgdn - page up/down\n"
-                "alt+pgup/pgdn - half page up/down\n"
-                "tab - indent line/selection, next autocomplete suggestion\n"
-                "shift+tab - unindent line/selection, previous autocomplete suggestion\n"
+                "ctrl+left/right - word (identifier) left/right (also ctrl+b/f)\n"
+                "alt+left/right - word (space separated) left/right (also alt+b/f)\n"
+                "home/end - start/end of line (also ctrl+h/e)\n"
+                "alt+home/end - start/end of file (also alt+h/e)\n"
+                "pgup/pgdn - page up/down (also ctrl+p/n)\n"
+                "alt+pgup/pgdn - 20 lines up/down (also alt+p/n)\n"
+                "tab - next autocomplete suggestion\n"
+                "shift+tab - previous autocomplete suggestion\n"
                 "delete - delete character at cursor position\n"
                 "backspace - delete character to the left of cursor position\n"
-                "alt+del - delete word at cursor position\n"
-                "alt+backspace - delete word to the left of cursor position\n"
-                "alt+m - mark selection start\n"
-                "alt+d - delete line/selection\n"
-                "alt+c - copy line/selection\n"
-                "alt+p - paste line/selection\n"
-                "alt+w - find word at cursor\n"
-                "alt+f - find again\n"
-                "alt+r - replace and find again\n"
-                "alt+/ - toggle comment for line/selection\n"
-                "alt+b - build with make\n"
+                "alt+del - delete word at cursor position (also ctrl+k)\n"
+                "alt+backspace - delete word to the left of cursor position (also ctrl+])\n"
+                "ctrl+a - mark selection start\n"
+                "ctrl+x - delete line/selection\n"
+                "ctrl+y - copy line/selection (also ctrl+c)\n"
+                "ctrl+v - paste line/selection\n"
+                "ctrl+f - find again\n"
+                "ctrl+r - replace and find again\n"
+                "ctrl+o - find word at cursor\n"
+                "ctrl+l - cycle btween recently edited locations\n"
+                "ctrl+t - insert real tab (also ctrl+tab)\n"
                 "alt+, - go to previous document\n"
                 "alt+. - go to next document\n"
-                "alt+s - save\n"
-                "alt+a - save all\n"
-                "alt+x - save all and quit\n"
-                "alt+q - quit without saving\n"
-                "alt+` - command line\n"
-                "alt+[ - unindent line/selection\n"
                 "alt+] - indent line/selection\n"
+                "alt+[ - unindent line/selection\n"
                 "alt+' - redraw screen\n"
-                "ESC - cancel current suggestion\n\n"
+                "alt+/ - comment line/selection\n"
+                "alt+? - uncomment line/selection\n"
+                "F2 - command line\n"
+                "F7 - save\n"
+                "F8 - save all\n"
+                "F9 - build with make\n"
+                "F10 - save all and quit\n"
+                "ESC - quit without saving\n\n"
                 "commands (optional parameters in square brackets):\n"
                 "g <number> - go to line number\n"
                 "f[i] <string> - find string\n"
