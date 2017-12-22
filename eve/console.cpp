@@ -11,7 +11,7 @@ void print(const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    printf(format, args);
+    vprintf(format, args);
     va_end(args);
 }
 
@@ -31,7 +31,7 @@ void print(const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    wprintf(reinterpret_cast<const wchar_t*>(format), args);
+    vwprintf(reinterpret_cast<const wchar_t*>(format), args);
     va_end(args);
 }
 
@@ -503,7 +503,7 @@ void Console::writeFormatted(const char_t* format, ...)
     va_end(args);
 }
 
-void Console::writeFormatted(const char_t* format, va_list args)
+void Console::writeFormattedArgs(const char_t* format, va_list args)
 {
     ASSERT(format);
     printArgs(format, args);
@@ -520,7 +520,7 @@ void Console::writeLineFormatted(const char_t* format, ...)
     write('\n');
 }
 
-void Console::writeLineFormatted(const char_t* format, va_list args)
+void Console::writeLineFormattedArgs(const char_t* format, va_list args)
 {
     ASSERT(format);
     printArgs(format, args);

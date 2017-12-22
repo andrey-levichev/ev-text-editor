@@ -4,7 +4,6 @@ release:
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 unix style keyboard input on windows?
-backspace to unindent?
 * webpage, install package, license, release notes, documentation
 
 editor:
@@ -47,8 +46,7 @@ store text as a list of lines
 redraw only one line for small changes
 
 foundation:
-* foundation improvements
-log memory allocations
+* log debug output and memory allocations
 * international support
 locales (formatting, string compare/search/case conversion)
 encoding conversion

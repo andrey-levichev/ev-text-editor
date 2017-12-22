@@ -143,10 +143,10 @@ public:
     static void write(int line, int column, unichar_t ch, int n = 1);
 
     static void writeFormatted(const char_t* format, ...);
-    static void writeFormatted(const char_t* format, va_list args);
+    static void writeFormattedArgs(const char_t* format, va_list args);
 
     static void writeLineFormatted(const char_t* format, ...);
-    static void writeLineFormatted(const char_t* format, va_list args);
+    static void writeLineFormattedArgs(const char_t* format, va_list args);
 
     static unichar_t readChar();
     static String readLine();

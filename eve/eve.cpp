@@ -1552,7 +1552,7 @@ bool Editor::processInput()
                         {
                             modified = update = doc.deleteWordBack();
                         }
-                        else if (keyEvent.ch == 'o')
+                        else if (keyEvent.ch == 'l')
                         {
                             _searchStr = doc.currentWord();
 
@@ -1584,7 +1584,7 @@ bool Editor::processInput()
                             if (!_buffer.empty())
                                 modified = update = true;
                         }
-                        else if (keyEvent.ch == 'c' || keyEvent.ch == 'y')
+                        else if (keyEvent.ch == 'c' || keyEvent.ch == 'o')
                         {
                             _lineSelection = doc.selection() < 0;
                             _buffer = doc.copyDeleteText(true);
@@ -1597,7 +1597,7 @@ bool Editor::processInput()
                                 modified = update = true;
                             }
                         }
-                        else if (keyEvent.ch == 'l')
+                        else if (keyEvent.ch == '^')
                         {
                             update = moveToPrevRecentLocation();
                         }
@@ -1782,11 +1782,22 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_TAB)
                     {
-                        if (completeWord(!keyEvent.shift))
+                        if (keyEvent.shift)
                         {
-                            autocomplete = true;
-                            modified = update = true;
+                            if (completeWord(false))
+                                autocomplete = true;
+                            else
+                                doc.unindentLines();
                         }
+                        else
+                        {
+                            if (completeWord(true))
+                                autocomplete = true;
+                            else
+                                doc.indentLines();
+                        }
+
+                        modified = update = true;
                     }
                     else if (keyEvent.key == KEY_ESC)
                     {
@@ -2221,12 +2232,12 @@ int MAIN(int argc, const char_t** argv)
                 "alt+backspace - delete word to the left of cursor position (also ctrl+])\n"
                 "ctrl+a - mark selection start\n"
                 "ctrl+x - delete line/selection\n"
-                "ctrl+y - copy line/selection (also ctrl+c)\n"
+                "ctrl+c - copy line/selection (also ctrl+o)\n"
                 "ctrl+v - paste line/selection\n"
                 "ctrl+f - find again\n"
                 "ctrl+r - replace and find again\n"
-                "ctrl+o - find word at cursor\n"
-                "ctrl+l - cycle btween recently edited locations\n"
+                "ctrl+l - find word at cursor\n"
+                "ctrl+^ - cycle between recently edited locations\n"
                 "ctrl+t - insert real tab (also ctrl+tab)\n"
                 "alt+, - go to previous document\n"
                 "alt+. - go to next document\n"
