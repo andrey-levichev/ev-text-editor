@@ -1544,15 +1544,15 @@ bool Editor::processInput()
                         {
                             update = doc.moveLinesDown(_height - 1);
                         }
-                        else if (keyEvent.ch == 'k')
+                        else if (keyEvent.ch == ']')
                         {
                             modified = update = doc.deleteWordForward();
                         }
-                        else if (keyEvent.ch == ']')
+                        else if (keyEvent.ch == '_')
                         {
                             modified = update = doc.deleteWordBack();
                         }
-                        else if (keyEvent.ch == 'l')
+                        else if (keyEvent.ch == 'g')
                         {
                             _searchStr = doc.currentWord();
 
@@ -1584,12 +1584,12 @@ bool Editor::processInput()
                             if (!_buffer.empty())
                                 modified = update = true;
                         }
-                        else if (keyEvent.ch == 'c' || keyEvent.ch == 'o')
+                        else if (keyEvent.ch == 'c' || keyEvent.ch == 'k')
                         {
                             _lineSelection = doc.selection() < 0;
                             _buffer = doc.copyDeleteText(true);
                         }
-                        else if (keyEvent.ch == 'v')
+                        else if (keyEvent.ch == 'v' || keyEvent.ch == 'l')
                         {
                             if (!_buffer.empty())
                             {
@@ -1694,25 +1694,20 @@ bool Editor::processInput()
 
                         update = true;
                     }
-                    else if (keyEvent.key == KEY_F7)
-                    {
-                        saveDocument(doc);
-                        update = true;
-                    }
-                    else if (keyEvent.key == KEY_F8)
-                    {
-                        saveDocuments();
-                        update = true;
-                    }
-                    else if (keyEvent.key == KEY_F9)
+                    else if (keyEvent.key == KEY_F5)
                     {
                         buildProject();
                         updateScreen(true);
                     }
+                    else if (keyEvent.key == KEY_F9)
+                    {
+                        saveDocument(doc);
+                        update = true;
+                    }
                     else if (keyEvent.key == KEY_F10)
                     {
                         saveDocuments();
-                        return false;
+                        update = true;
                     }
                     else if (keyEvent.key == KEY_LEFT)
                     {
@@ -2228,15 +2223,15 @@ int MAIN(int argc, const char_t** argv)
                 "shift+tab - previous autocomplete suggestion\n"
                 "delete - delete character at cursor position\n"
                 "backspace - delete character to the left of cursor position\n"
-                "alt+del - delete word at cursor position (also ctrl+k)\n"
-                "alt+backspace - delete word to the left of cursor position (also ctrl+])\n"
+                "alt+del - delete word at cursor position (also ctrl+])\n"
+                "alt+backspace - delete word to the left of cursor position (also ctrl+_)\n"
                 "ctrl+a - mark selection start\n"
                 "ctrl+x - delete line/selection\n"
-                "ctrl+c - copy line/selection (also ctrl+o)\n"
-                "ctrl+v - paste line/selection\n"
+                "ctrl+c - copy line/selection (also ctrl+k)\n"
+                "ctrl+v - paste line/selection (also ctrl+l)\n"
                 "ctrl+f - find again\n"
                 "ctrl+r - replace and find again\n"
-                "ctrl+l - find word at cursor\n"
+                "ctrl+g - find word at cursor\n"
                 "ctrl+^ - cycle between recently edited locations\n"
                 "ctrl+t - insert real tab (also ctrl+tab)\n"
                 "alt+, - go to previous document\n"
@@ -2247,11 +2242,10 @@ int MAIN(int argc, const char_t** argv)
                 "alt+/ - comment line/selection\n"
                 "alt+? - uncomment line/selection\n"
                 "F2 - command line\n"
-                "F7 - save\n"
-                "F8 - save all\n"
-                "F9 - build with make\n"
-                "F10 - save all and quit\n"
-                "ESC - quit without saving\n\n"
+                "F5 - build with make\n"
+                "F9 - save document\n"
+                "F10 - save all documents\n"
+                "ESC - quit editor\n\n"
                 "commands (optional parameters in square brackets):\n"
                 "g <number> - go to line number\n"
                 "f[i] <string> - find string\n"
