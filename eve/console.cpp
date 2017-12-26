@@ -276,6 +276,7 @@ static KeyMapping keyMapping[] =
         { 4, "\x1bO8Q", { KEY_F2, 0, true, true, true, true } },
         { 4, "\x1bO8R", { KEY_F3, 0, true, true, true, true } },
         { 4, "\x1bO8S", { KEY_F4, 0, true, true, true, true } },
+        { 4, "\x1b\x1b[Z", { KEY_TAB, 0, true, false, true, true } },
         { 3, "\x1b[A", { KEY_UP, 0, true } },
         { 3, "\x1b[B", { KEY_DOWN, 0, true } },
         { 3, "\x1b[C", { KEY_RIGHT, 0, true } },
@@ -1017,6 +1018,8 @@ const Array<InputEvent>& Console::readInput()
                 keyEvent.key = KEY_TAB;
             else if (ch == '\n')
                 keyEvent.key = KEY_ENTER;
+            else if (ch == 0x1b)
+                keyEvent.key = KEY_ESC;
             else if (ch == 0x7f)
                 keyEvent.key = KEY_BACKSPACE;
             else if (ch < 0x20)

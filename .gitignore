@@ -14,10 +14,9 @@ test.dat
 test.txt
 Debug
 Release
-.vs
 .DS_Store
-.suo
 cmake-build-*
 DerivedData
 xcuserdata
 xcdebugger
+*.dSYM

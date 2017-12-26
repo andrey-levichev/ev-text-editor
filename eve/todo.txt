@@ -1,6 +1,10 @@
 bugs & misc:
 
 release:
+* macOS issues
+screen is not redrawn during horizontal resizing
+empty line at the bottom when terminal has tabs
+function key mappings with modifiers are totally messed up
 * rework keyboard input to support different terminals
 editor commands will work with either ctrl/alt and fallback to ctrl/alt+letter
 unix style keyboard input on windows?

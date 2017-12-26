@@ -21,7 +21,7 @@ GCC_OPTIONS=-Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -l
 GCC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 GCC_RELEASE_OPTIONS=-O3
 
-CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -lrt
+CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable
 CLANG_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 CLANG_RELEASE_OPTIONS=-O3
 
@@ -33,7 +33,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: eve.dbg.sol
+all: test.dbg.clang
 
 eve.dbg.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)
