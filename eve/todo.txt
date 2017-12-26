@@ -2,6 +2,7 @@ bugs & misc:
 
 release:
 * macOS issues
+configure terminal to send home/end, pgup/pgdn or use alt+arrows
 screen is not redrawn during horizontal resizing
 empty line at the bottom when terminal has tabs
 function key mappings with modifiers are totally messed up

@@ -1,4 +1,5 @@
 #include <test.h>
+#include <conio.h>
 
 const char* CHARS8 = "\x24\xc2\xa2\xe2\x82\xac\xf0\x90\x8d\x88";
 const char16_t* CHARS16 = u"\x0024\x00a2\x20ac\xd800\xdf48";
@@ -5780,10 +5781,9 @@ void testConsoleReadInput()
     }
 }
 
-#ifdef PLATFORM_UNIX
-
 void testInput()
 {
+#ifdef PLATFORM_UNIX
     char chars[16];
     bool gotChars = false;
 
@@ -5821,7 +5821,7 @@ void testInput()
                     }
                 }
                 else
-                    printf("\\x%x", static_cast<uint8_t>(chars[i]));
+                    printf("\\x%02x", static_cast<uint8_t>(chars[i]));
             }
         }
         else
@@ -5835,9 +5835,17 @@ void testInput()
             usleep(10000);
         }
     }
-}
+#else
+    wint_t ch;
 
+    do
+    {
+        ch = _getwch();
+        _cwprintf(L"%c \\x%02x\n", ch, static_cast<uint8_t>(ch));
+    }
+    while (ch != 0x1b);
 #endif
+}
 
 void printPlatformInfo()
 {
@@ -5915,6 +5923,7 @@ int MAIN(int argc, const char_t** argv)
     try
     {
         printPlatformInfo();
+        testInput();
 
 //        testSupport();
 //        testFoundation();
@@ -5923,7 +5932,7 @@ int MAIN(int argc, const char_t** argv)
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-        testConsoleReadInput();
+//        testConsoleReadInput();
     }
     catch (Exception& ex)
     {
