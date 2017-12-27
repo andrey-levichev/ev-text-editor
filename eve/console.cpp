@@ -914,9 +914,10 @@ const Array<InputEvent>& Console::readInput()
         }
     }
 
+    _inputChars.addLast(0);
+
     const char* p = _inputChars.values();
     const char* e = p + _inputChars.size();
-    _inputChars.addLast(0);
 
     while (p < e)
     {
