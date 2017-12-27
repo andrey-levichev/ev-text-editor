@@ -8,15 +8,7 @@
 *.clang
 *.sol
 *.xlc
-tags
+*.dSYM
 doc.txt
 test.dat
-test.txt
-Debug
-Release
 .DS_Store
-cmake-build-*
-DerivedData
-xcuserdata
-xcdebugger
-*.dSYM
