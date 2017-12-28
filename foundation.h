@@ -138,6 +138,7 @@ typedef unsigned char32_t;
 #include <windows.h>
 #include <io.h>
 #include <fcntl.h>
+#include <conio.h>
 
 #undef min
 #undef max

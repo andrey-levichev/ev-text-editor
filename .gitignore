@@ -9,6 +9,7 @@
 *.sol
 *.xlc
 *.dSYM
+eve
 doc.txt
 test.dat
 .DS_Store

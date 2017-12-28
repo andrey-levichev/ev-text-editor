@@ -1,5 +1,4 @@
 #include <test.h>
-#include <conio.h>
 
 const char* CHARS8 = "\x24\xc2\xa2\xe2\x82\xac\xf0\x90\x8d\x88";
 const char16_t* CHARS16 = u"\x0024\x00a2\x20ac\xd800\xdf48";
@@ -5923,7 +5922,6 @@ int MAIN(int argc, const char_t** argv)
     try
     {
         printPlatformInfo();
-        testInput();
 
 //        testSupport();
 //        testFoundation();
@@ -5932,7 +5930,7 @@ int MAIN(int argc, const char_t** argv)
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-//        testConsoleReadInput();
+        testConsoleReadInput();
     }
     catch (Exception& ex)
     {

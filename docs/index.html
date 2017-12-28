@@ -4,11 +4,126 @@
 <head>
 </head>
 
-<body>
+<body style="font-family: sans-serif">
 
-<h3>Cool stuff</h3>
+<h2>eve text editor</h2>
 
-<p>Download cool staff <a href="cool.dat">here</a>.</p>
+<p>eve is simple cross-platform text editor written in C++ with minimal dependencies. The executable is just a few hundred kilobytes in size. The editor works in a text console or terminal on six platforms - Windows, macOS, Linux, FreeBSD, Solaris, AIX.</p>
+
+<p>eve stands for "excellent visual editor", "extremely versatile editor" or "eradicate vi and emacs" whichever you prefer :-)</p>
+
+<h4>Download</h4>
+
+<p>All executables are 64-bit</p>
+
+<p>Windows (Intel): <a href="eve-win.zip">eve-win.zip</a></p>
+
+<p>macOS (Intel): <a href="eve-mac.tar.bz2">eve-mac.tar.bz2</a></p>
+
+<p>Linux (Intel): <a href="eve-linux.tar.bz2">eve-linux.tar.bz2</a></p>
+
+<p>FreeBSD (Intel): <a href="eve-bsd.tar.bz2">eve-bsd.tar.bz2</a></p>
+
+<p>Solaris (SPARC): <a href="eve-solaris.tar.bz2">eve-solaris.tar.bz2</a></p>
+
+<p>AIX (POWER): <a href="eve-aix.tar.bz2">eve-aix.tar.bz2</a></p>
+
+<h4>Supported features</h4>
+
+<ul>
+<li>basic text editing operations</li>
+<li>multiple open documents</li>
+<li>open/save documents</li>
+<li>find/replace</li>
+<li>copy/delete/paste</li>
+<li>autoindent</li>
+<li>indent/unindent</li>
+<li>toggle comment</li>
+<li>go to line</li>
+<li>ability to execute make and use eve as a simple IDE</li>
+<li>basic Unicode support (can read/write UTF-8 and UTF-16, aware of multibyte characters)</li>
+<li>autocomplete based on words in open documents</li>
+</ul>
+
+<h4>Keys</h4>
+
+<p>arrows - move cursor<br>
+ctrl+left/right - word (identifier) left/right (also ctrl+b/w)<br>
+alt+left/right - word (space separated) left/right (also alt+b/w)<br>
+home/end - start/end of line (also ctrl+h/e)<br>
+alt+home/end - start/end of file (also alt+h/e)<br>
+pgup/pgdn - page up/down (also ctrl+p/n)<br>
+alt+pgup/pgdn - 20 lines up/down (also alt+p/n)<br>
+tab - next autocomplete suggestion, indent line/selection<br>
+shift+tab - previous autocomplete suggestion, unindent line/selection<br>
+delete - delete character at cursor position<br>
+backspace - delete character to the left of cursor position<br>
+alt+del - delete word at cursor position (also ctrl+d)<br>
+alt+backspace - delete word to the left of cursor position (also ctrl+])</p>
+
+<p>ctrl+a - mark selection start<br>
+ctrl+x - delete line/selection<br>
+ctrl+c - copy line/selection (also ctrl+k)<br>
+ctrl+v - paste line/selection (also ctrl+l)<br>
+ctrl+f - find again<br>
+ctrl+r - replace and find again<br>
+ctrl+g - find word at cursor<br>
+ctrl+^ - cycle between recently edited locations<br>
+ctrl+t - insert real tab (also ctrl+tab)</p>
+
+<p>alt+, - go to previous document<br>
+alt+. - go to next document<br>
+alt+] - indent line/selection<br>
+alt+[ - unindent line/selection<br>
+alt+' - redraw screen<br>
+alt+/ - comment line/selection<br>
+alt+? - uncomment line/selection</p>
+
+<p>F2 - toggle command line<br>
+F5 - build with make<br>
+F8 - save document<br>
+F9 - save all documents<br>
+F10 - save all documents and quit<br>
+ESC - quit editor</p>
+
+<h4>Commands</h4>
+
+<p>optional parameters are in square brackets</p>
+
+<p>g number - go to line number</p>
+
+<p>f[i] search-string - find string<br>
+i - ignore case</p>
+
+<p>r[ida] search-string replace-string - replace string<br>
+i - ignore case<br>
+d - replace all matches in current document<br>
+a - replace all matches in all documents<br>
+use any character as string separator instead of space</p>
+
+<h4>License</h4>
+
+<p>By using the eve editor you agree to the following license:</p>
+
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+
+<h4>Releases</h4>
+
+<p>v1.4 - initial release</p>
+
+<h4>Developer</h4>
+
+<p>eve &copy; Andrey Levichev, 2017<br>
+email: <a href="mailto:andrey.levichev@gmail.com?Subject=eve">andrey.levichev@gmail.com</a></p>
 
 </body>
 </html>

@@ -1597,7 +1597,7 @@ bool Editor::processInput()
                                 modified = update = true;
                             }
                         }
-                        else if (keyEvent.ch == 'o')
+                        else if (keyEvent.ch == '^')
                         {
                             update = moveToPrevRecentLocation();
                         }
@@ -2215,52 +2215,7 @@ int MAIN(int argc, const char_t** argv)
         {
             Console::writeLine(STR("eve text editor version 1.4\n"
                 "Copyright (C) Andrey Levichev, 2017\n\n"
-                "usage: eve filename ...\n\n"
-                "keys:\n"
-                "arrows - move cursor\n"
-                "ctrl+left/right - word (identifier) left/right (also ctrl+b/w)\n"
-                "alt+left/right - word (space separated) left/right (also alt+b/w)\n"
-                "home/end - start/end of line (also ctrl+h/e)\n"
-                "alt+home/end - start/end of file (also alt+h/e)\n"
-                "pgup/pgdn - page up/down (also ctrl+p/n)\n"
-                "alt+pgup/pgdn - 20 lines up/down (also alt+p/n)\n"
-                "tab - next autocomplete suggestion, indent line/selection\n"
-                "shift+tab - previous autocomplete suggestion, unindent line/selection\n"
-                "delete - delete character at cursor position\n"
-                "backspace - delete character to the left of cursor position\n"
-                "alt+del - delete word at cursor position (also ctrl+d)\n"
-                "alt+backspace - delete word to the left of cursor position (also ctrl+])\n"
-                "ctrl+a - mark selection start\n"
-                "ctrl+x - delete line/selection\n"
-                "ctrl+c - copy line/selection (also ctrl+k)\n"
-                "ctrl+v - paste line/selection (also ctrl+l)\n"
-                "ctrl+f - find again\n"
-                "ctrl+r - replace and find again\n"
-                "ctrl+g - find word at cursor\n"
-                "ctrl+o - cycle between recently edited locations\n"
-                "ctrl+t - insert real tab (also ctrl+tab)\n"
-                "alt+, - go to previous document\n"
-                "alt+. - go to next document\n"
-                "alt+] - indent line/selection\n"
-                "alt+[ - unindent line/selection\n"
-                "alt+' - redraw screen\n"
-                "alt+/ - comment line/selection\n"
-                "alt+? - uncomment line/selection\n"
-                "F2 - command line\n"
-                "F5 - build with make\n"
-                "F8 - save document\n"
-                "F9 - save all documents\n"
-                "F10 - save all documents and quit\n"
-                "ESC - quit editor\n\n"
-                "commands (optional parameters in square brackets):\n"
-                "g <number> - go to line number\n"
-                "f[i] <string> - find string\n"
-                "\ti - ignore case\n"
-                "r[ida] <searchString> <replaceString> - replace string\n"
-                "\ti - ignore case\n"
-                "\td - replace all matches in current document\n"
-                "\ta - replace all matches in all documents\n"
-                "\tuse any character as string separator instead of space\n"));
+                "usage: eve filename ...\n\n"));
 
             return 1;
         }

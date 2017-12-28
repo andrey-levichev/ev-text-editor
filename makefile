@@ -33,7 +33,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: test.dbg.vcpp.exe
+all: eve.gcc
 
 eve.dbg.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)
@@ -98,3 +98,23 @@ test.xlc: $(TEST_HEADERS) $(TEST_SOURCES)
 clean:
 	-del $(TRASH)
 	-rm $(TRASH)
+
+depl.win: eve.vcpp.exe
+	move /y eve.vcpp.exe eve.exe
+	"C:\Program Files\7-Zip\7z.exe" a eve-win.zip eve.exe
+	move /y eve-win.zip docs
+
+depl.linux: eve.gcc
+	mv eve.gcc eve
+	tar acvf eve-linux.tar.bz2 eve
+	mv eve-linux.tar.bz2 docs
+
+depl.solaris: eve.sol
+	mv eve.sol eve
+	tar acvf eve-solaris.tar.bz2 eve
+	mv eve-solaris.tar.bz2 docs
+
+depl.aix: eve.xlc
+	mv eve.xlc eve
+	tar acvf eve-aix.tar.bz2 eve
+	mv eve-aix.tar.bz2 docs

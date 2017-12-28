@@ -1,13 +1,13 @@
 bugs & misc:
 
 release:
+* change the name to make it easier for google to find?
 * macOS issues
 configure terminal to send home/end, pgup/pgdn or use alt+arrows
 screen is not redrawn during horizontal resizing
 empty line at the bottom when terminal has tabs
 function key mappings with modifiers are totally messed up
 * rework keyboard input to support different terminals
-* webpage, install package, license, release notes, documentation
 * read build command name from environment variable
 
 editor:
