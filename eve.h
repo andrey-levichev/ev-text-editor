@@ -210,9 +210,9 @@ struct RecentLocation
 struct AutocompleteSuggestion
 {
     String word;
-    float rank;
+    int rank;
 
-    AutocompleteSuggestion(const String& word, float rank) :
+    AutocompleteSuggestion(const String& word, int rank) :
         word(word), rank(rank)
     {
     }
@@ -262,13 +262,9 @@ protected:
     void processCommand(const String& command);
     void buildProject();
 
-    void findUniqueWords(const Document& document);
-    void prepareSuggestions();
-
-    int findNextSuggestion(const String& prefix, int currentSuggestion) const;
-    int findPrevSuggestion(const String& prefix, int currentSuggestion) const;
+    void findUniqueWords();
+    void prepareSuggestions(const String& prefix);
     bool completeWord(bool next);
-    void cancelCompletion();
 
 protected:
     List<Document> _documents;

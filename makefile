@@ -8,7 +8,7 @@ EVE_SOURCES=eve.cpp $(SOURCES)
 TRASH=eve.dbg.vcpp.exe eve.vcpp.exe test.dbg.vcpp.exe test.vcpp.exe *.obj *.ilk *.pdb \
 	eve.dbg.gcc eve.dbg.clang eve.dbg.sol eve.dbg.xlc \
 	test.dbg.gcc test.dbg.clang test.dbg.sol test.dbg.xlc \
-	eve.gcc eve.clang eve.sol eve.xlc \
+	eve eve.gcc eve.clang eve.sol eve.xlc \
 	test.gcc test.clang test.sol test.xlc *.o
 
 VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 /wd4723 \
@@ -33,7 +33,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: eve.gcc
+all: eve.dbg.vcpp.exe
 
 eve.dbg.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)

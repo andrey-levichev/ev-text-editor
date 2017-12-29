@@ -2,46 +2,42 @@ bugs & misc:
 
 release:
 * change the name to make it easier for google to find?
+short female name like eva
 * macOS issues
 configure terminal to send home/end, pgup/pgdn or use alt+arrows
 screen is not redrawn during horizontal resizing
 empty line at the bottom when terminal has tabs
 function key mappings with modifiers are totally messed up
 * rework keyboard input to support different terminals
-* read build command name from environment variable
+* add info about autocomplete
+* some styling for website
+* freebsd package in virtual machine
+* check executable dependencies
 
 editor:
 * new/open/save commands
 * clipboard integration on windows/macos
 * switch between documents with alt+number
-sort documents in most recently used order
+* cycle documents in most recently used order
 * copy/delete lines
-* find/replace in files (with alt+shift)
+* find/replace in files
 * syntax highlighting
 * parse build output for errors
 * undo/redo
 * regex find/replace, match word
 * command history
 * config file
-* selection improvements
-screen selection
-with arrows and highlighting
+* selection with mouse/arrows and highlighting
 * customizable key mappings
 * line wrapping
 * find/replace back
 * graphical user interface
-* repeat last input sequence
+* macro recording
 * autocomplete improvements
-use tab? put cursor at the end after completion?
-trigger autocomplete automatically?
-disable autocomplete for text files?
-initiate autocomplete after user pauses typing?
-enable autocomplete only for words that were completed before?
-compete longest common string or next match?
-bring back dictionary based autocomplete?
-perfer recently used words
+give nearby words higher priority
 scan all documents in current directory
 more efficient data structure
+optimize rebuilding of word database
 * performance optimization
 editor is slow on large files
 don't scan text from beginning when drawing the screen

@@ -13,6 +13,7 @@
 #include <math.h>
 #include <locale.h>
 #include <time.h>
+#include <limits.h>
 
 // 32/64 bit
 

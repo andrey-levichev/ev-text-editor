@@ -1290,32 +1290,24 @@ void Editor::openDocument(const char_t* filename)
     _document = _documents.last();
 
     _document->value.open(filename);
-    findUniqueWords(_document->value);
+    findUniqueWords();
 }
 
 void Editor::saveDocument(Document& document)
 {
     if (document.modified())
-    {
         document.save();
-        findUniqueWords(document);
-    }
 
-    prepareSuggestions();
+    findUniqueWords();
 }
 
 void Editor::saveDocuments()
 {
     for (auto doc = _documents.first(); doc; doc = doc->next)
-    {
         if (doc->value.modified())
-        {
             doc->value.save();
-            findUniqueWords(doc->value);
-        }
-    }
 
-    prepareSuggestions();
+    findUniqueWords();
 }
 
 void Editor::run()
@@ -1327,7 +1319,6 @@ void Editor::run()
     Console::getSize(width, height);
     setDimensions(width, height);
 
-    prepareSuggestions();
     updateScreen(true);
 
     while (processInput());
@@ -1678,6 +1669,7 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.ch == '\'')
                         {
+                            findUniqueWords();
                             updateScreen(true);
                         }
                     }
@@ -1805,17 +1797,13 @@ bool Editor::processInput()
                     }
                     else if (charIsPrint(keyEvent.ch))
                     {
-                        if (charIsWord(keyEvent.ch))
+                        if (charIsWord(keyEvent.ch) || _currentSuggestion == INVALID_POSITION)
                             doc.insertChar(keyEvent.ch);
                         else
                         {
-                            if (_currentSuggestion != INVALID_POSITION)
-                            {
-                                _currentSuggestion = INVALID_POSITION;
-                                doc.insertChar(keyEvent.ch, true);
-                            }
-                            else
-                                doc.insertChar(keyEvent.ch);
+                            _uniqueWords[_suggestions[_currentSuggestion].word] = INT_MAX;
+                            _currentSuggestion = INVALID_POSITION;
+                            doc.insertChar(keyEvent.ch, true);
                         }
 
                         modified = update = true;
@@ -2070,9 +2058,11 @@ void Editor::buildProject()
     saveDocuments();
 
 #ifdef PLATFORM_WINDOWS
-    system("nmake");
+    const wchar_t* makeCmd = _wgetenv(L"MAKE_CMD");
+    _wsystem(makeCmd ? makeCmd : L"nmake.exe");
 #else
-    system("make");
+    const char* makeCmd = getenv("MAKE_CMD");
+    system(makeCmd ? makeCmd : "make");
 #endif
 
     Console::writeLine(STR("Press any key to continue..."));
@@ -2081,101 +2071,60 @@ void Editor::buildProject()
     Console::setLineMode(false);
 }
 
-void Editor::findUniqueWords(const Document& document)
+void Editor::findUniqueWords()
 {
-    const String& text = document.text();
-    String word;
+    Map<String, int> words;
 
-    for (int p = 0; p < text.length(); p = text.charForward(p))
+    for (auto doc = _documents.first(); doc; doc = doc->next)
     {
-        unichar_t ch = text.charAt(p);
+        const String& text = doc->value.text();
+        String word;
 
-        if (charIsWord(ch))
-            word += ch;
-        else if (!word.empty())
+        for (int p = 0; p < text.length(); p = text.charForward(p))
         {
-            ++_uniqueWords[word];
-            word.clear();
+            unichar_t ch = text.charAt(p);
+
+            if (charIsWord(ch))
+                word += ch;
+            else if (!word.empty())
+            {
+                ++words[word];
+                word.clear();
+            }
         }
+
+        if (!word.empty())
+            ++words[word];
     }
-
-    if (!word.empty())
-        ++_uniqueWords[word];
-}
-
-void Editor::prepareSuggestions()
-{
-    _suggestions.clear();
-    _suggestions.ensureCapacity(_uniqueWords.size());
 
     auto it = _uniqueWords.constIterator();
     while (it.moveNext())
-        _suggestions.addLast(AutocompleteSuggestion(it.value().key, it.value().value));
+    {
+        if (it.value().value == INT_MAX)
+        {
+            int* value = words.find(it.value().key);
+            if (value)
+                *value = INT_MAX;
+        }
+    }
+
+    swap(words, _uniqueWords);
+}
+
+void Editor::prepareSuggestions(const String& prefix)
+{
+    ASSERT(!prefix.empty());
+
+    _suggestions.clear();
+
+    auto it = _uniqueWords.constIterator();
+    while (it.moveNext())
+    {
+        if (it.value().key.startsWith(prefix))
+            _suggestions.addLast(AutocompleteSuggestion(it.value().key, it.value().value));
+    }
 
     _suggestions.sort();
-}
-
-int Editor::findNextSuggestion(const String& prefix, int currentSuggestion) const
-{
-    ASSERT(!prefix.empty());
-    ASSERT(currentSuggestion == INVALID_POSITION ||
-        (currentSuggestion >= 0 && currentSuggestion < _suggestions.size()));
-
-    if (_suggestions.size() > 0)
-    {
-        int i = currentSuggestion == INVALID_POSITION ? 0 : currentSuggestion + 1;
-
-        for (; i < _suggestions.size(); ++i)
-            if (_suggestions[i].word.startsWith(prefix))
-                break;
-
-        if (i < _suggestions.size())
-            return i;
-
-        if (currentSuggestion != INVALID_POSITION)
-        {
-            for (i = 0; i < currentSuggestion; ++i)
-                if (_suggestions[i].word.startsWith(prefix))
-                    break;
-
-            if (i < currentSuggestion)
-                return i;
-        }
-    }
-
-    return INVALID_POSITION;
-}
-
-int Editor::findPrevSuggestion(const String& prefix, int currentSuggestion) const
-{
-    ASSERT(!prefix.empty());
-    ASSERT(currentSuggestion == INVALID_POSITION ||
-        (currentSuggestion >= 0 && currentSuggestion < _suggestions.size()));
-
-    if (_suggestions.size() > 0)
-    {
-        int i = currentSuggestion == INVALID_POSITION ?
-            _suggestions.size() - 1 : currentSuggestion - 1;
-
-        for (; i >= 0; --i)
-            if (_suggestions[i].word.startsWith(prefix))
-                break;
-
-        if (i >= 0)
-            return i;
-
-        if (currentSuggestion != INVALID_POSITION)
-        {
-            for (i = _suggestions.size() - 1; i > currentSuggestion; --i)
-                if (_suggestions[i].word.startsWith(prefix))
-                    break;
-
-            if (i > currentSuggestion)
-                return i;
-        }
-    }
-
-    return INVALID_POSITION;
 }
 
 bool Editor::completeWord(bool next)
@@ -2184,27 +2133,30 @@ bool Editor::completeWord(bool next)
 
     if (prefix.length() > 0)
     {
-        int suggestion = next ?
-            findNextSuggestion(prefix, _currentSuggestion) :
-            findPrevSuggestion(prefix, _currentSuggestion);
+        if (_currentSuggestion == INVALID_POSITION)
+            prepareSuggestions(prefix);
 
-        _currentSuggestion = suggestion;
-        _document->value.completeWord(suggestion == INVALID_POSITION ?
-            prefix : _suggestions[suggestion].word);
+        if (_suggestions.size() > 0)
+        {
+            int last = _suggestions.size() - 1;
+
+            if (_currentSuggestion == INVALID_POSITION)
+                _currentSuggestion = next ? 0 : last;
+            else
+            {
+                if (next)
+                    _currentSuggestion = _currentSuggestion < last ? _currentSuggestion + 1 : 0;
+                else
+                    _currentSuggestion = _currentSuggestion > 0 ? _currentSuggestion - 1 : last;
+            }
+
+            _document->value.completeWord(_suggestions[_currentSuggestion].word);
+        }
 
         return true;
     }
 
     return false;
-}
-
-void Editor::cancelCompletion()
-{
-    _currentSuggestion = INVALID_POSITION;
-    String prefix = _document->value.autocompletePrefix();
-
-    if (prefix.length() > 0)
-        _document->value.completeWord(prefix);
 }
 
 int MAIN(int argc, const char_t** argv)
