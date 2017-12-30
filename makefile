@@ -33,7 +33,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: eve.dbg.vcpp.exe
+all: eve.dbg.clang
 
 eve.dbg.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)
@@ -103,6 +103,11 @@ depl.win: eve.vcpp.exe
 	move /y eve.vcpp.exe eve.exe
 	"C:\Program Files\7-Zip\7z.exe" a eve-win.zip eve.exe
 	move /y eve-win.zip docs
+
+depl.mac: eve.clang
+	mv eve.clang eve
+	tar cJvf eve-mac.tar.bz2 eve
+	mv eve-mac.tar.bz2 docs
 
 depl.linux: eve.gcc
 	mv eve.gcc eve

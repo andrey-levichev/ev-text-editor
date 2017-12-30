@@ -1603,6 +1603,14 @@ bool Editor::processInput()
                         {
                             update = doc.moveCharsForward();
                         }
+                        else if (keyEvent.key == KEY_UP)
+                        {
+                            update = doc.moveLinesUp(_height - 1);
+                        }
+                        else if (keyEvent.key == KEY_DOWN)
+                        {
+                            update = doc.moveLinesDown(_height - 1);
+                        }
                         else if (keyEvent.key == KEY_DELETE)
                         {
                             modified = update = doc.deleteWordForward();

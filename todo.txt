@@ -9,6 +9,8 @@ screen is not redrawn during horizontal resizing
 empty line at the bottom when terminal has tabs
 function key mappings with modifiers are totally messed up
 * rework keyboard input to support different terminals
+check how vi/emacs work on macOS
+use alt+arrows for primary movement commands?
 * add info about autocomplete
 * some styling for website
 * freebsd package in virtual machine
