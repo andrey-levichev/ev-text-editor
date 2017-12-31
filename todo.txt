@@ -4,11 +4,11 @@ release:
 * change the name to make it easier for google to find?
 short female name like eva
 * macOS issues
-configure terminal to send home/end, pgup/pgdn or use alt+arrows
 screen is not redrawn during horizontal resizing
 * rework keyboard input to support different terminals
-use alt+arrows for primary movement commands?
-* add info about autocomplete
+* documentation
+add info about autocomplete
+note on Mac terminal settings
 * some styling for website
 * windows server and freebsd in virtual machine
 * check executable dependencies

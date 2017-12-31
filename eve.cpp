@@ -1506,15 +1506,15 @@ bool Editor::processInput()
                 {
                     if (keyEvent.ctrl)
                     {
-                        if (keyEvent.ch == 'b' || keyEvent.key == KEY_LEFT)
+                        if (keyEvent.ch == 'b')
                         {
                             update = doc.moveWordBack();
                         }
-                        else if (keyEvent.ch == 'w' || keyEvent.key == KEY_RIGHT)
+                        else if (keyEvent.ch == 'w')
                         {
                             update = doc.moveWordForward();
                         }
-                        else if (keyEvent.ch == 't' || keyEvent.key == KEY_TAB)
+                        else if (keyEvent.ch == 't')
                         {
                             doc.insertChar(0x9);
                             update = modified = true;
@@ -1595,21 +1595,21 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.alt)
                     {
-                        if (keyEvent.ch == 'b' || keyEvent.key == KEY_LEFT)
+                        if (keyEvent.key == KEY_LEFT)
                         {
-                            update = doc.moveCharsBack();
+                            update = doc.moveWordBack();
                         }
-                        else if (keyEvent.ch == 'w' || keyEvent.key == KEY_RIGHT)
+                        else if (keyEvent.key == KEY_RIGHT)
                         {
-                            update = doc.moveCharsForward();
+                            update = doc.moveWordForward();
                         }
                         else if (keyEvent.key == KEY_UP)
                         {
-                            update = doc.moveLinesUp(_height - 1);
+                            update = doc.moveLinesUp(20);
                         }
                         else if (keyEvent.key == KEY_DOWN)
                         {
-                            update = doc.moveLinesDown(_height - 1);
+                            update = doc.moveLinesDown(20);
                         }
                         else if (keyEvent.key == KEY_DELETE)
                         {
@@ -1627,13 +1627,13 @@ bool Editor::processInput()
                         {
                             update = doc.moveToEnd();
                         }
-                        else if (keyEvent.ch == 'p' || keyEvent.key == KEY_PGUP)
+                        else if (keyEvent.ch == 'b')
                         {
-                            update = doc.moveLinesUp(20);
+                            update = doc.moveCharsBack();
                         }
-                        else if (keyEvent.ch == 'n' || keyEvent.key == KEY_PGDN)
+                        else if (keyEvent.ch == 'w')
                         {
-                            update = doc.moveLinesDown(20);
+                            update = doc.moveCharsForward();
                         }
                         else if (keyEvent.ch == ',')
                         {
