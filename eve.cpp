@@ -1603,14 +1603,6 @@ bool Editor::processInput()
                         {
                             update = doc.moveWordForward();
                         }
-                        else if (keyEvent.key == KEY_UP)
-                        {
-                            update = doc.moveLinesUp(20);
-                        }
-                        else if (keyEvent.key == KEY_DOWN)
-                        {
-                            update = doc.moveLinesDown(20);
-                        }
                         else if (keyEvent.key == KEY_DELETE)
                         {
                             modified = update = doc.deleteWordForward();
@@ -1618,6 +1610,14 @@ bool Editor::processInput()
                         else if (keyEvent.key == KEY_BACKSPACE)
                         {
                             modified = update = doc.deleteWordBack();
+                        }
+                        else if (keyEvent.ch == 'p' || keyEvent.key == KEY_PGUP)
+                        {
+                            update = doc.moveLinesUp(20);
+                        }
+                        else if (keyEvent.ch == 'n' || keyEvent.key == KEY_PGDN)
+                        {
+                            update = doc.moveLinesDown(20);
                         }
                         else if (keyEvent.ch == 'h' || keyEvent.key == KEY_HOME)
                         {
@@ -1660,7 +1660,7 @@ bool Editor::processInput()
                             doc.commentLines();
                             modified = update = true;
                         }
-                        else if (keyEvent.ch == '?')
+                        else if (keyEvent.ch == '\\')
                         {
                             doc.uncommentLines();
                             modified = update = true;
@@ -2174,7 +2174,7 @@ int MAIN(int argc, const char_t** argv)
         if (argc < 2)
         {
             Console::writeLine(STR("eve text editor version 1.4\n"
-                "Copyright (C) Andrey Levichev, 2017\n\n"
+                "Copyright (C) Andrey Levichev, 2018\n\n"
                 "usage: eve filename ...\n\n"));
 
             return 1;
