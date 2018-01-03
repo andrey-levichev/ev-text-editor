@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 
 <html>
+
 <head>
+<title>eve text editor</title>
 </head>
 
 <body style="font-family: sans-serif">
 
 <h2>eve text editor</h2>
 
-<p>eve is simple cross-platform text editor written in C++ with minimal dependencies. The executable is just a few hundred kilobytes in size. The editor works in a text console or terminal on six platforms - Windows, macOS, Linux, FreeBSD, Solaris, AIX.</p>
+<p>eve is a simple cross-platform text editor written in C++ with minimal dependencies. The executable is just a few hundred kilobytes in size. The editor works in a text console or terminal on six platforms - Windows, macOS, Linux, FreeBSD, Solaris and AIX. GUI support is planned for the next major version.</p>
 
 <p>eve stands for "excellent visual editor", "extremely versatile editor" or "eradicate vi and emacs" whichever you prefer :-)</p>
 
@@ -34,12 +36,13 @@
 <li>basic text editing operations</li>
 <li>multiple open documents</li>
 <li>open/save documents</li>
-<li>find/replace</li>
 <li>copy/delete/paste</li>
+<li>find/replace</li>
 <li>autoindent</li>
 <li>indent/unindent</li>
 <li>toggle comment</li>
 <li>go to line</li>
+<li>cycle between recently edited location</li>
 <li>ability to execute make and use eve as a simple IDE</li>
 <li>basic Unicode support (can read/write UTF-8 and UTF-16, aware of multibyte characters)</li>
 <li>autocomplete based on words in open documents</li>
@@ -47,48 +50,62 @@
 
 <h4>Keys</h4>
 
-<p>arrows - move cursor<br>
-ctrl+left/right - word (identifier) left/right (also ctrl+b/w)<br>
-alt+left/right - word (space separated) left/right (also alt+b/w)<br>
-home/end - start/end of line (also ctrl+h/e)<br>
-alt+home/end - start/end of file (also alt+h/e)<br>
-pgup/pgdn - page up/down (also ctrl+p/n)<br>
-alt+pgup/pgdn - 20 lines up/down (also alt+p/n)<br>
-tab - next autocomplete suggestion, indent line/selection<br>
-shift+tab - previous autocomplete suggestion, unindent line/selection<br>
-delete - delete character at cursor position<br>
-backspace - delete character to the left of cursor position<br>
-alt+del - delete word at cursor position (also ctrl+d)<br>
-alt+backspace - delete word to the left of cursor position (also ctrl+])</p>
+<p>Keyboard shortcuts are designed to work on as many terminals as possible without the need to change eve or terminal settings. To achieve that eve tries to rely on 'safe' keys for the most frequently used commands. Safe keys are the keys most likely to be supported by all terminals. They include ESC, Tab, Backspace, Del, Enter, function keys, arrows, Ctrl+letter and Alt+letter. All editor functions are accessible by using just the safe keys.</p>
 
-<p>ctrl+a - mark selection start<br>
-ctrl+x - delete line/selection<br>
-ctrl+c - copy line/selection (also ctrl+k)<br>
-ctrl+v - paste line/selection (also ctrl+l)<br>
-ctrl+f - find again<br>
-ctrl+r - replace and find again<br>
-ctrl+g - find word at cursor<br>
-ctrl+^ - cycle between recently edited locations<br>
-ctrl+t - insert real tab (also ctrl+tab)</p>
+<p><table>
+<tr><td style="width: 120px">arrows</td><td>move cursor</td></tr>
+<tr><td>alt+left/right</td><td>word (identifier) left/right (also ctrl+b/w)</td></tr>
+<tr><td>alt+b/w</td><td>characters (space separated) left/right</td></tr>
+<tr><td>home/end</td><td>start/end of line (also ctrl+h/e)</td></tr>
+<tr><td>alt+home/end</td><td>start/end of file (also alt+h/e)</td></tr>
+<tr><td>pgup/pgdn</td><td>page up/down (also ctrl+p/n)</td></tr>
+<tr><td>alt+pgup/pgdn</td><td>20 lines up/down (also alt+p/n)</td></tr>
+<tr><td>tab</td><td>next autocomplete suggestion, indent line/selection</td></tr>
+<tr><td>shift+tab</td><td>previous autocomplete suggestion, unindent line/selection</td></tr>
+<tr><td>delete</td><td>delete character at cursor position</td></tr>
+<tr><td>backspace</td><td>delete character to the left of cursor position</td></tr>
+<tr><td>alt+del</td><td>delete word at cursor position (also ctrl+d)</td></tr>
+<tr><td>alt+backspace</td><td>delete word to the left of cursor position (also ctrl+])</td></tr>
+</table></p>
 
-<p>alt+, - go to previous document<br>
-alt+. - go to next document<br>
-alt+] - indent line/selection<br>
-alt+[ - unindent line/selection<br>
-alt+' - redraw screen<br>
-alt+/ - comment line/selection<br>
-alt+? - uncomment line/selection</p>
+<p><table>
+<tr><td style="width: 120px">ctrl+a</td><td>mark selection start</td></tr>
+<tr><td>ctrl+x</td><td>delete line/selection</td></tr>
+<tr><td>ctrl+c</td><td>copy line/selection (also ctrl+k)</td></tr>
+<tr><td>ctrl+v</td><td>paste line/selection (also ctrl+l)</td></tr>
+<tr><td>ctrl+f</td><td>find again</td></tr>
+<tr><td>ctrl+r</td><td>replace and find again</td></tr>
+<tr><td>ctrl+g</td><td>find word at cursor</td></tr>
+<tr><td>ctrl+^</td><td>cycle between recently edited locations</td></tr>
+<tr><td>ctrl+t</td><td>insert real tab</td></tr>
+</table></p>
 
-<p>F2 - toggle command line<br>
-F5 - build with make<br>
-F8 - save document<br>
-F9 - save all documents<br>
-F10 - save all documents and quit<br>
-ESC - quit editor</p>
+<p><table>
+<tr><td style="width: 120px">alt+,</td><td>go to previous document</td></tr>
+<tr><td>alt+.</td><td>go to next document</td></tr>
+<tr><td>alt+]</td><td>indent line/selection</td></tr>
+<tr><td>alt+[</td><td>unindent line/selection</td></tr>
+<tr><td>alt+'</td><td>redraw screen and refresh autocomplete suggestions</td></tr>
+<tr><td>alt+/</td><td>comment line/selection</td></tr>
+<tr><td>alt+\</td><td>uncomment line/selection</td></tr>
+</table></p>
+
+<p><table>
+<tr><td style="width: 120px">F2</td><td>toggle command line</td></tr>
+<tr><td>F5</td><td>build with make</td></tr>
+<tr><td>F8</td><td>save document</td></tr>
+<tr><td>F9</td><td>save all documents</td></tr>
+<tr><td>F10</td><td>save all documents and quit</td></tr>
+<tr><td>ESC</td><td>quit editor</td></tr>
+</table></p>
+
+<p>building with make: by default eve executes 'make' on UNIX systems and 'nmake.exe' on Windows. This can be overriden by setting MAKE_CMD environment variable.</p>
+
+<p>macOS note: By default Mac Terminal app sends weird codes for alt+key combinations. They are currently unsupported by eve. You can fix the issue by turning on 'Use Option as Meta key' on the Keyboard tab in the terminal profile settings.</p>
 
 <h4>Commands</h4>
 
-<p>optional parameters are in square brackets</p>
+<p>Command line is accessible at the bottom of the screen by pressing F2 key. Optional parameters are in square brackets.</p>
 
 <p>g number - go to line number</p>
 
@@ -101,19 +118,26 @@ d - replace all matches in current document<br>
 a - replace all matches in all documents<br>
 use any character as string separator instead of space</p>
 
+<h4>Autocomplete</h4>
+
+<p>Autocomplete works by scanning for all identifiers in open documents and lets you complete words as you type by pressing Tab key. The list of autocomplete suggestions can be refreshed by saving documents or by pressing alt+'. Completetion works best with at least two starting letters. When you press Tab the current suggestion is inserted into the text but the cursor remains after the last letter typed. If there're letters to the right of the cursor, the inserted word overwrites them.</p>
+
+<p>If you are satisfied with the suggestion, you can type the next character following the word such as space or punctuation. The cursor jumps to the end of the word and that character is inserted, minimizing the number of keystokes. If you move the cursor instead, the 'jump to end' feature is disabled and the next character will be inserted where the cursor is.</p>
+
+<p>If you are not satisfied with the suggestion, you can press Tab or Shift+Tab to go to the previous/next suggestion or you can type one or more letters until autocomplete gives you the expected result without pressing Tab too many times.</p>
 <h4>License</h4>
 
-<p>By using the eve editor you agree to the following license:</p>
+<p>By dowloading and using the eve editor you agree to the following license terms:</p>
 
-<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND<br>
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED<br>
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE<br>
+DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY<br>
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES<br>
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;<br>
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND<br>
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT<br>
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS<br>
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 
 <h4>Releases</h4>
@@ -122,7 +146,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 
 <h4>Developer</h4>
 
-<p>eve &copy; Andrey Levichev, 2017<br>
+<p>eve text editor<br>
+Copyright &copy; Andrey Levichev, 2018<br>
 email: <a href="mailto:andrey.levichev@gmail.com?Subject=eve">andrey.levichev@gmail.com</a></p>
 
 </body>

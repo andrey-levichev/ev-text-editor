@@ -1,16 +1,19 @@
 bugs & misc:
 
+"\t": menu-complete
+"\C- ": complete
+
 release:
+* linux version that works with older shared libs
 * change the name to make it easier for google to find?
 short female name like eva
 * macOS issues
 screen is not redrawn during horizontal resizing
 * rework keyboard input to support different terminals
 many ctrl and alt combinations don't work on Linux
-* documentation
-add info about autocomplete
-note on Mac terminal settings
-* some styling for website
+test xterm
+remove rarely used key mappings?
+* documentation, some styling
 * windows server and freebsd in virtual machine
 
 editor:
