@@ -1733,6 +1733,13 @@ bool Editor::processInput()
                     else if (keyEvent.key == KEY_BACKSPACE)
                     {
                         modified = update = doc.deleteCharBack();
+
+                        if (_currentSuggestion != INVALID_POSITION)
+                        {
+                            _currentSuggestion = INVALID_POSITION;
+                            if (completeWord(1))
+                                autocomplete = true;
+                        }
                     }
                     else if (keyEvent.key == KEY_DELETE)
                     {
@@ -1784,14 +1791,14 @@ bool Editor::processInput()
                     {
                         if (keyEvent.shift)
                         {
-                            if (completeWord(false))
+                            if (completeWord(-1))
                                 autocomplete = true;
                             else
                                 doc.unindentLines();
                         }
                         else
                         {
-                            if (completeWord(true))
+                            if (completeWord(1))
                                 autocomplete = true;
                             else
                                 doc.indentLines();
@@ -1805,13 +1812,22 @@ bool Editor::processInput()
                     }
                     else if (charIsPrint(keyEvent.ch))
                     {
-                        if (charIsWord(keyEvent.ch) || _currentSuggestion == INVALID_POSITION)
+                        if (_currentSuggestion == INVALID_POSITION)
                             doc.insertChar(keyEvent.ch);
                         else
                         {
-                            _uniqueWords[_suggestions[_currentSuggestion].word] = INT_MAX;
-                            _currentSuggestion = INVALID_POSITION;
-                            doc.insertChar(keyEvent.ch, true);
+                            if (charIsWord(keyEvent.ch))
+                            {
+                                doc.insertChar(keyEvent.ch);
+                                if (completeWord(0))
+                                    autocomplete = true;
+                            }
+                            else
+                            {
+                                doc.insertChar(keyEvent.ch, true);
+                                _uniqueWords[_suggestions[_currentSuggestion].word] = INT_MAX;
+                                _currentSuggestion = INVALID_POSITION;
+                            }
                         }
 
                         modified = update = true;
@@ -2135,7 +2151,7 @@ void Editor::prepareSuggestions(const String& prefix)
     _suggestions.sort();
 }
 
-bool Editor::completeWord(bool next)
+bool Editor::completeWord(int next)
 {
     String prefix = _document->value.autocompletePrefix();
 
@@ -2143,18 +2159,23 @@ bool Editor::completeWord(bool next)
     {
         if (_currentSuggestion == INVALID_POSITION)
             prepareSuggestions(prefix);
+        else if (!_suggestions[_currentSuggestion].word.startsWith(prefix))
+        {
+            prepareSuggestions(prefix);
+            _currentSuggestion = INVALID_POSITION;
+        }
 
         if (_suggestions.size() > 0)
         {
             int last = _suggestions.size() - 1;
 
             if (_currentSuggestion == INVALID_POSITION)
-                _currentSuggestion = next ? 0 : last;
+                _currentSuggestion = next >= 0 ? 0 : last;
             else
             {
-                if (next)
+                if (next > 0)
                     _currentSuggestion = _currentSuggestion < last ? _currentSuggestion + 1 : 0;
-                else
+                else if (next < 0)
                     _currentSuggestion = _currentSuggestion > 0 ? _currentSuggestion - 1 : last;
             }
 

@@ -264,7 +264,7 @@ protected:
 
     void findUniqueWords();
     void prepareSuggestions(const String& prefix);
-    bool completeWord(bool next);
+    bool completeWord(int next);
 
 protected:
     List<Document> _documents;
