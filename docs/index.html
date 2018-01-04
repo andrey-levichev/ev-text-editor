@@ -3,18 +3,26 @@
 <html>
 
 <head>
+
 <title>eve text editor</title>
+
+<style>
+
+h1 { text-align: center; }
+
+</style>
+
 </head>
 
 <body style="font-family: sans-serif">
 
-<h2>eve text editor</h2>
+<h1>eve text editor</h1>
 
 <p>eve is a simple cross-platform text editor written in C++ with minimal dependencies. The executable is just a few hundred kilobytes in size. The editor works in a text console or terminal on six platforms - Windows, macOS, Linux, FreeBSD, Solaris and AIX. GUI support is planned for the next major version.</p>
 
 <p>eve stands for "excellent visual editor", "extremely versatile editor" or "eradicate vi and emacs" whichever you prefer :-)</p>
 
-<h4>Download</h4>
+<h3>Download</h3>
 
 <p>All executables are 64-bit</p>
 
@@ -30,7 +38,7 @@
 
 <p>AIX (POWER): <a href="eve-aix.tar.bz2">eve-aix.tar.bz2</a></p>
 
-<h4>Supported features</h4>
+<h3>Supported features</h3>
 
 <ul>
 <li>basic text editing operations</li>
@@ -42,15 +50,15 @@
 <li>indent/unindent</li>
 <li>toggle comment</li>
 <li>go to line</li>
-<li>cycle between recently edited location</li>
+<li>cycle between recently edited locations</li>
 <li>ability to execute make and use eve as a simple IDE</li>
 <li>basic Unicode support (can read/write UTF-8 and UTF-16, aware of multibyte characters)</li>
 <li>autocomplete based on words in open documents</li>
 </ul>
 
-<h4>Keys</h4>
+<h3>Keys</h3>
 
-<p>Keyboard shortcuts are designed to work on as many terminals as possible without the need to change eve or terminal settings. To achieve that eve tries to rely on 'safe' keys for the most frequently used commands. Safe keys are the keys most likely to be supported by all terminals. They include ESC, Tab, Backspace, Del, Enter, function keys, arrows, Ctrl+letter and Alt+letter. All editor functions are accessible by using just the safe keys.</p>
+<p>Keyboard commands are designed to work on as many terminals as possible without the need to change eve or terminal settings. To achieve that eve provides alternatives for key combinations that may not be supported by particular a terminal.</p>
 
 <p><table>
 <tr><td style="width: 120px">arrows</td><td>move cursor</td></tr>
@@ -103,7 +111,7 @@
 
 <p>macOS note: By default Mac Terminal app sends weird codes for alt+key combinations. They are currently unsupported by eve. You can fix the issue by turning on 'Use Option as Meta key' on the Keyboard tab in the terminal profile settings.</p>
 
-<h4>Commands</h4>
+<h3>Commands</h3>
 
 <p>Command line is accessible at the bottom of the screen by pressing F2 key. Optional parameters are in square brackets.</p>
 
@@ -118,14 +126,15 @@ d - replace all matches in current document<br>
 a - replace all matches in all documents<br>
 use any character as string separator instead of space</p>
 
-<h4>Autocomplete</h4>
+<h3>Autocomplete</h3>
 
-<p>Autocomplete works by scanning for all identifiers in open documents and lets you complete words as you type by pressing Tab key. The list of autocomplete suggestions can be refreshed by saving documents or by pressing alt+'. Completetion works best with at least two starting letters. When you press Tab the current suggestion is inserted into the text but the cursor remains after the last letter typed. If there're letters to the right of the cursor, the inserted word overwrites them.</p>
+<p>Autocomplete works by scanning for all identifiers in open documents and it lets you complete words as you type by pressing Tab key. The list of autocomplete suggestions can be refreshed by saving documents or by pressing alt+'. Completetion works best with at least two starting letters. When you press Tab the current suggestion is inserted into the text but the cursor remains after the last letter typed. If there're letters to the right of the cursor, the inserted word overwrites them.</p>
 
 <p>If you are satisfied with the suggestion, you can type the next character following the word such as space or punctuation. The cursor jumps to the end of the word and that character is inserted, minimizing the number of keystokes. If you move the cursor instead, the 'jump to end' feature is disabled and the next character will be inserted where the cursor is.</p>
 
-<p>If you are not satisfied with the suggestion, you can press Tab or Shift+Tab to go to the previous/next suggestion or you can type one or more letters until autocomplete gives you the expected result without pressing Tab too many times.</p>
-<h4>License</h4>
+<p>If you are not satisfied with the suggestion, you can press Tab or Shift+Tab to go to the previous/next suggestion or you can type one or more letters until autocomplete gives you the expected result without pressing Tab too many times. You can also press Backspace to erase previous letter and automatically suggest a new word based on the shorter prefix.</p>
+
+<h3>License</h3>
 
 <p>By dowloading and using the eve editor you agree to the following license terms:</p>
 
@@ -140,11 +149,11 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT<br>
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS<br>
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 
-<h4>Releases</h4>
+<h3>Releases</h3>
 
 <p>v1.4 - initial release</p>
 
-<h4>Developer</h4>
+<h3>Developer</h3>
 
 <p>eve text editor<br>
 Copyright &copy; Andrey Levichev, 2018<br>
