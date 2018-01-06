@@ -109,7 +109,15 @@ h1 { text-align: center; }
 
 <p>building with make: by default eve executes 'make' on UNIX systems and 'nmake.exe' on Windows. This can be overriden by setting MAKE_CMD environment variable.</p>
 
-<p>macOS note: By default Mac Terminal app sends weird codes for alt+key combinations. They are currently unsupported by eve. You can fix the issue by turning on 'Use Option as Meta key' on the Keyboard tab in the terminal profile settings.</p>
+<p>macOS note: By default Mac Terminal app sends weird codes for alt+key combinations. They are currently unsupported by eve. You can fix the issue by turning on 'Use Option as Meta key' on the Keyboard tab in the terminal profile settings. To make eve more useful you can add a few key mappings there:</p>
+
+<p>Home - \033[1~<br>
+Option+Home - \033\033[1~<br>
+End - \033[4~<br>
+Option+End - \033\033[4~<br>
+PgUp - \033[5~<br>
+PgDn - \033[6~<br>
+Option+Delete - \033\033[3~</p>
 
 <h3>Commands</h3>
 

@@ -1852,11 +1852,10 @@ bool Editor::processInput()
 
             }
             else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
-
             {
                 WindowEvent windowEvent = event.event.windowEvent;
                 setDimensions(windowEvent.width, windowEvent.height);
-                update = true;
+                updateScreen(true);
             }
         }
         else
