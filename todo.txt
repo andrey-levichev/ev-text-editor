@@ -1,10 +1,7 @@
 bugs & misc:
 
-"\t": menu-complete
-"\C- ": complete
-
 release:
-* linux version that works with older shared libs
+* how to build linux binary that works on older systems
 * change the name to make it easier for google to find?
 short female name like eva
 * rework keyboard input to support different terminals

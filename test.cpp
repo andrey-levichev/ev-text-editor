@@ -5922,7 +5922,7 @@ int MAIN(int argc, const char_t** argv)
     try
     {
         printPlatformInfo();
-        testInput();
+//        testInput();
 
 //        testSupport();
 //        testFoundation();
