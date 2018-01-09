@@ -1,13 +1,10 @@
 bugs & misc:
 
 release:
-* how to build linux binary that works on older systems
 * change the name to make it easier for google to find?
-short female name like eva
-* rework keyboard input to support different terminals
-many ctrl and alt combinations don't work on Linux
-test xterm, remove rarely used key mappings?
-* windows server and freebsd in virtual machine
+* many ctrl and alt combinations don't work on Linux getty
+* filter unrecognized key sequences?
+* can't read file via symbolic link
 
 editor:
 * new/open/save commands
