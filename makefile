@@ -17,7 +17,7 @@ VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 /wd4723 \
 VCPP_DEBUG_OPTIONS=/RTCsu /MTd /Zi
 VCPP_RELEASE_OPTIONS=/MT /Ox
 
-GCC_OPTIONS=-Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -lrt
+GCC_OPTIONS=-Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -lrt -static-libstdc++
 GCC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 GCC_RELEASE_OPTIONS=-O3
 
@@ -33,7 +33,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: test.dbg.gcc
+all: eve.dbg.gcc
 
 eve.dbg.vcpp.exe: $(EVE_HEADERS) $(EVE_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EVE_SOURCES)

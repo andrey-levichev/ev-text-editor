@@ -1487,9 +1487,7 @@ void Editor::setDimensions(int width, int height)
 
 bool Editor::processInput()
 {
-    Document& doc = _document->value;
     bool update = false, modified = false, autocomplete = false;
-
     auto& inputEvents = Console::readInput();
 
     for (int i = 0; i < inputEvents.size(); ++i)
@@ -1498,11 +1496,23 @@ bool Editor::processInput()
 
         if (_document)
         {
+            Document& doc = _document->value;
+
             if (event.eventType == INPUT_EVENT_TYPE_KEY)
             {
                 KeyEvent keyEvent = event.event.keyEvent;
 
-                if (keyEvent.keyDown)
+                if (inputEvents.size() > 1)
+                {
+                    char_t ch = keyEvent.ch;
+
+                    if (charIsPrint(ch) || ch == '\n' || ch == '\r' || ch == '\t')
+                    {
+                        doc.insertChar(ch);
+                        modified = update = true;
+                    }
+                }
+                else if (keyEvent.keyDown)
                 {
                     if (keyEvent.ctrl)
                     {
@@ -1780,10 +1790,7 @@ bool Editor::processInput()
                         }
                         else
                         {
-                            if (inputEvents.size() == 1)
-                                doc.insertNewLine();
-                            else
-                                doc.insertChar('\n');
+                            doc.insertNewLine();
                             modified = update = true;
                         }
                     }
