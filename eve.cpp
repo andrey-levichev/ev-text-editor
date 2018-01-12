@@ -1487,9 +1487,7 @@ void Editor::setDimensions(int width, int height)
 
 bool Editor::processInput()
 {
-    Document& doc = _document->value;
     bool update = false, modified = false, autocomplete = false;
-
     auto& inputEvents = Console::readInput();
 
     for (int i = 0; i < inputEvents.size(); ++i)
@@ -1498,6 +1496,8 @@ bool Editor::processInput()
 
         if (_document)
         {
+            Document& doc = _document->value;
+
             if (event.eventType == INPUT_EVENT_TYPE_KEY)
             {
                 KeyEvent keyEvent = event.event.keyEvent;

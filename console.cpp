@@ -130,6 +130,14 @@ static KeyMapping keyMapping[] =
         { 6, "\x1b\x1b[21~", { KEY_F10, 0, true, false, true } },
         { 6, "\x1b\x1b[23~", { KEY_F11, 0, true, false, true } },
         { 6, "\x1b\x1b[24~", { KEY_F12, 0, true, false, true } },
+        { 6, "\x1b\x1b[25~", { KEY_F3, 0, true, false, true, true } },
+        { 6, "\x1b\x1b[26~", { KEY_F4, 0, true, false, true, true } },
+        { 6, "\x1b\x1b[28~", { KEY_F5, 0, true, false, true, true } },
+        { 6, "\x1b\x1b[29~", { KEY_F6, 0, true, false, true, true } },
+        { 6, "\x1b\x1b[31~", { KEY_F7, 0, true, false, true, true } },
+        { 6, "\x1b\x1b[32~", { KEY_F8, 0, true, false, true, true } },
+        { 6, "\x1b\x1b[33~", { KEY_F9, 0, true, false, true, true } },
+        { 6, "\x1b\x1b[34~", { KEY_F10, 0, true, false, true, true } },
         { 6, "\x1b[3;2~", { KEY_BACKSPACE, 0, true, false, false, true } },
         { 6, "\x1b[3;6~", { KEY_BACKSPACE, 0, true, true, false, true } },
         { 6, "\x1b[3;4~", { KEY_BACKSPACE, 0, true, false, true, true } },
@@ -1018,7 +1026,7 @@ const Array<InputEvent>& Console::readInput()
             unichar_t ch;
             p += UTF_CHAR_TO_UNICODE(p, ch);
 
-            KeyEvent keyEvent = { KEY_NONE, ch, true, false, alt, charIsUpper(ch) };
+            KeyEvent keyEvent = { KEY_NONE, 0, true, false, alt, false };
 
             if (ch == '\t')
                 keyEvent.key = KEY_TAB;
@@ -1028,13 +1036,16 @@ const Array<InputEvent>& Console::readInput()
                 keyEvent.key = KEY_ESC;
             else if (ch == 0x7f)
                 keyEvent.key = KEY_BACKSPACE;
-            else if (ch < 0x20)
+            else if (ch >= 0 && ch < 0x20)
             {
-                keyEvent.ctrl = true;
                 keyEvent.ch = controlKeys[ch];
+                keyEvent.ctrl = true;
             }
             else
+            {
                 keyEvent.ch = ch;
+                keyEvent.shift = charIsUpper(ch);
+            }
 
             _inputEvents.addLast(InputEvent(keyEvent));
         }

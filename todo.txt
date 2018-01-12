@@ -3,10 +3,8 @@ bugs & misc:
 release:
 * change the name to make it easier for google to find?
 * many ctrl and alt combinations don't work on Linux getty
-* filter out unrecognized key sequences?
 * can't opem read-only file
 * clipboard integration on windows/macos
-* test command line and editor without open files
 
 editor:
 * new/open/save commands
