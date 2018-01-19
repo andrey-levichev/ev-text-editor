@@ -2,8 +2,8 @@ bugs & misc:
 
 release:
 * change the name to make it easier for google to find?
-* many ctrl and alt combinations don't work on Linux getty
-* can't opem read-only file
+* many ctrl and alt combinations don't work on Linux
+* can't open read-only file on windows/unix
 * clipboard integration on windows/macos
 
 editor:
@@ -12,6 +12,7 @@ editor:
 * cycle documents in most recently used order
 * copy/delete lines
 * find/replace in files
+* go to symbol
 * syntax highlighting
 * parse build output for errors
 * undo/redo
