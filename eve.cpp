@@ -14,6 +14,59 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
         (prevCh != '\n' && ch == '\n');
 }
 
+void copyToClipboard(const String& text)
+{
+#ifdef PLATFORM_WINDOWS
+    BOOL rc = OpenClipboard(NULL);
+    ASSERT(rc);
+
+    rc = EmptyClipboard();
+    ASSERT(rc);
+
+    HGLOBAL hText = GlobalAlloc(GMEM_MOVEABLE, text.length() + 1);
+    ASSERT(hText);
+
+    void* ptr = GlobalLock(hText);
+    ASSERT(ptr);
+
+    memcpy(ptr, text.chars(), text.length() + 1);
+    GlobalUnlock(hText);
+
+    HANDLE hClip = SetClipboardData(CF_UNICODETEXT, hText);
+    ASSERT(hClip);
+
+    rc = CloseClipboard();
+    ASSERT(rc);
+#endif
+}
+
+bool pasteFromClipboard(String& text)
+{
+#ifdef PLATFORM_WINDOWS
+    if (IsClipboardFormatAvailable(CF_UNICODETEXT))
+    {
+        BOOL rc = OpenClipboard(NULL);
+        ASSERT(rc);
+
+        HGLOBAL hText = GetClipboardData(CF_UNICODETEXT);
+        ASSERT(hText);
+
+        void* ptr = GlobalLock(hText);
+        ASSERT(ptr);
+
+        text.assign(reinterpret_cast<const char_t*>(ptr));
+        GlobalUnlock(hText);
+
+        rc = CloseClipboard();
+        ASSERT(rc);
+
+        return true;
+    }
+#endif
+
+    return false;
+}
+
 // Document
 
 Document::Document() :
@@ -662,11 +715,11 @@ String Document::copyDeleteText(bool copy)
     return String();
 }
 
-void Document::pasteText(const String& text, bool lineSelection)
+void Document::pasteText(const String& text)
 {
     ASSERT(!text.empty());
 
-    if (lineSelection)
+    if (text.charAt(text.charBack(text.length())) == '\n')
         _text.insert(findLineStart(_position), text);
     else
         _text.insert(_position, text);
@@ -1296,7 +1349,6 @@ Editor::Editor() :
     _document(NULL),
     _lastDocument(NULL),
     _commandLine(Document(), NULL, NULL),
-    _lineSelection(false),
     _caseSesitive(true),
     _width(0), _height(0),
     _recentLocation(NULL),
@@ -1608,22 +1660,19 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.ch == 'x')
                         {
-                            _lineSelection = doc.selection() < 0;
                             _buffer = doc.copyDeleteText(false);
-
                             if (!_buffer.empty())
                                 modified = update = true;
                         }
                         else if (keyEvent.ch == 'c' || keyEvent.ch == 'k')
                         {
-                            _lineSelection = doc.selection() < 0;
                             _buffer = doc.copyDeleteText(true);
                         }
                         else if (keyEvent.ch == 'v' || keyEvent.ch == 'l')
                         {
                             if (!_buffer.empty())
                             {
-                                doc.pasteText(_buffer, _lineSelection);
+                                doc.pasteText(_buffer);
                                 modified = update = true;
                             }
                         }

@@ -134,7 +134,7 @@ public:
 
     void markSelection();
     String copyDeleteText(bool copy);
-    void pasteText(const String& text, bool lineSelection);
+    void pasteText(const String& text);
 
     String currentWord() const;
     String autocompletePrefix() const;
@@ -276,8 +276,6 @@ protected:
     ListNode<Document> _commandLine;
 
     String _buffer;
-    bool _lineSelection;
-
     String _searchStr, _replaceStr;
     bool _caseSesitive;
 
