@@ -13,6 +13,7 @@ editor:
 * copy/delete lines
 * find/replace in files
 * go to symbol
+* change case
 * syntax highlighting
 * parse build output for errors
 * undo/redo

@@ -542,6 +542,45 @@ bool Document::deleteWordBack()
     return false;
 }
 
+bool Document::deleteCharsForward()
+{
+    int prev = _position;
+
+    if (moveCharsForward())
+    {
+        _text.erase(prev, _position - prev);
+        _position = prev;
+
+        positionToLineColumn();
+        _modified = true;
+        _selectionMode = false;
+        _selection = -1;
+
+        return true;
+    }
+
+    return false;
+}
+
+bool Document::deleteCharsBack()
+{
+    int prev = _position;
+
+    if (moveCharsBack())
+    {
+        _text.erase(_position, prev - _position);
+
+        positionToLineColumn();
+        _modified = true;
+        _selectionMode = false;
+        _selection = -1;
+
+        return true;
+    }
+
+    return false;
+}
+
 void Document::indentLines()
 {
     changeLines(&Document::indentLine);
@@ -1635,6 +1674,14 @@ bool Editor::processInput()
                         {
                             update = doc.moveCharsForward();
                         }
+                        else if (keyEvent.ch == 'd')
+                        {
+                            modified = update = doc.deleteCharsForward();
+                        }
+                        else if (keyEvent.ch == ']')
+                        {
+                            modified = update = doc.deleteCharsBack();
+                        }
                         else if (keyEvent.ch == ',')
                         {
                             auto doc = _document->prev ? _document->prev : _documents.last();
@@ -1665,12 +1712,12 @@ bool Editor::processInput()
                             doc.uncommentLines();
                             modified = update = true;
                         }
-                        else if (keyEvent.ch == '[')
+                        else if (keyEvent.ch == '-')
                         {
                             doc.unindentLines();
                             modified = update = true;
                         }
-                        else if (keyEvent.ch == ']')
+                        else if (keyEvent.ch == '=')
                         {
                             doc.indentLines();
                             modified = update = true;

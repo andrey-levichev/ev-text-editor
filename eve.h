@@ -124,6 +124,9 @@ public:
     bool deleteWordForward();
     bool deleteWordBack();
 
+    bool deleteCharsForward();
+    bool deleteCharsBack();
+
     void indentLines();
     void unindentLines();
     void commentLines();
