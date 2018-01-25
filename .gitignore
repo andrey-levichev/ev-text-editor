@@ -11,5 +11,5 @@
 *.dSYM
 eve
 doc.txt
-test.dat
+test.txt
 .DS_Store

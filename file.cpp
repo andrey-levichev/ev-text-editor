@@ -29,55 +29,35 @@ bool File::open(const String& fileName, FileMode openMode)
     if (_handle != INVALID_HANDLE_VALUE)
         throw Exception(STR("file already open"));
 
-    int mode;
-
 #ifdef PLATFORM_WINDOWS
+    DWORD access, disposition;
+
     switch (openMode)
     {
-    case FILE_MODE_CREATE:
-        mode = CREATE_ALWAYS;
-        break;
-    case FILE_MODE_CREATE_NEW:
-        mode = CREATE_NEW;
-        break;
-    case FILE_MODE_OPEN:
-        mode = OPEN_ALWAYS;
-        break;
     default:
-    case FILE_MODE_OPEN_EXISTING:
-        mode = OPEN_EXISTING;
+    case FILE_MODE_READ:
+        access = GENERIC_READ;
+        disposition = OPEN_EXISTING;
         break;
-    case FILE_MODE_TRUNCATE_EXISTING:
-        mode = TRUNCATE_EXISTING;
+    case FILE_MODE_WRITE:
+        access = GENERIC_WRITE;
+        disposition = CREATE_ALWAYS;
         break;
     }
 
     _handle = CreateFile(reinterpret_cast<LPCTSTR>(fileName.chars()),
-        GENERIC_READ | GENERIC_WRITE, 0, NULL,
-        mode, FILE_ATTRIBUTE_NORMAL, NULL);
+        access, 0, NULL, disposition, FILE_ATTRIBUTE_NORMAL, NULL);
 #else
     switch (openMode)
     {
-    case FILE_MODE_CREATE:
-        mode = O_CREAT | O_TRUNC;
-        break;
-    case FILE_MODE_CREATE_NEW:
-        mode = O_CREAT | O_EXCL;
-        break;
-    case FILE_MODE_OPEN:
-        mode = O_CREAT;
-        break;
     default:
-    case FILE_MODE_OPEN_EXISTING:
-        mode = 0;
+    case FILE_MODE_READ:
+        _handle = ::open(fileName.chars(), O_RDONLY);
         break;
-    case FILE_MODE_TRUNCATE_EXISTING:
-        mode = O_TRUNC;
+    case FILE_MODE_WRITE:
+        _handle = ::creat(fileName.chars(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
         break;
     }
-
-    _handle = ::open(fileName.chars(), O_RDWR | mode,
-        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 #endif
 
     return _handle != INVALID_HANDLE_VALUE;

@@ -5353,10 +5353,15 @@ void testFile()
     const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
 
     // File()
-    // File(const String& fileName, FileMode openMode = FILE_MODE_OPEN_EXISTING)
+    // File(const String& fileName, FileMode openMode = FILE_MODE_READ)
     // bool isOpen() const
-    // bool open(const String& fileName, FileMode openMode = FILE_MODE_OPEN_EXISTING)
+    // bool open(const String& fileName, FileMode openMode = FILE_MODE_READ)
     // void close()
+
+    {
+        File f(STR("test.txt"), FILE_MODE_WRITE);
+        ASSERT(f.isOpen());
+    }
 
     {
         File f;
@@ -5376,11 +5381,11 @@ void testFile()
         ASSERT(!f.isOpen());
     }
 
-    ASSERT_EXCEPTION(Exception, File(STR("no_such_file"), FILE_MODE_OPEN_EXISTING));
+    ASSERT_EXCEPTION(Exception, File(STR("no_such_file")));
 
     {
         File f;
-        ASSERT(!f.open(STR("no_such_file"), FILE_MODE_OPEN_EXISTING));
+        ASSERT(!f.open(STR("no_such_file")));
     }
 
     // template<typename _Type>
@@ -5394,7 +5399,7 @@ void testFile()
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         ByteBuffer bytes(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX);
         f.write(bytes);
         ASSERT(f.size() == bytes.size());
@@ -5417,7 +5422,7 @@ void testFile()
     // String readString(TextEncoding& encoding, bool& bom, bool& crLf)
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.write(ByteBuffer(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX));
 
         TextEncoding encoding;
@@ -5431,7 +5436,7 @@ void testFile()
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.write(ByteBuffer(sizeof(BYTES_UTF8_BOM_UNIX), BYTES_UTF8_BOM_UNIX));
 
         TextEncoding encoding;
@@ -5445,7 +5450,7 @@ void testFile()
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.write(ByteBuffer(sizeof(BYTES_UTF16_LE_WIN), BYTES_UTF16_LE_WIN));
 
         TextEncoding encoding;
@@ -5458,7 +5463,7 @@ void testFile()
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.write(ByteBuffer(sizeof(BYTES_UTF16_LE_UNIX), BYTES_UTF16_LE_UNIX));
 
         TextEncoding encoding;
@@ -5471,7 +5476,7 @@ void testFile()
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.write(ByteBuffer(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX));
 
         TextEncoding encoding;
@@ -5486,35 +5491,35 @@ void testFile()
     // void writeString(const String& str, TextEncoding encoding, bool bom, bool crLf)
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.writeString(str, TEXT_ENCODING_UTF8, false, false);
         ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.writeString(str, TEXT_ENCODING_UTF8, true, false);
         ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF8_BOM_UNIX, sizeof(BYTES_UTF8_BOM_UNIX)) == 0);
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.writeString(str, TEXT_ENCODING_UTF16_LE, true, true);
         ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_WIN, sizeof(BYTES_UTF16_LE_WIN)) == 0);
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.writeString(str, TEXT_ENCODING_UTF16_LE, true, false);
         ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_UNIX, sizeof(BYTES_UTF16_LE_UNIX)) == 0);
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_CREATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE);
         f.writeString(str, TEXT_ENCODING_UTF16_BE, true, false);
         ByteBuffer bytes = f.read<byte_t>();
         ASSERT(memcmp(bytes.values(), BYTES_UTF16_BE_UNIX, sizeof(BYTES_UTF16_BE_UNIX)) == 0);
@@ -5926,7 +5931,7 @@ int MAIN(int argc, const char_t** argv)
 
 //        testSupport();
 //        testFoundation();
-//        testFile();
+        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();

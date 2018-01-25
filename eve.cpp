@@ -874,7 +874,7 @@ void Document::open(const String& filename)
     _filename = filename;
 
 	File file;
-	if (file.open(filename, FILE_MODE_OPEN_EXISTING))
+	if (file.open(filename))
         _text.assign(file.readString(_encoding, _bom, _crLf));
 }
 
@@ -885,7 +885,7 @@ void Document::save()
 
     trimTrailingWhitespace();
 
-	File file(_filename, FILE_MODE_CREATE);
+	File file(_filename, FILE_MODE_WRITE);
 	file.writeString(_text, _encoding, _bom, _crLf);
 
     lineColumnToPosition();

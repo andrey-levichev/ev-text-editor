@@ -11,11 +11,8 @@
 
 enum FileMode
 {
-    FILE_MODE_CREATE,
-    FILE_MODE_CREATE_NEW,
-    FILE_MODE_OPEN,
-    FILE_MODE_OPEN_EXISTING,
-    FILE_MODE_TRUNCATE_EXISTING
+    FILE_MODE_READ,
+    FILE_MODE_WRITE
 };
 
 enum TextEncoding
@@ -30,14 +27,14 @@ class File
 public:
     File();
     File(const String& fileName,
-        FileMode openMode = FILE_MODE_OPEN);
+        FileMode openMode = FILE_MODE_READ);
 
     ~File();
 
     bool isOpen() const;
 
     bool open(const String& fileName,
-        FileMode openMode = FILE_MODE_OPEN);
+        FileMode openMode = FILE_MODE_READ);
 
     void close();
 
