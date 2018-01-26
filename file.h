@@ -11,8 +11,12 @@
 
 enum FileMode
 {
-    FILE_MODE_READ,
-    FILE_MODE_WRITE
+    FILE_MODE_READ = 1,
+    FILE_MODE_WRITE = 2,
+    FILE_MODE_CREATE = 4,
+    FILE_MODE_NEW_ONLY = 8,
+    FILE_MODE_TRUNCATE = 16,
+    FILE_MODE_APPEND = 32
 };
 
 enum TextEncoding

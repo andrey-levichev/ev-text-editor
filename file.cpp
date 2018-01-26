@@ -30,34 +30,44 @@ bool File::open(const String& fileName, FileMode openMode)
         throw Exception(STR("file already open"));
 
 #ifdef PLATFORM_WINDOWS
-    DWORD access, disposition;
+    DWORD access = 0, disposition = OPEN_EXISTING;
 
-    switch (openMode)
-    {
-    default:
-    case FILE_MODE_READ:
-        access = GENERIC_READ;
-        disposition = OPEN_EXISTING;
-        break;
-    case FILE_MODE_WRITE:
-        access = GENERIC_WRITE;
+    if ((openMode & FILE_MODE_READ) != 0)
+        access |= GENERIC_READ;
+    if ((openMode & FILE_MODE_WRITE) != 0)
+        access |= GENERIC_WRITE;
+
+    if ((openMode & FILE_MODE_CREATE) != 0)
+        disposition = OPEN_ALWAYS;
+    if ((openMode & FILE_MODE_NEW_ONLY) != 0)
+        disposition = CREATE_NEW;
+    if ((openMode & FILE_MODE_TRUNCATE) != 0)
         disposition = CREATE_ALWAYS;
-        break;
-    }
 
     _handle = CreateFile(reinterpret_cast<LPCTSTR>(fileName.chars()),
         access, 0, NULL, disposition, FILE_ATTRIBUTE_NORMAL, NULL);
 #else
-    switch (openMode)
-    {
-    default:
-    case FILE_MODE_READ:
-        _handle = ::open(fileName.chars(), O_RDONLY);
-        break;
-    case FILE_MODE_WRITE:
-        _handle = ::creat(fileName.chars(), S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-        break;
-    }
+    int mode = 0;
+
+    if ((openMode & FILE_MODE_READ) != 0 && (openMode & FILE_MODE_WRITE) != 0)
+        mode = O_RDWR;
+    else if ((openMode & FILE_MODE_READ) != 0)
+        mode = O_RDONLY;
+    else if ((openMode & FILE_MODE_WRITE) != 0)
+        mode = O_WRONLY;
+    else
+        throw Exception(STR("invalid file mode"));
+
+    if ((openMode & FILE_MODE_CREATE) != 0)
+        mode |= O_CREAT;
+    if ((openMode & FILE_MODE_NEW_ONLY) != 0)
+        mode |= O_EXCL;
+    if ((openMode & FILE_MODE_APPEND) != 0)
+        mode |= O_APPEND;
+    if ((openMode & FILE_MODE_TRUNCATE) != 0)
+        mode |= O_TRUNC;
+
+    _handle = ::open(fileName.chars(), mode, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 #endif
 
     return _handle != INVALID_HANDLE_VALUE;

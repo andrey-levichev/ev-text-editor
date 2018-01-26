@@ -5922,21 +5922,42 @@ void printPlatformInfo()
     Console::writeLineFormatted(STR(" version %d"), COMPILER_VERSION);
 }
 
+void test()
+{
+//    int fd = ::open("f", O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+//    if (fd < 0)
+//    {
+//        perror("open");
+//        return;
+//    }
+//
+//    ::close(fd);
+    HANDLE fd = CreateFile(L"f.dat", GENERIC_READ, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+    Console::writeLineFormatted(STR("err = %u"), GetLastError());
+    if (fd == INVALID_HANDLE_VALUE)
+    {
+        Console::writeLine(STR("failed"));
+        return;
+    }
+
+    CloseHandle(fd);
+}
+
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
         printPlatformInfo();
-//        testInput();
+        test();
 
 //        testSupport();
 //        testFoundation();
-        testFile();
+//        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-        testConsoleReadInput();
+//        testConsoleReadInput();
     }
     catch (Exception& ex)
     {
