@@ -5,6 +5,10 @@ release:
 * many ctrl and alt combinations don't work on Linux
 * clipboard integration on windows/macos
 * finish refactoring file code
+replace asserts with exception handling
+append mode on windows
+* revisit the buffer class, unit tests
+* make sure identical strings are stored once
 
 editor:
 * new/open/save commands
@@ -17,7 +21,7 @@ editor:
 * syntax highlighting
 * parse build output for errors
 * undo/redo
-* regex find/replace, match word
+* regex find/replace, match word, match newline
 * command history
 * config file
 * selection with mouse/arrows and highlighting
