@@ -437,10 +437,14 @@ inline uint16_t swapBytes(uint16_t value)
     return (value << 8) | (value >> 8 );
 }
 
+#ifndef COMPILER_XL_CPP
+
 inline char16_t swapBytes(char16_t value)
 {
     return swapBytes(static_cast<uint16_t>(value));
 }
+
+#endif
 
 inline uint32_t swapBytes(uint32_t value)
 {
@@ -448,10 +452,14 @@ inline uint32_t swapBytes(uint32_t value)
     return (value << 16) | (value >> 16);
 }
 
+#ifndef COMPILER_XL_CPP
+
 inline char32_t swapBytes(char32_t value)
 {
     return swapBytes(static_cast<uint32_t>(value));
 }
+
+#endif
 
 inline uint64_t swapBytes(uint64_t value)
 {

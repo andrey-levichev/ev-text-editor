@@ -54,8 +54,8 @@ bool File::open(const String& fileName, int openMode)
         access |= GENERIC_READ;
     if ((openMode & FILE_MODE_WRITE) != 0)
         access |= GENERIC_WRITE;
-    if (access == 0)
-        throw Exception(STR("invalid file mode"));
+    if ((openMode & FILE_MODE_APPEND) != 0)
+        access = FILE_APPEND_DATA;
 
     if ((openMode & FILE_MODE_CREATE) != 0)
         disposition = OPEN_ALWAYS;
@@ -63,6 +63,9 @@ bool File::open(const String& fileName, int openMode)
         disposition = CREATE_NEW;
     if ((openMode & FILE_MODE_TRUNCATE) != 0)
         disposition = CREATE_ALWAYS;
+
+    if (access == 0)
+        throw Exception(STR("invalid file mode"));
 
     _handle = CreateFile(reinterpret_cast<LPCTSTR>(fileName.chars()),
         access, 0, NULL, disposition, FILE_ATTRIBUTE_NORMAL, NULL);
