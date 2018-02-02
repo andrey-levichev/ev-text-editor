@@ -162,21 +162,7 @@ typedef unsigned char32_t;
 #include <alloca.h>
 #endif
 
-// min/max
-
-template<typename _Type>
-const _Type& min(const _Type& left, const _Type& right)
-{
-    return left < right ? left : right;
-}
-
-template<typename _Type>
-const _Type& max(const _Type& left, const _Type& right)
-{
-    return left > right ? left : right;
-}
-
-// string support
+// typdefs and macros
 
 #define CHAR(arg) U##arg
 typedef char32_t unichar_t;
@@ -206,94 +192,8 @@ typedef char char_t;
 
 #endif
 
-int strLen(const char_t* str);
-char_t* strSet(char_t* str, unichar_t ch, int len);
-char_t* strCopy(char_t* destStr, const char_t* srcStr);
-char_t* strCopyLen(char_t* destStr, const char_t* srcStr, int len);
-char_t* strMove(char_t* destStr, const char_t* srcStr, int len);
-
-int strCompare(const char_t* left, const char_t* right);
-int strCompareLen(const char_t* left, const char_t* right, int len);
-int strCompareNoCase(const char_t* left, const char_t* right);
-int strCompareLenNoCase(const char_t* left, const char_t* right, int len);
-
-char_t* strFind(char_t* str, const char_t* searchStr);
-const char_t* strFind(const char_t* str, const char_t* searchStr);
-char_t* strFindNoCase(char_t* str, const char_t* searchStr);
-const char_t* strFindNoCase(const char_t* str, const char_t* searchStr);
-
-long strToLong(const char_t* str, char_t** end, int base);
-unsigned long strToULong(const char_t* str, char_t** end, int base);
-long long strToLLong(const char_t* str, char_t** end, int base);
-unsigned long long strToULLong(const char_t* str, char_t** end, int base);
-float strToFloat(const char_t* str, char_t** end);
-double strToDouble(const char_t* str, char_t** end);
-
-bool charIsSpace(unichar_t ch);
-bool charIsPrint(unichar_t ch);
-bool charIsAlpha(unichar_t ch);
-bool charIsAlphaNum(unichar_t ch);
-bool charIsUpper(unichar_t ch);
-bool charIsLower(unichar_t ch);
-unichar_t charToLower(unichar_t ch);
-unichar_t charToUpper(unichar_t ch);
-
-void formatString(char_t* str, const char_t* format, ...);
-void formatAllocStringArgs(char_t** str, const char_t* format, va_list args);
-void formatAllocString(char_t** str, const char_t* format, ...);
-
-// Unicode support
-
-int utf8CharToUnicode(const char* in, char32_t& ch);
-int unicodeCharToUtf8(char32_t ch, char* out);
-
-int utf16CharToUnicode(const char16_t* in, char32_t& ch);
-int unicodeCharToUtf16(char32_t ch, char16_t* out);
-
-void utf8StringToUnicode(const char* in, char32_t* out);
-void unicodeStringToUtf8(const char32_t* in, char* out);
-
-void utf16StringToUnicode(const char16_t* in, char32_t* out);
-void unicodeStringToUtf16(const char32_t* in, char16_t* out);
-
-void utf8StringToUtf16(const char* in, char16_t* out);
-void utf16StringToUtf8(const char16_t* in, char* out);
-
-char32_t utf8CharAt(const char* pos);
-const char* utf8CharForward(const char* pos);
-const char* utf8CharBack(const char* pos);
-
-int utf8CharLength(char32_t ch);
-int utf8StringLength(const char* str);
-
-char32_t utf16CharAt(const char16_t* pos);
-const char16_t* utf16CharForward(const char16_t* pos);
-const char16_t* utf16CharBack(const char16_t* pos);
-
-int utf16CharLength(char32_t ch);
-int utf16StringLength(const char16_t* str);
-
-#ifdef CHAR_ENCODING_UTF8
-
-#define UTF_CHAR_TO_UNICODE utf8CharToUnicode
-#define UNICODE_CHAR_TO_UTF unicodeCharToUtf8
-#define UTF_CHAR_AT utf8CharAt
-#define UTF_CHAR_FORWARD utf8CharForward
-#define UTF_CHAR_BACK utf8CharBack
-#define UTF_CHAR_LENGTH utf8CharLength
-#define UTF_STRING_LENGTH utf8StringLength
-
-#else
-
-#define UTF_CHAR_TO_UNICODE utf16CharToUnicode
-#define UNICODE_CHAR_TO_UTF unicodeCharToUtf16
-#define UTF_CHAR_AT utf16CharAt
-#define UTF_CHAR_FORWARD utf16CharForward
-#define UTF_CHAR_BACK utf16CharBack
-#define UTF_CHAR_LENGTH utf16CharLength
-#define UTF_STRING_LENGTH utf16StringLength
-
-#endif
+typedef unsigned char byte_t;
+#define INVALID_POSITION -1
 
 // assert macros
 
@@ -424,6 +324,20 @@ public:
     }
 };
 
+// min/max
+
+template<typename _Type>
+const _Type& min(const _Type& left, const _Type& right)
+{
+    return left < right ? left : right;
+}
+
+template<typename _Type>
+const _Type& max(const _Type& left, const _Type& right)
+{
+    return left > right ? left : right;
+}
+
 // hash function
 
 template<typename _Type1, typename _Type2>
@@ -523,10 +437,20 @@ inline uint16_t swapBytes(uint16_t value)
     return (value << 8) | (value >> 8 );
 }
 
+inline char16_t swapBytes(char16_t value)
+{
+    return swapBytes(static_cast<uint16_t>(value));
+}
+
 inline uint32_t swapBytes(uint32_t value)
 {
     value = ((value << 8) & 0xff00ff00) | ((value >> 8) & 0xff00ff);
     return (value << 16) | (value >> 16);
+}
+
+inline char32_t swapBytes(char32_t value)
+{
+    return swapBytes(static_cast<uint32_t>(value));
 }
 
 inline uint64_t swapBytes(uint64_t value)
@@ -561,11 +485,6 @@ inline void swapBytes(uint64_t* values, int len)
     for (int i = 0; i < len; ++i)
         values[i] = swapBytes(values[i]);
 }
-
-// misc
-
-typedef unsigned char byte_t;
-#define INVALID_POSITION -1
 
 // Memory
 
@@ -1270,6 +1189,44 @@ typedef Buffer<byte_t> ByteBuffer;
 typedef Buffer<char_t> CharBuffer;
 typedef Buffer<unichar_t> UniCharBuffer;
 
+// string support
+
+int strLen(const char_t* str);
+char_t* strSet(char_t* str, unichar_t ch, int len);
+char_t* strCopy(char_t* destStr, const char_t* srcStr);
+char_t* strCopyLen(char_t* destStr, const char_t* srcStr, int len);
+char_t* strMove(char_t* destStr, const char_t* srcStr, int len);
+
+int strCompare(const char_t* left, const char_t* right);
+int strCompareLen(const char_t* left, const char_t* right, int len);
+int strCompareNoCase(const char_t* left, const char_t* right);
+int strCompareLenNoCase(const char_t* left, const char_t* right, int len);
+
+char_t* strFind(char_t* str, const char_t* searchStr);
+const char_t* strFind(const char_t* str, const char_t* searchStr);
+char_t* strFindNoCase(char_t* str, const char_t* searchStr);
+const char_t* strFindNoCase(const char_t* str, const char_t* searchStr);
+
+long strToLong(const char_t* str, char_t** end, int base);
+unsigned long strToULong(const char_t* str, char_t** end, int base);
+long long strToLLong(const char_t* str, char_t** end, int base);
+unsigned long long strToULLong(const char_t* str, char_t** end, int base);
+float strToFloat(const char_t* str, char_t** end);
+double strToDouble(const char_t* str, char_t** end);
+
+bool charIsSpace(unichar_t ch);
+bool charIsPrint(unichar_t ch);
+bool charIsAlpha(unichar_t ch);
+bool charIsAlphaNum(unichar_t ch);
+bool charIsUpper(unichar_t ch);
+bool charIsLower(unichar_t ch);
+unichar_t charToLower(unichar_t ch);
+unichar_t charToUpper(unichar_t ch);
+
+void formatString(char_t* str, const char_t* format, ...);
+void formatAllocStringArgs(char_t** str, const char_t* format, va_list args);
+void formatAllocString(char_t** str, const char_t* format, ...);
+
 // ConstStringIterator
 
 class String;
@@ -1365,10 +1322,7 @@ public:
         return _length;
     }
 
-    int charLength() const
-    {
-        return _chars ? UTF_STRING_LENGTH(_chars) : 0;
-    }
+    int charLength() const;
 
     int capacity() const
     {
@@ -1680,6 +1634,76 @@ inline bool operator>=(const String& left, const char_t* right)
 {
     return strCompare(left.chars(), right) >= 0;
 }
+
+// Unicode support
+
+int utf8CharToUnicode(const char* in, char32_t& ch);
+int unicodeCharToUtf8(char32_t ch, char* out);
+
+int utf16CharToUnicode(const char16_t* in, char32_t& ch);
+int utf16CharToUnicodeSwapBytes(const char16_t* in, char32_t& ch);
+int unicodeCharToUtf16(char32_t ch, char16_t* out);
+
+void utf8StringToUnicode(const char* in, char32_t* out);
+void unicodeStringToUtf8(const char32_t* in, char* out);
+
+void utf16StringToUnicode(const char16_t* in, char32_t* out);
+void unicodeStringToUtf16(const char32_t* in, char16_t* out);
+
+void utf8StringToUtf16(const char* in, char16_t* out);
+void utf16StringToUtf8(const char16_t* in, char* out);
+
+char32_t utf8CharAt(const char* pos);
+const char* utf8CharForward(const char* pos);
+const char* utf8CharBack(const char* pos);
+
+int utf8CharLength(char32_t ch);
+int utf8StringLength(const char* str);
+
+char32_t utf16CharAt(const char16_t* pos);
+const char16_t* utf16CharForward(const char16_t* pos);
+const char16_t* utf16CharBack(const char16_t* pos);
+
+int utf16CharLength(char32_t ch);
+int utf16StringLength(const char16_t* str);
+
+#ifdef CHAR_ENCODING_UTF8
+
+#define UTF_CHAR_TO_UNICODE utf8CharToUnicode
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf8
+#define UTF_CHAR_AT utf8CharAt
+#define UTF_CHAR_FORWARD utf8CharForward
+#define UTF_CHAR_BACK utf8CharBack
+#define UTF_CHAR_LENGTH utf8CharLength
+#define UTF_STRING_LENGTH utf8StringLength
+
+#else
+
+#define UTF_CHAR_TO_UNICODE utf16CharToUnicode
+#define UNICODE_CHAR_TO_UTF unicodeCharToUtf16
+#define UTF_CHAR_AT utf16CharAt
+#define UTF_CHAR_FORWARD utf16CharForward
+#define UTF_CHAR_BACK utf16CharBack
+#define UTF_CHAR_LENGTH utf16CharLength
+#define UTF_STRING_LENGTH utf16StringLength
+
+#endif
+
+// Unicode
+
+enum TextEncoding
+{
+    TEXT_ENCODING_UTF8,
+    TEXT_ENCODING_UTF16_LE,
+    TEXT_ENCODING_UTF16_BE
+};
+
+struct Unicode
+{
+    static String bytesToString(const ByteBuffer& bytes, TextEncoding& encoding, bool& bom, bool& crLf);
+    static String bytesToString(int size, const byte_t* bytes, TextEncoding& encoding, bool& bom, bool& crLf);
+    static ByteBuffer stringToBytes(const String& str, TextEncoding encoding, bool bom, bool crLf);
+};
 
 // ArrayIterator
 

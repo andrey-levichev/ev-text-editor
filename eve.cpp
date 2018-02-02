@@ -875,7 +875,10 @@ void Document::open(const String& filename)
 
 	File file;
 	if (file.open(filename))
-        _text.assign(file.readString(_encoding, _bom, _crLf));
+	{
+        ByteBuffer bytes = file.read();
+        _text.assign(Unicode::bytesToString(bytes, _encoding, _bom, _crLf));
+    }
 }
 
 void Document::save()
@@ -885,8 +888,8 @@ void Document::save()
 
     trimTrailingWhitespace();
 
-	File file(_filename, FILE_MODE_WRITE);
-	file.writeString(_text, _encoding, _bom, _crLf);
+	File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
+	file.write(Unicode::stringToBytes(_text, _encoding, _bom, _crLf));
 
     lineColumnToPosition();
     _modified = false;
@@ -2290,6 +2293,7 @@ int MAIN(int argc, const char_t** argv)
         if (argc < 2)
         {
             Console::writeLine(STR("eve text editor version 1.4\n"
+                "web: andrewshark.github.io/eve\n"
                 "Copyright (C) Andrey Levichev, 2018\n\n"
                 "usage: eve filename ...\n\n"));
 

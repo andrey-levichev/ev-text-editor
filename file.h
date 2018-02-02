@@ -26,24 +26,17 @@ enum FilePosition
     FILE_POSITION_END
 };
 
-enum TextEncoding
-{
-    TEXT_ENCODING_UTF8,
-    TEXT_ENCODING_UTF16_LE,
-    TEXT_ENCODING_UTF16_BE
-};
-
 class File
 {
 public:
     File();
-    File(const String& fileName, FileMode openMode = FILE_MODE_READ);
+    File(const String& fileName, int openMode = FILE_MODE_READ);
     ~File();
 
     bool isOpen() const;
     int64_t size() const;
 
-    bool open(const String& fileName, FileMode openMode = FILE_MODE_READ);
+    bool open(const String& fileName, int openMode = FILE_MODE_READ);
     void close();
 
     int64_t setPosition(int64_t offset, FilePosition position = FILE_POSITION_START);
@@ -53,9 +46,6 @@ public:
 
     void write(const ByteBuffer& data);
     void write(int size, const void* data);
-
-    String readString(TextEncoding& encoding, bool& bom, bool& crLf);
-    void writeString(const String& str, TextEncoding encoding, bool bom, bool crLf);
 
 private:
     File(const File&);

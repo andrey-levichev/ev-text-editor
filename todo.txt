@@ -1,14 +1,12 @@
-bugs & misc:
-
 release:
 * change the name to make it easier for google to find?
 * many ctrl and alt combinations don't work on Linux
 * clipboard integration on windows/macos
 * finish refactoring file code
-replace asserts with exception handling
 append mode on windows
-* revisit the buffer class, unit tests
+tests for open flags
 * make sure identical strings are stored once
+* backspace in autocomplete mode doesn't work
 
 editor:
 * new/open/save commands

@@ -855,6 +855,14 @@ void testString()
     }
 
     {
+        char32_t ch;
+        ASSERT(utf16CharToUnicodeSwapBytes(u"\x2400", ch) == 1 && ch == 0x24);
+        ASSERT(utf16CharToUnicodeSwapBytes(u"\xa200", ch) == 1 && ch == 0xa2);
+        ASSERT(utf16CharToUnicodeSwapBytes(u"\xac20", ch) == 1 && ch == 0x20ac);
+        ASSERT(utf16CharToUnicodeSwapBytes(u"\x00d8\x48df", ch) == 2 && ch == 0x10348);
+    }
+
+    {
         char16_t s[2];
         ASSERT(unicodeCharToUtf16(0x24, s) == 1 && memcmp(s, u"\x0024", 2) == 0);
         ASSERT(unicodeCharToUtf16(0xa2, s) == 1 && memcmp(s, u"\x00a2", 2) == 0);
@@ -2839,6 +2847,101 @@ void testString()
     ASSERT(String(STR("ab")) <= STR("abc"));
     ASSERT(String(STR("abc")) > STR("ab"));
     ASSERT(String(STR("abc")) >= STR("ab"));
+}
+
+void testUnicode()
+{
+#ifdef CHAR_ENCODING_UTF8
+    const char_t* str = "\x24\xc2\xa2\n\xe2\x82\xac\xf0\x90\x8d\x88\n";
+#else
+    const char_t* str = u"\x0024\x00a2\n\x20ac\xd800\xdf48\n";
+#endif
+
+    const byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
+    const byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
+    const byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
+    const byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
+    const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
+
+    // static String bytesToString(ByteBuffer& bytes, TextEncoding& encoding, bool& bom, bool& crLf)
+    // static String bytesToString(int size, byte_t* bytes, TextEncoding& encoding, bool& bom, bool& crLf)
+
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = Unicode::bytesToString(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX, encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF8);
+        ASSERT(!bom);
+        ASSERT(!crLf);
+    }
+
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = Unicode::bytesToString(sizeof(BYTES_UTF8_BOM_UNIX), BYTES_UTF8_BOM_UNIX, encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF8);
+        ASSERT(bom);
+        ASSERT(!crLf);
+    }
+
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = Unicode::bytesToString(sizeof(BYTES_UTF16_LE_WIN), BYTES_UTF16_LE_WIN, encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
+        ASSERT(bom);
+        ASSERT(crLf);
+    }
+
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = Unicode::bytesToString(sizeof(BYTES_UTF16_LE_UNIX), BYTES_UTF16_LE_UNIX, encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
+        ASSERT(bom);
+        ASSERT(!crLf);
+    }
+
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = Unicode::bytesToString(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX, encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF16_BE);
+        ASSERT(bom);
+        ASSERT(!crLf);
+    }
+
+    // static ByteBuffer stringToBytes(const String& str, TextEncoding encoding, bool bom, bool crLf)
+
+    {
+        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF8, false, false);
+        ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
+    }
+
+    {
+        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF8, true, false);
+        ASSERT(memcmp(bytes.values(), BYTES_UTF8_BOM_UNIX, sizeof(BYTES_UTF8_BOM_UNIX)) == 0);
+    }
+
+    {
+        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_LE, true, true);
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_WIN, sizeof(BYTES_UTF16_LE_WIN)) == 0);
+    }
+
+    {
+        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_LE, true, false);
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_UNIX, sizeof(BYTES_UTF16_LE_UNIX)) == 0);
+    }
+
+    {
+        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_BE, true, false);
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_BE_UNIX, sizeof(BYTES_UTF16_BE_UNIX)) == 0);
+    }
 }
 
 void testStringIterator()
@@ -5327,6 +5430,7 @@ void testFoundation()
     testShared();
     testBuffer();
     testString();
+    testUnicode();
     testStringIterator();
     testArray();
     testArrayIterator();
@@ -5340,190 +5444,112 @@ void testFoundation()
 
 void testFile()
 {
-//#ifdef CHAR_ENCODING_UTF8
-//    const char_t* str = "\x24\xc2\xa2\n\xe2\x82\xac\xf0\x90\x8d\x88\n";
-//#else
-//    const char_t* str = u"\x0024\x00a2\n\x20ac\xd800\xdf48\n";
-//#endif
-//
-//    const byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
-//    const byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
-//    const byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
-//    const byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
-//    const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
-//
-//    // File()
-//    // File(const String& fileName, FileMode openMode = FILE_MODE_READ)
-//    // bool isOpen() const
-//    // bool open(const String& fileName, FileMode openMode = FILE_MODE_READ)
-//    // void close()
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        ASSERT(f.isOpen());
-//    }
-//
-//    {
-//        File f;
-//        ASSERT(!f.isOpen());
-//        ASSERT(f.open(STR("test.txt")));
-//        ASSERT(f.isOpen());
-//        ASSERT_EXCEPTION(Exception, f.open(STR("test.txt")));
-//        f.close();
-//        ASSERT(!f.isOpen());
-//    }
-//
-//    {
-//        File f(STR("test.txt"));
-//        ASSERT(f.isOpen());
-//        ASSERT_EXCEPTION(Exception, f.open(STR("test.txt")));
-//        f.close();
-//        ASSERT(!f.isOpen());
-//    }
-//
-//    ASSERT_EXCEPTION(Exception, File(STR("no_such_file")));
-//
-//    {
-//        File f;
-//        ASSERT(!f.open(STR("no_such_file")));
-//    }
-//
-//    // template<typename _Type>
-//    // void write(const Buffer<_Type>& data)
-//    // int64_t size() const
-//
-//    {
-//        File f;
-//        ASSERT_EXCEPTION(Exception, f.write(ByteBuffer()));
-//        ASSERT_EXCEPTION(Exception, f.size());
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        ByteBuffer bytes(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX);
-//        f.write(bytes);
-//        ASSERT(f.size() == bytes.size());
-//    }
-//
-//    // template<typename _Type>
-//    // Buffer<_Type> read()
-//
-//    {
-//        File f;
-//        ASSERT_EXCEPTION(Exception, f.read<byte_t>());
-//    }
-//
-//    {
-//        File f(STR("test.txt"));
-//        ByteBuffer bytes = f.read<byte_t>();
-//        ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
-//    }
-//
-//    // String readString(TextEncoding& encoding, bool& bom, bool& crLf)
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.write(ByteBuffer(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX));
-//
-//        TextEncoding encoding;
-//        bool bom, crLf;
-//        String s = f.readString(encoding, bom, crLf);
-//        ASSERT(s == str);
-//        ASSERT(encoding == TEXT_ENCODING_UTF8);
-//        ASSERT(!bom);
-//        ASSERT(!crLf);
-//
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.write(ByteBuffer(sizeof(BYTES_UTF8_BOM_UNIX), BYTES_UTF8_BOM_UNIX));
-//
-//        TextEncoding encoding;
-//        bool bom, crLf;
-//        String s = f.readString(encoding, bom, crLf);
-//        ASSERT(s == str);
-//        ASSERT(encoding == TEXT_ENCODING_UTF8);
-//        ASSERT(bom);
-//        ASSERT(!crLf);
-//
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.write(ByteBuffer(sizeof(BYTES_UTF16_LE_WIN), BYTES_UTF16_LE_WIN));
-//
-//        TextEncoding encoding;
-//        bool bom, crLf;
-//        String s = f.readString(encoding, bom, crLf);
-//        ASSERT(s == str);
-//        ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
-//        ASSERT(bom);
-//        ASSERT(crLf);
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.write(ByteBuffer(sizeof(BYTES_UTF16_LE_UNIX), BYTES_UTF16_LE_UNIX));
-//
-//        TextEncoding encoding;
-//        bool bom, crLf;
-//        String s = f.readString(encoding, bom, crLf);
-//        ASSERT(s == str);
-//        ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
-//        ASSERT(bom);
-//        ASSERT(!crLf);
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.write(ByteBuffer(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX));
-//
-//        TextEncoding encoding;
-//        bool bom, crLf;
-//        String s = f.readString(encoding, bom, crLf);
-//        ASSERT(s == str);
-//        ASSERT(encoding == TEXT_ENCODING_UTF16_BE);
-//        ASSERT(bom);
-//        ASSERT(!crLf);
-//    }
-//
-//    // void writeString(const String& str, TextEncoding encoding, bool bom, bool crLf)
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.writeString(str, TEXT_ENCODING_UTF8, false, false);
-//        ByteBuffer bytes = f.read<byte_t>();
-//        ASSERT(memcmp(bytes.values(), BYTES_UTF8_UNIX, sizeof(BYTES_UTF8_UNIX)) == 0);
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.writeString(str, TEXT_ENCODING_UTF8, true, false);
-//        ByteBuffer bytes = f.read<byte_t>();
-//        ASSERT(memcmp(bytes.values(), BYTES_UTF8_BOM_UNIX, sizeof(BYTES_UTF8_BOM_UNIX)) == 0);
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.writeString(str, TEXT_ENCODING_UTF16_LE, true, true);
-//        ByteBuffer bytes = f.read<byte_t>();
-//        ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_WIN, sizeof(BYTES_UTF16_LE_WIN)) == 0);
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.writeString(str, TEXT_ENCODING_UTF16_LE, true, false);
-//        ByteBuffer bytes = f.read<byte_t>();
-//        ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_UNIX, sizeof(BYTES_UTF16_LE_UNIX)) == 0);
-//    }
-//
-//    {
-//        File f(STR("test.txt"), FILE_MODE_WRITE);
-//        f.writeString(str, TEXT_ENCODING_UTF16_BE, true, false);
-//        ByteBuffer bytes = f.read<byte_t>();
-//        ASSERT(memcmp(bytes.values(), BYTES_UTF16_BE_UNIX, sizeof(BYTES_UTF16_BE_UNIX)) == 0);
-//    }
+    const byte_t BYTES[] = { 1, 2, 3 };
+
+    // File()
+    // File(const String& fileName, FileMode openMode = FILE_MODE_READ)
+    // ~File()
+    // bool isOpen() const
+    // bool open(const String& fileName, FileMode openMode = FILE_MODE_READ)
+    // void close()
+
+    {
+        File f;
+        ASSERT(!f.isOpen());
+        ASSERT(f.open(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE));
+        ASSERT(f.isOpen());
+        ASSERT_EXCEPTION(Exception, f.open(STR("test.txt")));
+        f.close();
+        ASSERT(!f.isOpen());
+        f.close();
+        ASSERT(!f.isOpen());
+    }
+
+    {
+        File f(STR("test.txt"));
+        ASSERT(f.isOpen());
+    }
+
+    ASSERT_EXCEPTION(Exception, File(STR("no_such_file")));
+
+    {
+        File f;
+        ASSERT(!f.open(STR("no_such_file")));
+    }
+
+    // void write(const ByteBuffer& data)
+    // void write(int size, const void* data)
+    // int64_t size() const
+
+    {
+        File f;
+        ASSERT_EXCEPTION(Exception, f.write(ByteBuffer()));
+        ASSERT_EXCEPTION(Exception, f.size());
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        ByteBuffer bytes(sizeof(BYTES), BYTES);
+        f.write(bytes);
+        ASSERT(f.size() == bytes.size());
+    }
+
+    {
+        File f;
+        ASSERT_EXCEPTION(Exception, f.write(sizeof(BYTES), BYTES));
+        ASSERT_EXCEPTION(Exception, f.size());
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        f.write(sizeof(BYTES), BYTES);
+        ASSERT(f.size() == sizeof(BYTES));
+    }
+
+    // ByteBuffer read(int size = -1)
+    // void read(int size, void* data)
+
+    {
+        File f;
+        ASSERT_EXCEPTION(Exception, f.read());
+    }
+
+    {
+        File f(STR("test.txt"));
+        ByteBuffer bytes = f.read();
+        ASSERT(bytes.size() == sizeof(BYTES));
+        ASSERT(memcmp(bytes.values(), BYTES, sizeof(BYTES)) == 0);
+    }
+
+    {
+        File f;
+        byte_t bytes[sizeof(BYTES)];
+        ASSERT_EXCEPTION(Exception, f.read(sizeof(bytes), bytes));
+    }
+
+    {
+        File f(STR("test.txt"));
+        byte_t bytes[sizeof(BYTES)];
+        f.read(sizeof(bytes), bytes);
+        ASSERT(memcmp(bytes, BYTES, sizeof(bytes)) == 0);
+    }
+
+    // int64_t setPosition(int64_t offset, FilePosition position = FILE_POSITION_START)
+
+    {
+        File f(STR("test.txt"));
+        f.setPosition(1);
+        ByteBuffer bytes = f.read();
+        ASSERT(bytes.size() == 2 && bytes[0] == 2 && bytes[1] == 3);
+
+        f.setPosition(-1, FILE_POSITION_CURRENT);
+        bytes = f.read();
+        ASSERT(bytes.size() == 1 && bytes[0] == 3);
+
+        f.setPosition(-2, FILE_POSITION_END);
+        bytes = f.read();
+        ASSERT(bytes.size() == 2 && bytes[0] == 2 && bytes[1] == 3);
+    }
 }
 
 void testConsole()
@@ -5942,8 +5968,6 @@ void test()
 //    }
 //
 //    CloseHandle(fd);
-
-    File f(STR("f.dat"), FILE_MODE_TRUNCATE);
 }
 
 int MAIN(int argc, const char_t** argv)
@@ -5951,11 +5975,10 @@ int MAIN(int argc, const char_t** argv)
     try
     {
         printPlatformInfo();
-        test();
 
-//        testSupport();
-//        testFoundation();
-//        testFile();
+        testSupport();
+        testFoundation();
+        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();

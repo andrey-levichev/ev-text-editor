@@ -433,6 +433,24 @@ int utf16CharToUnicode(const char16_t* in, char32_t& ch)
     }
 }
 
+int utf16CharToUnicodeSwapBytes(const char16_t* in, char32_t& ch)
+{
+    char16_t ch1 = swapBytes(*in++);
+
+    if ((ch1 & 0xfc00) != 0xd800)
+    {
+        ch = ch1;
+        return 1;
+    }
+    else
+    {
+        char16_t ch2 = swapBytes(*in++);
+        ch = ((((ch1 & 0x03c0) >> 6) + 1) << 16) |
+            ((ch1 & 0x003f) << 10) | (ch2 & 0x03ff);
+        return 2;
+    }
+}
+
 int unicodeCharToUtf16(char32_t ch, char16_t* out)
 {
     if (ch < 0x010000)
@@ -724,6 +742,11 @@ String::String(String&& other)
     other._length = 0;
     other._capacity = 0;
     other._chars = NULL;
+}
+
+int String::charLength() const
+{
+    return _chars ? UTF_STRING_LENGTH(_chars) : 0;
 }
 
 unichar_t String::charAt(int pos) const
@@ -1815,4 +1838,192 @@ bool ConstStringIterator::movePrev()
         _pos = NULL;
         return false;
     }
+}
+
+// Unicode
+
+String Unicode::bytesToString(const ByteBuffer& bytes, TextEncoding& encoding, bool& bom, bool& crLf)
+{
+    return bytesToString(bytes.size(), bytes.values(), encoding, bom, crLf);
+}
+
+String Unicode::bytesToString(int size, const byte_t* bytes, TextEncoding& encoding, bool& bom, bool& crLf)
+{
+    int bomOffset = 0;
+
+    if (size >= 2 && bytes[0] == 0xfe && bytes[1] == 0xff)
+    {
+        encoding = TEXT_ENCODING_UTF16_BE;
+        bom = true;
+        bomOffset = 2;
+    }
+    else if (size >= 2 && bytes[0] == 0xff && bytes[1] == 0xfe)
+    {
+        encoding = TEXT_ENCODING_UTF16_LE;
+        bom = true;
+        bomOffset = 2;
+    }
+    else if (size >= 3 && bytes[0] == 0xef &&
+        bytes[1] == 0xbb && bytes[2] == 0xbf)
+    {
+        encoding = TEXT_ENCODING_UTF8;
+        bom = true;
+        bomOffset = 3;
+    }
+    else
+    {
+        encoding = TEXT_ENCODING_UTF8;
+        bom = false;
+    }
+
+    if (encoding != TEXT_ENCODING_UTF8 && size % 2 != 0)
+        throw Exception(STR("text in UTF-16 encoding has odd number of bytes"));
+
+    const byte_t* p = bytes + bomOffset;
+    const byte_t* e = bytes + size;
+    int len = 0;
+    unichar_t ch;
+
+    while (p < e)
+    {
+        if (encoding == TEXT_ENCODING_UTF8)
+            p += utf8CharToUnicode(reinterpret_cast<const char*>(p), ch);
+        else
+        {
+#ifdef ARCH_LITTLE_ENDIAN
+            if (encoding == TEXT_ENCODING_UTF16_BE)
+#else
+            if (encoding == TEXT_ENCODING_UTF16_LE)
+#endif
+                p += utf16CharToUnicodeSwapBytes(reinterpret_cast<const char16_t*>(p), ch) * 2;
+            else
+                p += utf16CharToUnicode(reinterpret_cast<const char16_t*>(p), ch) * 2;
+        }
+
+        if (ch >= 0x20 || ch == '\n' || ch == '\t')
+            len += UTF_CHAR_LENGTH(ch);
+    }
+
+    String str;
+    str.ensureCapacity(len + 1);
+
+    p = bytes + bomOffset;
+    crLf = false;
+
+    while (p < e)
+    {
+        if (encoding == TEXT_ENCODING_UTF8)
+            p += utf8CharToUnicode(reinterpret_cast<const char*>(p), ch);
+        else
+        {
+#ifdef ARCH_LITTLE_ENDIAN
+            if (encoding == TEXT_ENCODING_UTF16_BE)
+#else
+            if (encoding == TEXT_ENCODING_UTF16_LE)
+#endif
+                p += utf16CharToUnicodeSwapBytes(reinterpret_cast<const char16_t*>(p), ch) * 2;
+            else
+                p += utf16CharToUnicode(reinterpret_cast<const char16_t*>(p), ch) * 2;
+        }
+
+        if (ch >= 0x20)
+            str += ch;
+        else
+        {
+            if (ch == '\r')
+                crLf = true;
+            else if (ch == '\n' || ch == '\t')
+                str += ch;
+        }
+    }
+
+    ASSERT(str.length() == len);
+    return str;
+}
+
+ByteBuffer Unicode::stringToBytes(const String& str, TextEncoding encoding, bool bom, bool crLf)
+{
+    const char_t* p = str.chars();
+    const char_t* e = p + str.length();
+    int len = bom ? (encoding == TEXT_ENCODING_UTF8 ? 3 : 2) : 0;
+    unichar_t ch;
+
+    while (p < e)
+    {
+        p += UTF_CHAR_TO_UNICODE(p, ch);
+
+        if (encoding == TEXT_ENCODING_UTF8)
+        {
+            if (ch == '\n' && crLf)
+                ++len;
+            len += utf8CharLength(ch);
+        }
+        else
+        {
+            if (ch == '\n' && crLf)
+                len += 2;
+            len += utf16CharLength(ch) * 2;
+        }
+    }
+
+    p = str.chars();
+
+    ByteBuffer bytes;
+    bytes.resize(len);
+    int i = 0;
+
+    if (bom)
+    {
+        if (encoding == TEXT_ENCODING_UTF8)
+        {
+            bytes[i++] = 0xef;
+            bytes[i++] = 0xbb;
+            bytes[i++] = 0xbf;
+        }
+        else
+        {
+            char16_t bomch = 0xfeff;
+            bytes[i++] = *(reinterpret_cast<byte_t*>(&bomch));
+            bytes[i++] = *(reinterpret_cast<byte_t*>(&bomch) + 1);
+        }
+    }
+
+    while (p < e)
+    {
+        p += UTF_CHAR_TO_UNICODE(p, ch);
+
+        if (ch == '\n' && crLf)
+        {
+            if (encoding == TEXT_ENCODING_UTF8)
+                bytes[i++] = '\r';
+            else
+            {
+                char16_t lfch = '\r';
+                bytes[i++] = *(reinterpret_cast<byte_t*>(&lfch));
+                bytes[i++] = *(reinterpret_cast<byte_t*>(&lfch) + 1);
+            }
+        }
+
+        byte_t s[4];
+        int n;
+
+        if (encoding == TEXT_ENCODING_UTF8)
+            n = unicodeCharToUtf8(ch, reinterpret_cast<char*>(s));
+        else
+            n = unicodeCharToUtf16(ch, reinterpret_cast<char16_t*>(s)) * 2;
+
+        for (int j = 0; j < n; ++j)
+            bytes[i++] = s[j];
+    }
+
+#ifdef ARCH_LITTLE_ENDIAN
+    if (encoding == TEXT_ENCODING_UTF16_BE)
+        swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
+#else
+    if (encoding == TEXT_ENCODING_UTF16_LE)
+        swapBytes(reinterpret_cast<uint16_t*>(bytes.values()), bytes.size() / 2);
+#endif
+
+    ASSERT(bytes.size() == len);
+    return bytes;
 }
