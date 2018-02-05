@@ -110,6 +110,7 @@ depl.mac: eve.clang
 	mv eve.clang eve
 	tar cJvf eve-mac.tar.bz2 eve
 	mv eve-mac.tar.bz2 docs
+	sudo mv eve /opt/bin
 
 depl.linux: eve.gcc
 	mv eve.gcc eve

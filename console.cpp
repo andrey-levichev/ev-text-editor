@@ -1036,7 +1036,7 @@ const Array<InputEvent>& Console::readInput()
                 keyEvent.key = KEY_ESC;
             else if (ch == 0x7f)
                 keyEvent.key = KEY_BACKSPACE;
-            else if (ch >= 0 && ch < 0x20)
+            else if (ch < 0x20)
             {
                 keyEvent.ch = controlKeys[ch];
                 keyEvent.ctrl = true;
