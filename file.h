@@ -47,6 +47,10 @@ public:
     void write(const ByteBuffer& data);
     void write(int size, const void* data);
 
+public:
+    static bool exists(const String& fileName);
+    static void remove(const String& fileName);
+
 private:
     File(const File&);
     File& operator=(const File&);

@@ -57,15 +57,15 @@ bool File::open(const String& fileName, int openMode)
     if ((openMode & FILE_MODE_APPEND) != 0)
         access = FILE_APPEND_DATA;
 
+    if (access == 0)
+        throw Exception(STR("invalid file mode"));
+
     if ((openMode & FILE_MODE_CREATE) != 0)
         disposition = OPEN_ALWAYS;
     if ((openMode & FILE_MODE_NEW_ONLY) != 0)
         disposition = CREATE_NEW;
     if ((openMode & FILE_MODE_TRUNCATE) != 0)
         disposition = CREATE_ALWAYS;
-
-    if (access == 0)
-        throw Exception(STR("invalid file mode"));
 
     _handle = CreateFile(reinterpret_cast<LPCTSTR>(fileName.chars()),
         access, 0, NULL, disposition, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -193,6 +193,8 @@ ByteBuffer File::read(int size)
 
 void File::read(int size, void* data)
 {
+    ASSERT(size >= 0 && data);
+
     if (_handle == INVALID_HANDLE_VALUE)
         throw Exception(STR("file not open"));
 
@@ -240,4 +242,26 @@ void File::write(int size, const void* data)
     }
     else
         throw Exception(STR("failed to write file"));
+}
+
+bool File::exists(const String& fileName)
+{
+#ifdef PLATFORM_WINDOWS
+    return GetFileAttributes(reinterpret_cast<LPCTSTR>(
+        fileName.chars())) != INVALID_FILE_ATTRIBUTES;
+#else
+    return access(fileName.chars(), F_OK) == 0;
+#endif
+}
+
+void File::remove(const String& fileName)
+{
+#ifdef PLATFORM_WINDOWS
+    BOOL rc = DeleteFile(reinterpret_cast<LPCTSTR>(fileName.chars()));
+    if (!rc)
+#else
+    int rc = unlink(fileName.chars());
+    if (rc != 0)
+#endif
+        throw Exception(STR("failed to delete file"));
 }

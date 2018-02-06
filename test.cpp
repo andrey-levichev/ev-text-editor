@@ -2869,6 +2869,15 @@ void testUnicode()
     {
         TextEncoding encoding;
         bool bom, crLf;
+        ASSERT(Unicode::bytesToString(ByteBuffer(), encoding, bom, crLf).empty());
+        ASSERT_EXCEPTION(Exception, Unicode::bytesToString(-1, BYTES_UTF8_UNIX, encoding, bom, crLf));
+        ASSERT_EXCEPTION(Exception, Unicode::bytesToString(1, NULL, encoding, bom, crLf));
+        ASSERT(Unicode::bytesToString(0, NULL, encoding, bom, crLf).empty());
+    }
+
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
         String s = Unicode::bytesToString(sizeof(BYTES_UTF8_UNIX), BYTES_UTF8_UNIX, encoding, bom, crLf);
         ASSERT(s == str);
         ASSERT(encoding == TEXT_ENCODING_UTF8);
@@ -5470,12 +5479,30 @@ void testFile()
         ASSERT(f.isOpen());
     }
 
-    ASSERT_EXCEPTION(Exception, File(STR("no_such_file")));
+    // static bool exists(const String& fileName)
+    // static void remove(const String& fileName)
 
-    {
-        File f;
-        ASSERT(!f.open(STR("no_such_file")));
-    }
+    ASSERT(File::exists(STR("test.txt")));
+    ASSERT_NO_EXCEPTION(File::remove(STR("test.txt")));
+    ASSERT(!File::exists(STR("test.txt")));
+    ASSERT_EXCEPTION(Exception, File::remove(STR("test.txt")));
+
+    // file open modes
+
+    ASSERT(!File::exists(STR("test.txt")));
+    ASSERT_EXCEPTION(Exception, File(STR("test.txt"), 0));
+    ASSERT_EXCEPTION(Exception, File(STR("test.txt"), FILE_MODE_READ));
+    ASSERT_EXCEPTION(Exception, File(STR("test.txt"), FILE_MODE_WRITE));
+
+    ASSERT(!File::exists(STR("test.txt")));
+    ASSERT_EXCEPTION(Exception, File(STR("test.txt"), FILE_MODE_CREATE));
+    ASSERT_NO_EXCEPTION(File(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE));
+    ASSERT_NO_EXCEPTION(File::remove(STR("test.txt")));
+    ASSERT_NO_EXCEPTION(File(STR("test.txt"), FILE_MODE_READ | FILE_MODE_CREATE));
+
+    ASSERT(File::exists(STR("test.txt")));
+    ASSERT_NO_EXCEPTION(File(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE));
+    ASSERT_NO_EXCEPTION(File(STR("test.txt"), FILE_MODE_READ | FILE_MODE_CREATE));
 
     // void write(const ByteBuffer& data)
     // void write(int size, const void* data)
@@ -5489,6 +5516,12 @@ void testFile()
 
     {
         File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        f.write(ByteBuffer());
+        ASSERT(f.size() == 0);
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
         ByteBuffer bytes(sizeof(BYTES), BYTES);
         f.write(bytes);
         ASSERT(f.size() == bytes.size());
@@ -5498,6 +5531,14 @@ void testFile()
         File f;
         ASSERT_EXCEPTION(Exception, f.write(sizeof(BYTES), BYTES));
         ASSERT_EXCEPTION(Exception, f.size());
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        ASSERT_EXCEPTION(Exception, f.write(-1, BYTES));
+        ASSERT_EXCEPTION(Exception, f.write(1, NULL));
+        f.write(0, NULL);
+        ASSERT(f.size() == 0);
     }
 
     {
@@ -5525,6 +5566,14 @@ void testFile()
         File f;
         byte_t bytes[sizeof(BYTES)];
         ASSERT_EXCEPTION(Exception, f.read(sizeof(bytes), bytes));
+    }
+
+    {
+        File f(STR("test.txt"));
+        byte_t bytes[sizeof(BYTES)];
+        ASSERT_EXCEPTION(Exception, f.read(-1, bytes));
+        ASSERT_EXCEPTION(Exception, f.read(1, NULL));
+        ASSERT_NO_EXCEPTION(f.read(0, bytes));
     }
 
     {

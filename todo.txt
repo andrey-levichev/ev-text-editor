@@ -3,6 +3,7 @@ release:
 * many ctrl and alt combinations don't work on Linux
 * clipboard integration on windows/macos
 * tests for open flags
+* consider using gcc as main compiler on all platforms
 
 editor:
 * new/open/save commands
