@@ -6085,14 +6085,14 @@ int MAIN(int argc, const char_t** argv)
     {
         printPlatformInfo();
 
-        testSupport();
-        testFoundation();
-        testFile();
+//        testSupport();
+//        testFoundation();
+//        testFile();
 //        testConsole();
 //        testConsoleWrite();
 //        testConsoleReadChar();
 //        testConsoleReadLine();
-//        testConsoleReadInput();
+        testConsoleReadInput();
     }
     catch (Exception& ex)
     {

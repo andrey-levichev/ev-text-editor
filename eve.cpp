@@ -23,13 +23,17 @@ void copyToClipboard(const String& text)
     rc = EmptyClipboard();
     ASSERT(rc);
 
-    HGLOBAL hText = GlobalAlloc(GMEM_MOVEABLE, text.length() + 1);
+    ByteBuffer bytes = Unicode::stringToBytes(text, TEXT_ENCODING_UTF16_LE, false, true);
+
+    HGLOBAL hText = GlobalAlloc(GMEM_MOVEABLE, bytes.size() + 2);
     ASSERT(hText);
 
     void* ptr = GlobalLock(hText);
     ASSERT(ptr);
 
-    memcpy(ptr, text.chars(), text.length() + 1);
+    memset(ptr, 12, bytes.size() + 2);
+    memcpy(ptr, bytes.values(), bytes.size());
+
     GlobalUnlock(hText);
 
     HANDLE hClip = SetClipboardData(CF_UNICODETEXT, hText);
@@ -40,7 +44,7 @@ void copyToClipboard(const String& text)
 #endif
 }
 
-bool pasteFromClipboard(String& text)
+void pasteFromClipboard(String& text)
 {
 #ifdef PLATFORM_WINDOWS
     if (IsClipboardFormatAvailable(CF_UNICODETEXT))
@@ -54,17 +58,19 @@ bool pasteFromClipboard(String& text)
         void* ptr = GlobalLock(hText);
         ASSERT(ptr);
 
-        text.assign(reinterpret_cast<const char_t*>(ptr));
+        TextEncoding encoding;
+        bool bom, crLf;
+        text = Unicode::bytesToString(wcslen(reinterpret_cast<wchar_t*>(ptr)) * 2,
+            reinterpret_cast<byte_t*>(ptr), encoding, bom, crLf);
+
         GlobalUnlock(hText);
 
         rc = CloseClipboard();
         ASSERT(rc);
-
-        return true;
     }
+    else
+        text.clear();
 #endif
-
-    return false;
 }
 
 // Document
@@ -1600,7 +1606,39 @@ bool Editor::processInput()
                 {
                     if (keyEvent.ctrl)
                     {
-                        if (keyEvent.ch == 'b')
+                        if (keyEvent.key == KEY_LEFT)
+                        {
+                            update = doc.moveWordBack();
+                        }
+                        else if (keyEvent.key == KEY_RIGHT)
+                        {
+                            update = doc.moveWordForward();
+                        }
+                        else if (keyEvent.key == KEY_DELETE)
+                        {
+                            modified = update = doc.deleteWordForward();
+                        }
+                        else if (keyEvent.key == KEY_BACKSPACE)
+                        {
+                            modified = update = doc.deleteWordBack();
+                        }
+                        else if (keyEvent.key == KEY_PGUP)
+                        {
+                            update = doc.moveLinesUp(20);
+                        }
+                        else if (keyEvent.key == KEY_PGDN)
+                        {
+                            update = doc.moveLinesDown(20);
+                        }
+                        else if (keyEvent.key == KEY_HOME)
+                        {
+                            update = doc.moveToStart();
+                        }
+                        else if (keyEvent.key == KEY_END)
+                        {
+                            update = doc.moveToEnd();
+                        }
+                        else if (keyEvent.ch == 'b')
                         {
                             update = doc.moveWordBack();
                         }
@@ -1664,15 +1702,20 @@ bool Editor::processInput()
                         else if (keyEvent.ch == 'x')
                         {
                             _buffer = doc.copyDeleteText(false);
+                            copyToClipboard(_buffer);
+
                             if (!_buffer.empty())
                                 modified = update = true;
                         }
                         else if (keyEvent.ch == 'c' || keyEvent.ch == 'k')
                         {
                             _buffer = doc.copyDeleteText(true);
+                            copyToClipboard(_buffer);
                         }
                         else if (keyEvent.ch == 'v' || keyEvent.ch == 'l')
                         {
+                            pasteFromClipboard(_buffer);
+
                             if (!_buffer.empty())
                             {
                                 doc.pasteText(_buffer);
@@ -1778,6 +1821,23 @@ bool Editor::processInput()
                         {
                             findUniqueWords();
                             updateScreen(true);
+                        }
+                        else if (keyEvent.ch >= '0' && keyEvent.ch <= '9')
+                        {
+                            int n = keyEvent.ch == '0' ? 10 : keyEvent.ch - '0';
+
+                            for (auto doc = _documents.first(); doc; doc = doc->next)
+                            {
+                                if (--n == 0)
+                                {
+                                    if (doc != _document)
+                                    {
+                                        _document = doc;
+                                        update = true;
+                                    }
+                                    break;
+                                }
+                            }
                         }
                     }
                     else if (keyEvent.key == KEY_F2)

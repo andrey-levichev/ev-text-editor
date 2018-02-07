@@ -1,10 +1,6 @@
 release:
-* change the name to make it easier for google to find?
 * many ctrl and alt combinations don't work on Linux
 * clipboard integration on windows/macos
-* consider using gcc as main compiler on all platforms
-* change some key mappings?
-* delete word stop on newline?
 
 editor:
 * new/open/save commands
