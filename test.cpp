@@ -1,17 +1,5 @@
 #include <test.h>
 
-const char* CHARS8 = "\x24\xc2\xa2\xe2\x82\xac\xf0\x90\x8d\x88";
-const char16_t* CHARS16 = u"\x0024\x00a2\x20ac\xd800\xdf48";
-const char32_t* CHARS32 = U"\x00000024\x000000a2\x000020ac\x00010348";
-
-#ifdef CHAR_ENCODING_UTF8
-const char_t* CHARS = CHARS8;
-const char_t* BIG_CHAR = "\xf0\x90\x8d\x88";
-#else
-const char_t* CHARS = CHARS16;
-const char_t* BIG_CHAR = u"\xd800\xdf48";
-#endif
-
 int hash(const Unique<int>& val)
 {
     return val ? *val : 0;
@@ -825,6 +813,18 @@ void testBuffer()
 
 void testString()
 {
+    const char* CHARS8 = "\x24\xc2\xa2\xe2\x82\xac\xf0\x90\x8d\x88";
+    const char16_t* CHARS16 = u"\x0024\x00a2\x20ac\xd800\xdf48";
+    const char32_t* CHARS32 = U"\x00000024\x000000a2\x000020ac\x00010348";
+
+    #ifdef CHAR_ENCODING_UTF8
+    const char_t* CHARS = CHARS8;
+    const char_t* BIG_CHAR = "\xf0\x90\x8d\x88";
+    #else
+    const char_t* CHARS = CHARS16;
+    const char_t* BIG_CHAR = u"\xd800\xdf48";
+    #endif
+
     unichar_t zc = 0;
     const char_t* np = NULL;
 
@@ -2859,9 +2859,9 @@ void testUnicode()
 
     const byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
     const byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
-    const byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
-    const byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
-    const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
+    ALIGN_AS(2) const byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
+    ALIGN_AS(2) const byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
+    ALIGN_AS(2) const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
 
     // static String bytesToString(ByteBuffer& bytes, TextEncoding& encoding, bool& bom, bool& crLf)
     // static String bytesToString(int size, byte_t* bytes, TextEncoding& encoding, bool& bom, bool& crLf)
@@ -2955,6 +2955,12 @@ void testUnicode()
 
 void testStringIterator()
 {
+    #ifdef CHAR_ENCODING_UTF8
+    const char_t* CHARS = "\x24\xc2\xa2\xe2\x82\xac\xf0\x90\x8d\x88";
+    #else
+    const char_t* CHARS = u"\x0024\x00a2\x20ac\xd800\xdf48";
+    #endif
+
     {
         String s;
         auto iter = s.constIterator();
@@ -5451,6 +5457,42 @@ void testFoundation()
     testSetIterator();
 }
 
+void testFileOpenSuccess(bool exists, int openMode)
+{
+    const char_t* fileName = STR("test.txt");
+
+    if (exists)
+    {
+        if (!File::exists(fileName))
+            File(fileName, FILE_MODE_WRITE | FILE_MODE_CREATE);
+    }
+    else
+    {
+        if (File::exists(fileName))
+            File::remove(fileName);
+    }
+
+    ASSERT_NO_EXCEPTION(File(fileName, openMode));
+}
+
+void testFileOpenFailure(bool exists, int openMode)
+{
+    const char_t* fileName = STR("test.txt");
+
+    if (exists)
+    {
+        if (!File::exists(fileName))
+            File(fileName, FILE_MODE_WRITE | FILE_MODE_CREATE);
+    }
+    else
+    {
+        if (File::exists(fileName))
+            File::remove(fileName);
+    }
+
+    ASSERT_EXCEPTION(Exception, File(fileName, openMode));
+}
+
 void testFile()
 {
     const byte_t BYTES[] = { 1, 2, 3 };
@@ -5487,23 +5529,6 @@ void testFile()
     ASSERT(!File::exists(STR("test.txt")));
     ASSERT_EXCEPTION(Exception, File::remove(STR("test.txt")));
 
-    // file open modes
-
-    ASSERT(!File::exists(STR("test.txt")));
-    ASSERT_EXCEPTION(Exception, File(STR("test.txt"), 0));
-    ASSERT_EXCEPTION(Exception, File(STR("test.txt"), FILE_MODE_READ));
-    ASSERT_EXCEPTION(Exception, File(STR("test.txt"), FILE_MODE_WRITE));
-
-    ASSERT(!File::exists(STR("test.txt")));
-    ASSERT_EXCEPTION(Exception, File(STR("test.txt"), FILE_MODE_CREATE));
-    ASSERT_NO_EXCEPTION(File(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE));
-    ASSERT_NO_EXCEPTION(File::remove(STR("test.txt")));
-    ASSERT_NO_EXCEPTION(File(STR("test.txt"), FILE_MODE_READ | FILE_MODE_CREATE));
-
-    ASSERT(File::exists(STR("test.txt")));
-    ASSERT_NO_EXCEPTION(File(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE));
-    ASSERT_NO_EXCEPTION(File(STR("test.txt"), FILE_MODE_READ | FILE_MODE_CREATE));
-
     // void write(const ByteBuffer& data)
     // void write(int size, const void* data)
     // int64_t size() const
@@ -5515,13 +5540,13 @@ void testFile()
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
         f.write(ByteBuffer());
         ASSERT(f.size() == 0);
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
         ByteBuffer bytes(sizeof(BYTES), BYTES);
         f.write(bytes);
         ASSERT(f.size() == bytes.size());
@@ -5534,7 +5559,7 @@ void testFile()
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
         ASSERT_EXCEPTION(Exception, f.write(-1, BYTES));
         ASSERT_EXCEPTION(Exception, f.write(1, NULL));
         f.write(0, NULL);
@@ -5542,7 +5567,7 @@ void testFile()
     }
 
     {
-        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
         f.write(sizeof(BYTES), BYTES);
         ASSERT(f.size() == sizeof(BYTES));
     }
@@ -5598,6 +5623,41 @@ void testFile()
         f.setPosition(-2, FILE_POSITION_END);
         bytes = f.read();
         ASSERT(bytes.size() == 2 && bytes[0] == 2 && bytes[1] == 3);
+    }
+
+    // file open modes
+
+    testFileOpenFailure(false, 0);
+
+    testFileOpenFailure(false, FILE_MODE_READ);
+    testFileOpenFailure(false, FILE_MODE_WRITE);
+    testFileOpenSuccess(true, FILE_MODE_READ);
+    testFileOpenSuccess(true, FILE_MODE_WRITE);
+
+    testFileOpenSuccess(false, FILE_MODE_WRITE | FILE_MODE_CREATE);
+    testFileOpenSuccess(true, FILE_MODE_WRITE | FILE_MODE_CREATE);
+
+    testFileOpenSuccess(false, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_NEW_ONLY);
+    testFileOpenFailure(true, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_NEW_ONLY);
+
+    {
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        f.write(sizeof(BYTES), BYTES);
+        ASSERT(f.size() == sizeof(BYTES));
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_TRUNCATE);
+        ASSERT(f.size() == 0);
+        f.write(sizeof(BYTES), BYTES);
+        ASSERT(f.size() == sizeof(BYTES));
+    }
+
+    {
+        File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_APPEND);
+        ASSERT(f.size() == sizeof(BYTES));
+        f.write(sizeof(BYTES), BYTES);
+        ASSERT(f.size() == 2 * sizeof(BYTES));
     }
 }
 

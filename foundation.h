@@ -195,6 +195,12 @@ typedef char char_t;
 typedef unsigned char byte_t;
 #define INVALID_POSITION -1
 
+#ifdef COMPILER_XL_CPP
+#define ALIGN_AS(n) __attribute__((aligned(n)))
+#else
+#define ALIGN_AS(n) alignas(n)
+#endif
+
 // assert macros
 
 #define TO_STR(arg) #arg
