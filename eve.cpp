@@ -1355,15 +1355,18 @@ void Document::trimTrailingWhitespace()
 // Editor
 
 Editor::Editor() :
+    _commandLine(Document(), NULL, NULL),
     _document(NULL),
     _lastDocument(NULL),
-    _commandLine(Document(), NULL, NULL),
+    _recordingMacro(false),
     _caseSesitive(true),
-    _width(0), _height(0),
     _recentLocation(NULL),
     _currentSuggestion(INVALID_POSITION)
 {
     Console::setLineMode(false);
+    Console::getSize(_width, _height);
+
+    setDimensions();
 
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
@@ -1382,46 +1385,86 @@ Editor::~Editor()
     Console::clear();
 }
 
-void Editor::openDocument(const char_t* filename)
+void Editor::newDocument(const String& filename)
 {
-    ASSERT(filename);
+    ASSERT(!filename.empty());
 
     _documents.addLast(Document());
     _document = _documents.last();
 
+    _document->value.setDimensions(1, 1, _width, _height - 1);
+    _document->value.filename(filename);
+}
+
+void Editor::openDocument(const String& filename)
+{
+    ASSERT(!filename.empty());
+
+    _documents.addLast(Document());
+    _document = _documents.last();
+
+    _document->value.setDimensions(1, 1, _width, _height - 1);
     _document->value.open(filename);
-    findUniqueWords();
-}
-
-void Editor::saveDocument(Document& document)
-{
-    if (document.modified())
-        document.save();
 
     findUniqueWords();
 }
 
-void Editor::saveDocuments()
+void Editor::saveDocument()
 {
-    for (auto doc = _documents.first(); doc; doc = doc->next)
-        if (doc->value.modified())
-            doc->value.save();
+    if (_document)
+    {
+        if (_document->value.modified())
+            _document->value.save();
 
-    findUniqueWords();
+        findUniqueWords();
+    }
+}
+
+void Editor::saveAllDocuments()
+{
+    if (!_documents.empty())
+    {
+        for (auto doc = _documents.first(); doc; doc = doc->next)
+            if (doc->value.modified())
+                doc->value.save();
+
+        findUniqueWords();
+    }
+}
+
+void Editor::closeDocument()
+{
+    if (_document)
+    {
+        auto doc = _document->next;
+        _documents.remove(_document);
+        _document = doc;
+
+        findUniqueWords();
+    }
 }
 
 void Editor::run()
 {
-    Console::clear();
     _document = _documents.first();
 
-    int width, height;
-    Console::getSize(width, height);
-    setDimensions(width, height);
-
+    setDimensions();
     updateScreen(true);
 
     while (processInput());
+}
+
+void Editor::setDimensions()
+{
+    ASSERT(_width > 0 && _height > 1);
+
+    _commandLine.value.setDimensions(2, _height, _width - 1, 1);
+
+    for (auto doc = _documents.first(); doc; doc = doc->next)
+        doc->value.setDimensions(1, 1, _width, _height - 1);
+
+    _screen.assign(_width * _height, ' ');
+    _prevScreen.assign(_width * _height, ' ');
 }
 
 void Editor::updateScreen(bool redrawAll)
@@ -1504,6 +1547,12 @@ void Editor::updateScreen(bool redrawAll)
             doc.line() - doc.top() + doc.y(),
             doc.column() - doc.left() + doc.x());
     }
+    else
+    {
+        Console::clear();
+        _screen.assign(_width * _height, ' ');
+        _prevScreen.assign(_width * _height, ' ');
+    }
 
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(true);
@@ -1569,30 +1618,16 @@ void Editor::updateStatusLine()
     }
 }
 
-void Editor::setDimensions(int width, int height)
-{
-    ASSERT(width > 0 && height > 1);
-
-    _width = width;
-    _height = height;
-
-    _commandLine.value.setDimensions(2, _height, _width - 1, 1);
-
-    for (auto doc = _documents.first(); doc; doc = doc->next)
-        doc->value.setDimensions(1, 1, _width, _height - 1);
-
-    _screen.assign(_width * _height, ' ');
-    _prevScreen.assign(_width * _height, ' ');
-}
-
 bool Editor::processInput()
 {
     bool update = false, modified = false, autocomplete = false;
-    auto& inputEvents = Console::readInput();
 
-    for (int i = 0; i < inputEvents.size(); ++i)
+    _inputEvents = Console::readInput();
+    bool multipleInputEvents = _inputEvents.size() > 1;
+
+    for (int i = 0; i < _inputEvents.size(); ++i)
     {
-        InputEvent event = inputEvents[i];
+        InputEvent event = _inputEvents[i];
 
         if (_document)
         {
@@ -1604,21 +1639,35 @@ bool Editor::processInput()
 
                 if (keyEvent.keyDown)
                 {
+                    if (_recordingMacro)
+                    {
+                        if (!(keyEvent.alt && (keyEvent.ch == 'r' || keyEvent.ch == 'm')))
+                            _macro.addLast(event);
+                    }
+
                     if (keyEvent.ctrl)
                     {
-                        if (keyEvent.key == KEY_LEFT)
+                        if (keyEvent.key == KEY_LEFT || keyEvent.ch == 'b')
                         {
                             update = doc.moveWordBack();
                         }
-                        else if (keyEvent.key == KEY_RIGHT)
+                        else if (keyEvent.key == KEY_RIGHT || keyEvent.ch == 'w')
                         {
                             update = doc.moveWordForward();
                         }
-                        else if (keyEvent.key == KEY_DELETE)
+                        else if (keyEvent.key == KEY_UP || keyEvent.ch == '^')
+                        {
+                            update = moveToPrevRecentLocation();
+                        }
+                        else if (keyEvent.key == KEY_DOWN)
+                        {
+                            update = moveToNextRecentLocation();
+                        }
+                        else if (keyEvent.key == KEY_DELETE || keyEvent.ch == 'd')
                         {
                             modified = update = doc.deleteWordForward();
                         }
-                        else if (keyEvent.key == KEY_BACKSPACE)
+                        else if (keyEvent.key == KEY_BACKSPACE || keyEvent.ch == ']')
                         {
                             modified = update = doc.deleteWordBack();
                         }
@@ -1637,14 +1686,6 @@ bool Editor::processInput()
                         else if (keyEvent.key == KEY_END)
                         {
                             update = doc.moveToEnd();
-                        }
-                        else if (keyEvent.ch == 'b')
-                        {
-                            update = doc.moveWordBack();
-                        }
-                        else if (keyEvent.ch == 'w')
-                        {
-                            update = doc.moveWordForward();
                         }
                         else if (keyEvent.ch == 't')
                         {
@@ -1666,14 +1707,6 @@ bool Editor::processInput()
                         else if (keyEvent.ch == 'n')
                         {
                             update = doc.moveLinesDown(_height - 1);
-                        }
-                        else if (keyEvent.ch == 'd')
-                        {
-                            modified = update = doc.deleteWordForward();
-                        }
-                        else if (keyEvent.ch == ']')
-                        {
-                            modified = update = doc.deleteWordBack();
                         }
                         else if (keyEvent.ch == 'g')
                         {
@@ -1722,10 +1755,6 @@ bool Editor::processInput()
                                 modified = update = true;
                             }
                         }
-                        else if (keyEvent.ch == '^')
-                        {
-                            update = moveToPrevRecentLocation();
-                        }
                     }
                     else if (keyEvent.alt)
                     {
@@ -1737,6 +1766,14 @@ bool Editor::processInput()
                         {
                             update = doc.moveWordForward();
                         }
+                        else if (keyEvent.key == KEY_UP)
+                        {
+                            update = moveToPrevRecentLocation();
+                        }
+                        else if (keyEvent.key == KEY_DOWN)
+                        {
+                            update = moveToNextRecentLocation();
+                        }
                         else if (keyEvent.key == KEY_DELETE)
                         {
                             modified = update = doc.deleteWordForward();
@@ -1745,19 +1782,19 @@ bool Editor::processInput()
                         {
                             modified = update = doc.deleteWordBack();
                         }
-                        else if (keyEvent.ch == 'p' || keyEvent.key == KEY_PGUP)
+                        else if (keyEvent.key == KEY_PGUP || keyEvent.ch == 'p')
                         {
                             update = doc.moveLinesUp(20);
                         }
-                        else if (keyEvent.ch == 'n' || keyEvent.key == KEY_PGDN)
+                        else if (keyEvent.key == KEY_PGDN || keyEvent.ch == 'n')
                         {
                             update = doc.moveLinesDown(20);
                         }
-                        else if (keyEvent.ch == 'h' || keyEvent.key == KEY_HOME)
+                        else if (keyEvent.key == KEY_HOME || keyEvent.ch == 'h')
                         {
                             update = doc.moveToStart();
                         }
-                        else if (keyEvent.ch == 'e' || keyEvent.key == KEY_END)
+                        else if (keyEvent.key == KEY_END || keyEvent.ch == 'e')
                         {
                             update = doc.moveToEnd();
                         }
@@ -1839,18 +1876,29 @@ bool Editor::processInput()
                                 }
                             }
                         }
+                        else if (keyEvent.ch == 'r')
+                        {
+                            if (_recordingMacro)
+                                _recordingMacro = false;
+                            else
+                            {
+                                _recordingMacro = true;
+                                _macro.clear();
+                            }
+                        }
+                        else if (keyEvent.ch == 'm')
+                        {
+                            if (!_recordingMacro && _macro.size() > 0)
+                            {
+                                multipleInputEvents = false;
+                                for (int j = 0; j < _macro.size(); ++j)
+                                    _inputEvents.addLast(_macro[j]);
+                            }
+                        }
                     }
                     else if (keyEvent.key == KEY_F2)
                     {
-                        if (_document == &_commandLine)
-                            _document = _lastDocument;
-                        else
-                        {
-                            _lastDocument = _document;
-                            _document = &_commandLine;
-                            _commandLine.value.clear();
-                        }
-
+                        showCommandLine();
                         update = true;
                     }
                     else if (keyEvent.key == KEY_F5)
@@ -1860,17 +1908,17 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_F8)
                     {
-                        saveDocument(doc);
+                        saveDocument();
                         update = true;
                     }
                     else if (keyEvent.key == KEY_F9)
                     {
-                        saveDocuments();
+                        saveAllDocuments();
                         update = true;
                     }
                     else if (keyEvent.key == KEY_F10)
                     {
-                        saveDocuments();
+                        saveAllDocuments();
                         return false;
                     }
                     else if (keyEvent.key == KEY_LEFT)
@@ -1930,7 +1978,10 @@ bool Editor::processInput()
                             try
                             {
                                 if (!_commandLine.value.text().empty())
-                                    processCommand(_commandLine.value.text());
+                                {
+                                    if (!processCommand(_commandLine.value.text()))
+                                        return false;
+                                }
                             }
                             catch (Exception& ex)
                             {
@@ -1939,10 +1990,10 @@ bool Editor::processInput()
                         }
                         else
                         {
-                            if (inputEvents.size() == 1)
-                                doc.insertNewLine();
-                            else
+                            if (multipleInputEvents)
                                 doc.insertChar('\n');
+                            else
+                                doc.insertNewLine();
                             modified = update = true;
                         }
                     }
@@ -1967,7 +2018,13 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_ESC)
                     {
-                        return false;
+                        if (_document == &_commandLine)
+                        {
+                            _document = _lastDocument;
+                            update = true;
+                        }
+                        else
+                            return false;
                     }
                     else if (charIsPrint(keyEvent.ch))
                     {
@@ -2013,7 +2070,11 @@ bool Editor::processInput()
             else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
             {
                 WindowEvent windowEvent = event.event.windowEvent;
-                setDimensions(windowEvent.width, windowEvent.height);
+
+                _width = windowEvent.width;
+                _height = windowEvent.height;
+
+                setDimensions();
                 updateScreen(true);
             }
         }
@@ -2025,11 +2086,37 @@ bool Editor::processInput()
 
                 if (keyEvent.keyDown)
                 {
-                    if (keyEvent.key == KEY_ESC)
+                    if (keyEvent.key == KEY_F2)
                     {
-                        return false;
+                        showCommandLine();
+                        update = true;
+                    }
+                    else if (keyEvent.key == KEY_F5)
+                    {
+                        buildProject();
+                        updateScreen(true);
+                    }
+                    else if (keyEvent.key == KEY_ESC)
+                    {
+                        if (_document == &_commandLine)
+                        {
+                            _document = _lastDocument;
+                            update = true;
+                        }
+                        else
+                            return false;
                     }
                 }
+            }
+            else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
+            {
+                WindowEvent windowEvent = event.event.windowEvent;
+
+                _width = windowEvent.width;
+                _height = windowEvent.height;
+
+                setDimensions();
+                updateScreen(true);
             }
         }
     }
@@ -2047,91 +2134,65 @@ bool Editor::processInput()
     return true;
 }
 
-void Editor::updateRecentLocations()
+void Editor::showCommandLine()
 {
-    ListNode<RecentLocation>* node;
-    _recentLocation = NULL;
-
-    for (node = _recentLocations.first(); node; node = node->next)
+    if (_document != &_commandLine)
     {
-        if (node->value.document == _document &&
-                abs(node->value.line - _document->value.line()) <= 5)
-        {
-            node->value.line = _document->value.line();
-            break;
-        }
+        _lastDocument = _document;
+        _document = &_commandLine;
+        _commandLine.value.clear();
     }
-
-    if (node)
-    {
-        _recentLocations.addLast(node->value);
-        _recentLocations.remove(node);
-    }
-    else
-        _recentLocations.addLast(
-            RecentLocation(_document, _document->value.line()));
-
-    if (_recentLocations.size() > 10)
-        _recentLocations.removeFirst();
 }
 
-bool Editor::moveToNextRecentLocation()
+void Editor::buildProject()
 {
-    _recentLocation = _recentLocation && _recentLocation->next ?
-        _recentLocation->next : _recentLocations.first();
+    Console::setLineMode(true);
+    Console::clear();
 
-    if (_recentLocation)
-    {
-        if (_recentLocation->value.document == _document &&
-            abs(_recentLocation->value.line - _document->value.line()) <= 5)
-        {
-            _recentLocation = _recentLocation->next ?
-                _recentLocation->next : _recentLocations.first();
+    saveAllDocuments();
 
-            if (_recentLocation->value.document == _document &&
-                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
-                return false;
-        }
+#ifdef PLATFORM_WINDOWS
+    const wchar_t* makeCmd = _wgetenv(L"MAKE_CMD");
+    _wsystem(makeCmd ? makeCmd : L"nmake.exe");
+#else
+    const char* makeCmd = getenv("MAKE_CMD");
+    system(makeCmd ? makeCmd : "make");
+#endif
 
-        _document = _recentLocation->value.document;
-        _document->value.moveToLine(_recentLocation->value.line);
+    Console::writeLine(STR("Press any key to continue..."));
+    Console::readLine();
 
-        return true;
-    }
-
-    return false;
+    Console::setLineMode(false);
 }
 
-bool Editor::moveToPrevRecentLocation()
-{
-    _recentLocation = _recentLocation && _recentLocation->prev ?
-        _recentLocation->prev : _recentLocations.last();
-
-    if (_recentLocation)
-    {
-        if (_recentLocation->value.document == _document &&
-            abs(_recentLocation->value.line - _document->value.line()) <= 5)
-        {
-            _recentLocation = _recentLocation->prev ?
-                _recentLocation->prev : _recentLocations.last();
-
-            if (_recentLocation->value.document == _document &&
-                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
-                return false;
-        }
-
-        _document = _recentLocation->value.document;
-        _document->value.moveToLine(_recentLocation->value.line);
-
-        return true;
-    }
-
-    return false;
-}
-
-void Editor::processCommand(const String& command)
+bool Editor::processCommand(const String& command)
 {
     ASSERT(!command.empty());
+
+    if (command == STR("s"))
+    {
+        saveDocument();
+        return true;
+    }
+    else if (command == STR("sa"))
+    {
+        saveAllDocuments();
+        return true;
+    }
+    else if (command == STR("c"))
+    {
+        closeDocument();
+        return true;
+    }
+    else if (command == STR("q"))
+    {
+        return false;
+    }
+    else if (command == STR("qs"))
+    {
+        saveAllDocuments();
+        return false;
+    }
 
     int p = 0;
     unichar_t ch = command.charAt(p);
@@ -2228,29 +2289,124 @@ void Editor::processCommand(const String& command)
         else
             throw Exception(STR("invalid command"));
     }
+    else if (ch == 'n')
+    {
+        p = command.charForward(p);
+        if (command.charAt(p) == ' ')
+        {
+            p = command.charForward(p);
+            String filename = command.substr(p);
+
+            if (!filename.empty())
+                newDocument(filename);
+            else
+                throw Exception(STR("invalid filename"));
+        }
+        else
+            throw Exception(STR("invalid command"));
+    }
+    else if (ch == 'o')
+    {
+        p = command.charForward(p);
+        if (command.charAt(p) == ' ')
+        {
+            p = command.charForward(p);
+            String filename = command.substr(p);
+
+            if (!filename.empty())
+                openDocument(filename);
+            else
+                throw Exception(STR("invalid filename"));
+        }
+        else
+            throw Exception(STR("invalid command"));
+    }
     else
         throw Exception(STR("invalid command"));
+
+    return true;
 }
 
-void Editor::buildProject()
+void Editor::updateRecentLocations()
 {
-    Console::setLineMode(true);
-    Console::clear();
+    ListNode<RecentLocation>* node;
+    _recentLocation = NULL;
 
-    saveDocuments();
+    for (node = _recentLocations.first(); node; node = node->next)
+    {
+        if (node->value.document == _document &&
+                abs(node->value.line - _document->value.line()) <= 5)
+        {
+            node->value.line = _document->value.line();
+            break;
+        }
+    }
 
-#ifdef PLATFORM_WINDOWS
-    const wchar_t* makeCmd = _wgetenv(L"MAKE_CMD");
-    _wsystem(makeCmd ? makeCmd : L"nmake.exe");
-#else
-    const char* makeCmd = getenv("MAKE_CMD");
-    system(makeCmd ? makeCmd : "make");
-#endif
+    if (node)
+    {
+        _recentLocations.addLast(node->value);
+        _recentLocations.remove(node);
+    }
+    else
+        _recentLocations.addLast(
+            RecentLocation(_document, _document->value.line()));
 
-    Console::writeLine(STR("Press any key to continue..."));
-    Console::readLine();
+    if (_recentLocations.size() > 10)
+        _recentLocations.removeFirst();
+}
 
-    Console::setLineMode(false);
+bool Editor::moveToNextRecentLocation()
+{
+    _recentLocation = _recentLocation && _recentLocation->next ?
+        _recentLocation->next : _recentLocations.first();
+
+    if (_recentLocation)
+    {
+        if (_recentLocation->value.document == _document &&
+            abs(_recentLocation->value.line - _document->value.line()) <= 5)
+        {
+            _recentLocation = _recentLocation->next ?
+                _recentLocation->next : _recentLocations.first();
+
+            if (_recentLocation->value.document == _document &&
+                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
+                return false;
+        }
+
+        _document = _recentLocation->value.document;
+        _document->value.moveToLine(_recentLocation->value.line);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool Editor::moveToPrevRecentLocation()
+{
+    _recentLocation = _recentLocation && _recentLocation->prev ?
+        _recentLocation->prev : _recentLocations.last();
+
+    if (_recentLocation)
+    {
+        if (_recentLocation->value.document == _document &&
+            abs(_recentLocation->value.line - _document->value.line()) <= 5)
+        {
+            _recentLocation = _recentLocation->prev ?
+                _recentLocation->prev : _recentLocations.last();
+
+            if (_recentLocation->value.document == _document &&
+                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
+                return false;
+        }
+
+        _document = _recentLocation->value.document;
+        _document->value.moveToLine(_recentLocation->value.line);
+
+        return true;
+    }
+
+    return false;
 }
 
 void Editor::findUniqueWords()
@@ -2350,22 +2506,22 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        if (argc < 2)
+        if (argc == 2 && strCompare(argv[1], STR("--version")) == 0)
         {
-            Console::writeLine(STR("eve text editor version 1.4\n"
+            Console::writeLine(STR("eve text editor version 1.5\n"
                 "web: andrewshark.github.io/eve\n"
                 "Copyright (C) Andrey Levichev, 2018\n\n"
-                "usage: eve filename ...\n\n"));
-
-            return 1;
+                "usage: eve [FILE]...\n\n"));
         }
+        else
+        {
+            Editor editor;
 
-        Editor editor;
+            for (int i = 1; i < argc; ++i)
+                editor.openDocument(argv[i]);
 
-        for (int i = 1; i < argc; ++i)
-            editor.openDocument(argv[i]);
-
-        editor.run();
+            editor.run();
+        }
     }
     catch (Exception& ex)
     {

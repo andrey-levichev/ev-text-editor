@@ -5459,38 +5459,38 @@ void testFoundation()
 
 void testFileOpenSuccess(bool exists, int openMode)
 {
-    const char_t* fileName = STR("test.txt");
+    const char_t* filename = STR("test.txt");
 
     if (exists)
     {
-        if (!File::exists(fileName))
-            File(fileName, FILE_MODE_WRITE | FILE_MODE_CREATE);
+        if (!File::exists(filename))
+            File(filename, FILE_MODE_WRITE | FILE_MODE_CREATE);
     }
     else
     {
-        if (File::exists(fileName))
-            File::remove(fileName);
+        if (File::exists(filename))
+            File::remove(filename);
     }
 
-    ASSERT_NO_EXCEPTION(File(fileName, openMode));
+    ASSERT_NO_EXCEPTION(File(filename, openMode));
 }
 
 void testFileOpenFailure(bool exists, int openMode)
 {
-    const char_t* fileName = STR("test.txt");
+    const char_t* filename = STR("test.txt");
 
     if (exists)
     {
-        if (!File::exists(fileName))
-            File(fileName, FILE_MODE_WRITE | FILE_MODE_CREATE);
+        if (!File::exists(filename))
+            File(filename, FILE_MODE_WRITE | FILE_MODE_CREATE);
     }
     else
     {
-        if (File::exists(fileName))
-            File::remove(fileName);
+        if (File::exists(filename))
+            File::remove(filename);
     }
 
-    ASSERT_EXCEPTION(Exception, File(fileName, openMode));
+    ASSERT_EXCEPTION(Exception, File(filename, openMode));
 }
 
 void testFile()
@@ -5498,10 +5498,10 @@ void testFile()
     const byte_t BYTES[] = { 1, 2, 3 };
 
     // File()
-    // File(const String& fileName, FileMode openMode = FILE_MODE_READ)
+    // File(const String& filename, FileMode openMode = FILE_MODE_READ)
     // ~File()
     // bool isOpen() const
-    // bool open(const String& fileName, FileMode openMode = FILE_MODE_READ)
+    // bool open(const String& filename, FileMode openMode = FILE_MODE_READ)
     // void close()
 
     {
@@ -5521,8 +5521,8 @@ void testFile()
         ASSERT(f.isOpen());
     }
 
-    // static bool exists(const String& fileName)
-    // static void remove(const String& fileName)
+    // static bool exists(const String& filename)
+    // static void remove(const String& filename)
 
     ASSERT(File::exists(STR("test.txt")));
     ASSERT_NO_EXCEPTION(File::remove(STR("test.txt")));

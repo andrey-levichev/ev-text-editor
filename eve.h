@@ -29,6 +29,7 @@ public:
 
     void filename(const String& filename)
     {
+        ASSERT(!filename.empty());
         _filename = filename;
     }
 
@@ -245,25 +246,28 @@ public:
     Editor();
     ~Editor();
 
-    void openDocument(const char_t* filename);
-    void saveDocument(Document& docment);
-    void saveDocuments();
+    void newDocument(const String& filename);
+    void openDocument(const String& filename);
+    void saveDocument();
+    void saveAllDocuments();
+    void closeDocument();
 
     void run();
 
 protected:
+    void setDimensions();
     void updateScreen(bool redrawAll);
     void updateStatusLine();
 
-    void setDimensions(int width, int height);
     bool processInput();
+    void showCommandLine();
+    void buildProject();
+
+    bool processCommand(const String& command);
 
     void updateRecentLocations();
     bool moveToNextRecentLocation();
     bool moveToPrevRecentLocation();
-
-    void processCommand(const String& command);
-    void buildProject();
 
     void findUniqueWords();
     void prepareSuggestions(const String& prefix);
@@ -271,13 +275,16 @@ protected:
 
 protected:
     List<Document> _documents;
+    ListNode<Document> _commandLine;
     ListNode<Document>* _document;
     ListNode<Document>* _lastDocument;
-    ListNode<Document> _commandLine;
 
-    String _buffer;
-    String _searchStr, _replaceStr;
-    bool _caseSesitive;
+    Array<InputEvent> _inputEvents;
+    bool _recordingMacro;
+    Array<InputEvent> _macro;
+
+    int _width, _height;
+    bool _unicodeLimit16;
 
     UniCharBuffer _screen;
     UniCharBuffer _prevScreen;
@@ -285,8 +292,9 @@ protected:
 
     String _status, _message;
 
-    int _width, _height;
-    bool _unicodeLimit16;
+    String _buffer;
+    String _searchStr, _replaceStr;
+    bool _caseSesitive;
 
     List<RecentLocation> _recentLocations;
     ListNode<RecentLocation>* _recentLocation;

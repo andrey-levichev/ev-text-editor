@@ -1,10 +1,9 @@
 release:
 * many ctrl and alt combinations don't work on Linux
-* clipboard integration on windows/macos
+* clipboard integration on macos
 
 editor:
 * new/open/save commands
-* switch between documents with alt+number
 * cycle documents in most recently used order
 * copy/delete lines
 * find/replace in files
@@ -21,7 +20,6 @@ editor:
 * line wrapping
 * find/replace back
 * graphical user interface
-* macro recording
 * autocomplete improvements
 give nearby words higher priority
 scan all documents in current directory

@@ -30,13 +30,13 @@ class File
 {
 public:
     File();
-    File(const String& fileName, int openMode = FILE_MODE_READ);
+    File(const String& filename, int openMode = FILE_MODE_READ);
     ~File();
 
     bool isOpen() const;
     int64_t size() const;
 
-    bool open(const String& fileName, int openMode = FILE_MODE_READ);
+    bool open(const String& filename, int openMode = FILE_MODE_READ);
     void close();
 
     int64_t setPosition(int64_t offset, FilePosition position = FILE_POSITION_START);
@@ -48,8 +48,8 @@ public:
     void write(int size, const void* data);
 
 public:
-    static bool exists(const String& fileName);
-    static void remove(const String& fileName);
+    static bool exists(const String& filename);
+    static void remove(const String& filename);
 
 private:
     File(const File&);

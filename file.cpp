@@ -7,10 +7,10 @@ File::File() :
 {
 }
 
-File::File(const String& fileName, int openMode) :
+File::File(const String& filename, int openMode) :
     _handle(INVALID_HANDLE_VALUE)
 {
-    if (!open(fileName, openMode))
+    if (!open(filename, openMode))
         throw Exception(STR("failed to open file"));
 }
 
@@ -42,7 +42,7 @@ int64_t File::size() const
 #endif
 }
 
-bool File::open(const String& fileName, int openMode)
+bool File::open(const String& filename, int openMode)
 {
     if (_handle != INVALID_HANDLE_VALUE)
         throw Exception(STR("file already open"));
@@ -67,7 +67,7 @@ bool File::open(const String& fileName, int openMode)
     if ((openMode & FILE_MODE_TRUNCATE) != 0)
         disposition = CREATE_ALWAYS;
 
-    _handle = CreateFile(reinterpret_cast<LPCTSTR>(fileName.chars()),
+    _handle = CreateFile(reinterpret_cast<LPCTSTR>(filename.chars()),
         access, 0, NULL, disposition, FILE_ATTRIBUTE_NORMAL, NULL);
 #else
     int mode = 0;
@@ -90,7 +90,7 @@ bool File::open(const String& fileName, int openMode)
     if ((openMode & FILE_MODE_TRUNCATE) != 0)
         mode |= O_TRUNC;
 
-    _handle = ::open(fileName.chars(), mode, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    _handle = ::open(filename.chars(), mode, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 #endif
 
     return _handle != INVALID_HANDLE_VALUE;
@@ -244,23 +244,23 @@ void File::write(int size, const void* data)
         throw Exception(STR("failed to write file"));
 }
 
-bool File::exists(const String& fileName)
+bool File::exists(const String& filename)
 {
 #ifdef PLATFORM_WINDOWS
     return GetFileAttributes(reinterpret_cast<LPCTSTR>(
-        fileName.chars())) != INVALID_FILE_ATTRIBUTES;
+        filename.chars())) != INVALID_FILE_ATTRIBUTES;
 #else
-    return access(fileName.chars(), F_OK) == 0;
+    return access(filename.chars(), F_OK) == 0;
 #endif
 }
 
-void File::remove(const String& fileName)
+void File::remove(const String& filename)
 {
 #ifdef PLATFORM_WINDOWS
-    BOOL rc = DeleteFile(reinterpret_cast<LPCTSTR>(fileName.chars()));
+    BOOL rc = DeleteFile(reinterpret_cast<LPCTSTR>(filename.chars()));
     if (!rc)
 #else
-    int rc = unlink(fileName.chars());
+    int rc = unlink(filename.chars());
     if (rc != 0)
 #endif
         throw Exception(STR("failed to delete file"));
