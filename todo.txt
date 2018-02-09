@@ -3,7 +3,8 @@ release:
 * clipboard integration on macos
 
 editor:
-* new/open/save commands
+* go to selection start/end
+* go to matching brace
 * cycle documents in most recently used order
 * copy/delete lines
 * find/replace in files
