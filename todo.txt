@@ -1,6 +1,7 @@
 release:
 * many ctrl and alt combinations don't work on Linux
 * clipboard integration on macos
+* large block of memory remains allocated at exit
 
 editor:
 * go to selection start/end
