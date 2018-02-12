@@ -1458,101 +1458,101 @@ void Editor::setDimensions()
 {
     ASSERT(_width > 0 && _height > 1);
 
+    _screen.assign(_width * _height, '\0');
     _commandLine.value.setDimensions(2, _height, _width - 1, 1);
 
     for (auto doc = _documents.first(); doc; doc = doc->next)
         doc->value.setDimensions(1, 1, _width, _height - 1);
-
-    _screen.assign(_width * _height, ' ');
-    _prevScreen.assign(_width * _height, ' ');
 }
 
 void Editor::updateScreen(bool redrawAll)
 {
+    int line, col;
+    _prevScreen = _screen;
+
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(false);
 #endif
 
     if (_document)
     {
-        Document& doc = _document->value;
-        doc.draw(_width, _screen, _unicodeLimit16);
-
         if (_document == &_commandLine)
             _screen[(_height - 1) * _width] = ':';
         else
             updateStatusLine();
 
-        if (redrawAll)
-        {
-            for (int j = 0; j < _height; ++j)
-            {
-                int p = j * _width;
-                _output.clear();
+        Document& doc = _document->value;
+        doc.draw(_width, _screen, _unicodeLimit16);
 
-                for (int i = 0; i < _width; ++i)
-                {
-                    if (_screen[p])
-                        _output += _screen[p++];
-                    else
-                    {
-#ifdef PLATFORM_WINDOWS
-                        _output += ' ';
-                        ++p;
-#else
-                        _output += STR("\x1b[K");
-                        break;
-#endif
-                    }
-                }
-
-                Console::write(j + 1, 1, _output);
-            }
-        }
-        else
-        {
-            for (int j = 0; j < _height; ++j)
-            {
-                int p = j * _width, start = p, end = p + _width - 1;
-                _output.clear();
-
-                while (start <= end && _screen[start] == _prevScreen[start])
-                    ++start;
-
-                while (start <= end && _screen[end] == _prevScreen[end])
-                    --end;
-
-                for (int i = start; i <= end; ++i)
-                {
-                    if (_screen[i])
-                        _output += _screen[i];
-                    else
-                    {
-#ifdef PLATFORM_WINDOWS
-                        _output += ' ';
-#else
-                        _output += STR("\x1b[K");
-                        break;
-#endif
-                    }
-                }
-
-                Console::write(j + 1, start - p + 1, _output);
-            }
-        }
-
-        _prevScreen = _screen;
-
-        Console::setCursorPosition(
-            doc.line() - doc.top() + doc.y(),
-            doc.column() - doc.left() + doc.x());
+        line = doc.line() - doc.top() + doc.y();
+        col = doc.column() - doc.left() + doc.x();
     }
     else
     {
-        Console::clear();
-        _screen.assign(_width * _height, ' ');
-        _prevScreen.assign(_width * _height, ' ');
+        _screen.assign(_width * _height, '\0');
+        updateStatusLine();
+        line = col = 1;
     }
+
+    if (redrawAll)
+    {
+        for (int j = 0; j < _height; ++j)
+        {
+            int p = j * _width;
+            _output.clear();
+
+            for (int i = 0; i < _width; ++i)
+            {
+                if (_screen[p])
+                    _output += _screen[p++];
+                else
+                {
+#ifdef PLATFORM_WINDOWS
+                    _output += ' ';
+                    ++p;
+#else
+                    _output += STR("\x1b[K");
+                    break;
+#endif
+                }
+            }
+
+            Console::write(j + 1, 1, _output);
+        }
+    }
+    else
+    {
+        for (int j = 0; j < _height; ++j)
+        {
+            int p = j * _width, start = p, end = p + _width - 1;
+            _output.clear();
+
+            while (start <= end && _screen[start] == _prevScreen[start])
+                ++start;
+
+            while (start <= end && _screen[end] == _prevScreen[end])
+                --end;
+
+            for (int i = start; i <= end; ++i)
+            {
+                if (_screen[i])
+                    _output += _screen[i];
+                else
+                {
+#ifdef PLATFORM_WINDOWS
+                    _output += ' ';
+#else
+                    _output += STR("\x1b[K");
+                    break;
+#endif
+                }
+            }
+
+            Console::write(j + 1, start - p + 1, _output);
+        }
+    }
+
+    Console::setCursorPosition(line, col);
 
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(true);
@@ -1584,7 +1584,7 @@ void Editor::updateStatusLine()
 
         _message.clear();
     }
-    else
+    else if (_document)
     {
         Document& doc = _document->value;
         _status = doc.filename();
