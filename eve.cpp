@@ -1458,7 +1458,7 @@ void Editor::setDimensions()
 {
     ASSERT(_width > 0 && _height > 1);
 
-    _screen.assign(_width * _height, '\0');
+    _screen.assign(_width * _height, static_cast<unichar_t>(0));
     _commandLine.value.setDimensions(2, _height, _width - 1, 1);
 
     for (auto doc = _documents.first(); doc; doc = doc->next)
@@ -1489,7 +1489,7 @@ void Editor::updateScreen(bool redrawAll)
     }
     else
     {
-        _screen.assign(_width * _height, '\0');
+        _screen.assign(_width * _height, static_cast<unichar_t>(0));
         updateStatusLine();
         line = col = 1;
     }
@@ -1548,7 +1548,8 @@ void Editor::updateScreen(bool redrawAll)
                 }
             }
 
-            Console::write(j + 1, start - p + 1, _output);
+            if (!_output.empty())
+                Console::write(j + 1, start - p + 1, _output);
         }
     }
 

@@ -3,7 +3,6 @@ release:
 * clipboard integration on macos
 * large block of memory remains allocated at exit
 * move platform dependent code into separate class?
-* update docs
 
 editor:
 * go to selection start/end

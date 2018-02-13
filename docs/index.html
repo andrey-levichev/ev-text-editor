@@ -52,26 +52,28 @@ h1 { text-align: center; }
 <li>ability to execute make and use eve as a simple IDE</li>
 <li>basic Unicode support (can read/write UTF-8 and UTF-16, aware of multibyte characters)</li>
 <li>autocomplete based on words in open documents</li>
+<li>macro recording/playback</li>
 </ul>
 
 <h3>Keys</h3>
 
-<p>Keyboard commands are designed to work on as many terminals as possible without the need to change eve or terminal settings. To achieve that eve provides alternatives for key combinations that may not be supported by particular a terminal.</p>
+<p>Keyboard commands are designed to work on as many terminals as possible without the need to change eve or terminal settings. To achieve that eve provides alternatives for key combinations that may not be supported by a specific terminal.</p>
 
 <p><table>
 <tr><td style="width: 120px">arrows</td><td>move cursor</td></tr>
-<tr><td>alt+left/right</td><td>word (identifier) left/right (also ctrl+b/w)</td></tr>
+<tr><td>alt+left/right</td><td>word (identifier) left/right (also ctrl+left/right, ctrl+b/w)</td></tr>
+<tr><td>alt+up/down</td><td>go to previous/next recently edited location (also ctrl+up/down, ctrl+^)</td></tr>
 <tr><td>alt+b/w</td><td>characters (space separated) left/right</td></tr>
 <tr><td>home/end</td><td>start/end of line (also ctrl+h/e)</td></tr>
-<tr><td>alt+home/end</td><td>start/end of file (also alt+h/e)</td></tr>
+<tr><td>alt+home/end</td><td>start/end of file (also ctrl+home/end, alt+h/e)</td></tr>
 <tr><td>pgup/pgdn</td><td>page up/down (also ctrl+p/n)</td></tr>
-<tr><td>alt+pgup/pgdn</td><td>20 lines up/down (also alt+p/n)</td></tr>
+<tr><td>alt+pgup/pgdn</td><td>20 lines up/down (also ctrl+pgup/pgdn, alt+p/n)</td></tr>
 <tr><td>tab</td><td>next autocomplete suggestion, indent line/selection</td></tr>
 <tr><td>shift+tab</td><td>previous autocomplete suggestion, unindent line/selection</td></tr>
 <tr><td>delete</td><td>delete character at cursor position</td></tr>
 <tr><td>backspace</td><td>delete character to the left of cursor position</td></tr>
-<tr><td>alt+del</td><td>delete word at cursor position (also ctrl+d)</td></tr>
-<tr><td>alt+backspace</td><td>delete word to the left of cursor position (also ctrl+])</td></tr>
+<tr><td>alt+del</td><td>delete word at cursor position (also ctrl+del, ctrl+d)</td></tr>
+<tr><td>alt+backspace</td><td>delete word to the left of cursor position (also ctrl+backspace, ctrl+])</td></tr>
 </table></p>
 
 <p><table>
@@ -89,6 +91,7 @@ h1 { text-align: center; }
 <p><table>
 <tr><td style="width: 120px">alt+,</td><td>go to previous document</td></tr>
 <tr><td>alt+.</td><td>go to next document</td></tr>
+<tr><td>alt+digit</td><td>go to nth document</td></tr>
 <tr><td>alt+d</td><td>delete word (space separated) at cursor position</td></tr>
 <tr><td>alt+]</td><td>delete word (space separated) to the left of cursor position</td></tr>
 <tr><td>alt+-</td><td>indent line/selection</td></tr>
@@ -96,6 +99,8 @@ h1 { text-align: center; }
 <tr><td>alt+'</td><td>redraw screen and refresh autocomplete suggestions</td></tr>
 <tr><td>alt+/</td><td>comment line/selection</td></tr>
 <tr><td>alt+\</td><td>uncomment line/selection</td></tr>
+<tr><td>alt+r</td><td>toggle macro recording</td></tr>
+<tr><td>alt+m</td><td>play macro</td></tr>
 </table></p>
 
 <p><table>
@@ -123,6 +128,16 @@ Option+Delete - \033\033[3~</p>
 
 <p>Command line is accessible at the bottom of the screen by pressing F2 key. Optional parameters are in square brackets.</p>
 
+<p>s - save current document</p>
+
+<p>sa - save all documents</p>
+
+<p>c - close current document</p>
+
+<p>q - quit editor</p>
+
+<p>qs - save all documents and quit</p>
+
 <p>g number - go to line number</p>
 
 <p>f[i] search-string - find string<br>
@@ -133,6 +148,10 @@ i - ignore case<br>
 d - replace all matches in current document<br>
 a - replace all matches in all documents<br>
 use any character as string separator instead of space</p>
+
+<p>n filename - new file</p>
+
+<p>o filename - open file</p>
 
 <h3>Autocomplete</h3>
 
@@ -148,10 +167,11 @@ use any character as string separator instead of space</p>
 
 <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND<br>
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED<br>
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE<br>
-DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY<br>
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES<br>
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;<br>
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.</p>
+
+<p>IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT,<br>
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,<br>
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;<br>
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND<br>
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT<br>
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS<br>
