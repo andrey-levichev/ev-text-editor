@@ -3,25 +3,30 @@ release:
 * clipboard integration on macos
 * large block of memory remains allocated at exit
 * move platform dependent code into separate class?
+* don't scan text from beginning when drawing the screen
+charAt/charForward as one call
+test insert char performance
+* last line copy bug
+* remove all mentions of my name
 
 editor:
 * go to selection start/end
 * go to matching brace
 * cycle documents in most recently used order
 * copy/delete lines
-* find/replace in files
-* go to symbol
 * change case
 * syntax highlighting
 * parse build output for errors
 * undo/redo
+* find all occurences/go to symbol
+* find/replace back
 * regex find/replace, match word, match newline
+* find/replace in files
 * command history
 * config file
 * selection with mouse/arrows and highlighting
 * customizable key mappings
 * line wrapping
-* find/replace back
 * graphical user interface
 * autocomplete improvements
 give nearby words higher priority
@@ -30,10 +35,9 @@ more efficient data structure
 optimize rebuilding of word database
 * performance optimization
 editor is slow on large files
-don't scan text from beginning when drawing the screen
 group small changes and apply together
 store text as a list of lines
-redraw only one line for small changes
+redraw as few characters as possible instead of enitre screen
 
 foundation:
 * log debug output and memory allocations

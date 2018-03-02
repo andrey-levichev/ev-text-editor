@@ -432,8 +432,8 @@ inline int hash(const _Type1& val1, const _Type2& val2)
 
 struct Timer
 {
-    static void sleep(uint64_t usec);
-    static uint64_t ticks();
+    static void sleep(int64_t usec);
+    static int64_t ticks();
 };
 
 // byte swap

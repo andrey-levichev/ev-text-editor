@@ -950,7 +950,7 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
     else if (_column >= _left + _width)
         _left = _column - _width + 1;
 
-    int p = findLine(_top), q;
+    int p = lineColumnToPosition(_position, _line, _column, _top, 1), q;
     int len = _left + _width - 1;
     unichar_t ch;
 
@@ -1002,72 +1002,133 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
 
 void Document::positionToLineColumn()
 {
-    int p = 0;
-    _line = 1; _column = 1;
-
-    while (p < _position)
-    {
-        unichar_t ch = _text.charAt(p);
-
-        if (ch == '\n')
-        {
-            ++_line;
-            _column = 1;
-        }
-        else if (ch == '\t')
-            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-        else
-            ++_column;
-
-        p = _text.charForward(p);
-    }
-
+    positionToLineColumn(0, 1, 1, _position, _line, _column);
     _preferredColumn = _column;
+}
+
+void Document::positionToLineColumn(int pos, int line, int column,
+    int newPos, int& newLine, int& newColumn)
+{
+    ASSERT(pos >= 0 && pos <= _text.length());
+    ASSERT(line > 0 && column > 0);
+    ASSERT(newPos >= 0 && newPos <= _text.length());
+
+    newLine = line;
+    newColumn = column;
+
+    if (pos < newPos)
+    {
+        while (pos < newPos)
+        {
+            unichar_t ch = _text.charAt(pos);
+
+            if (ch == '\n')
+            {
+                ++newLine;
+                newColumn = 1;
+            }
+            else if (ch == '\t')
+                newColumn = ((newColumn - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+            else
+                ++newColumn;
+
+            pos = _text.charForward(pos);
+        }
+    }
+    else if (pos > newPos)
+    {
+        while (pos > newPos)
+        {
+            pos = _text.charBack(pos);
+            if (_text.charAt(pos) == '\n')
+                --newLine;
+            --newColumn;
+        }
+
+        if (newLine != line)
+        {
+            newColumn = 1;
+            pos = findLineStart(pos);
+
+            while (pos < newPos)
+            {
+                unichar_t ch = _text.charAt(pos);
+
+                if (ch == '\t')
+                    newColumn = ((newColumn - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+                else
+                    ++newColumn;
+
+                pos = _text.charForward(pos);
+            }
+        }
+    }
 }
 
 void Document::lineColumnToPosition()
 {
-    int p = 0;
-    int preferredLine = _line;
-    _line = 1; _column = 1;
-    unichar_t ch = _text.charAt(p);
-
-    while (p < _text.length() && _line < preferredLine)
-    {
-        if (ch == '\n')
-            ++_line;
-
-        p = _text.charForward(p);
-		ch = _text.charAt(p);
-    }
-
-    while (p < _text.length() && ch != '\n' && _column < _preferredColumn)
-    {
-        if (ch == '\t')
-            _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-        else
-            ++_column;
-
-        p = _text.charForward(p);
-		ch = _text.charAt(p);
-    }
-
-    _position = p;
+    _position = lineColumnToPosition(0, 1, 1, _line, _preferredColumn);
 }
 
-int Document::findLine(int line) const
+int Document::lineColumnToPosition(int pos, int line, int column, int newLine, int newColumn)
 {
-    ASSERT(line > 0);
-    int p = 0;
+    ASSERT(pos >= 0 && pos <= _text.length());
+    ASSERT(line > 0 && column > 0);
+    ASSERT(newLine > 0 && newColumn > 0);
 
-    while (p < _text.length() && line > 1)
+    unichar_t ch;
+
+    if (line < newLine || (line == newLine && column < newColumn))
     {
-        if (_text.charAt(p) == '\n')
-            --line;
-        p = _text.charForward(p);
+        ch = _text.charAt(pos);
+
+        while (pos < _text.length() && line < newLine)
+        {
+            if (ch == '\n')
+            {
+                ++line;
+                column = 1;
+            }
+
+            pos = _text.charForward(pos);
+            ch = _text.charAt(pos);
+        }
+    }
+    else if (line > newLine || (line == newLine && column > newColumn))
+    {
+        if (pos > 0)
+        {
+            do
+            {
+                pos = _text.charBack(pos);
+                ch = _text.charAt(pos);
+
+                if (ch == '\n')
+                    --line;
+            }
+            while (pos > 0 && line > newLine);
+
+            column = 1;
+            pos = findLineStart(pos);
+        }
+        else
+            return pos;
+    }
+    else
+        return pos;
+
+    while (pos < _text.length() && ch != '\n' && column < newColumn)
+    {
+        if (ch == '\t')
+            column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+        else
+            ++column;
+
+        pos = _text.charForward(pos);
+        ch = _text.charAt(pos);
     }
 
-    return p;
+    return pos;
 }
 
 int Document::findLineStart(int pos) const

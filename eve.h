@@ -154,7 +154,11 @@ public:
 
 protected:
     void positionToLineColumn();
+    void positionToLineColumn(int pos, int line, int column,
+        int newPos, int& newLine, int& newColumn);
+
     void lineColumnToPosition();
+    int lineColumnToPosition(int pos, int line, int column, int newLine, int newColumn);
 
     int findLine(int line) const;
     int findLineStart(int pos) const;

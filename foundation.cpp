@@ -628,8 +628,10 @@ int utf16StringLength(const char16_t* str)
 
 // Timer
 
-void Timer::sleep(uint64_t usec)
+void Timer::sleep(int64_t usec)
 {
+    ASSERT(usec >= 0);
+
 #ifdef PLATFORM_WINDOWS
     Sleep(usec / 1000);
 #else
@@ -637,7 +639,7 @@ void Timer::sleep(uint64_t usec)
 #endif
 }
 
-uint64_t Timer::ticks()
+int64_t Timer::ticks()
 {
 #ifdef PLATFORM_WINDOWS
     LARGE_INTEGER freq, time;

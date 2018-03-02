@@ -6057,20 +6057,86 @@ void printPlatformInfo()
     Console::writeLineFormatted(STR(" version %d"), COMPILER_VERSION);
 }
 
+void runTests()
+{
+    printPlatformInfo();
+
+    testSupport();
+    testFoundation();
+    testFile();
+    testConsole();
+    testConsoleWrite();
+    testConsoleReadChar();
+    testConsoleReadLine();
+    testConsoleReadInput();
+}
+
+void positionToLineColumn(const String& text, int position, int &line, int& column)
+{
+    const char_t* p = text.chars();
+    line = 1; column = 1;
+
+    while (*p)
+    {
+        if (*p == '\n')
+        {
+            ++line;
+            column = 1;
+        }
+        else
+            ++column;
+
+        ++p;
+    }
+}
+
+void positionToLineColumnUnicode(const String& text, int position, int &line, int& column)
+{
+    int p = 0;
+    line = 1; column = 1;
+
+    while (p < position)
+    {
+        unichar_t ch = text.charAt(p);
+
+        if (ch == '\n')
+        {
+            ++line;
+            column = 1;
+        }
+        else
+            ++column;
+
+        p = text.charForward(p);
+    }
+}
+
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        printPlatformInfo();
+        const double CYCLES = 4e9;
 
-//        testSupport();
-//        testFoundation();
-//        testFile();
-//        testConsole();
-//        testConsoleWrite();
-//        testConsoleReadChar();
-//        testConsoleReadLine();
-        testConsoleReadInput();
+        String text;
+        String line(STR("int MAIN(int argc, const char_t** argv)\n"));
+
+        int64_t time = Timer::ticks();
+
+        for (int i = 1; i <= 1000000; ++i)
+            text += line;
+
+        time = Timer::ticks() - time;
+        Console::writeLineFormatted(STR("size = %d time = %lld"), text.length(), time);
+
+        time = Timer::ticks();
+        int ln, col;
+
+        positionToLineColumn(text, text.length(), ln, col);
+
+        time = Timer::ticks() - time;
+
+        Console::writeLineFormatted(STR("%d, %d time = %lld, cycles = %g"),
+            ln, col, time, (CYCLES * time / 1e6) / text.length());
     }
     catch (Exception& ex)
     {
