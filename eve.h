@@ -93,9 +93,6 @@ public:
         return _selection;
     }
 
-    bool moveUp();
-    bool moveDown();
-
     bool moveForward();
     bool moveBack();
 
@@ -111,8 +108,7 @@ public:
     bool moveToLineStart();
     bool moveToLineEnd();
 
-    bool moveLinesUp(int lines);
-    bool moveLinesDown(int lines);
+    bool moveLines(int lines);
     bool moveToLine(int line);
     bool moveToLineColumn(int line, int column);
 
@@ -153,12 +149,9 @@ public:
     void draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16);
 
 protected:
-    void positionToLineColumn();
-    void positionToLineColumn(int pos, int line, int column,
-        int newPos, int& newLine, int& newColumn);
-
-    void lineColumnToPosition();
-    int lineColumnToPosition(int pos, int line, int column, int newLine, int newColumn);
+    void positionToLineColumn(int pos);
+    void lineColumnToPosition(int startPos, int startLine, int startColumn,
+        int newLine, int newColumn, int& pos, int& line, int& column);
 
     int findLine(int line) const;
     int findLineStart(int pos) const;

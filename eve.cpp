@@ -83,49 +83,13 @@ Document::Document() :
     clear();
 }
 
-bool Document::moveUp()
-{
-    if (_line > 1)
-        --_line;
-
-    int prev = _position;
-    lineColumnToPosition();
-
-    if (_position != prev)
-    {
-        if (!_selectionMode)
-            _selection = -1;
-
-        return true;
-    }
-    else
-        return false;
-}
-
-bool Document::moveDown()
-{
-    ++_line;
-
-    int prev = _position;
-    lineColumnToPosition();
-
-    if (_position != prev)
-    {
-        if (!_selectionMode)
-            _selection = -1;
-
-        return true;
-    }
-    else
-        return false;
-}
-
 bool Document::moveForward()
 {
     if (_position < _text.length())
     {
-        _position = _text.charForward(_position);
-        positionToLineColumn();
+        int p = _text.charForward(_position);
+        positionToLineColumn(p);
+        _position = p;
 
         if (!_selectionMode)
             _selection = -1;
@@ -140,8 +104,9 @@ bool Document::moveBack()
 {
     if (_position > 0)
     {
-        _position = _text.charBack(_position);
-        positionToLineColumn();
+        int p = _text.charBack(_position);
+        positionToLineColumn(p);
+        _position = p;
 
         if (!_selectionMode)
             _selection = -1;
@@ -174,8 +139,8 @@ bool Document::moveWordForward()
 
     if (p > _position)
     {
+        positionToLineColumn(p);
         _position = p;
-        positionToLineColumn();
 
         if (!_selectionMode)
             _selection = -1;
@@ -219,8 +184,8 @@ bool Document::moveWordBack()
 
     if (p < _position)
     {
+        positionToLineColumn(p);
         _position = p;
-        positionToLineColumn();
 
         if (!_selectionMode)
             _selection = -1;
@@ -253,8 +218,8 @@ bool Document::moveCharsForward()
 
     if (p > _position)
     {
+        positionToLineColumn(p);
         _position = p;
-        positionToLineColumn();
 
         if (!_selectionMode)
             _selection = -1;
@@ -298,8 +263,8 @@ bool Document::moveCharsBack()
 
     if (p < _position)
     {
+        positionToLineColumn(p);
         _position = p;
-        positionToLineColumn();
 
         if (!_selectionMode)
             _selection = -1;
@@ -315,7 +280,7 @@ bool Document::moveToStart()
     if (_position > 0)
     {
         _position = 0;
-        positionToLineColumn();
+        _line = _column = _preferredColumn = 1;
 
         if (!_selectionMode)
             _selection = -1;
@@ -330,8 +295,9 @@ bool Document::moveToEnd()
 {
     if (_position < _text.length())
     {
-        _position = _text.length();
-        positionToLineColumn();
+        int p = _text.length();
+        positionToLineColumn(p);
+        _position = p;
 
         if (!_selectionMode)
             _selection = -1;
@@ -360,8 +326,8 @@ bool Document::moveToLineStart()
 
     if (p != _position)
     {
+        positionToLineColumn(p);
         _position = p;
-        positionToLineColumn();
 
         if (!_selectionMode)
             _selection = -1;
@@ -378,8 +344,8 @@ bool Document::moveToLineEnd()
 
     if (p > _position)
     {
+        positionToLineColumn(p);
         _position = p;
-        positionToLineColumn();
 
         if (!_selectionMode)
             _selection = -1;
@@ -390,36 +356,15 @@ bool Document::moveToLineEnd()
         return false;
 }
 
-bool Document::moveLinesUp(int lines)
+bool Document::moveLines(int lines)
 {
-    ASSERT(lines >= 0);
+    int line = _line + lines, prev = _position;
 
-    _line -= lines;
-    if (_line < 1)
-        _line = 1;
+    if (line < 1)
+        line = 1;
 
-    int prev = _position;
-    lineColumnToPosition();
-
-    if (_position != prev)
-    {
-        if (!_selectionMode)
-            _selection = -1;
-
-        return true;
-    }
-    else
-        return false;
-}
-
-bool Document::moveLinesDown(int lines)
-{
-    ASSERT(lines >= 0);
-
-    _line += lines;
-
-    int prev = _position;
-    lineColumnToPosition();
+    lineColumnToPosition(_position, _line, _column,
+        line, _preferredColumn, _position, _line, _column);
 
     if (_position != prev)
     {
@@ -434,12 +379,16 @@ bool Document::moveLinesDown(int lines)
 
 bool Document::moveToLine(int line)
 {
-    ASSERT(line > 0);
+    return moveToLineColumn(line, _preferredColumn);
+}
 
-    _line = line;
+bool Document::moveToLineColumn(int line, int column)
+{
+    ASSERT(line > 0 && column > 0);
 
     int prev = _position;
-    lineColumnToPosition();
+    lineColumnToPosition(_position, _line, _column,
+        line, column, _position, _line, _column);
 
     if (_position != prev)
     {
@@ -450,23 +399,6 @@ bool Document::moveToLine(int line)
     }
     else
         return false;
-}
-
-bool Document::moveToLineColumn(int line, int column)
-{
-    ASSERT(line > 0 && column > 0);
-
-    if (line == _line && column == _column)
-        return false;
-
-    _line = line;
-    _preferredColumn = column;
-    lineColumnToPosition();
-
-    if (!_selectionMode)
-        _selection = -1;
-
-    return true;
 }
 
 void Document::insertNewLine()
@@ -501,7 +433,7 @@ void Document::insertNewLine()
     _text.replace(_position, _indent, q - _position);
     _position += _indent.length();
 
-    positionToLineColumn();
+    positionToLineColumn(_position);
     _modified = true;
     _selectionMode = false;
     _selection = -1;
@@ -520,7 +452,7 @@ void Document::insertChar(unichar_t ch, bool afterIdent)
     _text.insert(_position, ch);
     _position = _text.charForward(_position);
 
-    positionToLineColumn();
+    positionToLineColumn(_position);
     _modified = true;
     _selectionMode = false;
     _selection = -1;
@@ -532,7 +464,7 @@ bool Document::deleteCharForward()
     {
         _text.erase(_position, _text.charForward(_position) - _position);
 
-        positionToLineColumn();
+        positionToLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -551,7 +483,7 @@ bool Document::deleteCharBack()
         _position = _text.charBack(_position);
         _text.erase(_position, prev - _position);
 
-        positionToLineColumn();
+        positionToLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -571,7 +503,7 @@ bool Document::deleteWordForward()
         _text.erase(prev, _position - prev);
         _position = prev;
 
-        positionToLineColumn();
+        positionToLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -590,7 +522,7 @@ bool Document::deleteWordBack()
     {
         _text.erase(_position, prev - _position);
 
-        positionToLineColumn();
+        positionToLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -610,7 +542,7 @@ bool Document::deleteCharsForward()
         _text.erase(prev, _position - prev);
         _position = prev;
 
-        positionToLineColumn();
+        positionToLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -629,7 +561,7 @@ bool Document::deleteCharsBack()
     {
         _text.erase(_position, prev - _position);
 
-        positionToLineColumn();
+        positionToLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -701,11 +633,11 @@ String Document::copyDeleteText(bool copy)
             _text.erase(start, end - start);
 
             if (_selection < 0)
-                lineColumnToPosition();
+                lineColumnToPosition(start, _line, 1, _line, _column,  _position, _line, _column);
             else
             {
                 _position = start;
-                positionToLineColumn();
+                positionToLineColumn(_position);
             }
 
             _modified = true;
@@ -731,7 +663,7 @@ void Document::pasteText(const String& text)
         _text.insert(_position, text);
 
     _position += text.length();
-    positionToLineColumn();
+    positionToLineColumn(_position);
 
     _modified = true;
     _selectionMode = false;
@@ -821,7 +753,7 @@ bool Document::find(const String& searchStr, bool caseSesitive, bool next)
 	if (p != INVALID_POSITION && p != _position)
 	{
 		_position = p;
-        positionToLineColumn();
+        positionToLineColumn(_position);
 
         if (!_selectionMode)
             _selection = -1;
@@ -847,7 +779,7 @@ bool Document::replace(const String& searchStr, const String& replaceStr, bool c
         if (p != INVALID_POSITION)
             _position = p;
 
-        positionToLineColumn();
+        positionToLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -863,8 +795,8 @@ bool Document::replaceAll(const String& searchStr, const String& replaceStr, boo
     ASSERT(!searchStr.empty());
 
     _text.replaceString(searchStr, replaceStr, caseSesitive);
+    lineColumnToPosition(0, 1, 1, _line, _column, _position, _line, _column);
 
-    lineColumnToPosition();
     _modified = true;
     _selectionMode = false;
     _selection = -1;
@@ -897,7 +829,7 @@ void Document::save()
 	File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
 	file.write(Unicode::stringToBytes(_text, _encoding, _bom, _crLf));
 
-    lineColumnToPosition();
+    lineColumnToPosition(0, 1, 1, _line, _column, _position, _line, _column);
     _modified = false;
     _selection = -1;
 }
@@ -950,7 +882,9 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
     else if (_column >= _left + _width)
         _left = _column - _width + 1;
 
-    int p = lineColumnToPosition(_position, _line, _column, _top, 1), q;
+    int p, q;
+    lineColumnToPosition(_position, _line, _column, _top, _left, p, _top, _left);
+
     int len = _left + _width - 1;
     unichar_t ch;
 
@@ -1000,83 +934,73 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
     }
 }
 
-void Document::positionToLineColumn()
-{
-    positionToLineColumn(0, 1, 1, _position, _line, _column);
-    _preferredColumn = _column;
-}
-
-void Document::positionToLineColumn(int pos, int line, int column,
-    int newPos, int& newLine, int& newColumn)
+void Document::positionToLineColumn(int pos)
 {
     ASSERT(pos >= 0 && pos <= _text.length());
-    ASSERT(line > 0 && column > 0);
-    ASSERT(newPos >= 0 && newPos <= _text.length());
 
-    newLine = line;
-    newColumn = column;
+    int prevLine = _line;
+    int p = _position;
 
-    if (pos < newPos)
+    if (p < pos)
     {
-        while (pos < newPos)
+        while (p < pos)
         {
-            unichar_t ch = _text.charAt(pos);
+            unichar_t ch = _text.charAt(p);
 
             if (ch == '\n')
             {
-                ++newLine;
-                newColumn = 1;
+                ++_line;
+                _column = 1;
             }
             else if (ch == '\t')
-                newColumn = ((newColumn - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+                _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
             else
-                ++newColumn;
+                ++_column;
 
-            pos = _text.charForward(pos);
+            p = _text.charForward(p);
         }
     }
-    else if (pos > newPos)
+    else if (p > pos)
     {
-        while (pos > newPos)
+        while (p > pos)
         {
-            pos = _text.charBack(pos);
-            if (_text.charAt(pos) == '\n')
-                --newLine;
-            --newColumn;
+            p = _text.charBack(p);
+            if (_text.charAt(p) == '\n')
+                --_line;
+            --_column;
         }
 
-        if (newLine != line)
+        if (_line != prevLine)
         {
-            newColumn = 1;
-            pos = findLineStart(pos);
+            _column = 1;
+            p = findLineStart(p);
 
-            while (pos < newPos)
+            while (p < pos)
             {
-                unichar_t ch = _text.charAt(pos);
+                unichar_t ch = _text.charAt(p);
 
                 if (ch == '\t')
-                    newColumn = ((newColumn - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+                    _column = ((_column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
                 else
-                    ++newColumn;
+                    ++_column;
 
-                pos = _text.charForward(pos);
+                p = _text.charForward(p);
             }
         }
     }
+
+    _preferredColumn = _column;
 }
 
-void Document::lineColumnToPosition()
+void Document::lineColumnToPosition(int startPos, int startLine, int startColumn,
+        int newLine, int newColumn, int& pos, int& line, int& column)
 {
-    _position = lineColumnToPosition(0, 1, 1, _line, _preferredColumn);
-}
-
-int Document::lineColumnToPosition(int pos, int line, int column, int newLine, int newColumn)
-{
-    ASSERT(pos >= 0 && pos <= _text.length());
     ASSERT(line > 0 && column > 0);
-    ASSERT(newLine > 0 && newColumn > 0);
 
     unichar_t ch;
+    pos = startPos;
+    line = startLine;
+    column = startColumn;
 
     if (line < newLine || (line == newLine && column < newColumn))
     {
@@ -1112,10 +1036,10 @@ int Document::lineColumnToPosition(int pos, int line, int column, int newLine, i
             pos = findLineStart(pos);
         }
         else
-            return pos;
+            return;
     }
     else
-        return pos;
+        return;
 
     while (pos < _text.length() && ch != '\n' && column < newColumn)
     {
@@ -1127,8 +1051,6 @@ int Document::lineColumnToPosition(int pos, int line, int column, int newLine, i
         pos = _text.charForward(pos);
         ch = _text.charAt(pos);
     }
-
-    return pos;
 }
 
 int Document::findLineStart(int pos) const
@@ -1262,7 +1184,7 @@ void Document::changeLines(int(Document::* lineOp)(int))
         _selectionMode = false;
     }
 
-    positionToLineColumn();
+    positionToLineColumn(_position);
     _modified = true;
 }
 
@@ -1656,7 +1578,7 @@ void Editor::updateStatusLine()
 
         _status += doc.encoding() == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
         _status += doc.crlf() ? STR("  CRLF") : STR("  LF");
-        _status.appendFormat(STR("  %d, %d"), doc.line(), doc.column());
+        _status.appendFormat(STR("  %d, %d (%d)"), doc.line(), doc.column(), doc.position());
 
         int len = _status.charLength();
         int p = (_height - 1) * _width;
@@ -1735,11 +1657,11 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.key == KEY_PGUP)
                         {
-                            update = doc.moveLinesUp(20);
+                            update = doc.moveLines(20);
                         }
                         else if (keyEvent.key == KEY_PGDN)
                         {
-                            update = doc.moveLinesDown(20);
+                            update = doc.moveLines(20);
                         }
                         else if (keyEvent.key == KEY_HOME)
                         {
@@ -1764,11 +1686,11 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.ch == 'p')
                         {
-                            update = doc.moveLinesUp(_height - 1);
+                            update = doc.moveLines(-(_height - 1));
                         }
                         else if (keyEvent.ch == 'n')
                         {
-                            update = doc.moveLinesDown(_height - 1);
+                            update = doc.moveLines(_height - 1);
                         }
                         else if (keyEvent.ch == 'g')
                         {
@@ -1846,11 +1768,11 @@ bool Editor::processInput()
                         }
                         else if (keyEvent.key == KEY_PGUP || keyEvent.ch == 'p')
                         {
-                            update = doc.moveLinesUp(20);
+                            update = doc.moveLines(-20);
                         }
                         else if (keyEvent.key == KEY_PGDN || keyEvent.ch == 'n')
                         {
-                            update = doc.moveLinesDown(20);
+                            update = doc.moveLines(20);
                         }
                         else if (keyEvent.key == KEY_HOME || keyEvent.ch == 'h')
                         {
@@ -1993,11 +1915,11 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_UP)
                     {
-                        update = doc.moveUp();
+                        update = doc.moveLines(-1);
                     }
                     else if (keyEvent.key == KEY_DOWN)
                     {
-                        update = doc.moveDown();
+                        update = doc.moveLines(1);
                     }
                     else if (keyEvent.key == KEY_BACKSPACE)
                     {
@@ -2024,11 +1946,11 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_PGUP)
                     {
-                        update = doc.moveLinesUp(_height - 1);
+                        update = doc.moveLines(-(_height - 1));
                     }
                     else if (keyEvent.key == KEY_PGDN)
                     {
-                        update = doc.moveLinesDown(_height - 1);
+                        update = doc.moveLines(_height - 1);
                     }
                     else if (keyEvent.key == KEY_ENTER)
                     {
@@ -2123,9 +2045,9 @@ bool Editor::processInput()
                             doc.top() + mouseEvent.y - 1,
                             doc.left() +  mouseEvent.x - 1);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_UP)
-                        update = doc.moveLinesUp(20);
+                        update = doc.moveLines(-20);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_DOWN)
-                        update = doc.moveLinesDown(20);
+                        update = doc.moveLines(20);
                 }
 
             }

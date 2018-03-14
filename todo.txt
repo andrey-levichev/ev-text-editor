@@ -8,6 +8,9 @@ charAt/charForward as one call
 test insert char performance
 * last line copy bug
 * remove all mentions of my name
+* screen corruption in eve (create new file, scrolling the screen)
+* percent indicator based on position
+* p vs pos vs prev
 
 editor:
 * go to selection start/end
