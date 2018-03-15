@@ -149,7 +149,10 @@ public:
     void draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16);
 
 protected:
-    void positionToLineColumn(int pos);
+    void setPositionLineColumn(int pos);
+    void positionToLineColumn(int startPos, int startLine, int startColumn,
+        int newPos, int& line, int& column);
+
     void lineColumnToPosition(int startPos, int startLine, int startColumn,
         int newLine, int newColumn, int& pos, int& line, int& column);
 

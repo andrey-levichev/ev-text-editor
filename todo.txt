@@ -11,6 +11,8 @@ test insert char performance
 * screen corruption in eve (create new file, scrolling the screen)
 * percent indicator based on position
 * p vs pos vs prev
+* do we need to check if position changed during editing operations?
+* param asserts
 
 editor:
 * go to selection start/end
