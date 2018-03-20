@@ -8,7 +8,7 @@ charAt/charForward as one call
 test insert char performance
 * last line copy bug
 * remove all mentions of my name
-* screen corruption in eve (create new file, scrolling the screen)
+* screen corruption in eve (create new file, scroll the screen)
 * percent indicator based on position
 * p vs pos vs prev
 * do we need to check if position changed during editing operations?
