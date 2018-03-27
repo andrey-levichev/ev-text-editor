@@ -162,6 +162,11 @@ protected:
     int findNextLine(int pos) const;
     int findPreviousLine(int pos) const;
 
+    int findWordForward(int pos) const;
+    int findWordBack(int pos) const;
+    int findCharsForward(int pos) const;
+    int findCharsBack(int pos) const;
+
     int findPosition(int pos, const String& searchStr, bool caseSesitive, bool next) const;
 
     void changeLines(int(Document::* lineOp)(int));

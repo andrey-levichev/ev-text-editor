@@ -10,9 +10,7 @@ test insert char performance
 * remove all mentions of my name
 * screen corruption in eve (create new file, scroll the screen)
 * percent indicator based on position
-* p vs pos vs prev
-* do we need to check if position changed during editing operations?
-* param asserts
+* replace do loops with while
 
 editor:
 * go to selection start/end

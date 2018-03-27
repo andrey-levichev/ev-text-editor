@@ -16,6 +16,8 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 
 void copyToClipboard(const String& text)
 {
+    ASSERT(!text.empty());
+
 #ifdef PLATFORM_WINDOWS
     BOOL rc = OpenClipboard(NULL);
     ASSERT(rc);
@@ -117,23 +119,7 @@ bool Document::moveBack()
 
 bool Document::moveWordForward()
 {
-    int p = _position;
-
-    if (p < _text.length())
-    {
-        unichar_t prevCh = _text.charAt(p);
-        p = _text.charForward(p);
-
-        while (p < _text.length())
-        {
-            unichar_t ch = _text.charAt(p);
-            if (isWordBoundary(prevCh, ch))
-                break;
-
-            prevCh = ch;
-            p = _text.charForward(p);
-        }
-    }
+    int p = findWordForward(_position);
 
     if (p > _position)
     {
@@ -150,34 +136,7 @@ bool Document::moveWordForward()
 
 bool Document::moveWordBack()
 {
-    int p = _position;
-
-    if (p > 0)
-    {
-        p = _text.charBack(p);
-
-        if (p > 0)
-        {
-            unichar_t prevCh = _text.charAt(p);
-            int prevPos = p;
-
-            do
-            {
-                p = _text.charBack(p);
-
-                unichar_t ch = _text.charAt(p);
-                if (isWordBoundary(ch, prevCh))
-                {
-                    p = prevPos;
-                    break;
-                }
-
-                prevCh = ch;
-                prevPos = p;
-            }
-            while (p > 0);
-        }
-    }
+    int p = findWordBack(_position);
 
     if (p < _position)
     {
@@ -194,23 +153,7 @@ bool Document::moveWordBack()
 
 bool Document::moveCharsForward()
 {
-    int p = _position;
-
-    if (p < _text.length())
-    {
-        unichar_t prevCh = _text.charAt(p);
-        p = _text.charForward(p);
-
-        while (p < _text.length())
-        {
-            unichar_t ch = _text.charAt(p);
-            if (charIsSpace(prevCh) && !charIsSpace(ch))
-                break;
-
-            prevCh = ch;
-            p = _text.charForward(p);
-        }
-    }
+    int p = findCharsForward(_position);
 
     if (p > _position)
     {
@@ -227,34 +170,7 @@ bool Document::moveCharsForward()
 
 bool Document::moveCharsBack()
 {
-    int p = _position;
-
-    if (p > 0)
-    {
-        p = _text.charBack(p);
-
-        if (p > 0)
-        {
-            unichar_t prevCh = _text.charAt(p);
-            int prevPos = p;
-
-            do
-            {
-                p = _text.charBack(p);
-
-                unichar_t ch = _text.charAt(p);
-                if (charIsSpace(ch) && !charIsSpace(prevCh))
-                {
-                    p = prevPos;
-                    break;
-                }
-
-                prevCh = ch;
-                prevPos = p;
-            }
-            while (p > 0);
-        }
-    }
+    int p = findCharsBack(_position);
 
     if (p < _position)
     {
@@ -349,23 +265,11 @@ bool Document::moveToLineEnd()
 
 bool Document::moveLines(int lines)
 {
-    int line = _line + lines, prev = _position;
-
+    int line = _line + lines;
     if (line < 1)
         line = 1;
 
-    lineColumnToPosition(_position, _line, _column,
-        line, _preferredColumn, _position, _line, _column);
-
-    if (_position != prev)
-    {
-        if (!_selectionMode)
-            _selection = -1;
-
-        return true;
-    }
-    else
-        return false;
+    return moveToLineColumn(line, _preferredColumn);
 }
 
 bool Document::moveToLine(int line)
@@ -471,8 +375,10 @@ bool Document::deleteCharBack()
     if (_position > 0)
     {
         int p = _text.charBack(_position);
-        _text.erase(p, _position - p);
+        int prev = _position;
+
         setPositionLineColumn(p);
+        _text.erase(_position, prev - _position);
 
         _modified = true;
         _selectionMode = false;
@@ -486,14 +392,12 @@ bool Document::deleteCharBack()
 
 bool Document::deleteWordForward()
 {
-    int prev = _position;
+    int p = findWordForward(_position);
 
-    if (moveWordForward())
+    if (p > _position)
     {
-        _text.erase(prev, _position - prev);
-        _position = prev;
+        _text.erase(_position, p - _position);
 
-        setPositionLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -506,13 +410,15 @@ bool Document::deleteWordForward()
 
 bool Document::deleteWordBack()
 {
-    int prev = _position;
+    int p = findWordBack(_position);
 
-    if (moveWordBack())
+    if (p < _position)
     {
+        int prev = _position;
+
+        setPositionLineColumn(p);
         _text.erase(_position, prev - _position);
 
-        setPositionLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -525,14 +431,12 @@ bool Document::deleteWordBack()
 
 bool Document::deleteCharsForward()
 {
-    int prev = _position;
+    int p = findCharsForward(_position);
 
-    if (moveCharsForward())
+    if (p > _position)
     {
-        _text.erase(prev, _position - prev);
-        _position = prev;
+        _text.erase(_position, p - _position);
 
-        setPositionLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -545,13 +449,15 @@ bool Document::deleteCharsForward()
 
 bool Document::deleteCharsBack()
 {
-    int prev = _position;
+    int p = findCharsBack(_position);
 
-    if (moveCharsBack())
+    if (p < _position)
     {
+        int prev = _position;
+
+        setPositionLineColumn(p);
         _text.erase(_position, prev - _position);
 
-        setPositionLineColumn(_position);
         _modified = true;
         _selectionMode = false;
         _selection = -1;
@@ -996,49 +902,38 @@ void Document::lineColumnToPosition(int startPos, int startLine, int startColumn
     ASSERT(startLine > 0 && startColumn > 0);
     ASSERT(newLine > 0 && newColumn > 0);
 
-    unichar_t ch;
     pos = startPos;
     line = startLine;
-    column = startColumn;
+    column = 1;
 
-    if (line < newLine || (line == newLine && column < newColumn))
+    if (line < newLine)
     {
-        ch = _text.charAt(pos);
-
         while (pos < _text.length() && line < newLine)
         {
-            if (ch == '\n')
-            {
+            if (_text.charAt(pos) == '\n')
                 ++line;
-                column = 1;
-            }
 
             pos = _text.charForward(pos);
-            ch = _text.charAt(pos);
         }
-    }
-    else if (line > newLine || (line == newLine && column > newColumn))
-    {
-        if (pos > 0)
-        {
-            do
-            {
-                pos = _text.charBack(pos);
-                ch = _text.charAt(pos);
-
-                if (ch == '\n')
-                    --line;
-            }
-            while (pos > 0 && line > newLine);
-
-            column = 1;
-            pos = findLineStart(pos);
-        }
-        else
-            return;
     }
     else
-        return;
+    {
+        while (pos > 0)
+        {
+            int p = _text.charBack(pos);
+            if (_text.charAt(p) == '\n')
+            {
+                if (line > newLine)
+                    --line;
+                else
+                    break;
+            }
+
+            pos = p;
+        }
+    }
+
+    unichar_t ch = _text.charAt(pos);
 
     while (pos < _text.length() && ch != '\n' && column < newColumn)
     {
@@ -1106,6 +1001,120 @@ int Document::findPreviousLine(int pos) const
     }
     else
         return INVALID_POSITION;
+}
+
+int Document::findWordForward(int pos) const
+{
+    int p = _position;
+
+    if (p < _text.length())
+    {
+        unichar_t prevCh = _text.charAt(p);
+        p = _text.charForward(p);
+
+        while (p < _text.length())
+        {
+            unichar_t ch = _text.charAt(p);
+            if (isWordBoundary(prevCh, ch))
+                break;
+
+            prevCh = ch;
+            p = _text.charForward(p);
+        }
+    }
+
+    return p;
+}
+
+int Document::findWordBack(int pos) const
+{
+    int p = _position;
+
+    if (p > 0)
+    {
+        p = _text.charBack(p);
+
+        if (p > 0)
+        {
+            unichar_t prevCh = _text.charAt(p);
+            int prevPos = p;
+
+            do
+            {
+                p = _text.charBack(p);
+
+                unichar_t ch = _text.charAt(p);
+                if (isWordBoundary(ch, prevCh))
+                {
+                    p = prevPos;
+                    break;
+                }
+
+                prevCh = ch;
+                prevPos = p;
+            }
+            while (p > 0);
+        }
+    }
+
+    return p;
+}
+
+int Document::findCharsForward(int pos) const
+{
+    int p = _position;
+
+    if (p < _text.length())
+    {
+        unichar_t prevCh = _text.charAt(p);
+        p = _text.charForward(p);
+
+        while (p < _text.length())
+        {
+            unichar_t ch = _text.charAt(p);
+            if (charIsSpace(prevCh) && !charIsSpace(ch))
+                break;
+
+            prevCh = ch;
+            p = _text.charForward(p);
+        }
+    }
+
+    return p;
+}
+
+int Document::findCharsBack(int pos) const
+{
+    int p = _position;
+
+    if (p > 0)
+    {
+        p = _text.charBack(p);
+
+        if (p > 0)
+        {
+            unichar_t prevCh = _text.charAt(p);
+            int prevPos = p;
+
+            do
+            {
+                p = _text.charBack(p);
+
+                unichar_t ch = _text.charAt(p);
+                if (charIsSpace(ch) && !charIsSpace(prevCh))
+                {
+                    p = prevPos;
+                    break;
+                }
+
+                prevCh = ch;
+                prevPos = p;
+            }
+            while (p > 0);
+        }
+    }
+
+    return p;
 }
 
 int Document::findPosition(int pos, const String& searchStr, bool caseSesitive, bool next) const
