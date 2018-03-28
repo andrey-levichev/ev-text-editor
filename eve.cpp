@@ -269,12 +269,26 @@ bool Document::moveLines(int lines)
     if (line < 1)
         line = 1;
 
-    return moveToLineColumn(line, _preferredColumn);
+    return moveToLine(line);
 }
 
 bool Document::moveToLine(int line)
 {
-    return moveToLineColumn(line, _preferredColumn);
+    ASSERT(line > 0);
+
+    int prev = _position;
+    lineColumnToPosition(_position, _line, _column,
+        line, _preferredColumn, _position, _line, _column);
+
+    if (_position != prev)
+    {
+        if (!_selectionMode)
+            _selection = -1;
+
+        return true;
+    }
+    else
+        return false;
 }
 
 bool Document::moveToLineColumn(int line, int column)
@@ -284,6 +298,8 @@ bool Document::moveToLineColumn(int line, int column)
     int prev = _position;
     lineColumnToPosition(_position, _line, _column,
         line, column, _position, _line, _column);
+
+    _preferredColumn = _column;
 
     if (_position != prev)
     {
@@ -526,12 +542,16 @@ String Document::copyDeleteText(bool copy)
 
         if (!copy)
         {
-            _text.erase(start, end - start);
-
             if (_selection < 0)
-                lineColumnToPosition(start, _line, 1, _line, _column,  _position, _line, _column);
+            {
+                _text.erase(start, end - start);
+                lineColumnToPosition(start, _line, 1, _line, _preferredColumn,  _position, _line, _column);
+            }
             else
+            {
                 setPositionLineColumn(start);
+                _text.erase(start, end - start);
+            }
 
             _modified = true;
         }
@@ -551,11 +571,16 @@ void Document::pasteText(const String& text)
     ASSERT(!text.empty());
 
     if (text.charAt(text.charBack(text.length())) == '\n')
-        _text.insert(findLineStart(_position), text);
+    {
+        int start = findLineStart(_position);
+        _text.insert(start, text);
+        lineColumnToPosition(start, _line, 1, _line, _preferredColumn,  _position, _line, _column);
+    }
     else
+    {
         _text.insert(_position, text);
-
-    setPositionLineColumn(_position + text.length());
+        setPositionLineColumn(_position + text.length());
+    }
 
     _modified = true;
     _selectionMode = false;

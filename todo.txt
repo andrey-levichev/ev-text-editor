@@ -11,6 +11,7 @@ test insert char performance
 * screen corruption in eve (create new file, scroll the screen)
 * percent indicator based on position
 * replace do loops with while
+* completeWord position can get out of sync
 
 editor:
 * go to selection start/end
