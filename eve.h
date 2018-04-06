@@ -156,7 +156,6 @@ protected:
     void lineColumnToPosition(int startPos, int startLine, int startColumn,
         int newLine, int newColumn, int& pos, int& line, int& column);
 
-    int findLine(int line) const;
     int findLineStart(int pos) const;
     int findLineEnd(int pos) const;
     int findNextLine(int pos) const;

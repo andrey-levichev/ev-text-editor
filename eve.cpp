@@ -16,8 +16,6 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 
 void copyToClipboard(const String& text)
 {
-    ASSERT(!text.empty());
-
 #ifdef PLATFORM_WINDOWS
     BOOL rc = OpenClipboard(NULL);
     ASSERT(rc);
@@ -801,8 +799,8 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
     else if (_column >= _left + _width)
         _left = _column - _width + 1;
 
-    int p, q;
-    lineColumnToPosition(_position, _line, _column, _top, _left, p, _top, _left);
+    int p, q, t, l;
+    lineColumnToPosition(_position, _line, _column, _top, 1, p, t, l);
 
     int len = _left + _width - 1;
     unichar_t ch;
@@ -869,27 +867,9 @@ void Document::positionToLineColumn(int startPos, int startLine, int startColumn
 
     int p = startPos;
     line = startLine;
-    column = startColumn;
 
     if (p < newPos)
-    {
-        while (p < newPos)
-        {
-            unichar_t ch = _text.charAt(p);
-
-            if (ch == '\n')
-            {
-                ++line;
-                column = 1;
-            }
-            else if (ch == '\t')
-                column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-            else
-                ++column;
-
-            p = _text.charForward(p);
-        }
-    }
+        column = startColumn;
     else if (p > newPos)
     {
         while (p > newPos)
@@ -897,26 +877,29 @@ void Document::positionToLineColumn(int startPos, int startLine, int startColumn
             p = _text.charBack(p);
             if (_text.charAt(p) == '\n')
                 --line;
-            --column;
         }
 
-        if (line != startLine)
+        p = findLineStart(p);
+        column = 1;
+    }
+    else
+        return;
+
+    while (p < newPos)
+    {
+        unichar_t ch = _text.charAt(p);
+
+        if (ch == '\n')
         {
-            _column = 1;
-            p = findLineStart(p);
-
-            while (p < newPos)
-            {
-                unichar_t ch = _text.charAt(p);
-
-                if (ch == '\t')
-                    column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
-                else
-                    ++column;
-
-                p = _text.charForward(p);
-            }
+            ++line;
+            column = 1;
         }
+        else if (ch == '\t')
+            column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+        else
+            ++column;
+
+        p = _text.charForward(p);
     }
 }
 
@@ -1146,20 +1129,20 @@ int Document::findPosition(int pos, const String& searchStr, bool caseSesitive, 
 {
     ASSERT(!searchStr.empty());
 
-    pos = INVALID_POSITION;
+    int p = INVALID_POSITION;
 
     if (pos < _text.length())
     {
-        pos = next ? _text.charForward(pos) : pos;
+        p = next ? _text.charForward(pos) : pos;
 
-        pos = _text.find(searchStr, caseSesitive, pos);
-        if (pos == INVALID_POSITION)
-            pos = _text.find(searchStr, caseSesitive);
+        p = _text.find(searchStr, caseSesitive, p);
+        if (p == INVALID_POSITION)
+            p = _text.find(searchStr, caseSesitive);
     }
     else
-        pos = _text.find(searchStr, caseSesitive);
+        p = _text.find(searchStr, caseSesitive);
 
-    return pos;
+    return p;
 }
 
 void Document::changeLines(int(Document::* lineOp)(int))
