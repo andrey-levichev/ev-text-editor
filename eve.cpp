@@ -867,10 +867,9 @@ void Document::positionToLineColumn(int startPos, int startLine, int startColumn
 
     int p = startPos;
     line = startLine;
+    column = startColumn;
 
-    if (p < newPos)
-        column = startColumn;
-    else if (p > newPos)
+    if (p > newPos)
     {
         while (p > newPos)
         {
@@ -882,7 +881,7 @@ void Document::positionToLineColumn(int startPos, int startLine, int startColumn
         p = findLineStart(p);
         column = 1;
     }
-    else
+    else if (p == newPos)
         return;
 
     while (p < newPos)
@@ -941,17 +940,18 @@ void Document::lineColumnToPosition(int startPos, int startLine, int startColumn
         }
     }
 
-    unichar_t ch = _text.charAt(pos);
-
-    while (pos < _text.length() && ch != '\n' && column < newColumn)
+    while (pos < _text.length() && column < newColumn)
     {
-        if (ch == '\t')
+        unichar_t ch = _text.charAt(pos);
+
+        if (ch == '\n')
+            break;
+        else if (ch == '\t')
             column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
         else
             ++column;
 
         pos = _text.charForward(pos);
-        ch = _text.charAt(pos);
     }
 }
 
@@ -1150,7 +1150,7 @@ void Document::changeLines(int(Document::* lineOp)(int))
     ASSERT(lineOp);
 
     if (_selection < 0)
-        _position = (this->*lineOp)(_position);
+        setPositionLineColumn((this->*lineOp)(_position));
     else
     {
         int start, end;
@@ -1188,19 +1188,18 @@ void Document::changeLines(int(Document::* lineOp)(int))
 
         if (atStart)
         {
-            _position = start;
+            setPositionLineColumn(start);
             _selection = end;
         }
         else
         {
             _selection = start;
-            _position = end;
+            setPositionLineColumn(end);
         }
 
         _selectionMode = false;
     }
 
-    setPositionLineColumn(_position);
     _modified = true;
 }
 
@@ -2508,7 +2507,7 @@ int MAIN(int argc, const char_t** argv)
     {
         if (argc == 2 && strCompare(argv[1], STR("--version")) == 0)
         {
-            Console::writeLine(STR("eve text editor version 1.5\n"
+            Console::writeLine(STR("eve text editor version 1.6\n"
                 "web: andrewshark.github.io/eve\n"
                 "Copyright (C) Andrey Levichev, 2018\n\n"
                 "usage: eve [FILE]...\n\n"));
