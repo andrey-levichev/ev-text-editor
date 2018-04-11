@@ -780,7 +780,7 @@ void testBuffer()
 
     {
         int v;
-        ASSERT_EXCEPTION(Exception, Buffer<int>::acquire(0, &v));
+        ASSERT_EXCEPTION(Exception, Buffer<int>::acquire(-1, &v));
         ASSERT_EXCEPTION(Exception, Buffer<int>::acquire(1, NULL));
     }
 
@@ -6063,7 +6063,7 @@ void runTests()
 
     testSupport();
     testFoundation();
-//    testFile();
+    testFile();
 //    testConsole();
 //    testConsoleWrite();
 //    testConsoleReadChar();

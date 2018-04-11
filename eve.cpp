@@ -31,8 +31,8 @@ void copyToClipboard(const String& text)
     void* ptr = GlobalLock(hText);
     ASSERT(ptr);
 
-    memset(ptr, 12, bytes.size() + 2);
     memcpy(ptr, bytes.values(), bytes.size());
+    *(reinterpret_cast<wchar_t*>(ptr) + bytes.size() / 2) = 0;
 
     GlobalUnlock(hText);
 
@@ -1150,7 +1150,12 @@ void Document::changeLines(int(Document::* lineOp)(int))
     ASSERT(lineOp);
 
     if (_selection < 0)
+    {
+        int start = findLineStart(_position);
+        setPositionLineColumn(start);
+
         setPositionLineColumn((this->*lineOp)(_position));
+    }
     else
     {
         int start, end;
@@ -1170,6 +1175,8 @@ void Document::changeLines(int(Document::* lineOp)(int))
         }
 
         start = findLineStart(start);
+        setPositionLineColumn(start);
+
         int p = end, n = 0;
 
         do
@@ -1187,10 +1194,7 @@ void Document::changeLines(int(Document::* lineOp)(int))
         end = findLineEnd(end);
 
         if (atStart)
-        {
-            setPositionLineColumn(start);
             _selection = end;
-        }
         else
         {
             _selection = start;

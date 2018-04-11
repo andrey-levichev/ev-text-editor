@@ -1851,7 +1851,7 @@ String Unicode::bytesToString(const ByteBuffer& bytes, TextEncoding& encoding, b
 
 String Unicode::bytesToString(int size, const byte_t* bytes, TextEncoding& encoding, bool& bom, bool& crLf)
 {
-    ASSERT((bytes && size > 0) || (!bytes && size == 0));
+    ASSERT(bytes ? size >= 0 : size == 0);
 
     int bomOffset = 0;
 

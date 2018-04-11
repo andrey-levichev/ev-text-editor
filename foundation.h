@@ -478,7 +478,7 @@ inline uint64_t swapBytes(uint64_t value)
 
 inline void swapBytes(uint16_t* values, int len)
 {
-    ASSERT(len == 0 || (values && len > 0));
+    ASSERT(values ? len >=0 : len == 0);
 
     for (int i = 0; i < len; ++i)
         values[i] = swapBytes(values[i]);
@@ -486,7 +486,7 @@ inline void swapBytes(uint16_t* values, int len)
 
 inline void swapBytes(uint32_t* values, int len)
 {
-    ASSERT(len == 0 || (values && len > 0));
+    ASSERT(values ? len >=0 : len == 0);
 
     for (int i = 0; i < len; ++i)
         values[i] = swapBytes(values[i]);
@@ -494,7 +494,7 @@ inline void swapBytes(uint32_t* values, int len)
 
 inline void swapBytes(uint64_t* values, int len)
 {
-    ASSERT(len == 0 || (values && len > 0));
+    ASSERT(values ? len >=0 : len == 0);
 
     for (int i = 0; i < len; ++i)
         values[i] = swapBytes(values[i]);
@@ -607,7 +607,7 @@ inline void destroy(_Type* ptr)
 template<typename _Type>
 inline void destructArray(int size, _Type* values)
 {
-    ASSERT(size >= 0);
+    ASSERT(values ? size >= 0 : size == 0);
 
     if (values)
     {
@@ -619,7 +619,7 @@ inline void destructArray(int size, _Type* values)
 template<typename _Type>
 inline void destroyArray(int size, _Type* values)
 {
-    ASSERT(size >= 0);
+    ASSERT(values ? size >= 0 : size == 0);
 
     if (values)
     {
@@ -656,7 +656,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
 template<typename _Type>
 inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 {
-    ASSERT(size == 0 || (size > 0 && values));
+    ASSERT(values ? size >= 0 : size == 0);
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -679,7 +679,7 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
 template<typename _Type>
 inline _Type* createArrayMove(int size, int capacity, _Type* values)
 {
-    ASSERT(size == 0 || (size > 0 && values));
+    ASSERT(values ? size >= 0 : size == 0);
     ASSERT(capacity >= 0 && size <= capacity);
 
     _Type* ptr = allocate<_Type>(capacity);
@@ -1016,7 +1016,7 @@ public:
 
     Buffer(int size, const _Type* values)
     {
-        ASSERT(size == 0 || (size > 0 && values));
+        ASSERT(values ? size >= 0 : size == 0);
         _size = size;
         _values = Memory::allocate<_Type>(_size);
         memcpy(_values, values, _size * sizeof(_Type));
@@ -1123,7 +1123,7 @@ public:
 
     void assign(int size, const _Type* values)
     {
-        ASSERT(size == 0 || (size > 0 && values));
+        ASSERT(values ? size >= 0 : size == 0);
         _size = size;
         _values = Memory::reallocate(_values, _size);
         memcpy(_values, values, _size * sizeof(_Type));
@@ -1149,7 +1149,7 @@ public:
 
     void append(int size, const _Type* values)
     {
-        ASSERT(size == 0 || (size > 0 && values));
+        ASSERT(values ? size >= 0 : size == 0);
         _values = Memory::reallocate(_values, _size + size);
         memcpy(_values + _size, values, size * sizeof(_Type));
         _size += size;
@@ -1191,7 +1191,7 @@ protected:
     Buffer(int size, _Type* values) :
         _size(size), _values(values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(values ? size >= 0 : size == 0);
     }
 
 protected:
@@ -1859,7 +1859,7 @@ public:
 
     Array(int size, const _Type* values)
     {
-        ASSERT(size == 0 || (size > 0 && values));
+        ASSERT(values ? size >= 0 : size == 0);
 
         _size = size;
         _capacity = size;
@@ -2060,7 +2060,7 @@ public:
 
     void assign(int size, const _Type* values)
     {
-        ASSERT(size == 0 || (size > 0 && values && values != _values));
+        ASSERT(values ? (size >= 0) && (values != _values) : size == 0);
 
         if (size <= _capacity)
         {
@@ -2215,7 +2215,7 @@ protected:
     Array(int size, int capacity, _Type* values) :
         _size(size), _capacity(capacity), _values(values)
     {
-        ASSERT((size == 0 && !values) || (size > 0 && values));
+        ASSERT(values ? size >= 0 : size == 0);
         ASSERT(capacity >= 0 && size <= capacity);
     }
 
@@ -2439,7 +2439,7 @@ public:
     List(int size, const _Type* values) :
         _first(NULL), _last(NULL)
     {
-        ASSERT(size == 0 || (size > 0 && values));
+        ASSERT(values ? size >= 0 : size == 0);
 
         try
         {

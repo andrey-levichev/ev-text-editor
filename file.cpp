@@ -222,7 +222,7 @@ void File::write(const ByteBuffer& data)
 
 void File::write(int size, const void* data)
 {
-    ASSERT((data && size > 0) || (!data && size == 0));
+    ASSERT(data ? size >= 0 : size == 0);
 
     if (_handle == INVALID_HANDLE_VALUE)
         throw Exception(STR("file not open"));
