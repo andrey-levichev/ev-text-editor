@@ -4,7 +4,7 @@
 
 <head>
 
-<title>eve text editor</title>
+<title>ev text editor</title>
 
 <style>
 
@@ -16,25 +16,25 @@ h1 { text-align: center; }
 
 <body style="font-family: sans-serif">
 
-<h1>eve text editor</h1>
+<h1>ev text editor</h1>
 
-<p>eve is a simple cross-platform text editor written in C++ with minimal dependencies. The executable is just a few hundred kilobytes in size. The editor works in a text console or terminal on five platforms - Windows, macOS, Linux, Solaris and AIX. GUI support is planned for the next major version.</p>
+<p>ev is a simple cross-platform text editor written in C++ with minimal dependencies. The executable is just a few hundred kilobytes in size. The editor works in a text console or terminal on five platforms - Windows, macOS, Linux, Solaris and AIX. GUI support is planned for the next major version.</p>
 
-<p>eve stands for "excellent visual editor", "extremely versatile editor" or "eradicate vi and emacs" whichever you prefer :-)</p>
+<p>If you think that ev stands for "eradicate vi" then you are mistaken :-) I have great respsect for that venerable text editor. I personally used vim as my main development environment for several years and I love it passionately!</p>
 
 <h3>Download</h3>
 
 <p>All executables are 64-bit</p>
 
-<p>Windows (Intel): <a href="eve-win.zip">eve-win.zip</a></p>
+<p>Windows (Intel): <a href="ev-win.zip">ev-win.zip</a></p>
 
-<p>macOS (Intel): <a href="eve-mac.tar.bz2">eve-mac.tar.bz2</a></p>
+<p>macOS (Intel): <a href="ev-mac.tar.bz2">ev-mac.tar.bz2</a></p>
 
-<p>Linux (Intel): <a href="eve-linux.tar.bz2">eve-linux.tar.bz2</a></p>
+<p>Linux (Intel): <a href="ev-linux.tar.bz2">ev-linux.tar.bz2</a></p>
 
-<p>Solaris (SPARC): <a href="eve-solaris.tar.bz2">eve-solaris.tar.bz2</a></p>
+<p>Solaris (SPARC): <a href="ev-solaris.tar.bz2">ev-solaris.tar.bz2</a></p>
 
-<p>AIX (POWER): <a href="eve-aix.tar.bz2">eve-aix.tar.bz2</a></p>
+<p>AIX (POWER): <a href="ev-aix.tar.bz2">ev-aix.tar.bz2</a></p>
 
 <h3>Supported features</h3>
 
@@ -49,7 +49,7 @@ h1 { text-align: center; }
 <li>toggle comment</li>
 <li>go to line</li>
 <li>cycle between recently edited locations</li>
-<li>ability to execute make and use eve as a simple IDE</li>
+<li>ability to execute make and use ev as a simple IDE</li>
 <li>basic Unicode support (can read/write UTF-8 and UTF-16, aware of multibyte characters)</li>
 <li>autocomplete based on words in open documents</li>
 <li>macro recording/playback</li>
@@ -57,7 +57,7 @@ h1 { text-align: center; }
 
 <h3>Keys</h3>
 
-<p>Keyboard commands are designed to work on as many terminals as possible without the need to change eve or terminal settings. To achieve that eve provides alternatives for key combinations that may not be supported by a specific terminal.</p>
+<p>Keyboard commands are designed to work on as many terminals as possible without the need to change ev or terminal settings. To achieve that ev provides alternatives for key combinations that may not be supported by a specific terminal.</p>
 
 <p><table>
 <tr><td style="width: 120px">arrows</td><td>move cursor</td></tr>
@@ -112,9 +112,9 @@ h1 { text-align: center; }
 <tr><td>ESC</td><td>quit editor</td></tr>
 </table></p>
 
-<p>building with make: by default eve executes 'make' on UNIX systems and 'nmake.exe' on Windows. This can be overriden by setting MAKE_CMD environment variable.</p>
+<p>building with make: by default ev executes 'make' on UNIX systems and 'nmake.exe' on Windows. This can be overriden by setting MAKE_CMD environment variable.</p>
 
-<p>macOS note: By default Mac Terminal app sends weird codes for alt+key combinations. They are currently unsupported by eve. You can fix the issue by turning on 'Use Option as Meta key' on the Keyboard tab in the terminal profile settings. To make eve more useful you can add a few key mappings there:</p>
+<p>macOS note: By default Mac Terminal app sends weird codes for alt+key combinations. They are currently unsupported by ev. You can fix the issue by turning on 'Use Option as Meta key' on the Keyboard tab in the terminal profile settings. To make ev more useful you can add a few key mappings there:</p>
 
 <p>Home - \033[1~<br>
 Option+Home - \033\033[1~<br>
@@ -163,7 +163,7 @@ use any character as string separator instead of space</p>
 
 <h3>License</h3>
 
-<p>By dowloading and using the eve editor you agree to the following license terms:</p>
+<p>By dowloading and using the ev editor you agree to the following license terms:</p>
 
 <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND<br>
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED<br>
@@ -179,13 +179,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 
 <h3>Releases</h3>
 
+<p>v1.6 - signficantly improved performance with large files (relative cursor positioning)</p>
+
+<p>v1.5 - new/open/save commands, macro recording, keyboard shortcut fallbacks<br>
+clipboard integration on windows, switch documents with alt+num<br>
+improvements to file and input code<br>
+delete chars forward/back<br>
+autocomplete continues to work as you type or press backspace</p>
+
 <p>v1.4 - initial release</p>
 
 <h3>Developer</h3>
 
-<p>eve text editor<br>
+<p>ev text editor<br>
 Copyright &copy; Andrey Levichev, 2018<br>
-email: <a href="mailto:andrey.levichev@gmail.com?Subject=eve">andrey.levichev@gmail.com</a></p>
+email: <a href="mailto:andrey.levichev@gmail.com?Subject=ev">andrey.levichev@gmail.com</a></p>
 
 </body>
 </html>
