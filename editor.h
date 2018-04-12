@@ -1,5 +1,5 @@
-#ifndef EVE_INCLUDED
-#define EVE_INCLUDED
+#ifndef EDITOR_INCLUDED
+#define EDITOR_INCLUDED
 
 #include <foundation.h>
 #include <console.h>

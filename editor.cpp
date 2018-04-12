@@ -1,4 +1,4 @@
-#include <eve.h>
+#include <editor.h>
 
 const int TAB_SIZE = 4;
 
@@ -2511,10 +2511,10 @@ int MAIN(int argc, const char_t** argv)
     {
         if (argc == 2 && strCompare(argv[1], STR("--version")) == 0)
         {
-            Console::writeLine(STR("eve text editor version 1.6\n"
-                "web: andrewshark.github.io/eve\n"
+            Console::writeLine(STR("ev text editor version 1.6\n"
+                "web: andrewshark.github.io/editor\n"
                 "Copyright (C) Andrey Levichev, 2018\n\n"
-                "usage: eve [FILE]...\n\n"));
+                "usage: ev [FILE]...\n\n"));
         }
         else
         {

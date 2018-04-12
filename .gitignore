@@ -9,7 +9,5 @@
 *.sol
 *.xlc
 *.dSYM
-eve
-doc.txt
 test.txt
 .DS_Store
