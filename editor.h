@@ -135,7 +135,7 @@ public:
 
     String currentWord() const;
     String autocompletePrefix() const;
-    void completeWord(const String& word);
+    void completeWord(const char_t* suffix);
 
     bool find(const String& searchStr, bool caseSesitive, bool next);
     bool replace(const String& searchStr, const String& replaceStr, bool caseSesitive);
@@ -276,6 +276,9 @@ protected:
     void findUniqueWords();
     void prepareSuggestions(const String& prefix);
     bool completeWord(int next);
+
+    void copyToClipboard(const String& text);
+    void pasteFromClipboard(String& text);
 
 protected:
     List<Document> _documents;

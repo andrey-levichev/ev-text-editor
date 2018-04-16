@@ -3,14 +3,11 @@ release:
 refactor lineColumnToPosition/positionToLineColumn (findLine/findColumn)?
 refactor changeLines (scan forward, same code for line/block)?
 test with valgrind and corner cases
-completeWord position can get out of sync
 review usage of lineColumnToPosition in draw()
 asserts for line/column/etc
 * many ctrl and alt combinations don't work on Linux
 figure out keycode to key combination mapping
 * clipboard integration on macos
-* large block of memory remains allocated at exit
-* move platform dependent code into separate class
 * screen corruption on windows (create new file, scroll the screen)
 
 editor:

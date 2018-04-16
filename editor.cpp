@@ -14,65 +14,6 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
         (prevCh != '\n' && ch == '\n');
 }
 
-void copyToClipboard(const String& text)
-{
-#ifdef PLATFORM_WINDOWS
-    BOOL rc = OpenClipboard(NULL);
-    ASSERT(rc);
-
-    rc = EmptyClipboard();
-    ASSERT(rc);
-
-    ByteBuffer bytes = Unicode::stringToBytes(text, TEXT_ENCODING_UTF16_LE, false, true);
-
-    HGLOBAL hText = GlobalAlloc(GMEM_MOVEABLE, bytes.size() + 2);
-    ASSERT(hText);
-
-    void* ptr = GlobalLock(hText);
-    ASSERT(ptr);
-
-    memcpy(ptr, bytes.values(), bytes.size());
-    *(reinterpret_cast<wchar_t*>(ptr) + bytes.size() / 2) = 0;
-
-    GlobalUnlock(hText);
-
-    HANDLE hClip = SetClipboardData(CF_UNICODETEXT, hText);
-    ASSERT(hClip);
-
-    rc = CloseClipboard();
-    ASSERT(rc);
-#endif
-}
-
-void pasteFromClipboard(String& text)
-{
-#ifdef PLATFORM_WINDOWS
-    if (IsClipboardFormatAvailable(CF_UNICODETEXT))
-    {
-        BOOL rc = OpenClipboard(NULL);
-        ASSERT(rc);
-
-        HGLOBAL hText = GetClipboardData(CF_UNICODETEXT);
-        ASSERT(hText);
-
-        void* ptr = GlobalLock(hText);
-        ASSERT(ptr);
-
-        TextEncoding encoding;
-        bool bom, crLf;
-        text = Unicode::bytesToString(wcslen(reinterpret_cast<wchar_t*>(ptr)) * 2,
-            reinterpret_cast<byte_t*>(ptr), encoding, bom, crLf);
-
-        GlobalUnlock(hText);
-
-        rc = CloseClipboard();
-        ASSERT(rc);
-    }
-    else
-        text.clear();
-#endif
-}
-
 // Document
 
 Document::Document() :
@@ -628,19 +569,8 @@ String Document::autocompletePrefix() const
     return _text.substr(p, _position - p);
 }
 
-void Document::completeWord(const String& word)
+void Document::completeWord(const char_t* suffix)
 {
-    ASSERT(!word.empty());
-
-    int start = _position;
-    while (start > 0)
-    {
-        int p = _text.charBack(start);
-        if (!charIsWord(_text.charAt(p)))
-            break;
-        start = p;
-    }
-
     int end = _position;
     while (end < _text.length())
     {
@@ -649,14 +579,11 @@ void Document::completeWord(const String& word)
         end = _text.charForward(end);
     }
 
-    if (start < end)
-    {
-        _text.replace(start, word, end - start);
+    _text.replace(_position, suffix, end - _position);
 
-        _modified = true;
-        _selectionMode = false;
-        _selection = -1;
-    }
+    _modified = true;
+    _selectionMode = false;
+    _selection = -1;
 }
 
 bool Document::find(const String& searchStr, bool caseSesitive, bool next)
@@ -800,7 +727,7 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
         _left = _column - _width + 1;
 
     int p, q, t, l;
-    lineColumnToPosition(_position, _line, _column, _top, 1, p, t, l);
+    lineColumnToPosition(_position, _line, _column, _top, 1, p, _top, l);
 
     int len = _left + _width - 1;
     unichar_t ch;
@@ -2496,13 +2423,72 @@ bool Editor::completeWord(int next)
                     _currentSuggestion = _currentSuggestion > 0 ? _currentSuggestion - 1 : last;
             }
 
-            _document->value.completeWord(_suggestions[_currentSuggestion].word);
+            _document->value.completeWord(_suggestions[_currentSuggestion].word.chars() + prefix.length());
         }
 
         return true;
     }
 
     return false;
+}
+
+void Editor::copyToClipboard(const String& text)
+{
+#ifdef PLATFORM_WINDOWS
+    BOOL rc = OpenClipboard(NULL);
+    ASSERT(rc);
+
+    rc = EmptyClipboard();
+    ASSERT(rc);
+
+    ByteBuffer bytes = Unicode::stringToBytes(text, TEXT_ENCODING_UTF16_LE, false, true);
+
+    HGLOBAL hText = GlobalAlloc(GMEM_MOVEABLE, bytes.size() + 2);
+    ASSERT(hText);
+
+    void* ptr = GlobalLock(hText);
+    ASSERT(ptr);
+
+    memcpy(ptr, bytes.values(), bytes.size());
+    *(reinterpret_cast<wchar_t*>(ptr) + bytes.size() / 2) = 0;
+
+    GlobalUnlock(hText);
+
+    HANDLE hClip = SetClipboardData(CF_UNICODETEXT, hText);
+    ASSERT(hClip);
+
+    rc = CloseClipboard();
+    ASSERT(rc);
+#endif
+}
+
+void Editor::pasteFromClipboard(String& text)
+{
+#ifdef PLATFORM_WINDOWS
+    if (IsClipboardFormatAvailable(CF_UNICODETEXT))
+    {
+        BOOL rc = OpenClipboard(NULL);
+        ASSERT(rc);
+
+        HGLOBAL hText = GetClipboardData(CF_UNICODETEXT);
+        ASSERT(hText);
+
+        void* ptr = GlobalLock(hText);
+        ASSERT(ptr);
+
+        TextEncoding encoding;
+        bool bom, crLf;
+        text = Unicode::bytesToString(wcslen(reinterpret_cast<wchar_t*>(ptr)) * 2,
+            reinterpret_cast<byte_t*>(ptr), encoding, bom, crLf);
+
+        GlobalUnlock(hText);
+
+        rc = CloseClipboard();
+        ASSERT(rc);
+    }
+    else
+        text.clear();
+#endif
 }
 
 int MAIN(int argc, const char_t** argv)
