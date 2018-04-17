@@ -3,8 +3,6 @@ release:
 refactor lineColumnToPosition/positionToLineColumn (findLine/findColumn)?
 refactor changeLines (scan forward, same code for line/block)?
 test with valgrind and corner cases
-review usage of lineColumnToPosition in draw()
-asserts for line/column/etc
 * many ctrl and alt combinations don't work on Linux
 figure out keycode to key combination mapping
 * clipboard integration on macos
@@ -36,10 +34,11 @@ scan all documents in current directory
 more efficient data structure
 optimize rebuilding of word database
 * performance optimization
-turn off indexing for large files
-use memory mapping and on demand or background loading
+open large files in native encoding
+turn off indexing and whitespace trimming for large files
+use memory mapping and on demand/background loading
 group small insert/delete changes and apply together
-store text as a list of lines
+store text as a list of lines/blocks
 redraw as few characters as possible instead of enitre screen
 
 foundation:

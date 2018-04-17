@@ -16,12 +16,10 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 
 // Document
 
-Document::Document() :
-    _top(1), _left(1),
-    _x(1), _y(1),
-    _width(100), _height(50)
+Document::Document()
 {
     clear();
+    setDimensions(1, 1, 1, 1);
 }
 
 bool Document::moveForward()
@@ -686,6 +684,7 @@ void Document::clear()
     _position = 0;
     _modified = false;
 
+    _filename.clear();
     _encoding = TEXT_ENCODING_UTF8;
     _bom = false;
 #ifdef PLATFORM_WINDOWS
@@ -696,6 +695,9 @@ void Document::clear()
 
     _line = _column = 1;
     _preferredColumn = 1;
+
+    _top = _left = 1;
+    _topPosition = 0;
 
     _selectionMode = false;
     _selection = -1;
@@ -716,18 +718,27 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
 {
     ASSERT(screenWidth > 0);
 
+    int l;
+
     if (_line < _top)
-        _top = _line;
+        lineColumnToPosition(_position, _line, _column, _line, 1, _topPosition, _top, l);
     else if (_line >= _top + _height)
-        _top = _line - _height + 1;
+        lineColumnToPosition(_position, _line, _column, _line - _height + 1, 1, _topPosition, _top, l);
 
     if (_column < _left)
         _left = _column;
     else if (_column >= _left + _width)
         _left = _column - _width + 1;
 
-    int p, q, t, l;
-    lineColumnToPosition(_position, _line, _column, _top, 1, p, _top, l);
+    ASSERT(_position >= 0 && _position <= _text.length());
+    ASSERT(_line > 0 && _column > 0);
+    ASSERT(_preferredColumn > 0);
+    ASSERT(_top > 0 && _left > 0);
+    ASSERT(_topPosition >= 0 && _topPosition <= _text.length());
+    ASSERT(_x > 0 && _y > 0);
+    ASSERT(_width > 0 && _height > 0);
+
+    int p = _topPosition, q;
 
     int len = _left + _width - 1;
     unichar_t ch;

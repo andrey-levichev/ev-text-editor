@@ -191,6 +191,8 @@ protected:
     int _preferredColumn;
 
     int _top, _left;
+    int _topPosition;
+
     int _x, _y;
     int _width, _height;
 
