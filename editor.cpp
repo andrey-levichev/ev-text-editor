@@ -510,18 +510,37 @@ void Document::pasteText(const String& text)
     if (text.charAt(text.charBack(text.length())) == '\n')
     {
         int start = findLineStart(_position);
+        _selection = -1;
+
         _text.insert(start, text);
         lineColumnToPosition(start, _line, 1, _line, _preferredColumn,  _position, _line, _column);
     }
     else
     {
+        _selection = _position;
+
         _text.insert(_position, text);
         setPositionLineColumn(_position + text.length());
     }
 
     _modified = true;
     _selectionMode = false;
-    _selection = -1;
+}
+
+bool Document::toggleSelectionStart()
+{
+    if (_selection >= 0)
+    {
+        if (_position != _selection)
+        {
+            int p = _position;
+            setPositionLineColumn(_selection);
+            _selection = p;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 String Document::currentWord() const
@@ -1089,10 +1108,10 @@ void Document::changeLines(int(Document::* lineOp)(int))
 
     if (_selection < 0)
     {
-        int start = findLineStart(_position);
+        int start = findLineStart(_position), p = _position;
         setPositionLineColumn(start);
 
-        setPositionLineColumn((this->*lineOp)(_position));
+        setPositionLineColumn((this->*lineOp)(p));
     }
     else
     {
@@ -1533,9 +1552,12 @@ void Editor::updateStatusLine()
         if (doc.modified())
             _status += '*';
 
+        int percent = doc.text().length() == 0 ?
+            100 : doc.position() * 100 / doc.text().length();
+
         _status += doc.encoding() == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
         _status += doc.crlf() ? STR("  CRLF") : STR("  LF");
-        _status.appendFormat(STR("  %d, %d (%d)"), doc.line(), doc.column(), doc.position());
+        _status.appendFormat(STR("  %d, %d  %d%%"), doc.line(), doc.column(), percent);
 
         int len = _status.charLength();
         int p = (_height - 1) * _width;
@@ -1738,6 +1760,10 @@ bool Editor::processInput()
                         else if (keyEvent.key == KEY_END || keyEvent.ch == 'e')
                         {
                             update = doc.moveToEnd();
+                        }
+                        else if (keyEvent.ch == 'a')
+                        {
+                            update = doc.toggleSelectionStart();
                         }
                         else if (keyEvent.ch == 'b')
                         {

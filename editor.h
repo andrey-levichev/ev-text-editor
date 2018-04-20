@@ -132,6 +132,7 @@ public:
     void markSelection();
     String copyDeleteText(bool copy);
     void pasteText(const String& text);
+    bool toggleSelectionStart();
 
     String currentWord() const;
     String autocompletePrefix() const;

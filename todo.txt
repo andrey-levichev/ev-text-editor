@@ -1,16 +1,10 @@
 release:
-* relative positioning
-refactor lineColumnToPosition/positionToLineColumn (findLine/findColumn)?
-refactor changeLines (scan forward, same code for line/block)?
-test with valgrind and corner cases
 * many ctrl and alt combinations don't work on Linux
 figure out keycode to key combination mapping
 * clipboard integration on macos
-* screen corruption on windows (create new file, scroll the screen)
+* screen corruption on windows after scrolling console window
 
 editor:
-* percent indicator based on position
-* go to selection start/end
 * go to matching brace
 * cycle documents in most recently used order
 * copy/delete lines
