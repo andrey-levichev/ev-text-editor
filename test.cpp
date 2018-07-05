@@ -6286,7 +6286,11 @@ void testHighlighting(const String& filename)
                 else
                     break;
             }
-            while (charIsDigit(ch));
+            while (charIsDigit(ch) || ch == 'x' || ch == 'X' ||
+                ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
+                ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
+                ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
+                ch == '.' || ch == '+' || ch == '-');
 
             setColor(TOKEN_TYPE_NONE);
         }
@@ -6349,16 +6353,86 @@ void testHighlighting(const String& filename)
                     }
 
                     setColor(TOKEN_TYPE_PREPROCESSOR);
+                    p = text.charForward(p);
                     Console::write(text.chars() + s, p - s);
                     setColor(TOKEN_TYPE_NONE);
-
-                    p = text.charForward(p);
                 }
                 else
                 {
                     Console::write('#');
                     p = q;
                 }
+            }
+        }
+        else if (ch == '/')
+        {
+            if (p < text.length())
+            {
+                p = text.charForward(p);
+                ch = text.charAt(p);
+
+                if (ch == '*')
+                {
+                    setColor(TOKEN_TYPE_COMMENT);
+                    Console::write(STR("/*"));
+
+                    if (p < text.length())
+                    {
+                        char_t prevCh = 0;
+                        p = text.charForward(p);
+                        ch = text.charAt(p);
+
+                        do
+                        {
+                            Console::write(ch);
+
+                            p = text.charForward(p);
+                            if (p < text.length())
+                            {
+                                prevCh = ch;
+                                ch = text.charAt(p);
+                            }
+                            else
+                                break;
+                        }
+                        while (!(prevCh == '*' && ch == '/'));
+
+                        Console::write('/');
+                        p = text.charForward(p);
+                    }
+
+                    setColor(TOKEN_TYPE_NONE);
+                }
+                else if (ch == '/')
+                {
+                    setColor(TOKEN_TYPE_COMMENT);
+                    Console::write(STR("//"));
+
+                    if (p < text.length())
+                    {
+                        p = text.charForward(p);
+                        ch = text.charAt(p);
+
+                        do
+                        {
+                            Console::write(ch);
+
+                            p = text.charForward(p);
+                            if (p < text.length())
+                                ch = text.charAt(p);
+                            else
+                                break;
+                        }
+                        while (ch != '\n');
+
+                        Console::write('\n');
+                        p = text.charForward(p);
+                    }
+
+                    setColor(TOKEN_TYPE_NONE);
+                }
+                else
+                    Console::write('/');
             }
         }
         else
