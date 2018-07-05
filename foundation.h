@@ -1231,6 +1231,7 @@ double strToDouble(const char_t* str, char_t** end);
 bool charIsSpace(unichar_t ch);
 bool charIsPrint(unichar_t ch);
 bool charIsAlpha(unichar_t ch);
+bool charIsDigit(unichar_t ch);
 bool charIsAlphaNum(unichar_t ch);
 bool charIsUpper(unichar_t ch);
 bool charIsLower(unichar_t ch);

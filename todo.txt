@@ -5,6 +5,8 @@ figure out keycode to key combination mapping
 * screen corruption on windows after scrolling console window
 
 editor:
+* delete to start/end of line
+* autocomplete on enter
 * go to matching brace
 * cycle documents in most recently used order
 * copy/delete lines
@@ -49,6 +51,7 @@ move node pointers instead of nodes when rehashing to avoid allocation
 benchmark/improve hash function
 append for Array? merge Buffer and Array?
 * strings
+use USC-2 for all strings?
 charAt/charForward as one call
 string constructor that accepts ascii strings
 store short strings in place

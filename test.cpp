@@ -6071,11 +6071,312 @@ void runTests()
 //    testConsoleReadInput();
 }
 
+enum TokenType
+{
+    TOKEN_TYPE_NONE,
+    TOKEN_TYPE_STRING,
+    TOKEN_TYPE_NUMBER,
+    TOKEN_TYPE_IDENT,
+    TOKEN_TYPE_KEYWORD,
+    TOKEN_TYPE_TYPE,
+    TOKEN_TYPE_COMMENT,
+    TOKEN_TYPE_PREPROCESSOR
+};
+
+void setColor(TokenType tokenType)
+{
+    int colors[] = { 30, 33, 91, 30, 34, 36, 90, 35 };
+    Console::writeFormatted(STR("\x1b[%dm"), colors[tokenType]);
+}
+
+void testHighlighting(const String& filename)
+{
+    File file(filename);
+    ByteBuffer bytes = file.read();
+
+    TextEncoding encoding;
+    bool bom, crLf;
+    String text(Unicode::bytesToString(bytes, encoding, bom, crLf));
+
+    Set<String> keywords;
+    keywords.add(STR("alignas"));
+    keywords.add(STR("alignof"));
+    keywords.add(STR("and"));
+    keywords.add(STR("and_eq"));
+    keywords.add(STR("asm"));
+    keywords.add(STR("atomic_cancel"));
+    keywords.add(STR("atomic_commit"));
+    keywords.add(STR("atomic_noexcept"));
+    keywords.add(STR("bitand"));
+    keywords.add(STR("bitor"));
+    keywords.add(STR("break"));
+    keywords.add(STR("case"));
+    keywords.add(STR("catch"));
+    keywords.add(STR("class"));
+    keywords.add(STR("compl"));
+    keywords.add(STR("concept"));
+    keywords.add(STR("const_cast"));
+    keywords.add(STR("continue"));
+    keywords.add(STR("co_await"));
+    keywords.add(STR("co_return"));
+    keywords.add(STR("co_yield"));
+    keywords.add(STR("decltype"));
+    keywords.add(STR("default"));
+    keywords.add(STR("delete"));
+    keywords.add(STR("do"));
+    keywords.add(STR("dynamic_cast"));
+    keywords.add(STR("else"));
+    keywords.add(STR("enum"));
+    keywords.add(STR("explicit"));
+    keywords.add(STR("export"));
+    keywords.add(STR("extern"));
+    keywords.add(STR("false"));
+    keywords.add(STR("for"));
+    keywords.add(STR("friend"));
+    keywords.add(STR("goto"));
+    keywords.add(STR("if"));
+    keywords.add(STR("import"));
+    keywords.add(STR("inline"));
+    keywords.add(STR("module"));
+    keywords.add(STR("mutable"));
+    keywords.add(STR("namespace"));
+    keywords.add(STR("new"));
+    keywords.add(STR("noexcept"));
+    keywords.add(STR("not"));
+    keywords.add(STR("not_eq"));
+    keywords.add(STR("nullptr"));
+    keywords.add(STR("operator"));
+    keywords.add(STR("or"));
+    keywords.add(STR("or_eq"));
+    keywords.add(STR("private"));
+    keywords.add(STR("protected"));
+    keywords.add(STR("public"));
+    keywords.add(STR("register"));
+    keywords.add(STR("reflexpr"));
+    keywords.add(STR("reinterpret_cast"));
+    keywords.add(STR("requires"));
+    keywords.add(STR("return"));
+    keywords.add(STR("sizeof"));
+    keywords.add(STR("static"));
+    keywords.add(STR("static_assert"));
+    keywords.add(STR("static_cast"));
+    keywords.add(STR("struct"));
+    keywords.add(STR("switch"));
+    keywords.add(STR("synchronized"));
+    keywords.add(STR("template"));
+    keywords.add(STR("this"));
+    keywords.add(STR("thread_local"));
+    keywords.add(STR("throw"));
+    keywords.add(STR("true"));
+    keywords.add(STR("try"));
+    keywords.add(STR("typedef"));
+    keywords.add(STR("typeid"));
+    keywords.add(STR("typename"));
+    keywords.add(STR("union"));
+    keywords.add(STR("using"));
+    keywords.add(STR("virtual"));
+    keywords.add(STR("while"));
+    keywords.add(STR("xor"));
+    keywords.add(STR("xor_eq"));
+    keywords.add(STR("override"));
+    keywords.add(STR("final"));
+    keywords.add(STR("transaction_safe"));
+    keywords.add(STR("transaction_safe_dynamic"));
+    keywords.add(STR("_Pragma"));
+
+    Set<String> types;
+    types.add(STR("auto"));
+    types.add(STR("bool"));
+    types.add(STR("byte"));
+    types.add(STR("char"));
+    types.add(STR("char16_t"));
+    types.add(STR("char32_t"));
+    types.add(STR("const"));
+    types.add(STR("constexpr"));
+    types.add(STR("double"));
+    types.add(STR("float"));
+    types.add(STR("int"));
+    types.add(STR("long"));
+    types.add(STR("short"));
+    types.add(STR("signed"));
+    types.add(STR("unsigned"));
+    types.add(STR("void"));
+    types.add(STR("volatile"));
+    types.add(STR("wchar_t"));
+    types.add(STR("int8_t"));
+    types.add(STR("int16_t"));
+    types.add(STR("int32_t"));
+    types.add(STR("int64_t"));
+    types.add(STR("uint8_t"));
+    types.add(STR("uint16_t"));
+    types.add(STR("uint32_t"));
+    types.add(STR("uint64_t"));
+    types.add(STR("intptr_t"));
+    types.add(STR("uintptr_t"));
+    types.add(STR("intmax_t"));
+    types.add(STR("uintmax_t"));
+    types.add(STR("size_t"));
+    types.add(STR("ptrdiff_t"));
+    types.add(STR("nullptr_t"));
+    types.add(STR("max_align_t"));
+    types.add(STR("unichar_t"));
+    types.add(STR("char_t"));
+    types.add(STR("byte_t"));
+
+    Set<String> preprocessor;
+    preprocessor.add(STR("if"));
+    preprocessor.add(STR("elif"));
+    preprocessor.add(STR("else"));
+    preprocessor.add(STR("endif"));
+    preprocessor.add(STR("defined"));
+    preprocessor.add(STR("ifdef"));
+    preprocessor.add(STR("ifndef"));
+    preprocessor.add(STR("define"));
+    preprocessor.add(STR("undef"));
+    preprocessor.add(STR("include"));
+    preprocessor.add(STR("line"));
+    preprocessor.add(STR("error"));
+    preprocessor.add(STR("pragma"));
+
+    int p = 0;
+    unichar_t ch = 0;
+    String ident;
+
+    while (p < text.length())
+    {
+        ch = text.charAt(p);
+
+        if (ch == '"' || ch == '\'')
+        {
+            unichar_t quote = ch, prevCh = 0;
+            bool escape;
+
+            setColor(TOKEN_TYPE_STRING);
+
+            do
+            {
+                escape = prevCh != '\\' && ch == '\\';
+                Console::write(ch);
+
+                p = text.charForward(p);
+                if (p < text.length())
+                {
+                    prevCh = ch;
+                    ch = text.charAt(p);
+                }
+                else
+                    break;
+            }
+            while (ch != quote || escape);
+
+            Console::write(ch);
+            setColor(TOKEN_TYPE_NONE);
+            p = text.charForward(p);
+        }
+        else if (charIsDigit(ch))
+        {
+            setColor(TOKEN_TYPE_NUMBER);
+
+            do
+            {
+                Console::write(ch);
+                p = text.charForward(p);
+                if (p < text.length())
+                    ch = text.charAt(p);
+                else
+                    break;
+            }
+            while (charIsDigit(ch));
+
+            setColor(TOKEN_TYPE_NONE);
+        }
+        else if (charIsAlphaNum(ch) || ch == '_')
+        {
+            int s = p;
+
+            do
+            {
+                p = text.charForward(p);
+                if (p < text.length())
+                    ch = text.charAt(p);
+                else
+                    break;
+            }
+            while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
+
+            ident = text.substr(s, p - s);
+
+            if (keywords.contains(ident))
+                setColor(TOKEN_TYPE_KEYWORD);
+            else if (types.contains(ident))
+                setColor(TOKEN_TYPE_TYPE);
+            else
+                setColor(TOKEN_TYPE_IDENT);
+
+            Console::write(ident);
+            setColor(TOKEN_TYPE_NONE);
+        }
+        else if (ch == '#')
+        {
+            int s = p;
+
+            if (p < text.length())
+            {
+                p = text.charForward(p);
+                ch = text.charAt(p);
+                int q = p;
+
+                while (charIsAlpha(ch))
+                {
+                    p = text.charForward(p);
+                    if (p < text.length())
+                        ch = text.charAt(p);
+                    else
+                        break;
+                }
+
+                ident = text.substr(q, p - q);
+
+                if (preprocessor.contains(ident))
+                {
+                    char_t prevCh = 0;
+
+                    while (p < text.length() && (ch != '\n' || prevCh == '\\'))
+                    {
+                        prevCh = ch;
+                        p = text.charForward(p);
+                        ch = text.charAt(p);
+                    }
+
+                    setColor(TOKEN_TYPE_PREPROCESSOR);
+                    Console::write(text.chars() + s, p - s);
+                    setColor(TOKEN_TYPE_NONE);
+
+                    p = text.charForward(p);
+                }
+                else
+                {
+                    Console::write('#');
+                    p = q;
+                }
+            }
+        }
+        else
+        {
+            Console::write(ch);
+            p = text.charForward(p);
+        }
+    }
+
+    Console::write(STR("\x1b[m\n"));
+}
+
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        runTests();
+        if (argc > 1)
+            testHighlighting(argv[1]);
     }
     catch (Exception& ex)
     {
