@@ -6091,12 +6091,13 @@ void setColor(TokenType tokenType)
 
 void testHighlighting(const String& filename)
 {
-    File file(filename);
-    ByteBuffer bytes = file.read();
-
-    TextEncoding encoding;
-    bool bom, crLf;
-    String text(Unicode::bytesToString(bytes, encoding, bom, crLf));
+//    File file(filename);
+//    ByteBuffer bytes = file.read();
+//
+//    TextEncoding encoding;
+//    bool bom, crLf;
+//    String text(Unicode::bytesToString(bytes, encoding, bom, crLf));
+    String text = filename;
 
     Set<String> keywords;
     keywords.add(STR("alignas"));
@@ -6265,7 +6266,7 @@ void testHighlighting(const String& filename)
                     ch = text.charAt(p);
                 }
                 else
-                    break;
+                    goto skip;
             }
             while (ch != quote || escape);
 
@@ -6284,7 +6285,7 @@ void testHighlighting(const String& filename)
                 if (p < text.length())
                     ch = text.charAt(p);
                 else
-                    break;
+                    goto skip;
             }
             while (charIsDigit(ch) || ch == 'x' || ch == 'X' ||
                 ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
@@ -6323,10 +6324,10 @@ void testHighlighting(const String& filename)
         else if (ch == '#')
         {
             int s = p;
+            p = text.charForward(p);
 
             if (p < text.length())
             {
-                p = text.charForward(p);
                 ch = text.charAt(p);
                 int q = p;
 
@@ -6343,19 +6344,32 @@ void testHighlighting(const String& filename)
 
                 if (preprocessor.contains(ident))
                 {
-                    char_t prevCh = 0;
-
-                    while (p < text.length() && (ch != '\n' || prevCh == '\\'))
-                    {
-                        prevCh = ch;
-                        p = text.charForward(p);
-                        ch = text.charAt(p);
-                    }
-
                     setColor(TOKEN_TYPE_PREPROCESSOR);
-                    p = text.charForward(p);
                     Console::write(text.chars() + s, p - s);
-                    setColor(TOKEN_TYPE_NONE);
+
+                    if (p < text.length())
+                    {
+                        char_t prevCh = 0;
+
+                        do
+                        {
+                            Console::write(ch);
+
+                            p = text.charForward(p);
+                            if (p < text.length())
+                            {
+                                prevCh = ch;
+                                ch = text.charAt(p);
+                            }
+                            else
+                                goto skip;
+                        }
+                        while (ch != '\n' || prevCh == '\\');
+
+                        Console::write('\n');
+                        setColor(TOKEN_TYPE_NONE);
+                        p = text.charForward(p);
+                    }
                 }
                 else
                 {
@@ -6363,12 +6377,15 @@ void testHighlighting(const String& filename)
                     p = q;
                 }
             }
+            else
+                Console::write('#');
         }
         else if (ch == '/')
         {
+            p = text.charForward(p);
+
             if (p < text.length())
             {
-                p = text.charForward(p);
                 ch = text.charAt(p);
 
                 if (ch == '*')
@@ -6376,10 +6393,11 @@ void testHighlighting(const String& filename)
                     setColor(TOKEN_TYPE_COMMENT);
                     Console::write(STR("/*"));
 
+                    p = text.charForward(p);
+
                     if (p < text.length())
                     {
                         char_t prevCh = 0;
-                        p = text.charForward(p);
                         ch = text.charAt(p);
 
                         do
@@ -6393,56 +6411,51 @@ void testHighlighting(const String& filename)
                                 ch = text.charAt(p);
                             }
                             else
-                                break;
+                                goto skip;
                         }
                         while (!(prevCh == '*' && ch == '/'));
 
                         Console::write('/');
                         p = text.charForward(p);
+                        setColor(TOKEN_TYPE_NONE);
                     }
-
-                    setColor(TOKEN_TYPE_NONE);
                 }
                 else if (ch == '/')
                 {
                     setColor(TOKEN_TYPE_COMMENT);
-                    Console::write(STR("//"));
+                    Console::write('/');
 
-                    if (p < text.length())
+                    do
                     {
+                        Console::write(ch);
                         p = text.charForward(p);
-                        ch = text.charAt(p);
-
-                        do
-                        {
-                            Console::write(ch);
-
-                            p = text.charForward(p);
-                            if (p < text.length())
-                                ch = text.charAt(p);
-                            else
-                                break;
-                        }
-                        while (ch != '\n');
-
-                        Console::write('\n');
-                        p = text.charForward(p);
+                        if (p < text.length())
+                            ch = text.charAt(p);
+                        else
+                            goto skip;
                     }
+                    while (ch != '\n');
 
                     setColor(TOKEN_TYPE_NONE);
+                    Console::write('\n');
+                    p = text.charForward(p);
                 }
                 else
                     Console::write('/');
             }
+            else
+                Console::write('/');
         }
         else
         {
             Console::write(ch);
             p = text.charForward(p);
         }
+
+skip:   ;
     }
 
-    Console::write(STR("\x1b[m\n"));
+    Console::write(STR("\x1b[m#\n"));
 }
 
 int MAIN(int argc, const char_t** argv)
