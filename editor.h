@@ -5,6 +5,39 @@
 #include <console.h>
 #include <file.h>
 
+// ScreenCell
+
+struct ScreenCell
+{
+    unichar_t ch;
+    short color;
+
+    ScreenCell() :
+        ch(0), color(30)
+    {
+    }
+
+    friend bool operator==(const ScreenCell& left, const ScreenCell& right)
+    {
+        return left.ch == right.ch && left.color == right.color;
+    }
+};
+
+// TokenType
+
+enum TokenType
+{
+    TOKEN_TYPE_NONE,
+    TOKEN_TYPE_STRING,
+    TOKEN_TYPE_NUMBER,
+    TOKEN_TYPE_IDENT,
+    TOKEN_TYPE_KEYWORD,
+    TOKEN_TYPE_TYPE,
+    TOKEN_TYPE_SINGLELINE_COMMENT,
+    TOKEN_TYPE_MULTILINE_COMMENT,
+    TOKEN_TYPE_PREPROCESSOR
+};
+
 // Document
 
 class Document
@@ -147,7 +180,7 @@ public:
     void clear();
 
     void setDimensions(int x, int y, int width, int height);
-    void draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16);
+    void draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLimit16);
 
 protected:
     void setPositionLineColumn(int pos);
@@ -178,6 +211,9 @@ protected:
 
     void trimTrailingWhitespace();
 
+    void populateKeywords();
+    void highlightChar(int p, unichar_t ch);
+
 protected:
     String _text;
     int _position;
@@ -201,6 +237,15 @@ protected:
     bool _selectionMode;
 
     String _indent;
+
+    Set<String> _keywords;
+    Set<String> _types;
+    Set<String> _preprocessor;
+
+    TokenType _tokenType;
+    int _charsRemaining;
+    String _word;
+    unichar_t _quote, _prevCh;
 };
 
 // RecentLocation
@@ -296,8 +341,8 @@ protected:
     int _width, _height;
     bool _unicodeLimit16;
 
-    UniCharBuffer _screen;
-    UniCharBuffer _prevScreen;
+    Buffer<ScreenCell> _screen;
+    Buffer<ScreenCell> _prevScreen;
     String _output;
 
     String _status, _message;

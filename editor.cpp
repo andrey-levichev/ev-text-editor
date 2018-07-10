@@ -20,6 +20,7 @@ Document::Document()
 {
     clear();
     setDimensions(1, 1, 1, 1);
+    populateKeywords();
 }
 
 bool Document::moveForward()
@@ -720,6 +721,11 @@ void Document::clear()
 
     _selectionMode = false;
     _selection = -1;
+
+    _tokenType = TOKEN_TYPE_NONE;
+    _charsRemaining = 0;
+    _word.clear();
+    _quote = _prevCh = 0;
 }
 
 void Document::setDimensions(int x, int y, int width, int height)
@@ -733,7 +739,7 @@ void Document::setDimensions(int x, int y, int width, int height)
     _height = height;
 }
 
-void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
+void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLimit16)
 {
     ASSERT(screenWidth > 0);
 
@@ -762,6 +768,12 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
     int len = _left + _width - 1;
     unichar_t ch;
 
+    int colors[] = { 30, 33, 91, 30, 34, 36, 90, 90, 35 };
+    _tokenType = TOKEN_TYPE_NONE;
+    _charsRemaining = 0;
+    _word.clear();
+    _quote = _prevCh = 0;
+
     for (int j = 1; j <= _height; ++j)
     {
         q = (_y + j - 2) * screenWidth + _x - 1;
@@ -769,6 +781,7 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
         for (int i = 1; i <= len; ++i)
         {
             ch = _text.charAt(p);
+            highlightChar(p, ch);
 
             if (ch == '\t')
             {
@@ -784,9 +797,13 @@ void Document::draw(int screenWidth, UniCharBuffer& screen, bool unicodeLimit16)
             if (i >= _left)
             {
                 if (unicodeLimit16 && ch > 0xffff)
-                    screen[q++] = '?';
+                    screen[q].ch = '?';
                 else
-                    screen[q++] = ch;
+                    screen[q].ch = ch;
+
+                screen[q].color = colors[_tokenType];
+
+                ++q;
             }
         }
 
@@ -1311,6 +1328,287 @@ void Document::trimTrailingWhitespace()
     _position = 0;
 }
 
+void Document::populateKeywords()
+{
+    _keywords.add(STR("alignas"));
+    _keywords.add(STR("alignof"));
+    _keywords.add(STR("and"));
+    _keywords.add(STR("and_eq"));
+    _keywords.add(STR("asm"));
+    _keywords.add(STR("atomic_cancel"));
+    _keywords.add(STR("atomic_commit"));
+    _keywords.add(STR("atomic_noexcept"));
+    _keywords.add(STR("bitand"));
+    _keywords.add(STR("bitor"));
+    _keywords.add(STR("break"));
+    _keywords.add(STR("case"));
+    _keywords.add(STR("catch"));
+    _keywords.add(STR("class"));
+    _keywords.add(STR("compl"));
+    _keywords.add(STR("concept"));
+    _keywords.add(STR("const_cast"));
+    _keywords.add(STR("continue"));
+    _keywords.add(STR("co_await"));
+    _keywords.add(STR("co_return"));
+    _keywords.add(STR("co_yield"));
+    _keywords.add(STR("decltype"));
+    _keywords.add(STR("default"));
+    _keywords.add(STR("delete"));
+    _keywords.add(STR("do"));
+    _keywords.add(STR("dynamic_cast"));
+    _keywords.add(STR("else"));
+    _keywords.add(STR("enum"));
+    _keywords.add(STR("explicit"));
+    _keywords.add(STR("export"));
+    _keywords.add(STR("extern"));
+    _keywords.add(STR("false"));
+    _keywords.add(STR("for"));
+    _keywords.add(STR("friend"));
+    _keywords.add(STR("goto"));
+    _keywords.add(STR("if"));
+    _keywords.add(STR("import"));
+    _keywords.add(STR("inline"));
+    _keywords.add(STR("module"));
+    _keywords.add(STR("mutable"));
+    _keywords.add(STR("namespace"));
+    _keywords.add(STR("new"));
+    _keywords.add(STR("noexcept"));
+    _keywords.add(STR("not"));
+    _keywords.add(STR("not_eq"));
+    _keywords.add(STR("nullptr"));
+    _keywords.add(STR("operator"));
+    _keywords.add(STR("or"));
+    _keywords.add(STR("or_eq"));
+    _keywords.add(STR("private"));
+    _keywords.add(STR("protected"));
+    _keywords.add(STR("public"));
+    _keywords.add(STR("register"));
+    _keywords.add(STR("reflexpr"));
+    _keywords.add(STR("reinterpret_cast"));
+    _keywords.add(STR("requires"));
+    _keywords.add(STR("return"));
+    _keywords.add(STR("sizeof"));
+    _keywords.add(STR("static"));
+    _keywords.add(STR("static_assert"));
+    _keywords.add(STR("static_cast"));
+    _keywords.add(STR("struct"));
+    _keywords.add(STR("switch"));
+    _keywords.add(STR("synchronized"));
+    _keywords.add(STR("template"));
+    _keywords.add(STR("this"));
+    _keywords.add(STR("thread_local"));
+    _keywords.add(STR("throw"));
+    _keywords.add(STR("true"));
+    _keywords.add(STR("try"));
+    _keywords.add(STR("typedef"));
+    _keywords.add(STR("typeid"));
+    _keywords.add(STR("typename"));
+    _keywords.add(STR("union"));
+    _keywords.add(STR("using"));
+    _keywords.add(STR("virtual"));
+    _keywords.add(STR("while"));
+    _keywords.add(STR("xor"));
+    _keywords.add(STR("xor_eq"));
+    _keywords.add(STR("override"));
+    _keywords.add(STR("final"));
+    _keywords.add(STR("transaction_safe"));
+    _keywords.add(STR("transaction_safe_dynamic"));
+    _keywords.add(STR("_Pragma"));
+
+    _types.add(STR("auto"));
+    _types.add(STR("bool"));
+    _types.add(STR("byte"));
+    _types.add(STR("char"));
+    _types.add(STR("char16_t"));
+    _types.add(STR("char32_t"));
+    _types.add(STR("const"));
+    _types.add(STR("constexpr"));
+    _types.add(STR("double"));
+    _types.add(STR("float"));
+    _types.add(STR("int"));
+    _types.add(STR("long"));
+    _types.add(STR("short"));
+    _types.add(STR("signed"));
+    _types.add(STR("unsigned"));
+    _types.add(STR("void"));
+    _types.add(STR("volatile"));
+    _types.add(STR("wchar_t"));
+    _types.add(STR("int8_t"));
+    _types.add(STR("int16_t"));
+    _types.add(STR("int32_t"));
+    _types.add(STR("int64_t"));
+    _types.add(STR("uint8_t"));
+    _types.add(STR("uint16_t"));
+    _types.add(STR("uint32_t"));
+    _types.add(STR("uint64_t"));
+    _types.add(STR("intptr_t"));
+    _types.add(STR("uintptr_t"));
+    _types.add(STR("intmax_t"));
+    _types.add(STR("uintmax_t"));
+    _types.add(STR("size_t"));
+    _types.add(STR("ptrdiff_t"));
+    _types.add(STR("nullptr_t"));
+    _types.add(STR("max_align_t"));
+    _types.add(STR("unichar_t"));
+    _types.add(STR("char_t"));
+    _types.add(STR("byte_t"));
+
+    _preprocessor.add(STR("if"));
+    _preprocessor.add(STR("elif"));
+    _preprocessor.add(STR("else"));
+    _preprocessor.add(STR("endif"));
+    _preprocessor.add(STR("defined"));
+    _preprocessor.add(STR("ifdef"));
+    _preprocessor.add(STR("ifndef"));
+    _preprocessor.add(STR("define"));
+    _preprocessor.add(STR("undef"));
+    _preprocessor.add(STR("include"));
+    _preprocessor.add(STR("line"));
+    _preprocessor.add(STR("error"));
+    _preprocessor.add(STR("pragma"));
+}
+
+void Document::highlightChar(int p, unichar_t ch)
+{
+    if (_charsRemaining > 0)
+    {
+        --_charsRemaining;
+        if (_charsRemaining > 0)
+            return;
+
+        _tokenType = TOKEN_TYPE_NONE;
+    }
+
+    if (_tokenType == TOKEN_TYPE_STRING)
+    {
+        if (_prevCh == '\\')
+            _prevCh = 0;
+        else if (ch == _quote)
+            _charsRemaining = 1;
+        else if (ch == '\\')
+            _prevCh = ch;
+
+        return;
+    }
+    else if (_tokenType == TOKEN_TYPE_NUMBER)
+    {
+        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
+                ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
+                ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
+                ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
+                ch == '.' || ch == '+' || ch == '-'))
+            _tokenType = TOKEN_TYPE_NONE;
+
+        return;
+    }
+    else if (_tokenType == TOKEN_TYPE_SINGLELINE_COMMENT)
+    {
+        if (ch == '\n')
+            _charsRemaining = 1;
+
+        return;
+    }
+    else if (_tokenType == TOKEN_TYPE_MULTILINE_COMMENT)
+    {
+        if (ch == '*')
+        {
+            p = _text.charForward(p);
+
+            if (p < _text.length())
+            {
+                if (_text.charAt(p) == '/')
+                    _charsRemaining = 2;
+            }
+        }
+
+        return;
+    }
+    else if (_tokenType == TOKEN_TYPE_PREPROCESSOR)
+    {
+        if (_prevCh == '\\')
+            _prevCh = 0;
+        else if (ch == '\n')
+            _charsRemaining = 1;
+        else if (ch == '\\')
+            _prevCh = ch;
+
+        return;
+    }
+
+    if (ch == '"' || ch == '\'')
+    {
+        _quote = ch;
+        _tokenType = TOKEN_TYPE_STRING;
+    }
+    else if (charIsDigit(ch))
+    {
+        _tokenType = TOKEN_TYPE_NUMBER;
+    }
+    else if (charIsAlphaNum(ch) || ch == '_')
+    {
+        int s = p;
+
+        do
+        {
+            p = _text.charForward(p);
+            if (p < _text.length())
+                ch = _text.charAt(p);
+            else
+                break;
+        }
+        while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
+
+        _word = _text.substr(s, p - s);
+        _charsRemaining = _word.length();
+
+        if (_keywords.contains(_word))
+            _tokenType = TOKEN_TYPE_KEYWORD;
+        else if (_types.contains(_word))
+            _tokenType = TOKEN_TYPE_TYPE;
+        else
+            _tokenType = TOKEN_TYPE_IDENT;
+    }
+    else if (ch == '/')
+    {
+        p = _text.charForward(p);
+
+        if (p < _text.length())
+        {
+            ch = _text.charAt(p);
+
+            if (ch == '*')
+                _tokenType = TOKEN_TYPE_MULTILINE_COMMENT;
+            else if (ch == '/')
+                _tokenType = TOKEN_TYPE_SINGLELINE_COMMENT;
+        }
+    }
+    else if (ch == '#')
+    {
+        int s = p;
+        p = _text.charForward(p);
+
+        if (p < _text.length())
+        {
+            ch = _text.charAt(p);
+            int q = p;
+
+            while (charIsAlpha(ch))
+            {
+                p = _text.charForward(p);
+                if (p < _text.length())
+                    ch = _text.charAt(p);
+                else
+                    break;
+            }
+
+            _word = _text.substr(q, p - q);
+
+            if (_preprocessor.contains(_word))
+                _tokenType = TOKEN_TYPE_PREPROCESSOR;
+        }
+    }
+}
+
 // Editor
 
 Editor::Editor() :
@@ -1417,7 +1715,7 @@ void Editor::setDimensions()
 {
     ASSERT(_width > 0 && _height > 1);
 
-    _screen.assign(_width * _height, static_cast<unichar_t>(0));
+    _screen.assign(_width * _height, ScreenCell());
     _commandLine.value.setDimensions(2, _height, _width - 1, 1);
 
     for (auto doc = _documents.first(); doc; doc = doc->next)
@@ -1427,6 +1725,7 @@ void Editor::setDimensions()
 void Editor::updateScreen(bool redrawAll)
 {
     int line, col;
+    int color = 0;
     _prevScreen = _screen;
 
 #ifndef PLATFORM_WINDOWS
@@ -1436,7 +1735,7 @@ void Editor::updateScreen(bool redrawAll)
     if (_document)
     {
         if (_document == &_commandLine)
-            _screen[(_height - 1) * _width] = ':';
+            _screen[(_height - 1) * _width].ch = ':';
         else
             updateStatusLine();
 
@@ -1448,32 +1747,36 @@ void Editor::updateScreen(bool redrawAll)
     }
     else
     {
-        _screen.assign(_width * _height, static_cast<unichar_t>(0));
+        _screen.assign(_width * _height, ScreenCell());
         updateStatusLine();
         line = col = 1;
     }
 
-    if (redrawAll)
+    if (true)
     {
         for (int j = 0; j < _height; ++j)
         {
-            int p = j * _width;
             _output.clear();
 
-            for (int i = 0; i < _width; ++i)
+            for (int p = j * _width, end = p + _width; p < end; ++p)
             {
-                if (_screen[p])
-                    _output += _screen[p++];
+#ifdef PLATFORM_WINDOWS
+                _output += _screen[p].ch ? _screen[p].ch : ' ';
+#else
+                if (color != _screen[p].color)
+                {
+                    color = _screen[p].color;
+                    _output.appendFormat(STR("\x1b[%dm"), color);
+                }
+
+                if (_screen[p].ch)
+                    _output += _screen[p].ch;
                 else
                 {
-#ifdef PLATFORM_WINDOWS
-                    _output += ' ';
-                    ++p;
-#else
                     _output += STR("\x1b[K");
                     break;
-#endif
                 }
+#endif
             }
 
             Console::write(j + 1, 1, _output);
@@ -1494,8 +1797,8 @@ void Editor::updateScreen(bool redrawAll)
 
             for (int i = start; i <= end; ++i)
             {
-                if (_screen[i])
-                    _output += _screen[i];
+                if (_screen[i].ch)
+                    _output += _screen[i].ch;
                 else
                 {
 #ifdef PLATFORM_WINDOWS
@@ -1529,17 +1832,17 @@ void Editor::updateStatusLine()
         if (len <= _width)
         {
             for (int i = 0; i < _message.length(); i = _message.charForward(i))
-                _screen[p++] = _message.charAt(i);
+                _screen[p++].ch = _message.charAt(i);
 
             for (int i = 0; i < _width - len; ++i)
-                _screen[p++] = ' ';
+                _screen[p++].ch = ' ';
         }
         else
         {
             for (int i = 0, q = 0; i < _width - 3; ++i, q = _message.charForward(q))
-                _screen[p++] = _message.charAt(q);
+                _screen[p++].ch = _message.charAt(q);
 
-            _screen[p++] = '.'; _screen[p++] = '.'; _screen[p++] = '.';
+            _screen[p++].ch = '.'; _screen[p++].ch = '.'; _screen[p++].ch = '.';
         }
 
         _message.clear();
@@ -1565,18 +1868,18 @@ void Editor::updateStatusLine()
         if (len <= _width)
         {
             for (int i = 0; i < _width - len; ++i)
-                _screen[p++] = ' ';
+                _screen[p++].ch = ' ';
 
             for (int i = 0; i < _status.length(); i = _status.charForward(i))
-                _screen[p++] = _status.charAt(i);
+                _screen[p++].ch = _status.charAt(i);
         }
         else
         {
-            _screen[p++] = '.'; _screen[p++] = '.'; _screen[p++] = '.';
+            _screen[p++].ch = '.'; _screen[p++].ch = '.'; _screen[p++].ch = '.';
 
             for (int i = _status.charBack(_status.length(), _width - 3);
                     i < _status.length(); i = _status.charForward(i))
-                _screen[p++] = _status.charAt(i);
+                _screen[p++].ch = _status.charAt(i);
         }
     }
 }
