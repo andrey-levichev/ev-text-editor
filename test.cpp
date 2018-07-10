@@ -6079,27 +6079,23 @@ enum TokenType
     TOKEN_TYPE_IDENT,
     TOKEN_TYPE_KEYWORD,
     TOKEN_TYPE_TYPE,
-    TOKEN_TYPE_COMMENT,
+    TOKEN_TYPE_SINGLELINE_COMMENT,
+    TOKEN_TYPE_MULTILINE_COMMENT,
     TOKEN_TYPE_PREPROCESSOR
 };
 
 void setColor(TokenType tokenType)
 {
-    int colors[] = { 30, 33, 91, 30, 34, 36, 90, 35 };
+    int colors[] = { 30, 33, 91, 30, 34, 36, 90, 90, 35 };
     Console::writeFormatted(STR("\x1b[%dm"), colors[tokenType]);
 }
 
-void testHighlighting(const String& filename)
-{
-//    File file(filename);
-//    ByteBuffer bytes = file.read();
-//
-//    TextEncoding encoding;
-//    bool bom, crLf;
-//    String text(Unicode::bytesToString(bytes, encoding, bom, crLf));
-    String text = filename;
+Set<String> keywords;
+Set<String> types;
+Set<String> preprocessor;
 
-    Set<String> keywords;
+void populateKeywords()
+{
     keywords.add(STR("alignas"));
     keywords.add(STR("alignof"));
     keywords.add(STR("and"));
@@ -6185,7 +6181,6 @@ void testHighlighting(const String& filename)
     keywords.add(STR("transaction_safe_dynamic"));
     keywords.add(STR("_Pragma"));
 
-    Set<String> types;
     types.add(STR("auto"));
     types.add(STR("bool"));
     types.add(STR("byte"));
@@ -6224,7 +6219,6 @@ void testHighlighting(const String& filename)
     types.add(STR("char_t"));
     types.add(STR("byte_t"));
 
-    Set<String> preprocessor;
     preprocessor.add(STR("if"));
     preprocessor.add(STR("elif"));
     preprocessor.add(STR("else"));
@@ -6238,6 +6232,18 @@ void testHighlighting(const String& filename)
     preprocessor.add(STR("line"));
     preprocessor.add(STR("error"));
     preprocessor.add(STR("pragma"));
+}
+
+void testHighlighting(const String& filename)
+{
+    File file(filename);
+    ByteBuffer bytes = file.read();
+
+    TextEncoding encoding;
+    bool bom, crLf;
+    String text(Unicode::bytesToString(bytes, encoding, bom, crLf));
+
+    populateKeywords();
 
     int p = 0;
     unichar_t ch = 0;
@@ -6390,7 +6396,7 @@ void testHighlighting(const String& filename)
 
                 if (ch == '*')
                 {
-                    setColor(TOKEN_TYPE_COMMENT);
+                    setColor(TOKEN_TYPE_MULTILINE_COMMENT);
                     Console::write(STR("/*"));
 
                     p = text.charForward(p);
@@ -6422,7 +6428,7 @@ void testHighlighting(const String& filename)
                 }
                 else if (ch == '/')
                 {
-                    setColor(TOKEN_TYPE_COMMENT);
+                    setColor(TOKEN_TYPE_SINGLELINE_COMMENT);
                     Console::write('/');
 
                     do
@@ -6455,7 +6461,177 @@ void testHighlighting(const String& filename)
 skip:   ;
     }
 
-    Console::write(STR("\x1b[m#\n"));
+    Console::write(STR("\x1b[m\n"));
+}
+
+TokenType tokenType = TOKEN_TYPE_NONE;
+int charsRemaining = 0;
+String ident;
+unichar_t quote = 0, prevCh = 0;
+
+void getHighlightingTokenType(const String& text, int p, unichar_t ch)
+{
+    if (charsRemaining > 0)
+    {
+        --charsRemaining;
+        if (charsRemaining > 0)
+            return;
+
+        tokenType = TOKEN_TYPE_NONE;
+    }
+
+    if (tokenType == TOKEN_TYPE_STRING)
+    {
+        if (prevCh == '\\')
+            prevCh = 0;
+        else if (ch == quote)
+            charsRemaining = 1;
+        else if (ch == '\\')
+            prevCh = ch;
+
+        return;
+    }
+    else if (tokenType == TOKEN_TYPE_NUMBER)
+    {
+        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
+                ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
+                ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
+                ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
+                ch == '.' || ch == '+' || ch == '-'))
+            tokenType = TOKEN_TYPE_NONE;
+
+        return;
+    }
+    else if (tokenType == TOKEN_TYPE_SINGLELINE_COMMENT)
+    {
+        if (ch == '\n')
+            charsRemaining = 1;
+
+        return;
+    }
+    else if (tokenType == TOKEN_TYPE_MULTILINE_COMMENT)
+    {
+        if (ch == '*')
+        {
+            p = text.charForward(p);
+
+            if (p < text.length())
+            {
+                if (text.charAt(p) == '/')
+                    charsRemaining = 2;
+            }
+        }
+
+        return;
+    }
+    else if (tokenType == TOKEN_TYPE_PREPROCESSOR)
+    {
+        if (prevCh == '\\')
+            prevCh = 0;
+        else if (ch == '\n')
+            charsRemaining = 1;
+        else if (ch == '\\')
+            prevCh = ch;
+
+        return;
+    }
+
+    if (ch == '"' || ch == '\'')
+    {
+        quote = ch;
+        tokenType = TOKEN_TYPE_STRING;
+    }
+    else if (charIsDigit(ch))
+    {
+        tokenType = TOKEN_TYPE_NUMBER;
+    }
+    else if (charIsAlphaNum(ch) || ch == '_')
+    {
+        int s = p;
+
+        do
+        {
+            p = text.charForward(p);
+            if (p < text.length())
+                ch = text.charAt(p);
+            else
+                break;
+        }
+        while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
+
+        ident = text.substr(s, p - s);
+        charsRemaining = ident.length();
+
+        if (keywords.contains(ident))
+            tokenType = TOKEN_TYPE_KEYWORD;
+        else if (types.contains(ident))
+            tokenType = TOKEN_TYPE_TYPE;
+        else
+            tokenType = TOKEN_TYPE_IDENT;
+    }
+    else if (ch == '/')
+    {
+        p = text.charForward(p);
+
+        if (p < text.length())
+        {
+            ch = text.charAt(p);
+
+            if (ch == '*')
+                tokenType = TOKEN_TYPE_MULTILINE_COMMENT;
+            else if (ch == '/')
+                tokenType = TOKEN_TYPE_SINGLELINE_COMMENT;
+        }
+    }
+    else if (ch == '#')
+    {
+        int s = p;
+        p = text.charForward(p);
+
+        if (p < text.length())
+        {
+            ch = text.charAt(p);
+            int q = p;
+
+            while (charIsAlpha(ch))
+            {
+                p = text.charForward(p);
+                if (p < text.length())
+                    ch = text.charAt(p);
+                else
+                    break;
+            }
+
+            ident = text.substr(q, p - q);
+
+            if (preprocessor.contains(ident))
+                tokenType = TOKEN_TYPE_PREPROCESSOR;
+        }
+    }
+}
+
+void testHighlighting2(const String& text)
+{
+    populateKeywords();
+
+    int p = 0;
+    unichar_t ch;
+    TokenType prevTokenType = TOKEN_TYPE_NONE;
+
+    while (p < text.length())
+    {
+        ch = text.charAt(p);
+
+        getHighlightingTokenType(text, p, ch);
+        if (tokenType != prevTokenType)
+            setColor(tokenType);
+
+        Console::write(ch);
+        p = text.charForward(p);
+        prevTokenType = tokenType;
+    }
+
+    Console::write(STR("\x1b[m\n"));
 }
 
 int MAIN(int argc, const char_t** argv)
@@ -6463,7 +6639,7 @@ int MAIN(int argc, const char_t** argv)
     try
     {
         if (argc > 1)
-            testHighlighting(argv[1]);
+            testHighlighting2(argv[1]);
     }
     catch (Exception& ex)
     {
