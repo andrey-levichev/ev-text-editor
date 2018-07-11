@@ -16,6 +16,9 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 
 // Document
 
+const int Document::_brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
+const int Document::_darkBackgroundColors[] = { 39, 93, 91, 39, 96, 92, 37, 37, 95 };
+
 Document::Document()
 {
     clear();
@@ -676,6 +679,9 @@ void Document::open(const String& filename)
 	{
         ByteBuffer bytes = file.read();
         _text.assign(Unicode::bytesToString(bytes, _encoding, _bom, _crLf));
+        _enableHighlighting = filename.endsWith(STR(".c")) ||
+            filename.endsWith(STR(".h")) || filename.endsWith(STR(".cpp")) ||
+            filename.endsWith(STR(".hpp"));
     }
 }
 
@@ -722,6 +728,8 @@ void Document::clear()
     _selectionMode = false;
     _selection = -1;
 
+    _enableHighlighting = false;
+    _brightBackground = true;
     _tokenType = TOKEN_TYPE_NONE;
     _charsRemaining = 0;
     _word.clear();
@@ -768,7 +776,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     int len = _left + _width - 1;
     unichar_t ch;
 
-    int colors[] = { 30, 33, 91, 30, 34, 36, 90, 90, 35 };
+    const int* colors = _brightBackground ? _brightBackgroundColors : _darkBackgroundColors;
+
     _tokenType = TOKEN_TYPE_NONE;
     _charsRemaining = 0;
     _word.clear();
@@ -801,7 +810,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                 else
                     screen[q].ch = ch;
 
-                screen[q].color = colors[_tokenType];
+                screen[q].color = _enableHighlighting ? colors[_tokenType] : 39;
 
                 ++q;
             }
@@ -1752,32 +1761,15 @@ void Editor::updateScreen(bool redrawAll)
         line = col = 1;
     }
 
-    if (true)
+    if (redrawAll)
     {
         for (int j = 0; j < _height; ++j)
         {
             _output.clear();
 
-            for (int p = j * _width, end = p + _width; p < end; ++p)
-            {
-#ifdef PLATFORM_WINDOWS
-                _output += _screen[p].ch ? _screen[p].ch : ' ';
-#else
-                if (color != _screen[p].color)
-                {
-                    color = _screen[p].color;
-                    _output.appendFormat(STR("\x1b[%dm"), color);
-                }
-
-                if (_screen[p].ch)
-                    _output += _screen[p].ch;
-                else
-                {
-                    _output += STR("\x1b[K");
+            for (int i = j * _width, end = i + _width; i < end; ++i)
+                if (!addCharToOutput(i, color))
                     break;
-                }
-#endif
-            }
 
             Console::write(j + 1, 1, _output);
         }
@@ -1786,8 +1778,9 @@ void Editor::updateScreen(bool redrawAll)
     {
         for (int j = 0; j < _height; ++j)
         {
-            int p = j * _width, start = p, end = p + _width - 1;
             _output.clear();
+
+            int start = j * _width, end = start + _width - 1;
 
             while (start <= end && _screen[start] == _prevScreen[start])
                 ++start;
@@ -1796,22 +1789,11 @@ void Editor::updateScreen(bool redrawAll)
                 --end;
 
             for (int i = start; i <= end; ++i)
-            {
-                if (_screen[i].ch)
-                    _output += _screen[i].ch;
-                else
-                {
-#ifdef PLATFORM_WINDOWS
-                    _output += ' ';
-#else
-                    _output += STR("\x1b[K");
+                if (!addCharToOutput(i, color))
                     break;
-#endif
-                }
-            }
 
             if (!_output.empty())
-                Console::write(j + 1, start - p + 1, _output);
+                Console::write(j + 1, start - j * _width + 1, _output);
         }
     }
 
@@ -1820,6 +1802,29 @@ void Editor::updateScreen(bool redrawAll)
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(true);
 #endif
+}
+
+bool Editor::addCharToOutput(int p, int& color)
+{
+#ifdef PLATFORM_WINDOWS
+    _output += _screen[p].ch ? _screen[p].ch : ' ';
+#else
+    if (color != _screen[p].color)
+    {
+        color = _screen[p].color;
+        _output.appendFormat(STR("\x1b[%dm"), color);
+    }
+
+    if (_screen[p].ch)
+        _output += _screen[p].ch;
+    else
+    {
+        _output += STR("\x1b[K");
+        return false;
+    }
+#endif
+
+    return true;
 }
 
 void Editor::updateStatusLine()

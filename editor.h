@@ -13,7 +13,7 @@ struct ScreenCell
     short color;
 
     ScreenCell() :
-        ch(0), color(30)
+        ch(0), color(39)
     {
     }
 
@@ -242,10 +242,15 @@ protected:
     Set<String> _types;
     Set<String> _preprocessor;
 
+    bool _enableHighlighting;
+    bool _brightBackground;
     TokenType _tokenType;
     int _charsRemaining;
     String _word;
     unichar_t _quote, _prevCh;
+
+    static const int _brightBackgroundColors[9];
+    static const int _darkBackgroundColors[9];
 };
 
 // RecentLocation
@@ -309,6 +314,7 @@ public:
 protected:
     void setDimensions();
     void updateScreen(bool redrawAll);
+    bool addCharToOutput(int p, int& color);
     void updateStatusLine();
 
     bool processInput();
