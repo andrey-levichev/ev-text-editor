@@ -23,19 +23,19 @@ struct ScreenCell
     }
 };
 
-// TokenType
+// HighlightingType
 
-enum TokenType
+enum HighlightingType
 {
-    TOKEN_TYPE_NONE,
-    TOKEN_TYPE_STRING,
-    TOKEN_TYPE_NUMBER,
-    TOKEN_TYPE_IDENT,
-    TOKEN_TYPE_KEYWORD,
-    TOKEN_TYPE_TYPE,
-    TOKEN_TYPE_SINGLELINE_COMMENT,
-    TOKEN_TYPE_MULTILINE_COMMENT,
-    TOKEN_TYPE_PREPROCESSOR
+    HIGHLIGHTING_TYPE_NONE,
+    HIGHLIGHTING_TYPE_STRING,
+    HIGHLIGHTING_TYPE_NUMBER,
+    HIGHLIGHTING_TYPE_IDENT,
+    HIGHLIGHTING_TYPE_KEYWORD,
+    HIGHLIGHTING_TYPE_TYPE,
+    HIGHLIGHTING_TYPE_SINGLELINE_COMMENT,
+    HIGHLIGHTING_TYPE_MULTILINE_COMMENT,
+    HIGHLIGHTING_TYPE_PREPROCESSOR
 };
 
 // Document
@@ -229,6 +229,7 @@ protected:
 
     int _top, _left;
     int _topPosition;
+    int _prevTopPosition;
 
     int _x, _y;
     int _width, _height;
@@ -244,7 +245,7 @@ protected:
 
     bool _enableHighlighting;
     bool _brightBackground;
-    TokenType _tokenType;
+    HighlightingType _tokenType;
     int _charsRemaining;
     String _word;
     unichar_t _quote, _prevCh;

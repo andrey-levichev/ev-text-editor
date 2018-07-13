@@ -122,12 +122,37 @@ struct InputEvent
     }
 };
 
+// ConsoleColor
+
+enum ConsoleColor
+{
+    CONSOLE_COLOR_DEFAULT = 39,
+    CONSOLE_COLOR_BLACK = 30,
+    CONSOLE_COLOR_RED = 31,
+    CONSOLE_COLOR_GREEN = 32,
+    CONSOLE_COLOR_YELLOW = 33,
+    CONSOLE_COLOR_BLUE = 34,
+    CONSOLE_COLOR_MAGENTA = 35,
+    CONSOLE_COLOR_CYAN = 36,
+    CONSOLE_COLOR_WHITE = 37,
+    CONSOLE_COLOR_BRIGHT_BLACK = 90,
+    CONSOLE_COLOR_BRIGHT_RED = 91,
+    CONSOLE_COLOR_BRIGHT_GREEN = 92,
+    CONSOLE_COLOR_BRIGHT_YELLOW = 93,
+    CONSOLE_COLOR_BRIGHT_BLUE = 94,
+    CONSOLE_COLOR_BRIGHT_MAGENTA = 95,
+    CONSOLE_COLOR_BRIGHT_CYAN = 96,
+    CONSOLE_COLOR_BRIGHT_WHITE = 97
+};
+
 // Console
 
 class Console
 {
 public:
     static void setLineMode(bool lineMode);
+    static void setColor(ConsoleColor foreground = CONSOLE_COLOR_DEFAULT,
+        ConsoleColor background = CONSOLE_COLOR_DEFAULT);
 
     static void write(const String& str);
     static void write(const char_t* chars, int len = -1);
@@ -162,6 +187,7 @@ public:
 protected:
 #ifdef PLATFORM_WINDOWS
     static Buffer<INPUT_RECORD> _inputRecords;
+    static WORD _defaultForeground, _defaultBackground;
 #else
     static Array<char> _inputChars;
 #endif
@@ -171,6 +197,7 @@ protected:
     struct Constructor
     {
         Constructor();
+        ~Constructor();
     };
 
     static Constructor constructor;

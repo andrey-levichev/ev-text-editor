@@ -312,9 +312,15 @@ static KeyMapping keyMapping[] =
 // Console
 
 #ifdef PLATFORM_WINDOWS
+
 Buffer<INPUT_RECORD> Console::_inputRecords(16);
+WORD Console::_defaultForeground = 0;
+WORD Console::_defaultBackground = 0;
+
 #else
+
 Array<char> Console::_inputChars(16);
+
 #endif
 
 Array<InputEvent> Console::_inputEvents;
@@ -330,6 +336,19 @@ Console::Constructor::Constructor()
 
         rc = _setmode(_fileno(stdout), _O_U16TEXT);
         ASSERT(rc >= 0);
+
+        HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        ASSERT(handle);
+
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        rc = GetConsoleScreenBufferInfo(handle, &csbi);
+        ASSERT(rc);
+
+        _defaultForeground = csbi.wAttributes &
+            (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+
+        _defaultBackground = csbi.wAttributes &
+            (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY);
 #else
         int rc = setvbuf(stdout, NULL, _IONBF, 0);
         ASSERT(rc == 0);
@@ -339,6 +358,24 @@ Console::Constructor::Constructor()
 
         setlocale(LC_ALL, "");
         setLineMode(true);
+    }
+    catch (Exception& ex)
+    {
+        Console::writeLine(ex.message());
+        abort();
+    }
+    catch (...)
+    {
+        Console::writeLine(STR("unknown error"));
+        abort();
+    }
+}
+
+Console::Constructor::~Constructor()
+{
+    try
+    {
+        setColor();
     }
     catch (Exception& ex)
     {
@@ -382,6 +419,7 @@ void Console::setLineMode(bool lineMode)
         rc = tcsetattr(STDIN_FILENO, TCSANOW, &ta);
         ASSERT(rc == 0);
 
+
         printf("\x1b[?1000l");
     }
     else
@@ -401,6 +439,125 @@ void Console::setLineMode(bool lineMode)
         printf("\x1b[?1000h");
         printf("\x1b[?1006h");
     }
+#endif
+}
+
+void Console::setColor(ConsoleColor foreground, ConsoleColor background)
+{
+#ifdef PLATFORM_WINDOWS
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    WORD attribute = 0;
+
+    switch (foreground)
+    {
+    case CONSOLE_COLOR_DEFAULT:
+        attribute |= _defaultForeground;
+        break;
+    case CONSOLE_COLOR_RED:
+        attribute |= FOREGROUND_RED;
+        break;
+    case CONSOLE_COLOR_GREEN:
+        attribute |= FOREGROUND_GREEN;
+        break;
+    case CONSOLE_COLOR_YELLOW:
+        attribute |= FOREGROUND_GREEN | FOREGROUND_RED;
+        break;
+    case CONSOLE_COLOR_BLUE:
+        attribute |= FOREGROUND_BLUE;
+        break;
+    case CONSOLE_COLOR_MAGENTA:
+        attribute |= FOREGROUND_RED | FOREGROUND_BLUE;
+        break;
+    case CONSOLE_COLOR_CYAN:
+        attribute |= FOREGROUND_GREEN | FOREGROUND_BLUE;
+        break;
+    case CONSOLE_COLOR_WHITE:
+        attribute |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+        break;
+    case CONSOLE_COLOR_BRIGHT_BLACK:
+        attribute |= FOREGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_RED:
+        attribute |= FOREGROUND_RED | FOREGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_GREEN:
+        attribute |= FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_YELLOW:
+        attribute |= FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_BLUE:
+        attribute |= FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_MAGENTA:
+        attribute |= FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_CYAN:
+        attribute |= FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_WHITE:
+        attribute |= FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+        break;
+    }
+
+    switch (background)
+    {
+    case CONSOLE_COLOR_DEFAULT:
+        attribute |= _defaultBackground;
+        break;
+    case CONSOLE_COLOR_RED:
+        attribute |= BACKGROUND_RED;
+        break;
+    case CONSOLE_COLOR_GREEN:
+        attribute |= BACKGROUND_GREEN;
+        break;
+    case CONSOLE_COLOR_YELLOW:
+        attribute |= BACKGROUND_GREEN | BACKGROUND_RED;
+        break;
+    case CONSOLE_COLOR_BLUE:
+        attribute |= BACKGROUND_BLUE;
+        break;
+    case CONSOLE_COLOR_MAGENTA:
+        attribute |= BACKGROUND_RED | BACKGROUND_BLUE;
+        break;
+    case CONSOLE_COLOR_CYAN:
+        attribute |= BACKGROUND_GREEN | BACKGROUND_BLUE;
+        break;
+    case CONSOLE_COLOR_WHITE:
+        attribute |= BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
+        break;
+    case CONSOLE_COLOR_BRIGHT_BLACK:
+        attribute |= BACKGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_RED:
+        attribute |= BACKGROUND_RED | BACKGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_GREEN:
+        attribute |= BACKGROUND_GREEN | BACKGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_YELLOW:
+        attribute |= BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_BLUE:
+        attribute |= BACKGROUND_BLUE | BACKGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_MAGENTA:
+        attribute |= BACKGROUND_RED | BACKGROUND_BLUE | BACKGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_CYAN:
+        attribute |= BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY;
+        break;
+    case CONSOLE_COLOR_BRIGHT_WHITE:
+        attribute |= BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY;
+        break;
+    }
+
+    BOOL rc = SetConsoleTextAttribute(handle, attribute);
+    ASSERT(rc);
+#else
+    Console::writeFormatted(STR("\x1b[%d;%dm"), foreground, background + 10);
 #endif
 }
 

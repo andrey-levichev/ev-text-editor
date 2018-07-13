@@ -6071,11 +6071,19 @@ void runTests()
 //    testConsoleReadInput();
 }
 
+void testColor()
+{
+    Console::setColor(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_RED);
+    Console::writeLine(STR("mvadvdsfvsd"));
+    Console::setColor(CONSOLE_COLOR_GREEN, CONSOLE_COLOR_BRIGHT_BLACK);
+    Console::writeLine(STR("mvadvdsfvsd"));
+}
+
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        runTests();
+        testColor();
     }
     catch (Exception& ex)
     {

@@ -3,6 +3,13 @@ release:
 figure out keycode to key combination mapping
 * clipboard integration on macos
 * screen corruption on windows after scrolling console window
+* syntax highlighting
+windows support
+token that starts beyod the edge of the screen
+support for dark/light background
+configurable colors
+improved number highlighting
+support for other languages (shell, xml, html, java, c#, javascript, python)
 
 editor:
 * delete to start/end of line
@@ -11,7 +18,6 @@ editor:
 * cycle documents in most recently used order
 * copy/delete lines
 * change case
-* syntax highlighting
 * parse build output for errors
 * undo/redo
 * find all occurences/go to symbol

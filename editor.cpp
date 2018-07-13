@@ -16,7 +16,8 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 
 // Document
 
-const int Document::_brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
+const int Document::_brightBackgroundColors[] = { 39, 93, 91, 39, 94, 96, 90, 90, 95 };
+//const int Document::_brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
 const int Document::_darkBackgroundColors[] = { 39, 93, 91, 39, 96, 92, 37, 37, 95 };
 
 Document::Document()
@@ -723,14 +724,14 @@ void Document::clear()
     _preferredColumn = 1;
 
     _top = _left = 1;
-    _topPosition = 0;
+    _prevTopPosition = _topPosition = 0;
 
     _selectionMode = false;
     _selection = -1;
 
     _enableHighlighting = false;
     _brightBackground = true;
-    _tokenType = TOKEN_TYPE_NONE;
+    _tokenType = HIGHLIGHTING_TYPE_NONE;
     _charsRemaining = 0;
     _word.clear();
     _quote = _prevCh = 0;
@@ -752,6 +753,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     ASSERT(screenWidth > 0);
 
     int l;
+    _prevTopPosition = _topPosition;
 
     if (_line < _top)
         lineColumnToPosition(_position, _line, _column, _line, 1, _topPosition, _top, l);
@@ -778,7 +780,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
 
     const int* colors = _brightBackground ? _brightBackgroundColors : _darkBackgroundColors;
 
-    _tokenType = TOKEN_TYPE_NONE;
+    _tokenType = HIGHLIGHTING_TYPE_NONE;
     _charsRemaining = 0;
     _word.clear();
     _quote = _prevCh = 0;
@@ -1485,10 +1487,10 @@ void Document::highlightChar(int p, unichar_t ch)
         if (_charsRemaining > 0)
             return;
 
-        _tokenType = TOKEN_TYPE_NONE;
+        _tokenType = HIGHLIGHTING_TYPE_NONE;
     }
 
-    if (_tokenType == TOKEN_TYPE_STRING)
+    if (_tokenType == HIGHLIGHTING_TYPE_STRING)
     {
         if (_prevCh == '\\')
             _prevCh = 0;
@@ -1499,25 +1501,25 @@ void Document::highlightChar(int p, unichar_t ch)
 
         return;
     }
-    else if (_tokenType == TOKEN_TYPE_NUMBER)
+    else if (_tokenType == HIGHLIGHTING_TYPE_NUMBER)
     {
         if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
                 ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
                 ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
                 ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
                 ch == '.' || ch == '+' || ch == '-'))
-            _tokenType = TOKEN_TYPE_NONE;
+            _tokenType = HIGHLIGHTING_TYPE_NONE;
 
         return;
     }
-    else if (_tokenType == TOKEN_TYPE_SINGLELINE_COMMENT)
+    else if (_tokenType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
     {
         if (ch == '\n')
             _charsRemaining = 1;
 
         return;
     }
-    else if (_tokenType == TOKEN_TYPE_MULTILINE_COMMENT)
+    else if (_tokenType == HIGHLIGHTING_TYPE_MULTILINE_COMMENT)
     {
         if (ch == '*')
         {
@@ -1532,12 +1534,14 @@ void Document::highlightChar(int p, unichar_t ch)
 
         return;
     }
-    else if (_tokenType == TOKEN_TYPE_PREPROCESSOR)
+    else if (_tokenType == HIGHLIGHTING_TYPE_PREPROCESSOR)
     {
-        if (_prevCh == '\\')
+        if (ch == '\n')
+        {
+            if (_prevCh != '\\')
+                _charsRemaining = 1;
             _prevCh = 0;
-        else if (ch == '\n')
-            _charsRemaining = 1;
+        }
         else if (ch == '\\')
             _prevCh = ch;
 
@@ -1547,11 +1551,11 @@ void Document::highlightChar(int p, unichar_t ch)
     if (ch == '"' || ch == '\'')
     {
         _quote = ch;
-        _tokenType = TOKEN_TYPE_STRING;
+        _tokenType = HIGHLIGHTING_TYPE_STRING;
     }
     else if (charIsDigit(ch))
     {
-        _tokenType = TOKEN_TYPE_NUMBER;
+        _tokenType = HIGHLIGHTING_TYPE_NUMBER;
     }
     else if (charIsAlphaNum(ch) || ch == '_')
     {
@@ -1571,11 +1575,11 @@ void Document::highlightChar(int p, unichar_t ch)
         _charsRemaining = _word.length();
 
         if (_keywords.contains(_word))
-            _tokenType = TOKEN_TYPE_KEYWORD;
+            _tokenType = HIGHLIGHTING_TYPE_KEYWORD;
         else if (_types.contains(_word))
-            _tokenType = TOKEN_TYPE_TYPE;
+            _tokenType = HIGHLIGHTING_TYPE_TYPE;
         else
-            _tokenType = TOKEN_TYPE_IDENT;
+            _tokenType = HIGHLIGHTING_TYPE_IDENT;
     }
     else if (ch == '/')
     {
@@ -1586,9 +1590,9 @@ void Document::highlightChar(int p, unichar_t ch)
             ch = _text.charAt(p);
 
             if (ch == '*')
-                _tokenType = TOKEN_TYPE_MULTILINE_COMMENT;
+                _tokenType = HIGHLIGHTING_TYPE_MULTILINE_COMMENT;
             else if (ch == '/')
-                _tokenType = TOKEN_TYPE_SINGLELINE_COMMENT;
+                _tokenType = HIGHLIGHTING_TYPE_SINGLELINE_COMMENT;
         }
     }
     else if (ch == '#')
@@ -1613,7 +1617,7 @@ void Document::highlightChar(int p, unichar_t ch)
             _word = _text.substr(q, p - q);
 
             if (_preprocessor.contains(_word))
-                _tokenType = TOKEN_TYPE_PREPROCESSOR;
+                _tokenType = HIGHLIGHTING_TYPE_PREPROCESSOR;
         }
     }
 }
