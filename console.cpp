@@ -634,17 +634,25 @@ void Console::write(int line, int column, const char_t* chars, int len)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
+    BOOL rc = SetConsoleMode(handle, ENABLE_PROCESSED_OUTPUT);
+    ASSERT(rc);
+
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
+    rc = GetConsoleScreenBufferInfo(handle, &csbi);
     ASSERT(rc);
 
     COORD pos;
     pos.X = csbi.srWindow.Left + column - 1;
     pos.Y = csbi.srWindow.Top + line - 1;
 
+    rc = SetConsoleCursorPosition(handle, pos);
+    ASSERT(rc);
+
     DWORD written;
-    rc = WriteConsoleOutputCharacter(handle,
-        reinterpret_cast<LPCTSTR>(chars), l, pos, &written);
+    rc = WriteConsole(handle, chars, l, &written, NULL);
+    ASSERT(rc);
+
+    rc = SetConsoleMode(handle, ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT);
     ASSERT(rc);
 #else
     setCursorPosition(line, column);

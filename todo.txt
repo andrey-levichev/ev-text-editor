@@ -10,6 +10,7 @@ support for dark/light background
 configurable colors
 improved number highlighting
 support for other languages (shell, xml, html, java, c#, javascript, python)
+single instance of keywords
 
 editor:
 * delete to start/end of line

@@ -246,7 +246,7 @@ protected:
     bool _enableHighlighting;
     bool _brightBackground;
     HighlightingType _tokenType;
-    int _charsRemaining;
+    int _charsRemaining, _prevPos;
     String _word;
     unichar_t _quote, _prevCh;
 
@@ -315,7 +315,6 @@ public:
 protected:
     void setDimensions();
     void updateScreen(bool redrawAll);
-    bool addCharToOutput(int p, int& color);
     void updateStatusLine();
 
     bool processInput();

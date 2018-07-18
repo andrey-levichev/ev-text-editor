@@ -16,8 +16,7 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 
 // Document
 
-const int Document::_brightBackgroundColors[] = { 39, 93, 91, 39, 94, 96, 90, 90, 95 };
-//const int Document::_brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
+const int Document::_brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
 const int Document::_darkBackgroundColors[] = { 39, 93, 91, 39, 96, 92, 37, 37, 95 };
 
 Document::Document()
@@ -733,6 +732,7 @@ void Document::clear()
     _brightBackground = true;
     _tokenType = HIGHLIGHTING_TYPE_NONE;
     _charsRemaining = 0;
+    _prevPos = -1;
     _word.clear();
     _quote = _prevCh = 0;
 }
@@ -782,6 +782,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
 
     _tokenType = HIGHLIGHTING_TYPE_NONE;
     _charsRemaining = 0;
+    _prevPos = -1;
     _word.clear();
     _quote = _prevCh = 0;
 
@@ -819,6 +820,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
         }
 
         ch = _text.charAt(p);
+        highlightChar(p, ch);
 
         if (ch == '\n')
             p = _text.charForward(p);
@@ -828,6 +830,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
             {
                 p = _text.charForward(p);
                 ch = _text.charAt(p);
+                highlightChar(p, ch);
             }
 
             if (ch == '\n')
@@ -1481,6 +1484,10 @@ void Document::populateKeywords()
 
 void Document::highlightChar(int p, unichar_t ch)
 {
+    if (p <= _prevPos)
+        return;
+    _prevPos = p;
+
     if (_charsRemaining > 0)
     {
         --_charsRemaining;
@@ -1738,7 +1745,6 @@ void Editor::setDimensions()
 void Editor::updateScreen(bool redrawAll)
 {
     int line, col;
-    int color = 0;
     _prevScreen = _screen;
 
 #ifndef PLATFORM_WINDOWS
@@ -1769,19 +1775,63 @@ void Editor::updateScreen(bool redrawAll)
     {
         for (int j = 0; j < _height; ++j)
         {
+            int color = 0;
             _output.clear();
 
-            for (int i = j * _width, end = i + _width; i < end; ++i)
-                if (!addCharToOutput(i, color))
-                    break;
+#ifdef PLATFORM_WINDOWS
+            int k = j * _width;
 
-            Console::write(j + 1, 1, _output);
+            for (int i = j * _width, end = i + _width; i < end; ++i)
+            {
+                if (color != _screen[i].color)
+                {
+                    if (!_output.empty())
+                    {
+                        Console::setColor(static_cast<ConsoleColor>(color));
+                        Console::write(j + 1, k - j * _width + 1, _output);
+                    }
+
+                    color = _screen[i].color;
+                    _output.clear();
+                    k = i;
+                }
+
+                _output += _screen[i].ch ? _screen[i].ch : ' ';
+            }
+
+            if (!_output.empty())
+            {
+                Console::setColor(static_cast<ConsoleColor>(color));
+                Console::write(j + 1, k - j * _width + 1, _output);
+            }
+#else
+            for (int i = j * _width, end = i + _width; i < end; ++i)
+            {
+                if (color != _screen[i].color)
+                {
+                    color = _screen[i].color;
+                    _output.appendFormat(STR("\x1b[%dm"), color);
+                }
+
+                if (_screen[i].ch)
+                    _output += _screen[i].ch;
+                else
+                {
+                    _output += STR("\x1b[K");
+                    break;
+                }
+            }
+
+            if (!_output.empty())
+                Console::write(j + 1, 1, _output);
+#endif
         }
     }
     else
     {
         for (int j = 0; j < _height; ++j)
         {
+            int color = 0;
             _output.clear();
 
             int start = j * _width, end = start + _width - 1;
@@ -1792,12 +1842,53 @@ void Editor::updateScreen(bool redrawAll)
             while (start <= end && _screen[end] == _prevScreen[end])
                 --end;
 
+#ifdef PLATFORM_WINDOWS
+            int k = start;
+
             for (int i = start; i <= end; ++i)
-                if (!addCharToOutput(i, color))
+            {
+                if (color != _screen[i].color)
+                {
+                    if (!_output.empty())
+                    {
+                        Console::setColor(static_cast<ConsoleColor>(color));
+                        Console::write(j + 1, k - j * _width + 1, _output);
+                    }
+
+                    color = _screen[i].color;
+                    _output.clear();
+                    k = i;
+                }
+
+                _output += _screen[i].ch ? _screen[i].ch : ' ';
+            }
+
+            if (!_output.empty())
+            {
+                Console::setColor(static_cast<ConsoleColor>(color));
+                Console::write(j + 1, k - j * _width + 1, _output);
+            }
+#else
+            for (int i = start; i <= end; ++i)
+            {
+                if (color != _screen[i].color)
+                {
+                    color = _screen[i].color;
+                    _output.appendFormat(STR("\x1b[%dm"), color);
+                }
+
+                if (_screen[i].ch)
+                    _output += _screen[i].ch;
+                else
+                {
+                    _output += STR("\x1b[K");
                     break;
+                }
+            }
 
             if (!_output.empty())
                 Console::write(j + 1, start - j * _width + 1, _output);
+#endif
         }
     }
 
@@ -1806,29 +1897,6 @@ void Editor::updateScreen(bool redrawAll)
 #ifndef PLATFORM_WINDOWS
     Console::showCursor(true);
 #endif
-}
-
-bool Editor::addCharToOutput(int p, int& color)
-{
-#ifdef PLATFORM_WINDOWS
-    _output += _screen[p].ch ? _screen[p].ch : ' ';
-#else
-    if (color != _screen[p].color)
-    {
-        color = _screen[p].color;
-        _output.appendFormat(STR("\x1b[%dm"), color);
-    }
-
-    if (_screen[p].ch)
-        _output += _screen[p].ch;
-    else
-    {
-        _output += STR("\x1b[K");
-        return false;
-    }
-#endif
-
-    return true;
 }
 
 void Editor::updateStatusLine()

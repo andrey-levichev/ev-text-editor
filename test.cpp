@@ -6083,7 +6083,9 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        testColor();
+        Console::write(1, 116, STR("12345"));
+        Console::write(STR("*"));
+        Console::readLine();
     }
     catch (Exception& ex)
     {
