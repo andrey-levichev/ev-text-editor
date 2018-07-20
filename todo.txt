@@ -4,7 +4,6 @@ figure out keycode to key combination mapping
 * clipboard integration on macos
 * screen corruption on windows after scrolling console window
 * syntax highlighting
-windows support
 token that starts beyod the edge of the screen
 support for dark/light background
 configurable colors

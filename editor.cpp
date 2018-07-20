@@ -1775,20 +1775,22 @@ void Editor::updateScreen(bool redrawAll)
     {
         for (int j = 0; j < _height; ++j)
         {
+            int jw = j * _width, start = jw, end = start + _width;
             int color = 0;
+
             _output.clear();
 
 #ifdef PLATFORM_WINDOWS
-            int k = j * _width;
+            int k = start;
 
-            for (int i = j * _width, end = i + _width; i < end; ++i)
+            for (int i = start; i < end; ++i)
             {
                 if (color != _screen[i].color)
                 {
                     if (!_output.empty())
                     {
                         Console::setColor(static_cast<ConsoleColor>(color));
-                        Console::write(j + 1, k - j * _width + 1, _output);
+                        Console::write(j + 1, k - jw + 1, _output);
                     }
 
                     color = _screen[i].color;
@@ -1802,10 +1804,10 @@ void Editor::updateScreen(bool redrawAll)
             if (!_output.empty())
             {
                 Console::setColor(static_cast<ConsoleColor>(color));
-                Console::write(j + 1, k - j * _width + 1, _output);
+                Console::write(j + 1, k - jw + 1, _output);
             }
 #else
-            for (int i = j * _width, end = i + _width; i < end; ++i)
+            for (int i = start; i < end; ++i)
             {
                 if (color != _screen[i].color)
                 {
@@ -1831,10 +1833,10 @@ void Editor::updateScreen(bool redrawAll)
     {
         for (int j = 0; j < _height; ++j)
         {
+            int jw = j * _width, start = jw, end = start + _width - 1;
             int color = 0;
-            _output.clear();
 
-            int start = j * _width, end = start + _width - 1;
+            _output.clear();
 
             while (start <= end && _screen[start] == _prevScreen[start])
                 ++start;
@@ -1852,7 +1854,7 @@ void Editor::updateScreen(bool redrawAll)
                     if (!_output.empty())
                     {
                         Console::setColor(static_cast<ConsoleColor>(color));
-                        Console::write(j + 1, k - j * _width + 1, _output);
+                        Console::write(j + 1, k - jw + 1, _output);
                     }
 
                     color = _screen[i].color;
@@ -1866,7 +1868,7 @@ void Editor::updateScreen(bool redrawAll)
             if (!_output.empty())
             {
                 Console::setColor(static_cast<ConsoleColor>(color));
-                Console::write(j + 1, k - j * _width + 1, _output);
+                Console::write(j + 1, k - jw + 1, _output);
             }
 #else
             for (int i = start; i <= end; ++i)
@@ -1887,7 +1889,7 @@ void Editor::updateScreen(bool redrawAll)
             }
 
             if (!_output.empty())
-                Console::write(j + 1, start - j * _width + 1, _output);
+                Console::write(j + 1, start - jw + 1, _output);
 #endif
         }
     }
