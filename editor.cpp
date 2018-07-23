@@ -1,6 +1,8 @@
 #include <editor.h>
 
 const int TAB_SIZE = 4;
+const int brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
+const int darkBackgroundColors[] = { 39, 93, 91, 39, 96, 92, 37, 37, 95 };
 
 bool charIsWord(unichar_t ch)
 {
@@ -14,17 +16,313 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
         (prevCh != '\n' && ch == '\n');
 }
 
+// SyntaxHighlighter
+
+SyntaxHighlighter::SyntaxHighlighter(DocumentType documentType)
+{
+    _keywords.add(String(STR("alignas")));
+    _keywords.add(String(STR("alignof")));
+    _keywords.add(String(STR("and")));
+    _keywords.add(String(STR("and_eq")));
+    _keywords.add(String(STR("asm")));
+    _keywords.add(String(STR("atomic_cancel")));
+    _keywords.add(String(STR("atomic_commit")));
+    _keywords.add(String(STR("atomic_noexcept")));
+    _keywords.add(String(STR("bitand")));
+    _keywords.add(String(STR("bitor")));
+    _keywords.add(String(STR("break")));
+    _keywords.add(String(STR("case")));
+    _keywords.add(String(STR("catch")));
+    _keywords.add(String(STR("class")));
+    _keywords.add(String(STR("compl")));
+    _keywords.add(String(STR("concept")));
+    _keywords.add(String(STR("const_cast")));
+    _keywords.add(String(STR("continue")));
+    _keywords.add(String(STR("co_await")));
+    _keywords.add(String(STR("co_return")));
+    _keywords.add(String(STR("co_yield")));
+    _keywords.add(String(STR("decltype")));
+    _keywords.add(String(STR("default")));
+    _keywords.add(String(STR("delete")));
+    _keywords.add(String(STR("do")));
+    _keywords.add(String(STR("dynamic_cast")));
+    _keywords.add(String(STR("else")));
+    _keywords.add(String(STR("enum")));
+    _keywords.add(String(STR("explicit")));
+    _keywords.add(String(STR("export")));
+    _keywords.add(String(STR("extern")));
+    _keywords.add(String(STR("false")));
+    _keywords.add(String(STR("for")));
+    _keywords.add(String(STR("friend")));
+    _keywords.add(String(STR("goto")));
+    _keywords.add(String(STR("if")));
+    _keywords.add(String(STR("import")));
+    _keywords.add(String(STR("inline")));
+    _keywords.add(String(STR("module")));
+    _keywords.add(String(STR("mutable")));
+    _keywords.add(String(STR("namespace")));
+    _keywords.add(String(STR("new")));
+    _keywords.add(String(STR("noexcept")));
+    _keywords.add(String(STR("not")));
+    _keywords.add(String(STR("not_eq")));
+    _keywords.add(String(STR("nullptr")));
+    _keywords.add(String(STR("operator")));
+    _keywords.add(String(STR("or")));
+    _keywords.add(String(STR("or_eq")));
+    _keywords.add(String(STR("private")));
+    _keywords.add(String(STR("protected")));
+    _keywords.add(String(STR("public")));
+    _keywords.add(String(STR("register")));
+    _keywords.add(String(STR("reflexpr")));
+    _keywords.add(String(STR("reinterpret_cast")));
+    _keywords.add(String(STR("requires")));
+    _keywords.add(String(STR("return")));
+    _keywords.add(String(STR("sizeof")));
+    _keywords.add(String(STR("static")));
+    _keywords.add(String(STR("static_assert")));
+    _keywords.add(String(STR("static_cast")));
+    _keywords.add(String(STR("struct")));
+    _keywords.add(String(STR("switch")));
+    _keywords.add(String(STR("synchronized")));
+    _keywords.add(String(STR("template")));
+    _keywords.add(String(STR("this")));
+    _keywords.add(String(STR("thread_local")));
+    _keywords.add(String(STR("throw")));
+    _keywords.add(String(STR("true")));
+    _keywords.add(String(STR("try")));
+    _keywords.add(String(STR("typedef")));
+    _keywords.add(String(STR("typeid")));
+    _keywords.add(String(STR("typename")));
+    _keywords.add(String(STR("union")));
+    _keywords.add(String(STR("using")));
+    _keywords.add(String(STR("virtual")));
+    _keywords.add(String(STR("while")));
+    _keywords.add(String(STR("xor")));
+    _keywords.add(String(STR("xor_eq")));
+    _keywords.add(String(STR("override")));
+    _keywords.add(String(STR("final")));
+    _keywords.add(String(STR("transaction_safe")));
+    _keywords.add(String(STR("transaction_safe_dynamic")));
+    _keywords.add(String(STR("_Pragma")));
+
+    _types.add(String(STR("auto")));
+    _types.add(String(STR("bool")));
+    _types.add(String(STR("byte")));
+    _types.add(String(STR("char")));
+    _types.add(String(STR("char16_t")));
+    _types.add(String(STR("char32_t")));
+    _types.add(String(STR("const")));
+    _types.add(String(STR("constexpr")));
+    _types.add(String(STR("double")));
+    _types.add(String(STR("float")));
+    _types.add(String(STR("int")));
+    _types.add(String(STR("long")));
+    _types.add(String(STR("short")));
+    _types.add(String(STR("signed")));
+    _types.add(String(STR("unsigned")));
+    _types.add(String(STR("void")));
+    _types.add(String(STR("volatile")));
+    _types.add(String(STR("wchar_t")));
+    _types.add(String(STR("int8_t")));
+    _types.add(String(STR("int16_t")));
+    _types.add(String(STR("int32_t")));
+    _types.add(String(STR("int64_t")));
+    _types.add(String(STR("uint8_t")));
+    _types.add(String(STR("uint16_t")));
+    _types.add(String(STR("uint32_t")));
+    _types.add(String(STR("uint64_t")));
+    _types.add(String(STR("intptr_t")));
+    _types.add(String(STR("uintptr_t")));
+    _types.add(String(STR("intmax_t")));
+    _types.add(String(STR("uintmax_t")));
+    _types.add(String(STR("size_t")));
+    _types.add(String(STR("ptrdiff_t")));
+    _types.add(String(STR("nullptr_t")));
+    _types.add(String(STR("max_align_t")));
+    _types.add(String(STR("unichar_t")));
+    _types.add(String(STR("char_t")));
+    _types.add(String(STR("byte_t")));
+
+    _preprocessor.add(String(STR("if")));
+    _preprocessor.add(String(STR("elif")));
+    _preprocessor.add(String(STR("else")));
+    _preprocessor.add(String(STR("endif")));
+    _preprocessor.add(String(STR("defined")));
+    _preprocessor.add(String(STR("ifdef")));
+    _preprocessor.add(String(STR("ifndef")));
+    _preprocessor.add(String(STR("define")));
+    _preprocessor.add(String(STR("undef")));
+    _preprocessor.add(String(STR("include")));
+    _preprocessor.add(String(STR("line")));
+    _preprocessor.add(String(STR("error")));
+    _preprocessor.add(String(STR("pragma")));
+}
+
+void SyntaxHighlighter::startHighlighting()
+{
+    _highlightingType = HIGHLIGHTING_TYPE_NONE;
+    _charsRemaining = 0;
+    _prevPos = -1;
+    _word.clear();
+    _quote = _prevCh = 0;
+}
+
+void SyntaxHighlighter::highlightChar(const String& text, int pos)
+{
+    if (pos <= _prevPos)
+        return;
+    _prevPos = pos;
+
+    if (_charsRemaining > 0)
+    {
+        --_charsRemaining;
+        if (_charsRemaining > 0)
+            return;
+
+        _highlightingType = HIGHLIGHTING_TYPE_NONE;
+    }
+
+    unichar_t ch = text.charAt(pos);
+
+    if (_highlightingType == HIGHLIGHTING_TYPE_STRING)
+    {
+        if (_prevCh == '\\')
+            _prevCh = 0;
+        else if (ch == _quote)
+            _charsRemaining = 1;
+        else if (ch == '\\')
+            _prevCh = ch;
+
+        return;
+    }
+    else if (_highlightingType == HIGHLIGHTING_TYPE_NUMBER)
+    {
+        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
+                ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
+                ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
+                ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
+                ch == '.' || ch == '+' || ch == '-'))
+            _highlightingType = HIGHLIGHTING_TYPE_NONE;
+
+        return;
+    }
+    else if (_highlightingType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
+    {
+        if (ch == '\n')
+            _charsRemaining = 1;
+
+        return;
+    }
+    else if (_highlightingType == HIGHLIGHTING_TYPE_MULTILINE_COMMENT)
+    {
+        if (ch == '*')
+        {
+            pos = text.charForward(pos);
+
+            if (pos < text.length())
+            {
+                if (text.charAt(pos) == '/')
+                    _charsRemaining = 2;
+            }
+        }
+
+        return;
+    }
+    else if (_highlightingType == HIGHLIGHTING_TYPE_PREPROCESSOR)
+    {
+        if (ch == '\n')
+        {
+            if (_prevCh != '\\')
+                _charsRemaining = 1;
+            _prevCh = 0;
+        }
+        else if (ch == '\\')
+            _prevCh = ch;
+
+        return;
+    }
+
+    if (ch == '"' || ch == '\'')
+    {
+        _quote = ch;
+        _highlightingType = HIGHLIGHTING_TYPE_STRING;
+    }
+    else if (charIsDigit(ch))
+    {
+        _highlightingType = HIGHLIGHTING_TYPE_NUMBER;
+    }
+    else if (charIsAlphaNum(ch) || ch == '_')
+    {
+        int s = pos;
+
+        do
+        {
+            pos = text.charForward(pos);
+            if (pos < text.length())
+                ch = text.charAt(pos);
+            else
+                break;
+        }
+        while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
+
+        _word = text.substr(s, pos - s);
+        _charsRemaining = _word.length();
+
+        if (_keywords.contains(_word))
+            _highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
+        else if (_types.contains(_word))
+            _highlightingType = HIGHLIGHTING_TYPE_TYPE;
+        else
+            _highlightingType = HIGHLIGHTING_TYPE_IDENT;
+    }
+    else if (ch == '/')
+    {
+        pos = text.charForward(pos);
+
+        if (pos < text.length())
+        {
+            ch = text.charAt(pos);
+
+            if (ch == '*')
+                _highlightingType = HIGHLIGHTING_TYPE_MULTILINE_COMMENT;
+            else if (ch == '/')
+                _highlightingType = HIGHLIGHTING_TYPE_SINGLELINE_COMMENT;
+        }
+    }
+    else if (ch == '#')
+    {
+        int s = pos;
+        pos = text.charForward(pos);
+
+        if (pos < text.length())
+        {
+            ch = text.charAt(pos);
+            int q = pos;
+
+            while (charIsAlpha(ch))
+            {
+                pos = text.charForward(pos);
+                if (pos < text.length())
+                    ch = text.charAt(pos);
+                else
+                    break;
+            }
+
+            _word = text.substr(q, pos - q);
+
+            if (_preprocessor.contains(_word))
+                _highlightingType = HIGHLIGHTING_TYPE_PREPROCESSOR;
+        }
+    }
+}
+
 // Document
 
-const int Document::_brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
-const int Document::_darkBackgroundColors[] = { 39, 93, 91, 39, 96, 92, 37, 37, 95 };
-
-Document::Document(const Editor* editor) :
+Document::Document(Editor* editor) :
     _editor(editor)
 {
     clear();
     setDimensions(1, 1, 1, 1);
-    populateKeywords();
 }
 
 bool Document::moveForward()
@@ -680,9 +978,10 @@ void Document::open(const String& filename)
 	{
         ByteBuffer bytes = file.read();
         _text.assign(Unicode::bytesToString(bytes, _encoding, _bom, _crLf));
-        _enableHighlighting = filename.endsWith(STR(".c")) ||
-            filename.endsWith(STR(".h")) || filename.endsWith(STR(".cpp")) ||
-            filename.endsWith(STR(".hpp"));
+
+        if (filename.endsWith(STR(".c")) || filename.endsWith(STR(".h")) ||
+                filename.endsWith(STR(".cpp")) || filename.endsWith(STR(".hpp")))
+            _documentType = DOCUMENT_TYPE_CPP;
     }
 }
 
@@ -712,6 +1011,7 @@ void Document::clear()
     _modified = false;
 
     _filename.clear();
+    _documentType = DOCUMENT_TYPE_TEXT;
     _encoding = TEXT_ENCODING_UTF8;
     _bom = false;
 #ifdef PLATFORM_WINDOWS
@@ -728,13 +1028,6 @@ void Document::clear()
 
     _selectionMode = false;
     _selection = -1;
-
-    _enableHighlighting = false;
-    _highlightingType = HIGHLIGHTING_TYPE_NONE;
-    _charsRemaining = 0;
-    _prevPos = -1;
-    _word.clear();
-    _quote = _prevCh = 0;
 }
 
 void Document::setDimensions(int x, int y, int width, int height)
@@ -779,22 +1072,20 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     int len = _left + _width - 1;
     unichar_t ch;
 
+    SyntaxHighlighter& syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
+    if (_documentType != DOCUMENT_TYPE_TEXT)
+        syntaxHighlighter.startHighlighting();
+
     const int* colors = _editor-> brightBackground() ?
-        _brightBackgroundColors : _darkBackgroundColors;
+        brightBackgroundColors : darkBackgroundColors;
 
-    _highlightingType = HIGHLIGHTING_TYPE_NONE;
-    _charsRemaining = 0;
-    _prevPos = -1;
-    _word.clear();
-    _quote = _prevCh = 0;
-
-    if (_prevTopPosition != _topPosition)
+    if (_documentType != DOCUMENT_TYPE_TEXT && _prevTopPosition != _topPosition)
     {
         p = 0;
+
         while (p < _topPosition)
         {
-            ch = _text.charAt(p);
-            highlightChar(p, ch);
+            syntaxHighlighter.highlightChar(_text, p);
             p = _text.charForward(p);
         }
     }
@@ -806,7 +1097,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
         for (int i = 1; i <= len; ++i)
         {
             ch = _text.charAt(p);
-            highlightChar(p, ch);
+            if (_documentType != DOCUMENT_TYPE_TEXT)
+                syntaxHighlighter.highlightChar(_text, p);
 
             if (ch == '\t')
             {
@@ -826,14 +1118,18 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                 else
                     screen[q].ch = ch;
 
-                screen[q].color = _enableHighlighting ? colors[_highlightingType] : 39;
+                if (_documentType != DOCUMENT_TYPE_TEXT)
+                    screen[q].color = colors[syntaxHighlighter.highlightingType()];
+                else
+                    screen[q].color = 39;
 
                 ++q;
             }
         }
 
         ch = _text.charAt(p);
-        highlightChar(p, ch);
+        if (_documentType != DOCUMENT_TYPE_TEXT)
+            syntaxHighlighter.highlightChar(_text, p);
 
         if (ch == '\n')
             p = _text.charForward(p);
@@ -843,7 +1139,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
             {
                 p = _text.charForward(p);
                 ch = _text.charAt(p);
-                highlightChar(p, ch);
+                if (_documentType != DOCUMENT_TYPE_TEXT)
+                    syntaxHighlighter.highlightChar(_text, p);
             }
 
             if (ch == '\n')
@@ -1355,293 +1652,6 @@ void Document::trimTrailingWhitespace()
     _position = 0;
 }
 
-void Document::populateKeywords()
-{
-    _keywords.add(String(STR("alignas")));
-    _keywords.add(String(STR("alignof")));
-    _keywords.add(String(STR("and")));
-    _keywords.add(String(STR("and_eq")));
-    _keywords.add(String(STR("asm")));
-    _keywords.add(String(STR("atomic_cancel")));
-    _keywords.add(String(STR("atomic_commit")));
-    _keywords.add(String(STR("atomic_noexcept")));
-    _keywords.add(String(STR("bitand")));
-    _keywords.add(String(STR("bitor")));
-    _keywords.add(String(STR("break")));
-    _keywords.add(String(STR("case")));
-    _keywords.add(String(STR("catch")));
-    _keywords.add(String(STR("class")));
-    _keywords.add(String(STR("compl")));
-    _keywords.add(String(STR("concept")));
-    _keywords.add(String(STR("const_cast")));
-    _keywords.add(String(STR("continue")));
-    _keywords.add(String(STR("co_await")));
-    _keywords.add(String(STR("co_return")));
-    _keywords.add(String(STR("co_yield")));
-    _keywords.add(String(STR("decltype")));
-    _keywords.add(String(STR("default")));
-    _keywords.add(String(STR("delete")));
-    _keywords.add(String(STR("do")));
-    _keywords.add(String(STR("dynamic_cast")));
-    _keywords.add(String(STR("else")));
-    _keywords.add(String(STR("enum")));
-    _keywords.add(String(STR("explicit")));
-    _keywords.add(String(STR("export")));
-    _keywords.add(String(STR("extern")));
-    _keywords.add(String(STR("false")));
-    _keywords.add(String(STR("for")));
-    _keywords.add(String(STR("friend")));
-    _keywords.add(String(STR("goto")));
-    _keywords.add(String(STR("if")));
-    _keywords.add(String(STR("import")));
-    _keywords.add(String(STR("inline")));
-    _keywords.add(String(STR("module")));
-    _keywords.add(String(STR("mutable")));
-    _keywords.add(String(STR("namespace")));
-    _keywords.add(String(STR("new")));
-    _keywords.add(String(STR("noexcept")));
-    _keywords.add(String(STR("not")));
-    _keywords.add(String(STR("not_eq")));
-    _keywords.add(String(STR("nullptr")));
-    _keywords.add(String(STR("operator")));
-    _keywords.add(String(STR("or")));
-    _keywords.add(String(STR("or_eq")));
-    _keywords.add(String(STR("private")));
-    _keywords.add(String(STR("protected")));
-    _keywords.add(String(STR("public")));
-    _keywords.add(String(STR("register")));
-    _keywords.add(String(STR("reflexpr")));
-    _keywords.add(String(STR("reinterpret_cast")));
-    _keywords.add(String(STR("requires")));
-    _keywords.add(String(STR("return")));
-    _keywords.add(String(STR("sizeof")));
-    _keywords.add(String(STR("static")));
-    _keywords.add(String(STR("static_assert")));
-    _keywords.add(String(STR("static_cast")));
-    _keywords.add(String(STR("struct")));
-    _keywords.add(String(STR("switch")));
-    _keywords.add(String(STR("synchronized")));
-    _keywords.add(String(STR("template")));
-    _keywords.add(String(STR("this")));
-    _keywords.add(String(STR("thread_local")));
-    _keywords.add(String(STR("throw")));
-    _keywords.add(String(STR("true")));
-    _keywords.add(String(STR("try")));
-    _keywords.add(String(STR("typedef")));
-    _keywords.add(String(STR("typeid")));
-    _keywords.add(String(STR("typename")));
-    _keywords.add(String(STR("union")));
-    _keywords.add(String(STR("using")));
-    _keywords.add(String(STR("virtual")));
-    _keywords.add(String(STR("while")));
-    _keywords.add(String(STR("xor")));
-    _keywords.add(String(STR("xor_eq")));
-    _keywords.add(String(STR("override")));
-    _keywords.add(String(STR("final")));
-    _keywords.add(String(STR("transaction_safe")));
-    _keywords.add(String(STR("transaction_safe_dynamic")));
-    _keywords.add(String(STR("_Pragma")));
-
-    _types.add(String(STR("auto")));
-    _types.add(String(STR("bool")));
-    _types.add(String(STR("byte")));
-    _types.add(String(STR("char")));
-    _types.add(String(STR("char16_t")));
-    _types.add(String(STR("char32_t")));
-    _types.add(String(STR("const")));
-    _types.add(String(STR("constexpr")));
-    _types.add(String(STR("double")));
-    _types.add(String(STR("float")));
-    _types.add(String(STR("int")));
-    _types.add(String(STR("long")));
-    _types.add(String(STR("short")));
-    _types.add(String(STR("signed")));
-    _types.add(String(STR("unsigned")));
-    _types.add(String(STR("void")));
-    _types.add(String(STR("volatile")));
-    _types.add(String(STR("wchar_t")));
-    _types.add(String(STR("int8_t")));
-    _types.add(String(STR("int16_t")));
-    _types.add(String(STR("int32_t")));
-    _types.add(String(STR("int64_t")));
-    _types.add(String(STR("uint8_t")));
-    _types.add(String(STR("uint16_t")));
-    _types.add(String(STR("uint32_t")));
-    _types.add(String(STR("uint64_t")));
-    _types.add(String(STR("intptr_t")));
-    _types.add(String(STR("uintptr_t")));
-    _types.add(String(STR("intmax_t")));
-    _types.add(String(STR("uintmax_t")));
-    _types.add(String(STR("size_t")));
-    _types.add(String(STR("ptrdiff_t")));
-    _types.add(String(STR("nullptr_t")));
-    _types.add(String(STR("max_align_t")));
-    _types.add(String(STR("unichar_t")));
-    _types.add(String(STR("char_t")));
-    _types.add(String(STR("byte_t")));
-
-    _preprocessor.add(String(STR("if")));
-    _preprocessor.add(String(STR("elif")));
-    _preprocessor.add(String(STR("else")));
-    _preprocessor.add(String(STR("endif")));
-    _preprocessor.add(String(STR("defined")));
-    _preprocessor.add(String(STR("ifdef")));
-    _preprocessor.add(String(STR("ifndef")));
-    _preprocessor.add(String(STR("define")));
-    _preprocessor.add(String(STR("undef")));
-    _preprocessor.add(String(STR("include")));
-    _preprocessor.add(String(STR("line")));
-    _preprocessor.add(String(STR("error")));
-    _preprocessor.add(String(STR("pragma")));
-}
-
-void Document::highlightChar(int p, unichar_t ch)
-{
-    if (p <= _prevPos)
-        return;
-    _prevPos = p;
-
-    if (_charsRemaining > 0)
-    {
-        --_charsRemaining;
-        if (_charsRemaining > 0)
-            return;
-
-        _highlightingType = HIGHLIGHTING_TYPE_NONE;
-    }
-
-    if (_highlightingType == HIGHLIGHTING_TYPE_STRING)
-    {
-        if (_prevCh == '\\')
-            _prevCh = 0;
-        else if (ch == _quote)
-            _charsRemaining = 1;
-        else if (ch == '\\')
-            _prevCh = ch;
-
-        return;
-    }
-    else if (_highlightingType == HIGHLIGHTING_TYPE_NUMBER)
-    {
-        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
-                ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
-                ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
-                ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
-                ch == '.' || ch == '+' || ch == '-'))
-            _highlightingType = HIGHLIGHTING_TYPE_NONE;
-
-        return;
-    }
-    else if (_highlightingType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
-    {
-        if (ch == '\n')
-            _charsRemaining = 1;
-
-        return;
-    }
-    else if (_highlightingType == HIGHLIGHTING_TYPE_MULTILINE_COMMENT)
-    {
-        if (ch == '*')
-        {
-            p = _text.charForward(p);
-
-            if (p < _text.length())
-            {
-                if (_text.charAt(p) == '/')
-                    _charsRemaining = 2;
-            }
-        }
-
-        return;
-    }
-    else if (_highlightingType == HIGHLIGHTING_TYPE_PREPROCESSOR)
-    {
-        if (ch == '\n')
-        {
-            if (_prevCh != '\\')
-                _charsRemaining = 1;
-            _prevCh = 0;
-        }
-        else if (ch == '\\')
-            _prevCh = ch;
-
-        return;
-    }
-
-    if (ch == '"' || ch == '\'')
-    {
-        _quote = ch;
-        _highlightingType = HIGHLIGHTING_TYPE_STRING;
-    }
-    else if (charIsDigit(ch))
-    {
-        _highlightingType = HIGHLIGHTING_TYPE_NUMBER;
-    }
-    else if (charIsAlphaNum(ch) || ch == '_')
-    {
-        int s = p;
-
-        do
-        {
-            p = _text.charForward(p);
-            if (p < _text.length())
-                ch = _text.charAt(p);
-            else
-                break;
-        }
-        while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
-
-        _word = _text.substr(s, p - s);
-        _charsRemaining = _word.length();
-
-        if (_keywords.contains(_word))
-            _highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
-        else if (_types.contains(_word))
-            _highlightingType = HIGHLIGHTING_TYPE_TYPE;
-        else
-            _highlightingType = HIGHLIGHTING_TYPE_IDENT;
-    }
-    else if (ch == '/')
-    {
-        p = _text.charForward(p);
-
-        if (p < _text.length())
-        {
-            ch = _text.charAt(p);
-
-            if (ch == '*')
-                _highlightingType = HIGHLIGHTING_TYPE_MULTILINE_COMMENT;
-            else if (ch == '/')
-                _highlightingType = HIGHLIGHTING_TYPE_SINGLELINE_COMMENT;
-        }
-    }
-    else if (ch == '#')
-    {
-        int s = p;
-        p = _text.charForward(p);
-
-        if (p < _text.length())
-        {
-            ch = _text.charAt(p);
-            int q = p;
-
-            while (charIsAlpha(ch))
-            {
-                p = _text.charForward(p);
-                if (p < _text.length())
-                    ch = _text.charAt(p);
-                else
-                    break;
-            }
-
-            _word = _text.substr(q, p - q);
-
-            if (_preprocessor.contains(_word))
-                _highlightingType = HIGHLIGHTING_TYPE_PREPROCESSOR;
-        }
-    }
-}
-
 // Editor
 
 Editor::Editor() :
@@ -1651,7 +1661,8 @@ Editor::Editor() :
     _recordingMacro(false),
     _caseSesitive(true),
     _recentLocation(NULL),
-    _currentSuggestion(INVALID_POSITION)
+    _currentSuggestion(INVALID_POSITION),
+    _syntaxHighlighter(DOCUMENT_TYPE_CPP)
 {
     Console::setLineMode(false);
     Console::getSize(_width, _height);

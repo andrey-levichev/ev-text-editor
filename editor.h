@@ -23,6 +23,14 @@ struct ScreenCell
     }
 };
 
+// DocumentType
+
+enum DocumentType
+{
+    DOCUMENT_TYPE_TEXT,
+    DOCUMENT_TYPE_CPP
+};
+
 // HighlightingType
 
 enum HighlightingType
@@ -38,6 +46,32 @@ enum HighlightingType
     HIGHLIGHTING_TYPE_PREPROCESSOR
 };
 
+// SyntaxHighlighter
+
+class SyntaxHighlighter
+{
+public:
+    SyntaxHighlighter(DocumentType documentType);
+
+    HighlightingType highlightingType() const
+    {
+        return _highlightingType;
+    }
+
+    void startHighlighting();
+    void highlightChar(const String& text, int pos);
+
+protected:
+    HighlightingType _highlightingType;
+    int _charsRemaining, _prevPos;
+    String _word;
+    unichar_t _quote, _prevCh;
+
+    Set<String> _keywords;
+    Set<String> _types;
+    Set<String> _preprocessor;
+};
+
 // Document
 
 class Editor;
@@ -45,7 +79,7 @@ class Editor;
 class Document
 {
 public:
-    Document(const Editor* editor);
+    Document(Editor* editor);
 
     const String& text() const
     {
@@ -213,17 +247,15 @@ protected:
 
     void trimTrailingWhitespace();
 
-    void populateKeywords();
-    void highlightChar(int p, unichar_t ch);
-
 protected:
-    const Editor* _editor;
+    Editor* _editor;
 
     String _text;
     int _position;
     bool _modified;
 
     String _filename;
+    DocumentType _documentType;
     TextEncoding _encoding;
     bool _bom;
     bool _crLf;
@@ -242,19 +274,6 @@ protected:
     bool _selectionMode;
 
     String _indent;
-
-    Set<String> _keywords;
-    Set<String> _types;
-    Set<String> _preprocessor;
-
-    bool _enableHighlighting;
-    HighlightingType _highlightingType;
-    int _charsRemaining, _prevPos;
-    String _word;
-    unichar_t _quote, _prevCh;
-
-    static const int _brightBackgroundColors[9];
-    static const int _darkBackgroundColors[9];
 };
 
 // RecentLocation
@@ -317,6 +336,11 @@ public:
         return _brightBackground;
     }
 
+    SyntaxHighlighter& syntaxHighlighter(DocumentType documentType)
+    {
+        return _syntaxHighlighter;
+    }
+
     void newDocument(const String& filename);
     void openDocument(const String& filename);
     void saveDocument();
@@ -377,6 +401,8 @@ protected:
     Map<String, int> _uniqueWords;
     Array<AutocompleteSuggestion> _suggestions;
     int _currentSuggestion;
+
+    SyntaxHighlighter _syntaxHighlighter;
 };
 
 #endif
