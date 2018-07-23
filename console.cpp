@@ -389,6 +389,16 @@ Console::Constructor::~Constructor()
     }
 }
 
+bool Console::brightBackground()
+{
+#ifdef PLATFORM_WINDOWS
+    return ((_defaultBackground & BACKGROUND_INTENSITY) != 0) ||
+        ((_defaultBackground & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE)) != 0);
+#else
+    return true;
+#endif
+}
+
 void Console::setLineMode(bool lineMode)
 {
 #ifdef PLATFORM_WINDOWS

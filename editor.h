@@ -40,10 +40,12 @@ enum HighlightingType
 
 // Document
 
+class Editor;
+
 class Document
 {
 public:
-    Document();
+    Document(const Editor* editor);
 
     const String& text() const
     {
@@ -215,6 +217,8 @@ protected:
     void highlightChar(int p, unichar_t ch);
 
 protected:
+    const Editor* _editor;
+
     String _text;
     int _position;
     bool _modified;
@@ -244,8 +248,7 @@ protected:
     Set<String> _preprocessor;
 
     bool _enableHighlighting;
-    bool _brightBackground;
-    HighlightingType _tokenType;
+    HighlightingType _highlightingType;
     int _charsRemaining, _prevPos;
     String _word;
     unichar_t _quote, _prevCh;
@@ -304,6 +307,16 @@ public:
     Editor();
     ~Editor();
 
+    bool brightBackground() const
+    {
+        return _brightBackground;
+    }
+
+    bool& brightBackground()
+    {
+        return _brightBackground;
+    }
+
     void newDocument(const String& filename);
     void openDocument(const String& filename);
     void saveDocument();
@@ -346,6 +359,7 @@ protected:
 
     int _width, _height;
     bool _unicodeLimit16;
+    bool _brightBackground;
 
     Buffer<ScreenCell> _screen;
     Buffer<ScreenCell> _prevScreen;

@@ -150,6 +150,8 @@ enum ConsoleColor
 class Console
 {
 public:
+    static bool brightBackground();
+
     static void setLineMode(bool lineMode);
     static void setColor(ConsoleColor foreground = CONSOLE_COLOR_DEFAULT,
         ConsoleColor background = CONSOLE_COLOR_DEFAULT);

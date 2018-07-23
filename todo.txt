@@ -4,10 +4,6 @@ figure out keycode to key combination mapping
 * clipboard integration on macos
 * screen corruption on windows after scrolling console window
 * syntax highlighting
-token that starts beyod the edge of the screen
-support for dark/light background
-configurable colors
-improved number highlighting
 support for other languages (shell, xml, html, java, c#, javascript, python)
 single instance of keywords
 
@@ -29,6 +25,7 @@ editor:
 * selection with mouse/arrows and highlighting
 * customizable key mappings
 * line wrapping
+* run macro n times, run macro on selection
 * graphical user interface
 * autocomplete improvements
 give nearby words higher priority
