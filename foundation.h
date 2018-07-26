@@ -722,10 +722,10 @@ public:
     {
     }
 
-    Unique(Unique<_Type>&& other)
+    template<typename _T>
+    Unique(Unique<_T>&& other) :
+        _ptr(other.release())
     {
-        _ptr = other._ptr;
-        other._ptr = NULL;
     }
 
     ~Unique()
@@ -733,9 +733,10 @@ public:
         Memory::destroy(_ptr);
     }
 
-    Unique<_Type>& operator=(Unique<_Type>&& other)
+    template<typename _T>
+    Unique<_Type>& operator=(Unique<_T>&& other)
     {
-        Unique<_Type> tmp(static_cast<Unique<_Type>&&>(other));
+        Unique<_Type> tmp(static_cast<Unique<_T>&&>(other));
         swap(*this, tmp);
         return *this;
     }
@@ -785,6 +786,19 @@ public:
     {
         Memory::destroy(_ptr);
         _ptr = NULL;
+    }
+
+    template<typename _T>
+    static Unique<_Type> acquire(_T* ptr)
+    {
+        return Unique<_Type>(ptr);
+    }
+
+    _Type* release()
+    {
+        _Type* ptr = _ptr;
+        _ptr = NULL;
+        return ptr;
     }
 
     friend void swap(Unique<_Type>& left, Unique<_Type>& right)
@@ -947,9 +961,9 @@ protected:
 
         template<typename... _Args>
         RefCountedObject(_Args&&... args) :
-            object(static_cast<_Args&&>(args)...)
+            object(static_cast<_Args&&>(args)...),
+            refCount(1)
         {
-            refCount = 1;
         }
     };
 

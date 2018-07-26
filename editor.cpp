@@ -16,9 +16,11 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
         (prevCh != '\n' && ch == '\n');
 }
 
-// SyntaxHighlighter
+// CppSyntaxHighlighter
 
-SyntaxHighlighter::SyntaxHighlighter(DocumentType documentType)
+CppSyntaxHighlighter::CppSyntaxHighlighter() :
+    _charsRemaining(0),
+    _prevPos(-1), _quote(0), _prevCh(0)
 {
     _keywords.add(String(STR("alignas")));
     _keywords.add(String(STR("alignof")));
@@ -158,7 +160,7 @@ SyntaxHighlighter::SyntaxHighlighter(DocumentType documentType)
     _preprocessor.add(String(STR("pragma")));
 }
 
-void SyntaxHighlighter::startHighlighting()
+void CppSyntaxHighlighter::startHighlighting()
 {
     _highlightingType = HIGHLIGHTING_TYPE_NONE;
     _charsRemaining = 0;
@@ -167,7 +169,7 @@ void SyntaxHighlighter::startHighlighting()
     _quote = _prevCh = 0;
 }
 
-void SyntaxHighlighter::highlightChar(const String& text, int pos)
+void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
 {
     if (pos <= _prevPos)
         return;
@@ -979,9 +981,7 @@ void Document::open(const String& filename)
         ByteBuffer bytes = file.read();
         _text.assign(Unicode::bytesToString(bytes, _encoding, _bom, _crLf));
 
-        if (filename.endsWith(STR(".c")) || filename.endsWith(STR(".h")) ||
-                filename.endsWith(STR(".cpp")) || filename.endsWith(STR(".hpp")))
-            _documentType = DOCUMENT_TYPE_CPP;
+        determineDocumentType();
     }
 }
 
@@ -1072,20 +1072,20 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     int len = _left + _width - 1;
     unichar_t ch;
 
-    SyntaxHighlighter& syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
-    if (_documentType != DOCUMENT_TYPE_TEXT)
-        syntaxHighlighter.startHighlighting();
+    SyntaxHighlighter* syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
+    if (syntaxHighlighter)
+        syntaxHighlighter->startHighlighting();
 
     const int* colors = _editor-> brightBackground() ?
         brightBackgroundColors : darkBackgroundColors;
 
-    if (_documentType != DOCUMENT_TYPE_TEXT && _prevTopPosition != _topPosition)
+    if (syntaxHighlighter && _prevTopPosition != _topPosition)
     {
         p = 0;
 
         while (p < _topPosition)
         {
-            syntaxHighlighter.highlightChar(_text, p);
+            syntaxHighlighter->highlightChar(_text, p);
             p = _text.charForward(p);
         }
     }
@@ -1097,8 +1097,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
         for (int i = 1; i <= len; ++i)
         {
             ch = _text.charAt(p);
-            if (_documentType != DOCUMENT_TYPE_TEXT)
-                syntaxHighlighter.highlightChar(_text, p);
+            if (syntaxHighlighter)
+                syntaxHighlighter->highlightChar(_text, p);
 
             if (ch == '\t')
             {
@@ -1118,8 +1118,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                 else
                     screen[q].ch = ch;
 
-                if (_documentType != DOCUMENT_TYPE_TEXT)
-                    screen[q].color = colors[syntaxHighlighter.highlightingType()];
+                if (syntaxHighlighter)
+                    screen[q].color = colors[syntaxHighlighter->highlightingType()];
                 else
                     screen[q].color = 39;
 
@@ -1128,8 +1128,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
         }
 
         ch = _text.charAt(p);
-        if (_documentType != DOCUMENT_TYPE_TEXT)
-            syntaxHighlighter.highlightChar(_text, p);
+        if (syntaxHighlighter)
+            syntaxHighlighter->highlightChar(_text, p);
 
         if (ch == '\n')
             p = _text.charForward(p);
@@ -1139,8 +1139,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
             {
                 p = _text.charForward(p);
                 ch = _text.charAt(p);
-                if (_documentType != DOCUMENT_TYPE_TEXT)
-                    syntaxHighlighter.highlightChar(_text, p);
+                if (syntaxHighlighter)
+                    syntaxHighlighter->highlightChar(_text, p);
             }
 
             if (ch == '\n')
@@ -1652,6 +1652,19 @@ void Document::trimTrailingWhitespace()
     _position = 0;
 }
 
+void Document::determineDocumentType()
+{
+    if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) ||
+            _filename.endsWith(STR(".cpp")) || _filename.endsWith(STR(".hpp")))
+        _documentType = DOCUMENT_TYPE_CPP;
+    if (_filename.endsWith(STR(".sh")) || _filename.endsWith(STR(".ksh")))
+        _documentType = DOCUMENT_TYPE_SHELL;
+    if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")))
+        _documentType = DOCUMENT_TYPE_XML;
+    else
+        _documentType = DOCUMENT_TYPE_TEXT;
+}
+
 // Editor
 
 Editor::Editor() :
@@ -1661,8 +1674,7 @@ Editor::Editor() :
     _recordingMacro(false),
     _caseSesitive(true),
     _recentLocation(NULL),
-    _currentSuggestion(INVALID_POSITION),
-    _syntaxHighlighter(DOCUMENT_TYPE_CPP)
+    _currentSuggestion(INVALID_POSITION)
 {
     Console::setLineMode(false);
     Console::getSize(_width, _height);

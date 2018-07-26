@@ -197,6 +197,21 @@ void testUnique()
         ASSERT(!p2.empty() && p2.ptr() == p);
     }
 
+    {
+        Unique<Base> b = createUnique<Derived>();
+    }
+
+    {
+        Unique<Base> b;
+        b = createUnique<Derived>();
+    }
+
+    {
+        Unique<Base> b;
+        Unique<Derived> d = createUnique<Derived>();
+        b = static_cast<Unique<Derived>&&>(d);
+    }
+
     // Unique& operator=(Unique<_Type>&& other)
 
     {
@@ -6063,7 +6078,7 @@ void runTests()
 
     testSupport();
     testFoundation();
-    testFile();
+//    testFile();
 //    testConsole();
 //    testConsoleWrite();
 //    testConsoleReadChar();
@@ -6071,21 +6086,11 @@ void runTests()
 //    testConsoleReadInput();
 }
 
-void testColor()
-{
-    Console::setColor(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_RED);
-    Console::writeLine(STR("mvadvdsfvsd"));
-    Console::setColor(CONSOLE_COLOR_GREEN, CONSOLE_COLOR_BRIGHT_BLACK);
-    Console::writeLine(STR("mvadvdsfvsd"));
-}
-
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        Console::write(1, 116, STR("12345"));
-        Console::write(STR("*"));
-        Console::readLine();
+        runTests();
     }
     catch (Exception& ex)
     {

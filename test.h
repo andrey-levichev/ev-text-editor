@@ -80,5 +80,30 @@ protected:
     int _val;
 };
 
+// Base
+
+class Base
+{
+public:
+    virtual void f()
+    {
+        _val = 123;
+    }
+
+protected:
+    int _val;
+};
+
+// Derived
+
+class Derived :public Base
+{
+public:
+    virtual void f()
+    {
+        _val = 456;
+    }
+};
+
 #endif
 

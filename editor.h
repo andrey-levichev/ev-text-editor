@@ -28,7 +28,9 @@ struct ScreenCell
 enum DocumentType
 {
     DOCUMENT_TYPE_TEXT,
-    DOCUMENT_TYPE_CPP
+    DOCUMENT_TYPE_CPP,
+    DOCUMENT_TYPE_SHELL,
+    DOCUMENT_TYPE_XML
 };
 
 // HighlightingType
@@ -51,18 +53,41 @@ enum HighlightingType
 class SyntaxHighlighter
 {
 public:
-    SyntaxHighlighter(DocumentType documentType);
+    SyntaxHighlighter() :
+        _documentType(DOCUMENT_TYPE_TEXT),
+        _highlightingType(HIGHLIGHTING_TYPE_NONE)
+    {
+    }
+
+    DocumentType documentType() const
+    {
+        return _documentType;
+    }
 
     HighlightingType highlightingType() const
     {
         return _highlightingType;
     }
 
-    void startHighlighting();
-    void highlightChar(const String& text, int pos);
+    virtual void startHighlighting() = 0;
+    virtual void highlightChar(const String& text, int pos) = 0;
 
 protected:
+    DocumentType _documentType;
     HighlightingType _highlightingType;
+};
+
+// CppSyntaxHighlighter
+
+class CppSyntaxHighlighter : public SyntaxHighlighter
+{
+public:
+    CppSyntaxHighlighter();
+
+    virtual void startHighlighting();
+    virtual void highlightChar(const String& text, int pos);
+
+protected:
     int _charsRemaining, _prevPos;
     String _word;
     unichar_t _quote, _prevCh;
@@ -100,6 +125,7 @@ public:
     {
         ASSERT(!filename.empty());
         _filename = filename;
+        determineDocumentType();
     }
 
     const String& filename() const
@@ -246,6 +272,7 @@ protected:
     int uncommentLine(int pos);
 
     void trimTrailingWhitespace();
+    void determineDocumentType();
 
 protected:
     Editor* _editor;
@@ -336,9 +363,25 @@ public:
         return _brightBackground;
     }
 
-    SyntaxHighlighter& syntaxHighlighter(DocumentType documentType)
+    SyntaxHighlighter* syntaxHighlighter(DocumentType documentType)
     {
-        return _syntaxHighlighter;
+        /*for (auto node = _syntaxHighlighters.first(); node; node = node->next)
+            if (node->value->documentType() == documentType)
+                return node->value.ptr();
+
+        if (documentType == DOCUMENT_TYPE_CPP)
+        {
+            Unique<SyntaxHighlighter> sh = createUnique<CppSyntaxHighlighter>()
+            _syntaxHighlighters.addLast(sh);
+        }
+        else
+            return NULL;
+
+        return _syntaxHighlighters.last()->value.ptr();*/
+        if (documentType == DOCUMENT_TYPE_CPP)
+            return &_cppSyntaxHighlighter;
+        else
+            return NULL;
     }
 
     void newDocument(const String& filename);
@@ -402,7 +445,8 @@ protected:
     Array<AutocompleteSuggestion> _suggestions;
     int _currentSuggestion;
 
-    SyntaxHighlighter _syntaxHighlighter;
+    List<Unique<SyntaxHighlighter>> _syntaxHighlighters;
+    CppSyntaxHighlighter _cppSyntaxHighlighter;
 };
 
 #endif
