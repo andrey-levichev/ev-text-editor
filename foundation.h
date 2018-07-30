@@ -722,6 +722,12 @@ public:
     {
     }
 
+    Unique(Unique<_Type>&& other) :
+        _ptr(other._ptr)
+    {
+        other._ptr = NULL;
+    }
+
     template<typename _T>
     Unique(Unique<_T>&& other) :
         _ptr(other.release())
@@ -731,6 +737,13 @@ public:
     ~Unique()
     {
         Memory::destroy(_ptr);
+    }
+
+    Unique<_Type>& operator=(Unique<_Type>&& other)
+    {
+        Unique<_Type> tmp(static_cast<Unique<_Type>&&>(other));
+        swap(*this, tmp);
+        return *this;
     }
 
     template<typename _T>
@@ -843,23 +856,51 @@ inline int hash(const Unique<_Type>& val)
 template<typename _Type>
 class Shared
 {
+protected:
+    struct RefCountedObject
+    {
+        int refCount;
+        _Type object;
+
+        template<typename... _Args>
+        RefCountedObject(_Args&&... args) :
+            refCount(1),
+            object(static_cast<_Args&&>(args)...)
+        {
+        }
+    };
+
 public:
     Shared() :
         _sharedPtr(NULL)
     {
     }
 
-    Shared(const Shared<_Type>& other)
+    Shared(const Shared<_Type>& other) :
+        _sharedPtr(other._sharedPtr)
     {
-        _sharedPtr = other._sharedPtr;
         if (_sharedPtr)
             addRef();
     }
 
-    Shared(Shared<_Type>&& other)
+    template<typename _T>
+    Shared(const Shared<_T>& other) :
+        _sharedPtr(reinterpret_cast<RefCountedObject*>(other.refCountedObject()))
     {
-        _sharedPtr = other._sharedPtr;
+        if (_sharedPtr)
+            addRef();
+    }
+
+    Shared(Shared<_Type>&& other) :
+        _sharedPtr(other._sharedPtr)
+    {
         other._sharedPtr = NULL;
+    }
+
+    template<typename _T>
+    Shared(Shared<_T>&& other) :
+        _sharedPtr(reinterpret_cast<RefCountedObject*>(other.release()))
+    {
     }
 
     ~Shared()
@@ -875,7 +916,23 @@ public:
         return *this;
     }
 
+    template<typename _T>
+    Shared<_Type>& operator=(const Shared<_T>& other)
+    {
+        Shared<_Type> tmp(other);
+        swap(*this, tmp);
+        return *this;
+    }
+
     Shared<_Type>& operator=(Shared<_Type>&& other)
+    {
+        Shared<_Type> tmp(static_cast<Shared<_Type>&&>(other));
+        swap(*this, tmp);
+        return *this;
+    }
+
+    template<typename _T>
+    Shared<_Type>& operator=(Shared<_T>&& other)
     {
         Shared<_Type> tmp(static_cast<Shared<_Type>&&>(other));
         swap(*this, tmp);
@@ -927,6 +984,11 @@ public:
             return 0;
     }
 
+    RefCountedObject* refCountedObject() const
+    {
+        return _sharedPtr;
+    }
+
     template<typename... _Args>
     void create(_Args&&... args)
     {
@@ -942,6 +1004,13 @@ public:
         _sharedPtr = NULL;
     }
 
+    RefCountedObject* release()
+    {
+        RefCountedObject* ptr = _sharedPtr;
+        _sharedPtr = NULL;
+        return ptr;
+    }
+
     friend void swap(Shared<_Type>& left, Shared<_Type>& right)
     {
         swap(left._sharedPtr, right._sharedPtr);
@@ -952,20 +1021,6 @@ public:
 
     template<typename _T>
     friend int hash(const Shared<_T>& val);
-
-protected:
-    struct RefCountedObject
-    {
-        _Type object;
-        int refCount;
-
-        template<typename... _Args>
-        RefCountedObject(_Args&&... args) :
-            object(static_cast<_Args&&>(args)...),
-            refCount(1)
-        {
-        }
-    };
 
 protected:
     Shared(RefCountedObject* sharedPtr)

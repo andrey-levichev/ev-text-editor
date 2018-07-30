@@ -3,18 +3,16 @@ release:
 figure out keycode to key combination mapping
 * clipboard integration on macos
 * screen corruption on windows after scrolling console window
+* cursor should go to the end of the block after paste?
+* diplay time spent processing last keystroke in status line
 * syntax highlighting
 support for other languages (shell, xml, html, java, c#, javascript, python)
 improve highlightChar logic
-check performance
+check highlighting performance
 improved document type detection
 document type override
 add keyword and types to autocomplete
 update webpage
-* cursor should go to the end of thre block after paste?
-* support for base/derived in shared
-* redesign page up/down
-* diplay time spent processing last keystroke in status line
 
 editor:
 * f9/f10 - save/save all?

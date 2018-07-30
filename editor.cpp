@@ -815,34 +815,28 @@ void Document::pasteText(const String& text)
     if (text.charAt(text.charBack(text.length())) == '\n')
     {
         int start = findLineStart(_position);
-        _selection = -1;
-
         _text.insert(start, text);
         lineColumnToPosition(start, _line, 1, _line, _preferredColumn,  _position, _line, _column);
     }
     else
     {
-        _selection = _position;
-
         _text.insert(_position, text);
         setPositionLineColumn(_position + text.length());
     }
 
     _modified = true;
     _selectionMode = false;
+    _selection = -1;
 }
 
 bool Document::toggleSelectionStart()
 {
-    if (_selection >= 0)
+    if (_selection >= 0 && _position != _selection)
     {
-        if (_position != _selection)
-        {
-            int p = _position;
-            setPositionLineColumn(_selection);
-            _selection = p;
-            return true;
-        }
+        int p = _position;
+        setPositionLineColumn(_selection);
+        _selection = p;
+        return true;
     }
 
     return false;
@@ -1657,9 +1651,9 @@ void Document::determineDocumentType()
     if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) ||
             _filename.endsWith(STR(".cpp")) || _filename.endsWith(STR(".hpp")))
         _documentType = DOCUMENT_TYPE_CPP;
-    if (_filename.endsWith(STR(".sh")) || _filename.endsWith(STR(".ksh")))
+    else if (_filename.endsWith(STR(".sh")) || _filename.endsWith(STR(".ksh")))
         _documentType = DOCUMENT_TYPE_SHELL;
-    if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")))
+    else if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")))
         _documentType = DOCUMENT_TYPE_XML;
     else
         _documentType = DOCUMENT_TYPE_TEXT;
@@ -1698,6 +1692,20 @@ Editor::~Editor()
 {
     Console::setLineMode(true);
     Console::clear();
+}
+
+SyntaxHighlighter* Editor::syntaxHighlighter(DocumentType documentType)
+{
+    for (auto node = _syntaxHighlighters.first(); node; node = node->next)
+        if (node->value->documentType() == documentType)
+            return node->value.ptr();
+
+    if (documentType == DOCUMENT_TYPE_CPP)
+        _syntaxHighlighters.addLast(createUnique<CppSyntaxHighlighter>());
+    else
+        return NULL;
+
+    return _syntaxHighlighters.last()->value.ptr();
 }
 
 void Editor::newDocument(const String& filename)
@@ -2546,7 +2554,7 @@ void Editor::buildProject()
     system(makeCmd ? makeCmd : "make");
 #endif
 
-    Console::writeLine(STR("Press any key to continue..."));
+    Console::writeLine(STR("Press ENTER to continue..."));
     Console::readLine();
 
     Console::setLineMode(false);

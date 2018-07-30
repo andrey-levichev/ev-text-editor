@@ -363,26 +363,7 @@ public:
         return _brightBackground;
     }
 
-    SyntaxHighlighter* syntaxHighlighter(DocumentType documentType)
-    {
-        /*for (auto node = _syntaxHighlighters.first(); node; node = node->next)
-            if (node->value->documentType() == documentType)
-                return node->value.ptr();
-
-        if (documentType == DOCUMENT_TYPE_CPP)
-        {
-            Unique<SyntaxHighlighter> sh = createUnique<CppSyntaxHighlighter>()
-            _syntaxHighlighters.addLast(sh);
-        }
-        else
-            return NULL;
-
-        return _syntaxHighlighters.last()->value.ptr();*/
-        if (documentType == DOCUMENT_TYPE_CPP)
-            return &_cppSyntaxHighlighter;
-        else
-            return NULL;
-    }
+    SyntaxHighlighter* syntaxHighlighter(DocumentType documentType);
 
     void newDocument(const String& filename);
     void openDocument(const String& filename);
@@ -446,7 +427,6 @@ protected:
     int _currentSuggestion;
 
     List<Unique<SyntaxHighlighter>> _syntaxHighlighters;
-    CppSyntaxHighlighter _cppSyntaxHighlighter;
 };
 
 #endif

@@ -199,11 +199,8 @@ void testUnique()
 
     {
         Unique<Base> b = createUnique<Derived>();
-    }
-
-    {
-        Unique<Base> b;
-        b = createUnique<Derived>();
+        b->f();
+        ASSERT(b->val = 456);
     }
 
     {
@@ -223,6 +220,13 @@ void testUnique()
         p2 = static_cast<Unique<Test>&&>(p1);
         ASSERT(p1.empty());
         ASSERT(!p2.empty() && p2.ptr() == p);
+    }
+
+    {
+        Unique<Base> b;
+        b = createUnique<Derived>();
+        b->f();
+        ASSERT(b->val = 456);
     }
 
     // _Type& operator*() const
@@ -333,6 +337,13 @@ void testShared()
         ASSERT(p1.refCount() == 1);
     }
 
+    {
+        Shared<Derived> d = createShared<Derived>();
+        Shared<Base> b = d;
+        b->f();
+        ASSERT(b->val = 456);
+    }
+
     // Shared(Shared<_Type>&& other)
 
     {
@@ -344,6 +355,12 @@ void testShared()
         ASSERT(p1.empty());
         ASSERT(!p2.empty() && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
+    }
+
+    {
+        Shared<Base> b = createShared<Derived>();
+        b->f();
+        ASSERT(b->val = 456);
     }
 
     // Shared<_Type>& operator=(const Shared<_Type>& other)
@@ -365,6 +382,14 @@ void testShared()
         ASSERT(p1.refCount() == 1);
     }
 
+    {
+        Shared<Derived> d = createShared<Derived>();
+        Shared<Base> b;
+        b = d;
+        b->f();
+        ASSERT(b->val = 456);
+    }
+
     // Shared<_Type>& operator=(Shared<_Type>&& other)
 
     {
@@ -377,6 +402,13 @@ void testShared()
         ASSERT(p1.empty());
         ASSERT(!p2.empty() && p2.ptr() == p);
         ASSERT(p1.refCount() == 0 && p2.refCount() == 1);
+    }
+
+    {
+        Shared<Base> b;
+        b = createShared<Derived>();
+        b->f();
+        ASSERT(b->val = 456);
     }
 
     // _Type& operator*() const

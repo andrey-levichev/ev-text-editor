@@ -82,26 +82,23 @@ protected:
 
 // Base
 
-class Base
+struct Base
 {
-public:
+    int val;
+
     virtual void f()
     {
-        _val = 123;
+        val = 123;
     }
-
-protected:
-    int _val;
 };
 
 // Derived
 
-class Derived :public Base
+struct Derived : public Base
 {
-public:
     virtual void f()
     {
-        _val = 456;
+        val = 456;
     }
 };
 
