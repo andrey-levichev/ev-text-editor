@@ -1791,6 +1791,8 @@ void Editor::setDimensions()
 void Editor::updateScreen(bool redrawAll)
 {
     int line, col;
+    int64_t ticks = Timer::ticks();
+
     _prevScreen = _screen;
 
 #ifndef PLATFORM_WINDOWS
@@ -1817,7 +1819,132 @@ void Editor::updateScreen(bool redrawAll)
         line = col = 1;
     }
 
-    if (redrawAll)
+    /*if (true)
+    {
+        for (int j = 0; j < _height; ++j)
+        {
+            int jw = j * _width, start = jw, end = start + _width;
+            int color = 0;
+
+            _output.clear();
+
+#ifdef PLATFORM_WINDOWS
+            int k = start;
+
+            for (int i = start; i < end; ++i)
+            {
+                if (color != _screen[i].color)
+                {
+                    if (!_output.empty())
+                    {
+                        Console::setColor(static_cast<ConsoleColor>(color));
+                        Console::write(j + 1, k - jw + 1, _output);
+                    }
+
+                    color = _screen[i].color;
+                    _output.clear();
+                    k = i;
+                }
+
+                _output += _screen[i].ch ? '#' : ' ';
+            }
+
+            if (!_output.empty())
+            {
+                Console::setColor(static_cast<ConsoleColor>(color));
+                Console::write(j + 1, k - jw + 1, _output);
+            }
+#else
+            for (int i = start; i < end; ++i)
+            {
+                if (color != _screen[i].color)
+                {
+                    color = _screen[i].color;
+                    _output.appendFormat(STR("\x1b[%dm"), color);
+                }
+
+                if (_screen[i].ch)
+                    _output += '#';
+                else
+                {
+                    _output += STR("\x1b[K");
+                    break;
+                }
+            }
+
+            if (!_output.empty())
+                Console::write(j + 1, 1, _output);
+#endif
+        }
+    }
+    else
+    {
+        for (int j = 0; j < _height; ++j)
+        {
+            int jw = j * _width, start = jw, end = start + _width - 1;
+            int color = 0;
+
+            _output.clear();
+
+            while (start <= end && _screen[start] == _prevScreen[start])
+                ++start;
+
+            while (start <= end && _screen[end] == _prevScreen[end])
+                --end;
+
+#ifdef PLATFORM_WINDOWS
+            int k = start;
+
+            for (int i = start; i <= end; ++i)
+            {
+                if (color != _screen[i].color)
+                {
+                    if (!_output.empty())
+                    {
+                        Console::setColor(static_cast<ConsoleColor>(color));
+                        Console::write(j + 1, k - jw + 1, _output);
+                    }
+
+                    color = _screen[i].color;
+                    _output.clear();
+                    k = i;
+                }
+
+                _output += _screen[i].ch ? '#' : ' ';
+            }
+
+            if (!_output.empty())
+            {
+                Console::setColor(static_cast<ConsoleColor>(color));
+                Console::write(j + 1, k - jw + 1, _output);
+            }
+#else
+            for (int i = start; i <= end; ++i)
+            {
+                if (color != _screen[i].color)
+                {
+                    color = _screen[i].color;
+                    _output.appendFormat(STR("\x1b[%dm"), color);
+                }
+
+                if (_screen[i].ch)
+                    _output += '#';
+                else
+                {
+                    _output += STR("\x1b[K");
+                    break;
+                }
+            }
+
+            if (!_output.empty())
+                Console::write(j + 1, start - jw + 1, _output);
+#endif
+        }
+    }
+
+    Timer::sleep(500000);*/
+
+    if (true)
     {
         for (int j = 0; j < _height; ++j)
         {
@@ -1939,6 +2066,9 @@ void Editor::updateScreen(bool redrawAll)
 #endif
         }
     }
+
+    Console::setCursorPosition(_height, 1);
+    Console::writeFormatted(STR("%lld"), Timer::ticks() - ticks);
 
     Console::setCursorPosition(line, col);
 

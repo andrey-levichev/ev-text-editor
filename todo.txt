@@ -4,8 +4,9 @@ figure out keycode to key combination mapping
 * clipboard integration on macos
 * screen corruption on windows after scrolling console window
 * cursor should go to the end of the block after paste?
-* diplay time spent processing last keystroke in status line
+* delete chars should stop on newline?
 * syntax highlighting
+mouse click messes up highlighting
 support for other languages (shell, xml, html, java, c#, javascript, python)
 improve highlightChar logic
 check highlighting performance
