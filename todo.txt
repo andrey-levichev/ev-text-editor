@@ -6,7 +6,6 @@ figure out keycode to key combination mapping
 * cursor should go to the end of the block after paste?
 * delete chars should stop on newline?
 * syntax highlighting
-mouse click messes up highlighting
 support for other languages (shell, xml, html, java, c#, javascript, python)
 improve highlightChar logic
 check highlighting performance

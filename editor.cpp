@@ -2,7 +2,7 @@
 
 const int TAB_SIZE = 4;
 const int brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
-const int darkBackgroundColors[] = { 39, 93, 91, 39, 96, 92, 37, 37, 95 };
+const int darkBackgroundColors[] = { 39, 93, 91, 39, 96, 92, 90, 90, 95 };
 
 bool charIsWord(unichar_t ch)
 {
@@ -19,8 +19,7 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 // CppSyntaxHighlighter
 
 CppSyntaxHighlighter::CppSyntaxHighlighter() :
-    _charsRemaining(0),
-    _prevPos(-1), _quote(0), _prevCh(0)
+    SyntaxHighlighter(DOCUMENT_TYPE_CPP)
 {
     _keywords.add(String(STR("alignas")));
     _keywords.add(String(STR("alignof")));
@@ -160,62 +159,53 @@ CppSyntaxHighlighter::CppSyntaxHighlighter() :
     _preprocessor.add(String(STR("pragma")));
 }
 
-void CppSyntaxHighlighter::startHighlighting()
-{
-    _highlightingType = HIGHLIGHTING_TYPE_NONE;
-    _charsRemaining = 0;
-    _prevPos = -1;
-    _word.clear();
-    _quote = _prevCh = 0;
-}
-
 void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
 {
-    if (pos <= _prevPos)
+    if (pos <= _highlightingState.prevPos)
         return;
-    _prevPos = pos;
+    _highlightingState.prevPos = pos;
 
-    if (_charsRemaining > 0)
+    if (_highlightingState.charsRemaining > 0)
     {
-        --_charsRemaining;
-        if (_charsRemaining > 0)
+        --_highlightingState.charsRemaining;
+        if (_highlightingState.charsRemaining > 0)
             return;
 
-        _highlightingType = HIGHLIGHTING_TYPE_NONE;
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
     }
 
     unichar_t ch = text.charAt(pos);
 
-    if (_highlightingType == HIGHLIGHTING_TYPE_STRING)
+    if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_STRING)
     {
-        if (_prevCh == '\\')
-            _prevCh = 0;
-        else if (ch == _quote)
-            _charsRemaining = 1;
+        if (_highlightingState.prevCh == '\\')
+            _highlightingState.prevCh = 0;
+        else if (ch == _highlightingState.quote)
+            _highlightingState.charsRemaining = 1;
         else if (ch == '\\')
-            _prevCh = ch;
+            _highlightingState.prevCh = ch;
 
         return;
     }
-    else if (_highlightingType == HIGHLIGHTING_TYPE_NUMBER)
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_NUMBER)
     {
         if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
                 ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
                 ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
                 ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
                 ch == '.' || ch == '+' || ch == '-'))
-            _highlightingType = HIGHLIGHTING_TYPE_NONE;
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
 
         return;
     }
-    else if (_highlightingType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
     {
         if (ch == '\n')
-            _charsRemaining = 1;
+            _highlightingState.charsRemaining = 1;
 
         return;
     }
-    else if (_highlightingType == HIGHLIGHTING_TYPE_MULTILINE_COMMENT)
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_MULTILINE_COMMENT)
     {
         if (ch == '*')
         {
@@ -224,34 +214,34 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
             if (pos < text.length())
             {
                 if (text.charAt(pos) == '/')
-                    _charsRemaining = 2;
+                    _highlightingState.charsRemaining = 2;
             }
         }
 
         return;
     }
-    else if (_highlightingType == HIGHLIGHTING_TYPE_PREPROCESSOR)
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_PREPROCESSOR)
     {
         if (ch == '\n')
         {
-            if (_prevCh != '\\')
-                _charsRemaining = 1;
-            _prevCh = 0;
+            if (_highlightingState.prevCh != '\\')
+                _highlightingState.charsRemaining = 1;
+            _highlightingState.prevCh = 0;
         }
         else if (ch == '\\')
-            _prevCh = ch;
+            _highlightingState.prevCh = ch;
 
         return;
     }
 
     if (ch == '"' || ch == '\'')
     {
-        _quote = ch;
-        _highlightingType = HIGHLIGHTING_TYPE_STRING;
+        _highlightingState.quote = ch;
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_STRING;
     }
     else if (charIsDigit(ch))
     {
-        _highlightingType = HIGHLIGHTING_TYPE_NUMBER;
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NUMBER;
     }
     else if (charIsAlphaNum(ch) || ch == '_')
     {
@@ -268,14 +258,14 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
         while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
 
         _word = text.substr(s, pos - s);
-        _charsRemaining = _word.length();
+        _highlightingState.charsRemaining = _word.length();
 
         if (_keywords.contains(_word))
-            _highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
         else if (_types.contains(_word))
-            _highlightingType = HIGHLIGHTING_TYPE_TYPE;
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TYPE;
         else
-            _highlightingType = HIGHLIGHTING_TYPE_IDENT;
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_IDENT;
     }
     else if (ch == '/')
     {
@@ -286,9 +276,9 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
             ch = text.charAt(pos);
 
             if (ch == '*')
-                _highlightingType = HIGHLIGHTING_TYPE_MULTILINE_COMMENT;
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_MULTILINE_COMMENT;
             else if (ch == '/')
-                _highlightingType = HIGHLIGHTING_TYPE_SINGLELINE_COMMENT;
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_SINGLELINE_COMMENT;
         }
     }
     else if (ch == '#')
@@ -313,7 +303,7 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
             _word = text.substr(q, pos - q);
 
             if (_preprocessor.contains(_word))
-                _highlightingType = HIGHLIGHTING_TYPE_PREPROCESSOR;
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_PREPROCESSOR;
         }
     }
 }
@@ -1067,21 +1057,26 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     unichar_t ch;
 
     SyntaxHighlighter* syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
-    if (syntaxHighlighter)
-        syntaxHighlighter->startHighlighting();
-
     const int* colors = _editor-> brightBackground() ?
         brightBackgroundColors : darkBackgroundColors;
 
-    if (syntaxHighlighter && _prevTopPosition != _topPosition)
+    if (syntaxHighlighter)
     {
-        p = 0;
-
-        while (p < _topPosition)
+        if (_prevTopPosition != _topPosition)
         {
-            syntaxHighlighter->highlightChar(_text, p);
-            p = _text.charForward(p);
+            p = 0;
+            syntaxHighlighter->highlightingState() = HighlightingState();
+
+            while (p < _topPosition)
+            {
+                syntaxHighlighter->highlightChar(_text, p);
+                p = _text.charForward(p);
+            }
+
+            _highlightingState = syntaxHighlighter->highlightingState();
         }
+        else
+            syntaxHighlighter->highlightingState() = _highlightingState;
     }
 
     for (int j = 1; j <= _height; ++j)
@@ -1113,7 +1108,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                     screen[q].ch = ch;
 
                 if (syntaxHighlighter)
-                    screen[q].color = colors[syntaxHighlighter->highlightingType()];
+                    screen[q].color = colors[syntaxHighlighter->highlightingState().highlightingType];
                 else
                     screen[q].color = 39;
 
@@ -1791,7 +1786,7 @@ void Editor::setDimensions()
 void Editor::updateScreen(bool redrawAll)
 {
     int line, col;
-    int64_t ticks = Timer::ticks();
+//    int64_t ticks = Timer::ticks();
 
     _prevScreen = _screen;
 
@@ -1860,7 +1855,7 @@ void Editor::updateScreen(bool redrawAll)
                 if (color != _screen[i].color)
                 {
                     color = _screen[i].color;
-                    _output.appendFormat(STR("\x1b[%dm"), color);
+                    _output.appendFormat(STR("\x1b[0;%dm"), color);
                 }
 
                 if (_screen[i].ch)
@@ -1924,7 +1919,7 @@ void Editor::updateScreen(bool redrawAll)
                 if (color != _screen[i].color)
                 {
                     color = _screen[i].color;
-                    _output.appendFormat(STR("\x1b[%dm"), color);
+                    _output.appendFormat(STR("\x1b[0;%dm"), color);
                 }
 
                 if (_screen[i].ch)
@@ -1944,7 +1939,7 @@ void Editor::updateScreen(bool redrawAll)
 
     Timer::sleep(500000);*/
 
-    if (true)
+    if (redrawAll)
     {
         for (int j = 0; j < _height; ++j)
         {
@@ -1985,7 +1980,7 @@ void Editor::updateScreen(bool redrawAll)
                 if (color != _screen[i].color)
                 {
                     color = _screen[i].color;
-                    _output.appendFormat(STR("\x1b[%dm"), color);
+                    _output.appendFormat(STR("\x1b[0;%dm"), color);
                 }
 
                 if (_screen[i].ch)
@@ -2049,7 +2044,7 @@ void Editor::updateScreen(bool redrawAll)
                 if (color != _screen[i].color)
                 {
                     color = _screen[i].color;
-                    _output.appendFormat(STR("\x1b[%dm"), color);
+                    _output.appendFormat(STR("\x1b[0;%dm"), color);
                 }
 
                 if (_screen[i].ch)
@@ -2067,8 +2062,8 @@ void Editor::updateScreen(bool redrawAll)
         }
     }
 
-    Console::setCursorPosition(_height, 1);
-    Console::writeFormatted(STR("%lld"), Timer::ticks() - ticks);
+//    Console::setCursorPosition(1, _width - 9);
+//    Console::writeFormatted(STR("%10lld"), Timer::ticks() - ticks);
 
     Console::setCursorPosition(line, col);
 

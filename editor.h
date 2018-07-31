@@ -48,14 +48,29 @@ enum HighlightingType
     HIGHLIGHTING_TYPE_PREPROCESSOR
 };
 
+// HighlightingState
+
+struct HighlightingState
+{
+    HighlightingType highlightingType;
+    int charsRemaining, prevPos;
+    unichar_t quote, prevCh;
+
+    HighlightingState() :
+        highlightingType(HIGHLIGHTING_TYPE_NONE),
+        charsRemaining(0), prevPos(0),
+        quote(0), prevCh(0)
+    {
+    }
+};
+
 // SyntaxHighlighter
 
 class SyntaxHighlighter
 {
 public:
-    SyntaxHighlighter() :
-        _documentType(DOCUMENT_TYPE_TEXT),
-        _highlightingType(HIGHLIGHTING_TYPE_NONE)
+    SyntaxHighlighter(DocumentType documentType = DOCUMENT_TYPE_TEXT) :
+        _documentType(documentType)
     {
     }
 
@@ -64,17 +79,22 @@ public:
         return _documentType;
     }
 
-    HighlightingType highlightingType() const
+    const HighlightingState& highlightingState() const
     {
-        return _highlightingType;
+        return _highlightingState;
     }
 
-    virtual void startHighlighting() = 0;
+    HighlightingState& highlightingState()
+    {
+        return _highlightingState;
+    }
+
     virtual void highlightChar(const String& text, int pos) = 0;
 
 protected:
     DocumentType _documentType;
-    HighlightingType _highlightingType;
+    HighlightingState _highlightingState;
+    String _word;
 };
 
 // CppSyntaxHighlighter
@@ -83,15 +103,9 @@ class CppSyntaxHighlighter : public SyntaxHighlighter
 {
 public:
     CppSyntaxHighlighter();
-
-    virtual void startHighlighting();
     virtual void highlightChar(const String& text, int pos);
 
 protected:
-    int _charsRemaining, _prevPos;
-    String _word;
-    unichar_t _quote, _prevCh;
-
     Set<String> _keywords;
     Set<String> _types;
     Set<String> _preprocessor;
@@ -301,6 +315,7 @@ protected:
     bool _selectionMode;
 
     String _indent;
+    HighlightingState _highlightingState;
 };
 
 // RecentLocation

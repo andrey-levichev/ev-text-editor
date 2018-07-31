@@ -567,7 +567,7 @@ void Console::setColor(ConsoleColor foreground, ConsoleColor background)
     BOOL rc = SetConsoleTextAttribute(handle, attribute);
     ASSERT(rc);
 #else
-    Console::writeFormatted(STR("\x1b[%d;%dm"), foreground, background + 10);
+    Console::writeFormatted(STR("\x1b[0;%d;%dm"), foreground, background + 10);
 #endif
 }
 
