@@ -58,7 +58,7 @@ struct HighlightingState
 
     HighlightingState() :
         highlightingType(HIGHLIGHTING_TYPE_NONE),
-        charsRemaining(0), prevPos(0),
+        charsRemaining(0), prevPos(-1),
         quote(0), prevCh(0)
     {
     }
