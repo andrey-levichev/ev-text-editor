@@ -9,11 +9,11 @@
 
 struct ScreenCell
 {
-    unichar_t ch;
-    short color;
+    char16_t ch;
+    uint16_t color;
 
     ScreenCell() :
-        ch(0), color(39)
+        ch(0), color(BACKGROUND_COLOR_BLACK)
     {
     }
 

@@ -1,8 +1,6 @@
 #include <editor.h>
 
 const int TAB_SIZE = 4;
-const int brightBackgroundColors[] = { 39, 33, 31, 39, 34, 36, 90, 90, 35 };
-const int darkBackgroundColors[] = { 39, 93, 91, 39, 96, 92, 90, 90, 95 };
 
 bool charIsWord(unichar_t ch)
 {
@@ -1056,8 +1054,18 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     int len = _left + _width - 1;
     unichar_t ch;
 
+    const ForegroundColor brightBackgroundColors[] = { FOREGROUND_COLOR_BLACK,
+        FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, FOREGROUND_COLOR_BLACK,
+        FOREGROUND_COLOR_BLUE, FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_BRIGHT_BLACK,
+        FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_MAGENTA };
+
+    const ForegroundColor darkBackgroundColors[] = { FOREGROUND_COLOR_WHITE,
+        FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, FOREGROUND_COLOR_WHITE,
+        FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_BRIGHT_GREEN, FOREGROUND_COLOR_BRIGHT_BLACK,
+        FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_BRIGHT_MAGENTA };
+
     SyntaxHighlighter* syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
-    const int* colors = _editor-> brightBackground() ?
+    const ForegroundColor* colors = _editor-> brightBackground() ?
         brightBackgroundColors : darkBackgroundColors;
 
     if (syntaxHighlighter)
@@ -1098,7 +1106,11 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
             else if (ch && ch != '\n')
                 p = _text.charForward(p);
             else
+#ifdef PLATFORM_WINDOWS
+                ch = ' ';
+#else
                 ch = 0;
+#endif
 
             if (i >= _left)
             {
@@ -1107,10 +1119,18 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                 else
                     screen[q].ch = ch;
 
+#ifdef PLATFORM_WINDOWS
+                if (syntaxHighlighter)
+                    screen[q].color = Console::defaultBackground() |
+                        colors[syntaxHighlighter->highlightingState().highlightingType];
+                else
+                    screen[q].color = Console::defaultBackground() | Console::defaultForeground();
+#else
                 if (syntaxHighlighter)
                     screen[q].color = colors[syntaxHighlighter->highlightingState().highlightingType];
                 else
-                    screen[q].color = 39;
+                    screen[q].color = Console::defaultForeground();
+#endif
 
                 ++q;
             }
@@ -1790,7 +1810,13 @@ void Editor::updateScreen(bool redrawAll)
 
     _prevScreen = _screen;
 
-#ifndef PLATFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    COORD size;
+    size.X = _width; size.Y = _height;
+#else
     Console::showCursor(false);
 #endif
 
@@ -1816,6 +1842,15 @@ void Editor::updateScreen(bool redrawAll)
 
     if (redrawAll)
     {
+#ifdef PLATFORM_WINDOWS
+        SMALL_RECT rect;
+        rect.Top = 0; rect.Left = 0;
+        rect.Bottom = _height - 1; rect.Right = _width - 1;
+
+        BOOL rc = WriteConsoleOutput(handle,
+            reinterpret_cast<CHAR_INFO*>(_screen.values()), size, { 0, 0 }, &rect);
+        ASSERT(rc);
+#else
         for (int j = 0; j < _height; ++j)
         {
             int jw = j * _width, start = jw, end = start + _width;
@@ -1823,33 +1858,6 @@ void Editor::updateScreen(bool redrawAll)
 
             _output.clear();
 
-#ifdef PLATFORM_WINDOWS
-            int k = start;
-
-            for (int i = start; i < end; ++i)
-            {
-                if (color != _screen[i].color)
-                {
-                    if (!_output.empty())
-                    {
-                        Console::setColor(static_cast<ConsoleColor>(color));
-                        Console::write(j + 1, k - jw + 1, _output);
-                    }
-
-                    color = _screen[i].color;
-                    _output.clear();
-                    k = i;
-                }
-
-                _output += _screen[i].ch ? _screen[i].ch : ' ';
-            }
-
-            if (!_output.empty())
-            {
-                Console::setColor(static_cast<ConsoleColor>(color));
-                Console::write(j + 1, k - jw + 1, _output);
-            }
-#else
             for (int i = start; i < end; ++i)
             {
                 if (color != _screen[i].color)
@@ -1867,10 +1875,9 @@ void Editor::updateScreen(bool redrawAll)
                 }
             }
 
-            if (!_output.empty())
-                Console::write(j + 1, 1, _output);
-#endif
+            Console::write(j + 1, 1, _output);
         }
+#endif
     }
     else
     {
@@ -1887,59 +1894,46 @@ void Editor::updateScreen(bool redrawAll)
             while (start <= end && _screen[end] == _prevScreen[end])
                 --end;
 
-#ifdef PLATFORM_WINDOWS
-            int k = start;
-
-            for (int i = start; i <= end; ++i)
+            if (start <= end)
             {
-                if (color != _screen[i].color)
+#ifdef PLATFORM_WINDOWS
+                COORD pos;
+                pos.X = start - jw; pos.Y = j;
+
+                SMALL_RECT rect;
+                rect.Top = rect.Bottom = j;
+                rect.Left = pos.X;
+                rect.Right = end - jw;
+
+                BOOL rc = WriteConsoleOutput(handle,
+                    reinterpret_cast<CHAR_INFO*>(_screen.values()), size, pos, &rect);
+                ASSERT(rc);
+#else
+                for (int i = start; i <= end; ++i)
                 {
-                    if (!_output.empty())
+                    if (color != _screen[i].color)
                     {
-                        Console::setColor(static_cast<ConsoleColor>(color));
-                        Console::write(j + 1, k - jw + 1, _output);
+                        color = _screen[i].color;
+                        _output.appendFormat(STR("\x1b[0;%dm"), color);
                     }
 
-                    color = _screen[i].color;
-                    _output.clear();
-                    k = i;
+                    if (_screen[i].ch)
+                        _output += _screen[i].ch;
+                    else
+                    {
+                        _output += STR("\x1b[K");
+                        break;
+                    }
                 }
 
-                _output += _screen[i].ch ? _screen[i].ch : ' ';
-            }
-
-            if (!_output.empty())
-            {
-                Console::setColor(static_cast<ConsoleColor>(color));
-                Console::write(j + 1, k - jw + 1, _output);
-            }
-#else
-            for (int i = start; i <= end; ++i)
-            {
-                if (color != _screen[i].color)
-                {
-                    color = _screen[i].color;
-                    _output.appendFormat(STR("\x1b[0;%dm"), color);
-                }
-
-                if (_screen[i].ch)
-                    _output += _screen[i].ch;
-                else
-                {
-                    _output += STR("\x1b[K");
-                    break;
-                }
-            }
-
-            if (!_output.empty())
                 Console::write(j + 1, start - jw + 1, _output);
 #endif
+            }
         }
     }
 
-    ticks = Timer::ticks() - ticks;
     Console::setCursorPosition(1, _width - 9);
-    Console::writeFormatted(STR("%10lld"), ticks);
+    Console::writeFormatted(STR("%10lld"), Timer::ticks() - ticks);
 
     Console::setCursorPosition(line, col);
 
@@ -1950,6 +1944,13 @@ void Editor::updateScreen(bool redrawAll)
 
 void Editor::updateStatusLine()
 {
+    for (int p = (_height - 1) * _width; p < _screen.size(); ++p)
+#ifdef PLATFORM_WINDOWS
+        _screen[p].color = Console::defaultBackground() | Console::defaultForeground();
+#else
+        _screen[p].color = Console::defaultForeground();
+#endif
+
     if (!_message.empty())
     {
         int len = _message.charLength();

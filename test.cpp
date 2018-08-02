@@ -5773,6 +5773,18 @@ void testConsoleWrite()
     writeLineFormatted(STR("%d"), 444);
 }
 
+void testConsoleColor()
+{
+    Console::setColor(FOREGROUND_COLOR_BRIGHT_YELLOW, BACKGROUND_COLOR_BRIGHT_BLACK);
+    Console::writeLine(STR("some colors"));
+    Console::setColor(Console::defaultForeground(), BACKGROUND_COLOR_BRIGHT_CYAN);
+    Console::writeLine(STR("some colors"));
+    Console::setColor(FOREGROUND_COLOR_RED, Console::defaultBackground());
+    Console::writeLine(STR("some colors"));
+    Console::setColor(Console::defaultForeground(), Console::defaultBackground());
+    Console::writeLine(STR("some colors"));
+}
+
 void testConsoleReadChar()
 {
     Console::writeLine(STR("Type characters followed by ENTER (q to exit)"));
@@ -6122,7 +6134,7 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        runTests();
+        testConsoleColor();
     }
     catch (Exception& ex)
     {
