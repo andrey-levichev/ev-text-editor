@@ -2013,7 +2013,8 @@ void Editor::updateStatusLine()
 
 bool Editor::processInput()
 {
-    bool update = false, modified = false, autocomplete = false;
+    bool update = false, modified = false;
+    bool autocomplete = false, redrawAll = false;
 
     _inputEvents = Console::readInput();
     bool multipleInputEvents = _inputEvents.size() > 1;
@@ -2359,11 +2360,11 @@ bool Editor::processInput()
                     }
                     else if (keyEvent.key == KEY_PGUP)
                     {
-                        update = doc.moveLines(-(_height - 1));
+                        redrawAll = update = doc.moveLines(-(_height - 1));
                     }
                     else if (keyEvent.key == KEY_PGDN)
                     {
-                        update = doc.moveLines(_height - 1);
+                        redrawAll = update = doc.moveLines(_height - 1);
                     }
                     else if (keyEvent.key == KEY_ENTER)
                     {
@@ -2462,7 +2463,6 @@ bool Editor::processInput()
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_DOWN)
                         update = doc.moveLines(20);
                 }
-
             }
             else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
             {
@@ -2522,7 +2522,7 @@ bool Editor::processInput()
     {
         if (_currentSuggestion != INVALID_POSITION && !autocomplete)
             _currentSuggestion = INVALID_POSITION;
-        updateScreen(false);
+        updateScreen(redrawAll);
     }
 
     if (modified && _document != &_commandLine)

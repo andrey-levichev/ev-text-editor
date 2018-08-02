@@ -15,6 +15,7 @@ document type override
 add keyword and types to autocomplete
 update webpage
 * run editor in profiler, memory/thread checker
+* repaint entire screen for big updates like next page
 
 editor:
 * f9/f10 - save/save all?
