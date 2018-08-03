@@ -159,10 +159,6 @@ CppSyntaxHighlighter::CppSyntaxHighlighter() :
 
 void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
 {
-    if (pos <= _highlightingState.prevPos)
-        return;
-    _highlightingState.prevPos = pos;
-
     if (_highlightingState.charsRemaining > 0)
     {
         --_highlightingState.charsRemaining;
@@ -1049,10 +1045,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     ASSERT(_x > 0 && _y > 0);
     ASSERT(_width > 0 && _height > 0);
 
-    int p = _topPosition, q;
-
+    int p = _topPosition;
     int len = _left + _width - 1;
-    unichar_t ch;
 
     const ForegroundColor brightBackgroundColors[] = { FOREGROUND_COLOR_BLACK,
         FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, FOREGROUND_COLOR_BLACK,
@@ -1089,13 +1083,18 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
 
     for (int j = 1; j <= _height; ++j)
     {
-        q = (_y + j - 2) * screenWidth + _x - 1;
+        int q = (_y + j - 2) * screenWidth + _x - 1;
+        unichar_t ch = 0;
+        bool eol = false;
 
         for (int i = 1; i <= len; ++i)
         {
-            ch = _text.charAt(p);
-            if (syntaxHighlighter)
-                syntaxHighlighter->highlightChar(_text, p);
+            if (!eol)
+            {
+                ch = _text.charAt(p);
+                if (syntaxHighlighter)
+                    syntaxHighlighter->highlightChar(_text, p);
+            }
 
             if (ch == '\t')
             {
@@ -1106,18 +1105,18 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
             else if (ch && ch != '\n')
                 p = _text.charForward(p);
             else
+            {
+                eol = true;
 #ifdef PLATFORM_WINDOWS
                 ch = ' ';
 #else
                 ch = 0;
 #endif
+            }
 
             if (i >= _left)
             {
-                if (unicodeLimit16 && ch > 0xffff)
-                    screen[q].ch = '?';
-                else
-                    screen[q].ch = ch;
+                screen[q].ch = unicodeLimit16 && ch > 0xffff ? '?' : ch;
 
 #ifdef PLATFORM_WINDOWS
                 if (syntaxHighlighter)
@@ -1137,19 +1136,16 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
         }
 
         ch = _text.charAt(p);
-        if (syntaxHighlighter)
-            syntaxHighlighter->highlightChar(_text, p);
-
         if (ch == '\n')
             p = _text.charForward(p);
         else
         {
             while (ch && ch != '\n')
             {
-                p = _text.charForward(p);
-                ch = _text.charAt(p);
                 if (syntaxHighlighter)
                     syntaxHighlighter->highlightChar(_text, p);
+                p = _text.charForward(p);
+                ch = _text.charAt(p);
             }
 
             if (ch == '\n')
@@ -2565,6 +2561,7 @@ void Editor::showCommandLine()
 void Editor::buildProject()
 {
     Console::setLineMode(true);
+    Console::setColor(Console::defaultForeground(), Console::defaultBackground());
     Console::clear();
 
     saveAllDocuments();

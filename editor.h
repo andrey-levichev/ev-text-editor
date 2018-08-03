@@ -53,13 +53,12 @@ enum HighlightingType
 struct HighlightingState
 {
     HighlightingType highlightingType;
-    int charsRemaining, prevPos;
+    int charsRemaining;
     unichar_t quote, prevCh;
 
     HighlightingState() :
         highlightingType(HIGHLIGHTING_TYPE_NONE),
-        charsRemaining(0), prevPos(-1),
-        quote(0), prevCh(0)
+        charsRemaining(0), quote(0), prevCh(0)
     {
     }
 };

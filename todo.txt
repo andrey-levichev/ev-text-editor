@@ -6,19 +6,13 @@ figure out keycode to key combination mapping
 * cursor should go to the end of the block after paste?
 * delete chars should stop on newline?
 * syntax highlighting
-clear colors before make
 support for other languages (shell, xml, html, java, c#, javascript, python)
-improve highlightChar logic
-check highlighting performance
-improved document type detection
+improved document type detection (executable, shebang, xml)
 document type override
-add keyword and types to autocomplete
 update webpage
 * run editor in profiler, memory/thread checker
-* repaint entire screen for big updates like next page
 
 editor:
-* f9/f10 - save/save all?
 * delete to start/end of line
 * autocomplete on enter
 * go to matching brace
@@ -50,6 +44,7 @@ use memory mapping and on demand/background loading
 group small insert/delete changes and apply together
 store text as a list of lines/blocks
 redraw as few characters as possible instead of enitre screen
+cache highlighting info
 
 foundation:
 * log debug output and memory allocations
