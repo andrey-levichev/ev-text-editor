@@ -1810,16 +1810,6 @@ void Editor::updateScreen(bool redrawAll)
 
     _prevScreen = _screen;
 
-#ifdef PLATFORM_WINDOWS
-    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-    ASSERT(handle);
-
-    COORD size;
-    size.X = _width; size.Y = _height;
-#else
-    Console::showCursor(false);
-#endif
-
     if (_document)
     {
         if (_document == &_commandLine)
@@ -1839,6 +1829,37 @@ void Editor::updateScreen(bool redrawAll)
         updateStatusLine();
         line = col = 1;
     }
+
+#ifdef PLATFORM_WINDOWS
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
+
+    COORD size;
+    size.X = _width; size.Y = _height;
+
+    if (!redrawAll)
+    {
+        int changed = 0;
+
+        for (int j = 0; j < _height; ++j)
+        {
+            int jw = j * _width, start = jw, end = start + _width - 1;
+
+            while (start <= end && _screen[start] == _prevScreen[start])
+                ++start;
+
+            while (start <= end && _screen[end] == _prevScreen[end])
+                --end;
+
+            if (start <= end)
+                ++changed;
+        }
+
+        redrawAll = changed > 2;
+    }
+#else
+    Console::showCursor(false);
+#endif
 
     if (redrawAll)
     {
@@ -1932,8 +1953,8 @@ void Editor::updateScreen(bool redrawAll)
         }
     }
 
-    Console::setCursorPosition(1, _width - 9);
-    Console::writeFormatted(STR("%10lld"), Timer::ticks() - ticks);
+    Console::setCursorPosition(1, _width - 10);
+    Console::writeFormatted(STR("%c%10lld"), redrawAll ? '*' : ' ', Timer::ticks() - ticks);
 
     Console::setCursorPosition(line, col);
 
