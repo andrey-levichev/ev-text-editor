@@ -1094,24 +1094,24 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                 ch = _text.charAt(p);
                 if (syntaxHighlighter)
                     syntaxHighlighter->highlightChar(_text, p);
-            }
 
-            if (ch == '\t')
-            {
-                ch = ' ';
-                if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
+                if (ch == '\t')
+                {
+                    ch = ' ';
+                    if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
+                        p = _text.charForward(p);
+                }
+                else if (ch && ch != '\n')
                     p = _text.charForward(p);
-            }
-            else if (ch && ch != '\n')
-                p = _text.charForward(p);
-            else
-            {
-                eol = true;
+                else
+                {
+                    eol = true;
 #ifdef PLATFORM_WINDOWS
-                ch = ' ';
+                    ch = ' ';
 #else
-                ch = 0;
+                    ch = 0;
 #endif
+                }
             }
 
             if (i >= _left)
