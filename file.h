@@ -34,6 +34,7 @@ public:
     ~File();
 
     bool isOpen() const;
+    bool isExecutable() const;
     int64_t size() const;
 
     bool open(const String& filename, int openMode = FILE_MODE_READ);

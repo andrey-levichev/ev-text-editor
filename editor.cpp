@@ -189,8 +189,8 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
                 ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
                 ch == '.' || ch == '+' || ch == '-'))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
-
-        return;
+        else
+            return;
     }
     else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
     {
@@ -299,6 +299,140 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
             if (_preprocessor.contains(_word))
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_PREPROCESSOR;
         }
+    }
+}
+
+ShellSyntaxHighlighter::ShellSyntaxHighlighter() :
+    SyntaxHighlighter(DOCUMENT_TYPE_SHELL)
+{
+    _keywords.add(String(STR("case")));
+    _keywords.add(String(STR("do")));
+    _keywords.add(String(STR("done")));
+    _keywords.add(String(STR("elif")));
+    _keywords.add(String(STR("else")));
+    _keywords.add(String(STR("esac")));
+    _keywords.add(String(STR("fi")));
+    _keywords.add(String(STR("for")));
+    _keywords.add(String(STR("function")));
+    _keywords.add(String(STR("if")));
+    _keywords.add(String(STR("in")));
+    _keywords.add(String(STR("select")));
+    _keywords.add(String(STR("then")));
+    _keywords.add(String(STR("time")));
+    _keywords.add(String(STR("until")));
+    _keywords.add(String(STR("while")));
+}
+
+void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
+{
+    if (_highlightingState.charsRemaining > 0)
+    {
+        --_highlightingState.charsRemaining;
+        if (_highlightingState.charsRemaining > 0)
+            return;
+
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
+    }
+
+    unichar_t ch = text.charAt(pos);
+
+    if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_STRING)
+    {
+        if (_highlightingState.prevCh == '\\')
+            _highlightingState.prevCh = 0;
+        else if (ch == _highlightingState.quote)
+            _highlightingState.charsRemaining = 1;
+        else if (ch == '\\')
+            _highlightingState.prevCh = ch;
+
+        return;
+    }
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_NUMBER)
+    {
+        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
+                ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
+                ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
+                ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
+                ch == '.' || ch == '+' || ch == '-'))
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
+        else
+            return;
+    }
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
+    {
+        if (ch == '\n')
+            _highlightingState.charsRemaining = 1;
+
+        return;
+    }
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_VARIABLE_REF)
+    {
+        if (_highlightingState.quote == '{')
+        {
+            if (ch == '}')
+                _highlightingState.charsRemaining = 1;
+            return;
+        }
+        else
+        {
+            if (!(charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_'))
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
+            else
+                return;
+        }
+    }
+
+    if (ch == '"' || ch == '\'')
+    {
+        _highlightingState.quote = ch;
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_STRING;
+    }
+    else if (charIsDigit(ch))
+    {
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NUMBER;
+    }
+    else if (charIsAlphaNum(ch) || ch == '_')
+    {
+        int s = pos;
+
+        do
+        {
+            pos = text.charForward(pos);
+            if (pos < text.length())
+                ch = text.charAt(pos);
+            else
+                break;
+        }
+        while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
+
+        _word = text.substr(s, pos - s);
+        _highlightingState.charsRemaining = _word.length();
+
+        if (_keywords.contains(_word))
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
+        else
+        {
+            if (pos < text.length() && ch == '=')
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_VARIABLE;
+            else
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
+        }
+    }
+    else if (ch == '#')
+    {
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_SINGLELINE_COMMENT;
+    }
+    else if (ch == '$')
+    {
+        pos = text.charForward(pos);
+
+        if (pos < text.length())
+        {
+            ch = text.charAt(pos);
+            _highlightingState.quote = ch == '{' ? ch : 0;
+        }
+
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_VARIABLE_REF;
     }
 }
 
@@ -959,7 +1093,7 @@ void Document::open(const String& filename)
         ByteBuffer bytes = file.read();
         _text.assign(Unicode::bytesToString(bytes, _encoding, _bom, _crLf));
 
-        determineDocumentType();
+        determineDocumentType(file.isExecutable());
     }
 }
 
@@ -1048,15 +1182,17 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     int p = _topPosition;
     int len = _left + _width - 1;
 
-    const ForegroundColor brightBackgroundColors[] = { FOREGROUND_COLOR_BLACK,
-        FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, FOREGROUND_COLOR_BLACK,
+    const ForegroundColor brightBackgroundColors[] = { Console::defaultForeground(),
+        FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, Console::defaultForeground(),
         FOREGROUND_COLOR_BLUE, FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_BRIGHT_BLACK,
-        FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_MAGENTA };
+        FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_MAGENTA,
+        FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_MAGENTA };
 
-    const ForegroundColor darkBackgroundColors[] = { FOREGROUND_COLOR_WHITE,
-        FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, FOREGROUND_COLOR_WHITE,
-        FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_BRIGHT_GREEN, FOREGROUND_COLOR_BRIGHT_BLACK,
-        FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_BRIGHT_MAGENTA };
+    const ForegroundColor darkBackgroundColors[] = { Console::defaultForeground(),
+        FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, Console::defaultForeground(),
+        FOREGROUND_COLOR_BRIGHT_GREEN, FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_WHITE,
+        FOREGROUND_COLOR_WHITE, FOREGROUND_COLOR_BRIGHT_MAGENTA,
+        FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_BRIGHT_MAGENTA };
 
     SyntaxHighlighter* syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
     const ForegroundColor* colors = _editor-> brightBackground() ?
@@ -1657,12 +1793,12 @@ void Document::trimTrailingWhitespace()
     _position = 0;
 }
 
-void Document::determineDocumentType()
+void Document::determineDocumentType(bool fileExecutable)
 {
     if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) ||
             _filename.endsWith(STR(".cpp")) || _filename.endsWith(STR(".hpp")))
         _documentType = DOCUMENT_TYPE_CPP;
-    else if (_filename.endsWith(STR(".sh")) || _filename.endsWith(STR(".ksh")))
+    else if (_filename.endsWith(STR(".sh")) || _filename.endsWith(STR(".ksh")) || fileExecutable)
         _documentType = DOCUMENT_TYPE_SHELL;
     else if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")))
         _documentType = DOCUMENT_TYPE_XML;
@@ -1713,6 +1849,8 @@ SyntaxHighlighter* Editor::syntaxHighlighter(DocumentType documentType)
 
     if (documentType == DOCUMENT_TYPE_CPP)
         _syntaxHighlighters.addLast(createUnique<CppSyntaxHighlighter>());
+    else if (documentType == DOCUMENT_TYPE_SHELL)
+        _syntaxHighlighters.addLast(createUnique<ShellSyntaxHighlighter>());
     else
         return NULL;
 

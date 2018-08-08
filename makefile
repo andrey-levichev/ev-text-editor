@@ -31,11 +31,11 @@ SOL_OPTIONS=-m64 -std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2,wvarhide
 SOL_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 SOL_RELEASE_OPTIONS=-O3
 
-XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I.
+XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: editor.dbg.vcpp.exe
+all: editor.dbg.xlc
 
 editor.dbg.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS)

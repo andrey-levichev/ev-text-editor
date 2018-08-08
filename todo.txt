@@ -6,9 +6,7 @@ figure out keycode to key combination mapping
 * cursor should go to the end of the block after paste?
 * delete chars should stop on newline?
 * syntax highlighting
-support for other languages (shell, xml, html, java, c#, javascript, python)
-improved document type detection (executable, shebang, xml)
-document type override
+support for other languages (xml, html, java, c#, javascript, python)
 update webpage
 * run editor in profiler, memory/thread checker
 
@@ -32,6 +30,11 @@ editor:
 * line wrapping
 * run macro n times, run macro on selection
 * graphical user interface
+* syntax highlighting improvements
+better highlighting for numbers and nested strings
+improved document type detection (shebang, xml)
+cache highlighting info
+document type override
 * autocomplete improvements
 give nearby words higher priority
 scan all documents in current directory
@@ -44,7 +47,6 @@ use memory mapping and on demand/background loading
 group small insert/delete changes and apply together
 store text as a list of lines/blocks
 redraw as few characters as possible instead of enitre screen
-cache highlighting info
 
 foundation:
 * log debug output and memory allocations

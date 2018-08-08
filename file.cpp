@@ -24,6 +24,21 @@ bool File::isOpen() const
     return _handle != INVALID_HANDLE_VALUE;
 }
 
+bool File::isExecutable() const
+{
+    if (_handle == INVALID_HANDLE_VALUE)
+        throw Exception(STR("file not open"));
+
+#ifdef PLATFORM_WINDOWS
+    return false;
+#else
+    struct stat st;
+    int rc = fstat(_handle, &st);
+    ASSERT(rc == 0);
+    return (st.st_mode & S_IXUSR) != 0;
+#endif
+}
+
 int64_t File::size() const
 {
     if (_handle == INVALID_HANDLE_VALUE)

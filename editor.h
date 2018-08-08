@@ -45,7 +45,9 @@ enum HighlightingType
     HIGHLIGHTING_TYPE_TYPE,
     HIGHLIGHTING_TYPE_SINGLELINE_COMMENT,
     HIGHLIGHTING_TYPE_MULTILINE_COMMENT,
-    HIGHLIGHTING_TYPE_PREPROCESSOR
+    HIGHLIGHTING_TYPE_PREPROCESSOR,
+    HIGHLIGHTING_TYPE_VARIABLE,
+    HIGHLIGHTING_TYPE_VARIABLE_REF
 };
 
 // HighlightingState
@@ -93,7 +95,6 @@ public:
 protected:
     DocumentType _documentType;
     HighlightingState _highlightingState;
-    String _word;
 };
 
 // CppSyntaxHighlighter
@@ -108,6 +109,20 @@ protected:
     Set<String> _keywords;
     Set<String> _types;
     Set<String> _preprocessor;
+    String _word;
+};
+
+// ShellSyntaxHighlighter
+
+class ShellSyntaxHighlighter : public SyntaxHighlighter
+{
+public:
+    ShellSyntaxHighlighter();
+    virtual void highlightChar(const String& text, int pos);
+
+protected:
+    Set<String> _keywords;
+    String _word;
 };
 
 // Document
@@ -138,7 +153,7 @@ public:
     {
         ASSERT(!filename.empty());
         _filename = filename;
-        determineDocumentType();
+        determineDocumentType(false);
     }
 
     const String& filename() const
@@ -285,7 +300,7 @@ protected:
     int uncommentLine(int pos);
 
     void trimTrailingWhitespace();
-    void determineDocumentType();
+    void determineDocumentType(bool fileExecutable);
 
 protected:
     Editor* _editor;

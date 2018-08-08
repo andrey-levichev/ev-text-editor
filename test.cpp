@@ -5568,6 +5568,26 @@ void testFile()
         ASSERT(f.isOpen());
     }
 
+    // bool isExecutable() const
+
+#ifdef PLATFORM_WINDOWS
+    {
+        File f(STR("test.txt"));
+        ASSERT(!f.isExecutable());
+    }
+#else
+    {
+        File f(STR("test.txt"));
+        ASSERT(!f.isExecutable());
+    }
+
+    {
+        File f(STR("test.txt"));
+        system("chmod +x test.txt");
+        ASSERT(f.isExecutable());
+    }
+#endif
+
     // static bool exists(const String& filename)
     // static void remove(const String& filename)
 
@@ -6134,7 +6154,7 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        testConsoleColor();
+        testFile();
     }
     catch (Exception& ex)
     {
