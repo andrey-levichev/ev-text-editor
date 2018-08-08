@@ -6,8 +6,6 @@ figure out keycode to key combination mapping
 * cursor should go to the end of the block after paste?
 * delete chars should stop on newline?
 * syntax highlighting
-support for other languages (xml, html, java, c#, javascript, python)
-update webpage
 * run editor in profiler, memory/thread checker
 
 editor:
@@ -31,6 +29,7 @@ editor:
 * run macro n times, run macro on selection
 * graphical user interface
 * syntax highlighting improvements
+support for other languages
 better highlighting for numbers and nested strings
 improved document type detection (shebang, xml)
 cache highlighting info

@@ -53,6 +53,7 @@ h1 { text-align: center; }
 <li>basic Unicode support (can read/write UTF-8 and UTF-16, aware of multibyte characters)</li>
 <li>autocomplete based on words in open documents</li>
 <li>macro recording/playback</li>
+<li>syntax highlighting</li>
 </ul>
 
 <h3>Keys</h3>
@@ -161,6 +162,10 @@ use any character as string separator instead of space</p>
 
 <p>If you are not satisfied with the suggestion, you can press Tab or Shift+Tab to go to the previous/next suggestion or you can type one or more letters until autocomplete gives you the expected result without pressing Tab too many times. You can also press Backspace to erase previous letter and automatically suggest a new word based on the shorter prefix.</p>
 
+<h3>Syntax highlighting</h3>
+
+<p>Languages for which syntax highlighting is currently supported: C, C++, UNIX shell scripts. ev by default assumes bright screen background and uses darker colors for syntax highlighting to improve contrast. To override this you can use --dark command line option.</p>
+
 <h3>License</h3>
 
 <p>By dowloading and using the ev editor you agree to the following license terms:</p>
@@ -178,6 +183,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT<br>
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 
 <h3>Releases</h3>
+
+<p>v1.7 - syntax highlighting</li>
 
 <p>v1.6 - signficantly improved performance with large files (relative cursor positioning)</p>
 
