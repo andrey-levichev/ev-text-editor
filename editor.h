@@ -75,6 +75,10 @@ public:
     {
     }
 
+    virtual ~SyntaxHighlighter()
+    {
+    }
+
     DocumentType documentType() const
     {
         return _documentType;
