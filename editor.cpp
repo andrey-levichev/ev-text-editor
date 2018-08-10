@@ -14,6 +14,12 @@ bool isWordBoundary(unichar_t prevCh, unichar_t ch)
         (prevCh != '\n' && ch == '\n');
 }
 
+bool isCharBoundary(unichar_t prevCh, unichar_t ch)
+{
+    return (charIsSpace(prevCh) && !charIsSpace(ch)) ||
+        (prevCh != '\n' && ch == '\n');
+}
+
 // CppSyntaxHighlighter
 
 CppSyntaxHighlighter::CppSyntaxHighlighter() :
@@ -1519,7 +1525,7 @@ int Document::findCharsForward(int pos) const
         while (p < _text.length())
         {
             unichar_t ch = _text.charAt(p);
-            if (charIsSpace(prevCh) && !charIsSpace(ch))
+            if (isCharBoundary(prevCh, ch))
                 break;
 
             prevCh = ch;
@@ -1548,7 +1554,7 @@ int Document::findCharsBack(int pos) const
                 p = _text.charBack(p);
 
                 unichar_t ch = _text.charAt(p);
-                if (charIsSpace(ch) && !charIsSpace(prevCh))
+                if (isCharBoundary(ch, prevCh))
                 {
                     p = prevPos;
                     break;
@@ -1968,6 +1974,10 @@ void Editor::updateScreen(bool redrawAll)
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    BOOL rc = GetConsoleScreenBufferInfo(handle, &csbi);
+    ASSERT(rc);
+
     COORD size;
     size.X = _width; size.Y = _height;
 
@@ -1999,10 +2009,10 @@ void Editor::updateScreen(bool redrawAll)
     {
 #ifdef PLATFORM_WINDOWS
         SMALL_RECT rect;
-        rect.Top = 0; rect.Left = 0;
-        rect.Bottom = _height - 1; rect.Right = _width - 1;
+        rect.Top = csbi.srWindow.Top; rect.Left = csbi.srWindow.Left;
+        rect.Bottom = rect.Top + _height - 1; rect.Right = rect.Left + _width - 1;
 
-        BOOL rc = WriteConsoleOutput(handle,
+        rc = WriteConsoleOutput(handle,
             reinterpret_cast<CHAR_INFO*>(_screen.values()), size, { 0, 0 }, &rect);
         ASSERT(rc);
 #else
@@ -2056,11 +2066,11 @@ void Editor::updateScreen(bool redrawAll)
                 pos.X = start - jw; pos.Y = j;
 
                 SMALL_RECT rect;
-                rect.Top = rect.Bottom = j;
-                rect.Left = pos.X;
-                rect.Right = end - jw;
+                rect.Top = rect.Bottom = csbi.srWindow.Top + pos.Y;
+                rect.Left = csbi.srWindow.Left + pos.X;
+                rect.Right = rect.Left + end - jw;
 
-                BOOL rc = WriteConsoleOutput(handle,
+                rc = WriteConsoleOutput(handle,
                     reinterpret_cast<CHAR_INFO*>(_screen.values()), size, pos, &rect);
                 ASSERT(rc);
 #else

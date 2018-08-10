@@ -2,11 +2,7 @@ release:
 * many ctrl and alt combinations don't work on Linux
 figure out keycode to key combination mapping
 * clipboard integration on macos
-* screen corruption on windows after scrolling console window
-* cursor should go to the end of the block after paste?
-* delete chars should stop on newline?
-* syntax highlighting
-* run editor in profiler, memory/thread checker
+* run release version in profiler, memory/thread checker
 
 editor:
 * delete to start/end of line
@@ -39,6 +35,7 @@ give nearby words higher priority
 scan all documents in current directory
 more efficient data structure
 optimize rebuilding of word database
+autocomplete for file names
 * performance optimization
 open large files in native encoding
 turn off indexing and whitespace trimming for large files
