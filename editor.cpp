@@ -180,7 +180,7 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
     {
         if (_highlightingState.prevCh == '\\')
             _highlightingState.prevCh = 0;
-        else if (ch == _highlightingState.quote)
+        else if (ch == _highlightingState.startCh)
             _highlightingState.charsRemaining = 1;
         else if (ch == '\\')
             _highlightingState.prevCh = ch;
@@ -236,7 +236,7 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
 
     if (ch == '"' || ch == '\'')
     {
-        _highlightingState.quote = ch;
+        _highlightingState.startCh = ch;
         _highlightingState.highlightingType = HIGHLIGHTING_TYPE_STRING;
     }
     else if (charIsDigit(ch))
@@ -257,12 +257,12 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
         }
         while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
 
-        _word = text.substr(s, pos - s);
-        _highlightingState.charsRemaining = _word.length();
+        _highlightingState._word = text.substr(s, pos - s);
+        _highlightingState.charsRemaining = _highlightingState._word.length();
 
-        if (_keywords.contains(_word))
+        if (_keywords.contains(_highlightingState._word))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
-        else if (_types.contains(_word))
+        else if (_types.contains(_highlightingState._word))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TYPE;
         else
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_IDENT;
@@ -300,9 +300,9 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
                     break;
             }
 
-            _word = text.substr(q, pos - q);
+            _highlightingState._word = text.substr(q, pos - q);
 
-            if (_preprocessor.contains(_word))
+            if (_preprocessor.contains(_highlightingState._word))
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_PREPROCESSOR;
         }
     }
@@ -346,7 +346,7 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
     {
         if (_highlightingState.prevCh == '\\')
             _highlightingState.prevCh = 0;
-        else if (ch == _highlightingState.quote)
+        else if (ch == _highlightingState.startCh)
             _highlightingState.charsRemaining = 1;
         else if (ch == '\\')
             _highlightingState.prevCh = ch;
@@ -373,7 +373,7 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
     }
     else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_VARIABLE_REF)
     {
-        if (_highlightingState.quote == '{')
+        if (_highlightingState.startCh == '{')
         {
             if (ch == '}')
                 _highlightingState.charsRemaining = 1;
@@ -390,7 +390,7 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
 
     if (ch == '"' || ch == '\'')
     {
-        _highlightingState.quote = ch;
+        _highlightingState.startCh = ch;
         _highlightingState.highlightingType = HIGHLIGHTING_TYPE_STRING;
     }
     else if (charIsDigit(ch))
@@ -411,10 +411,10 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
         }
         while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
 
-        _word = text.substr(s, pos - s);
-        _highlightingState.charsRemaining = _word.length();
+        _highlightingState._word = text.substr(s, pos - s);
+        _highlightingState.charsRemaining = _highlightingState._word.length();
 
-        if (_keywords.contains(_word))
+        if (_keywords.contains(_highlightingState._word))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
         else
         {
@@ -435,10 +435,156 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
         if (pos < text.length())
         {
             ch = text.charAt(pos);
-            _highlightingState.quote = ch == '{' ? ch : 0;
+            _highlightingState.startCh = ch == '{' ? ch : 0;
         }
 
         _highlightingState.highlightingType = HIGHLIGHTING_TYPE_VARIABLE_REF;
+    }
+}
+
+// XmlSyntaxHighlighter
+
+void XmlSyntaxHighlighter::highlightChar(const String& text, int pos)
+{
+    if (_highlightingState.charsRemaining > 0)
+    {
+        --_highlightingState.charsRemaining;
+        if (_highlightingState.charsRemaining > 0)
+            return;
+
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
+    }
+
+    unichar_t ch = text.charAt(pos);
+
+    if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_TAG)
+    {
+        if (ch == '>')
+            _highlightingState.charsRemaining = 1;
+        else if (charIsSpace(ch))
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_ATTRIBUTE;
+
+        return;
+    }
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_ATTRIBUTE)
+    {
+        if (ch == '=')
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_ATTRIBUTE_EQUAL;
+        else if (ch == '>')
+        {
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
+            _highlightingState.charsRemaining = 1;
+        }
+        else if (ch == '/')
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
+
+        return;
+    }
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_ATTRIBUTE_EQUAL)
+    {
+        if (ch == '\'' || ch == '"')
+        {
+            _highlightingState.startCh = ch;
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_ATTRIBUTE_VALUE;
+        }
+        else if (!charIsSpace(ch))
+        {
+            _highlightingState.startCh = 0;
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_ATTRIBUTE_VALUE;
+        }
+
+        return;
+    }
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_ATTRIBUTE_VALUE)
+    {
+        if (_highlightingState.prevCh != 0)
+        {
+            _highlightingState.prevCh = 0;
+
+            if (ch == '>')
+            {
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
+                _highlightingState.charsRemaining = 1;
+            }
+            else if (ch == '/')
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
+            else
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_ATTRIBUTE;
+        }
+        else if (_highlightingState.startCh != 0)
+        {
+            if (ch == _highlightingState.startCh)
+                _highlightingState.prevCh = 1;
+        }
+        else if (_highlightingState.startCh == 0)
+        {
+            if (ch == '>')
+            {
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
+                _highlightingState.charsRemaining = 1;
+            }
+            else if (ch == '/')
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
+            else if (charIsSpace(ch))
+                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_ATTRIBUTE;
+        }
+
+        return;
+    }
+    else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_MULTILINE_COMMENT)
+    {
+        if (ch == '-')
+        {
+            pos = text.charForward(pos);
+
+            if (pos < text.length())
+            {
+                if (text.charAt(pos) == '-')
+                {
+                    pos = text.charForward(pos);
+
+                    if (pos < text.length())
+                    {
+                        if (text.charAt(pos) == '>')
+                            _highlightingState.charsRemaining = 3;
+                    }
+                }
+            }
+        }
+
+        return;
+    }
+
+    if (ch == '<')
+    {
+        pos = text.charForward(pos);
+
+        if (pos < text.length())
+        {
+            if (text.charAt(pos) == '!')
+            {
+                pos = text.charForward(pos);
+
+                if (pos < text.length())
+                {
+                    if (text.charAt(pos) == '-')
+                    {
+                        pos = text.charForward(pos);
+
+                        if (pos < text.length())
+                        {
+                            if (text.charAt(pos) == '-')
+                            {
+                                _highlightingState.highlightingType = HIGHLIGHTING_TYPE_MULTILINE_COMMENT;
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
     }
 }
 
@@ -1192,13 +1338,15 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
         FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, Console::defaultForeground(),
         FOREGROUND_COLOR_BLUE, FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_BRIGHT_BLACK,
         FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_MAGENTA,
-        FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_MAGENTA };
+        FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_MAGENTA, FOREGROUND_COLOR_BLUE,
+        FOREGROUND_COLOR_CYAN, Console::defaultForeground(),  FOREGROUND_COLOR_YELLOW };
 
     const ForegroundColor darkBackgroundColors[] = { Console::defaultForeground(),
         FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, Console::defaultForeground(),
         FOREGROUND_COLOR_BRIGHT_GREEN, FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_WHITE,
         FOREGROUND_COLOR_WHITE, FOREGROUND_COLOR_BRIGHT_MAGENTA,
-        FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_BRIGHT_MAGENTA };
+        FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_BRIGHT_MAGENTA, FOREGROUND_COLOR_BRIGHT_GREEN,
+        FOREGROUND_COLOR_BRIGHT_CYAN, Console::defaultForeground(), FOREGROUND_COLOR_BRIGHT_YELLOW };
 
     SyntaxHighlighter* syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
     const ForegroundColor* colors = _editor-> brightBackground() ?
@@ -1804,9 +1952,11 @@ void Document::determineDocumentType(bool fileExecutable)
     if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) ||
             _filename.endsWith(STR(".cpp")) || _filename.endsWith(STR(".hpp")))
         _documentType = DOCUMENT_TYPE_CPP;
-    else if (_filename.endsWith(STR(".sh")) || _filename.endsWith(STR(".ksh")) || fileExecutable)
+    else if (_filename.endsWith(STR(".sh")) ||
+            _filename.endsWith(STR(".ksh")) || fileExecutable)
         _documentType = DOCUMENT_TYPE_SHELL;
-    else if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")))
+    else if (_filename.endsWith(STR(".xml")) ||
+            _filename.endsWith(STR(".xsd")) || _text.startsWith(STR("<?xml")))
         _documentType = DOCUMENT_TYPE_XML;
     else
         _documentType = DOCUMENT_TYPE_TEXT;
@@ -1857,6 +2007,8 @@ SyntaxHighlighter* Editor::syntaxHighlighter(DocumentType documentType)
         _syntaxHighlighters.addLast(createUnique<CppSyntaxHighlighter>());
     else if (documentType == DOCUMENT_TYPE_SHELL)
         _syntaxHighlighters.addLast(createUnique<ShellSyntaxHighlighter>());
+    else if (documentType == DOCUMENT_TYPE_XML)
+        _syntaxHighlighters.addLast(createUnique<XmlSyntaxHighlighter>());
     else
         return NULL;
 

@@ -47,7 +47,11 @@ enum HighlightingType
     HIGHLIGHTING_TYPE_MULTILINE_COMMENT,
     HIGHLIGHTING_TYPE_PREPROCESSOR,
     HIGHLIGHTING_TYPE_VARIABLE,
-    HIGHLIGHTING_TYPE_VARIABLE_REF
+    HIGHLIGHTING_TYPE_VARIABLE_REF,
+    HIGHLIGHTING_TYPE_TAG,
+    HIGHLIGHTING_TYPE_ATTRIBUTE,
+    HIGHLIGHTING_TYPE_ATTRIBUTE_EQUAL,
+    HIGHLIGHTING_TYPE_ATTRIBUTE_VALUE
 };
 
 // HighlightingState
@@ -56,11 +60,12 @@ struct HighlightingState
 {
     HighlightingType highlightingType;
     int charsRemaining;
-    unichar_t quote, prevCh;
+    unichar_t startCh, prevCh;
+    String _word;
 
     HighlightingState() :
         highlightingType(HIGHLIGHTING_TYPE_NONE),
-        charsRemaining(0), quote(0), prevCh(0)
+        charsRemaining(0), startCh(0), prevCh(0)
     {
     }
 };
@@ -113,7 +118,6 @@ protected:
     Set<String> _keywords;
     Set<String> _types;
     Set<String> _preprocessor;
-    String _word;
 };
 
 // ShellSyntaxHighlighter
@@ -126,7 +130,19 @@ public:
 
 protected:
     Set<String> _keywords;
-    String _word;
+};
+
+// XmlSyntaxHighlighter
+
+class XmlSyntaxHighlighter : public SyntaxHighlighter
+{
+public:
+    XmlSyntaxHighlighter() :
+        SyntaxHighlighter(DOCUMENT_TYPE_XML)
+    {
+    }
+
+    virtual void highlightChar(const String& text, int pos);
 };
 
 // Document

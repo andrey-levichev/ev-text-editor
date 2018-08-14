@@ -9,6 +9,5 @@
 *.sol
 *.xlc
 *.dSYM
-t.txt
-t.cpp
+t.*
 .DS_Store
