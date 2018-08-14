@@ -1952,11 +1952,10 @@ void Document::determineDocumentType(bool fileExecutable)
     if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) ||
             _filename.endsWith(STR(".cpp")) || _filename.endsWith(STR(".hpp")))
         _documentType = DOCUMENT_TYPE_CPP;
-    else if (_filename.endsWith(STR(".sh")) ||
-            _filename.endsWith(STR(".ksh")) || fileExecutable)
+    else if (_filename.endsWith(STR(".sh")) ||_filename.endsWith(STR(".ksh")) || fileExecutable)
         _documentType = DOCUMENT_TYPE_SHELL;
-    else if (_filename.endsWith(STR(".xml")) ||
-            _filename.endsWith(STR(".xsd")) || _text.startsWith(STR("<?xml")))
+    else if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")) ||
+            _filename.endsWith(STR(".htm")) || _filename.endsWith(STR(".html")) || _text.startsWith(STR("<?xml")))
         _documentType = DOCUMENT_TYPE_XML;
     else
         _documentType = DOCUMENT_TYPE_TEXT;
