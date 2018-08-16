@@ -1952,13 +1952,24 @@ void Document::determineDocumentType(bool fileExecutable)
     if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) ||
             _filename.endsWith(STR(".cpp")) || _filename.endsWith(STR(".hpp")))
         _documentType = DOCUMENT_TYPE_CPP;
-    else if (_filename.endsWith(STR(".sh")) ||_filename.endsWith(STR(".ksh")) || fileExecutable)
+    else if (_filename.endsWith(STR(".sh")) ||_filename.endsWith(STR(".ksh")))
         _documentType = DOCUMENT_TYPE_SHELL;
+    else if (_filename.endsWith(STR(".bat")) || _filename.endsWith(STR(".cmd")))
+        _documentType = DOCUMENT_TYPE_BATCH;
+    else if (_filename.endsWith(STR(".ps1")))
+        _documentType = DOCUMENT_TYPE_POWERSHELL;
     else if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")) ||
             _filename.endsWith(STR(".htm")) || _filename.endsWith(STR(".html")) || _text.startsWith(STR("<?xml")))
         _documentType = DOCUMENT_TYPE_XML;
+    else if (_filename.endsWith(STR(".py")))
+        _documentType = DOCUMENT_TYPE_PYTHON;
+    else if (_filename.endsWith(STR(".js")))
+        _documentType = DOCUMENT_TYPE_JAVASCRIPT;
     else
         _documentType = DOCUMENT_TYPE_TEXT;
+
+    if (_documentType == DOCUMENT_TYPE_TEXT && fileExecutable)
+        _documentType = DOCUMENT_TYPE_SHELL;
 }
 
 // Editor
