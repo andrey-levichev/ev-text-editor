@@ -112,27 +112,27 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
 
 void MainWindowEventHandler::onCreate(Window& window)
 {
-    _renderer.create(window.handle());
+    _graphics.create(window.handle());
 }
 
 void MainWindowEventHandler::onDestroy(Window& window)
 {
-    _renderer.reset();
+    _graphics.reset();
     PostQuitMessage(0);
 }
 
 void MainWindowEventHandler::onPaint(Window& window)
 {
-    _renderer->beginDraw();
+    _graphics->beginDraw();
 
-    _renderer->drawText(STR("Segoe UI"), 20, false, { 0, 0, 200, 50 },
+    _graphics->drawText(STR("Segoe UI"), 20, false, { 0, 0, 200, 50 },
         TEXT_ALIGNMENT_LEFT, PARAGRAPH_ALIGNMENT_TOP, 0x000000,
         String::format(STR("%p"), this));
 
-    _renderer->endDraw();
+    _graphics->endDraw();
 }
 
 void MainWindowEventHandler::onResize(Window& window, int width, int height)
 {
-    _renderer->resize(width, height);
+    _graphics->resize(width, height);
 }

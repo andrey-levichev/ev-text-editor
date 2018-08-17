@@ -2,7 +2,7 @@
 #define WINDOW_INCLUDED
 
 #include <foundation.h>
-#include <renderer.h>
+#include <graphics.h>
 #include <windows.h>
 
 class Window;
@@ -81,9 +81,9 @@ public:
     MainWindowEventHandler(const MainWindowEventHandler&) = delete;
     MainWindowEventHandler& operator=(const MainWindowEventHandler&) = delete;
 
-    Renderer& renderer()
+    Graphics& renderer()
     {
-        return *_renderer;
+        return *_graphics;
     }
 
 private:
@@ -93,7 +93,7 @@ private:
     void onResize(Window& window, int width, int height) override;
 
 private:
-    Unique<Renderer> _renderer;
+    Unique<Graphics> _graphics;
 };
 
 #endif

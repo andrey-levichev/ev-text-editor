@@ -105,7 +105,7 @@ protected:
 
 // forward declarations
 
-class Renderer;
+class Graphics;
 
 // DrawingFactory
 
@@ -229,7 +229,7 @@ public:
 private:
     TextFormat _textFormat;
     TextLayout _textLayout;
-    friend class Renderer;
+    friend class Graphics;
 };
 
 // Image
@@ -245,15 +245,15 @@ public:
 
 private:
     Bitmap _bitmap;
-    friend class Renderer;
+    friend class Graphics;
 };
 
-// Renderer
+// Graphics
 
-class Renderer
+class Graphics
 {
 public:
-    Renderer(HWND window);
+    Graphics(HWND window);
 
     void beginDraw();
     void endDraw();

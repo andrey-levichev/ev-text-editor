@@ -6,8 +6,8 @@ TEST_SOURCES=test.cpp foundation.cpp console.cpp file.cpp
 EDITOR_HEADERS=editor.h foundation.h console.h file.h
 EDITOR_SOURCES=main.cpp editor.cpp foundation.cpp console.cpp file.cpp
 
-EDITOR_GUI_HEADERS=editor.h application.h renderer.h window.h foundation.h file.h
-EDITOR_GUI_SOURCES=main.cpp editor.cpp application.cpp renderer.cpp window.cpp foundation.cpp file.cpp
+EDITOR_GUI_HEADERS=editor.h application.h graphics.h window.h foundation.h file.h
+EDITOR_GUI_SOURCES=main.cpp editor.cpp application.cpp graphics.cpp window.cpp foundation.cpp file.cpp
 
 TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o
 

@@ -1,4 +1,4 @@
-#include <renderer.h>
+#include <graphics.h>
 #include <math.h>
 
 DrawingFactory::DrawingFactory()
@@ -114,48 +114,48 @@ Size TextBlock::getTextSize() const
     return { textMetrics.width, textMetrics.height };
 }
 
-Renderer::Renderer(HWND window) :
+Graphics::Graphics(HWND window) :
     _renderTarget(_drawingFactory, window)
 {
 }
 
-void Renderer::beginDraw()
+void Graphics::beginDraw()
 {
     _renderTarget->BeginDraw();
     _renderTarget->SetTransform(D2D1::IdentityMatrix());
     _renderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 }
 
-void Renderer::endDraw()
+void Graphics::endDraw()
 {
     _renderTarget->EndDraw();
 }
 
-void Renderer::drawLine(const Point& p1, const Point& p2, Color color, float width)
+void Graphics::drawLine(const Point& p1, const Point& p2, Color color, float width)
 {
     SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ p1.x, p1.y }, { p2.x, p2.y }, brush, width);
 }
 
-void Renderer::drawHorizontalLine(float y, float x1, float x2, Color color, float width)
+void Graphics::drawHorizontalLine(float y, float x1, float x2, Color color, float width)
 {
     SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ x1, y }, { x2, y }, brush, width);
 }
 
-void Renderer::drawVerticalLine(float x, float y1, float y2, Color color, float width)
+void Graphics::drawVerticalLine(float x, float y1, float y2, Color color, float width)
 {
     SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ x, y1 }, { x, y2 }, brush, width);
 }
 
-void Renderer::drawRectangle(const Rect& rect, Color color, float borderWidth)
+void Graphics::drawRectangle(const Rect& rect, Color color, float borderWidth)
 {
     SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush, borderWidth);
 }
 
-void Renderer::drawRoundedRectangle(const Rect& rect, Color color,
+void Graphics::drawRoundedRectangle(const Rect& rect, Color color,
                                     float cornerRadius, float borderWidth)
 {
     SolidBrush brush(_renderTarget, D2D1::ColorF(color));
@@ -163,20 +163,20 @@ void Renderer::drawRoundedRectangle(const Rect& rect, Color color,
         rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush, borderWidth);
 }
 
-void Renderer::fillRectangle(const Rect& rect, Color color)
+void Graphics::fillRectangle(const Rect& rect, Color color)
 {
     SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->FillRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush);
 }
 
-void Renderer::fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius)
+void Graphics::fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius)
 {
     SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->FillRoundedRectangle({ { rect.left, rect.top,
         rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush);
 }
 
-void Renderer::drawText(const String& font, float fontSize, bool bold,
+void Graphics::drawText(const String& font, float fontSize, bool bold,
                         const Rect& rect, TextAlignment textAlignment, ParagraphAlignment paragraphAlignment,
                         Color color, const String& text)
 {
@@ -225,7 +225,7 @@ void Renderer::drawText(const String& font, float fontSize, bool bold,
         D2D1_DRAW_TEXT_OPTIONS_CLIP, DWRITE_MEASURING_MODE_GDI_CLASSIC);
 }
 
-void Renderer::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color)
+void Graphics::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color)
 {
 #if 0
     SolidBrush brush(_renderTarget, D2D1::ColorF(D2D1::ColorF::AliceBlue));
@@ -257,7 +257,7 @@ void Renderer::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color
 #endif
 }
 
-void Renderer::drawImage(const Image& image, const Point& pos, const Size* size)
+void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
 {
     D2D1_RECT_F rect;
 
@@ -277,12 +277,12 @@ void Renderer::drawImage(const Image& image, const Point& pos, const Size* size)
     _renderTarget->DrawBitmap(image._bitmap, rect);
 }
 
-void Renderer::resize(int width, int height)
+void Graphics::resize(int width, int height)
 {
     _renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height) });
 }
 
-Size Renderer::getSize()
+Size Graphics::getSize()
 {
 #ifdef COMPILER_GCC
     D2D1_SIZE_F size;
