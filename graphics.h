@@ -2,7 +2,6 @@
 #define RENDERER_INCLUDED
 
 #include <foundation.h>
-#include <windows.h>
 #include <d2d1.h>
 #include <dwrite.h>
 #include <wincodec.h>
@@ -33,7 +32,7 @@ struct Size
 
 // Color
 
-using Color = uint32_t;
+typedef uint32_t Color;
 
 // TextAlignment
 

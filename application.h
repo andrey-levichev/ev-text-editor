@@ -1,6 +1,7 @@
 #ifndef APPLICATION_INCLUDED
 #define APPLICATION_INCLUDED
 
+#include <foundation.h>
 #include <window.h>
 
 // Application
@@ -10,7 +11,7 @@ class Application
 public:
     Application(const char_t* commandLine) :
         _commandLine(commandLine),
-        _window(STR("DrawingTestMainWindow"), &_windowEventHandler)
+        _window(STR("EditorMainWindow"))
     {
     }
 
@@ -22,11 +23,6 @@ public:
         return _commandLine;
     }
 
-    WindowEventHandler& windowEventHandler()
-    {
-        return _windowEventHandler;
-    }
-
     Window& window()
     {
         return _window;
@@ -36,7 +32,6 @@ public:
 
 private:
     const char_t* _commandLine;
-    MainWindowEventHandler _windowEventHandler;
     Window _window;
 };
 

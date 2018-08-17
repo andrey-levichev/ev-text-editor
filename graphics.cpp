@@ -1,5 +1,4 @@
 #include <graphics.h>
-#include <math.h>
 
 DrawingFactory::DrawingFactory()
 {
@@ -227,34 +226,8 @@ void Graphics::drawText(const String& font, float fontSize, bool bold,
 
 void Graphics::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color)
 {
-#if 0
-    SolidBrush brush(_renderTarget, D2D1::ColorF(D2D1::ColorF::AliceBlue));
-
-    DWRITE_TEXT_METRICS textMetrics;
-	textBlock._textLayout->GetMetrics(&textMetrics);
-
-    DWRITE_OVERHANG_METRICS overhangMetrics;
-	textBlock._textLayout->GetOverhangMetrics(&overhangMetrics);
-
-    D2D1_RECT_F rect = { pos.x, pos.y, pos.x + textMetrics.layoutWidth, pos.y + textMetrics.layoutHeight };
-    _renderTarget->FillRectangle(rect, brush);
-
-	D2D1_RECT_F overhangRect = { rect.left - overhangMetrics.left, rect.top - overhangMetrics.top,
-			rect.right + overhangMetrics.right, rect.bottom + overhangMetrics.bottom };
-	brush->SetColor(D2D1::ColorF((D2D1::ColorF::Azure)));
-    _renderTarget->FillRectangle(overhangRect, brush);
-
-	D2D1_RECT_F textRect = { rect.left + textMetrics.left, rect.top + textMetrics.top,
-			rect.left + textMetrics.left + textMetrics.width,
-			rect.top + textMetrics.top + textMetrics.height	};
-    brush->SetColor(D2D1::ColorF((D2D1::ColorF::BlanchedAlmond)));
-    _renderTarget->FillRectangle(textRect, brush);
-
-    brush->SetColor(D2D1::ColorF(color));
-#else
     SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawTextLayout({ pos.x, pos.y }, textBlock._textLayout, brush);
-#endif
 }
 
 void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
@@ -265,12 +238,7 @@ void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
         rect = { pos.x, pos.y, pos.x + size->width, pos.y + size->height };
     else
     {
-#ifdef COMPILER_GCC
-        D2D1_SIZE_F size;
-        image._bitmap->GetSize(size);
-#else
         D2D1_SIZE_F size = image._bitmap->GetSize();
-#endif
         rect = { pos.x, pos.y, pos.x + size.width, pos.y + size.height };
     }
 
@@ -279,17 +247,11 @@ void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
 
 void Graphics::resize(int width, int height)
 {
-    _renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height) });
+    _renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height)});
 }
 
 Size Graphics::getSize()
 {
-#ifdef COMPILER_GCC
-    D2D1_SIZE_F size;
-    _renderTarget->GetSize(size);
-#else
     D2D1_SIZE_F size = _renderTarget->GetSize();
-#endif
-
     return { size.width, size.height };
 }

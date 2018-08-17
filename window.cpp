@@ -1,11 +1,11 @@
 #include <window.h>
-#include <application.h>
+
+// Window
 
 Map<HWND, Window*> Window::_windows;
 
-Window::Window(const char_t* windowClass, WindowEventHandler* windowEventHandler) :
+Window::Window(const char_t* windowClass) :
     _windowClass(windowClass),
-    _windowEventHandler(windowEventHandler),
     _handle(NULL)
 {
     WNDCLASSEX wc;
@@ -80,21 +80,21 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
         case WM_CREATE:
             window->_handle = handle;
             _windows.add(handle, window);
-            window->_windowEventHandler->onCreate(*window);
+            window->onCreate();
             break;
 
         case WM_DESTROY:
-            window->_windowEventHandler->onDestroy(*window);
+            window->onDestroy();
             window->_handle = NULL;
             _windows.remove(handle);
             break;
 
         case WM_PAINT:
-            window->_windowEventHandler->onPaint(*window);
+            window->onPaint();
             break;
 
         case WM_SIZE:
-            window->_windowEventHandler->onResize(*window, LOWORD(lParam), HIWORD(lParam));
+            window->onResize(LOWORD(lParam), HIWORD(lParam));
             break;
         }
     }
@@ -110,18 +110,18 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
     return DefWindowProc(handle, message, wParam, lParam);
 }
 
-void MainWindowEventHandler::onCreate(Window& window)
+void Window::onCreate()
 {
-    _graphics.create(window.handle());
+    _graphics.create(_handle);
 }
 
-void MainWindowEventHandler::onDestroy(Window& window)
+void Window::onDestroy()
 {
     _graphics.reset();
     PostQuitMessage(0);
 }
 
-void MainWindowEventHandler::onPaint(Window& window)
+void Window::onPaint()
 {
     _graphics->beginDraw();
 
@@ -132,7 +132,7 @@ void MainWindowEventHandler::onPaint(Window& window)
     _graphics->endDraw();
 }
 
-void MainWindowEventHandler::onResize(Window& window, int width, int height)
+void Window::onResize(int width, int height)
 {
     _graphics->resize(width, height);
 }
