@@ -2,8 +2,8 @@
 #define EDITOR_INCLUDED
 
 #include <foundation.h>
-#include <console.h>
 #include <file.h>
+#include <console.h>
 
 // ScreenCell
 

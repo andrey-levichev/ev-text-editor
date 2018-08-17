@@ -1,23 +1,22 @@
 EDITOR_NAME=ev
-HEADERS=foundation.h console.h file.h
-SOURCES=foundation.cpp console.cpp file.cpp
-TEST_HEADERS=test.h $(HEADERS)
-TEST_SOURCES=test.cpp $(SOURCES)
-EDITOR_HEADERS=editor.h $(HEADERS)
-EDITOR_SOURCES=editor.cpp $(SOURCES)
 
-TRASH=editor.dbg.vcpp.exe editor.vcpp.exe test.dbg.vcpp.exe test.vcpp.exe *.obj *.ilk *.pdb \
-	editor.dbg.gcc editor.dbg.clang editor.dbg.sol editor.dbg.xlc \
-	test.dbg.gcc test.dbg.clang test.dbg.sol test.dbg.xlc \
-	editor editor.gcc editor.clang editor.sol editor.xlc \
-	test.gcc test.clang test.sol test.xlc *.o
+TEST_HEADERS=test.h foundation.h console.h file.h
+TEST_SOURCES=test.cpp foundation.cpp console.cpp file.cpp
+
+EDITOR_HEADERS=editor.h foundation.h console.h file.h
+EDITOR_SOURCES=main.cpp editor.cpp foundation.cpp console.cpp file.cpp
+
+EDITOR_GUI_HEADERS=editor.h application.h renderer.h window.h foundation.h file.h
+EDITOR_GUI_SOURCES=main.cpp editor.cpp application.cpp renderer.cpp window.cpp foundation.cpp file.cpp
+
+TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o
 
 VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 /wd4723 \
 	/I. /DENABLE_ASSERT /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
 	/D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS /Fe:$@
 VCPP_DEBUG_OPTIONS=/RTCsu /MTd /Zi
 VCPP_RELEASE_OPTIONS=/MT /Ox
-VCPP_LINKER_OPTIONS=/link user32.lib
+VCPP_LINKER_OPTIONS=/link user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib
 
 GCC_OPTIONS=-Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -lrt -static-libstdc++
 GCC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
@@ -35,10 +34,13 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: editor.dbg.gcc
+all: editor.gui.dbg.vcpp.exe
 
 editor.dbg.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS)
+
+editor.gui.dbg.vcpp.exe: $(EDITOR_GUI_HEADERS) $(EDITOR_GUI_SOURCES)
+	cl /DEDITOR_GUI_MODE $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_GUI_SOURCES) $(VCPP_LINKER_OPTIONS)
 
 editor.dbg.gcc: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(EDITOR_SOURCES)

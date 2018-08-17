@@ -20,6 +20,24 @@ bool isCharBoundary(unichar_t prevCh, unichar_t ch)
         (prevCh != '\n' && ch == '\n');
 }
 
+ForegroundColor defaultForeground()
+{
+#ifdef EDITOR_GUI_MODE
+    return FOREGROUND_COLOR_BLACK;
+#else
+    return Console::defaultForeground();
+#endif
+}
+
+BackgroundColor defaultBackground()
+{
+#ifdef EDITOR_GUI_MODE
+    return BACKGROUND_COLOR_BRIGHT_WHITE;
+#else
+    return Console::defaultBackground();
+#endif
+}
+
 // CppSyntaxHighlighter
 
 CppSyntaxHighlighter::CppSyntaxHighlighter() :
@@ -1334,19 +1352,19 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     int p = _topPosition;
     int len = _left + _width - 1;
 
-    const ForegroundColor brightBackgroundColors[] = { Console::defaultForeground(),
-        FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, Console::defaultForeground(),
+    const ForegroundColor brightBackgroundColors[] = { defaultForeground(),
+        FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, defaultForeground(),
         FOREGROUND_COLOR_BLUE, FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_BRIGHT_BLACK,
         FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_MAGENTA,
         FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_MAGENTA, FOREGROUND_COLOR_BLUE,
-        FOREGROUND_COLOR_CYAN, Console::defaultForeground(),  FOREGROUND_COLOR_YELLOW };
+        FOREGROUND_COLOR_CYAN, defaultForeground(),  FOREGROUND_COLOR_YELLOW };
 
-    const ForegroundColor darkBackgroundColors[] = { Console::defaultForeground(),
-        FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, Console::defaultForeground(),
+    const ForegroundColor darkBackgroundColors[] = { defaultForeground(),
+        FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, defaultForeground(),
         FOREGROUND_COLOR_BRIGHT_GREEN, FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_WHITE,
         FOREGROUND_COLOR_WHITE, FOREGROUND_COLOR_BRIGHT_MAGENTA,
         FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_BRIGHT_MAGENTA, FOREGROUND_COLOR_BRIGHT_GREEN,
-        FOREGROUND_COLOR_BRIGHT_CYAN, Console::defaultForeground(), FOREGROUND_COLOR_BRIGHT_YELLOW };
+        FOREGROUND_COLOR_BRIGHT_CYAN, defaultForeground(), FOREGROUND_COLOR_BRIGHT_YELLOW };
 
     SyntaxHighlighter* syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
     const ForegroundColor* colors = _editor-> brightBackground() ?
@@ -1410,15 +1428,15 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
 
 #ifdef PLATFORM_WINDOWS
                 if (syntaxHighlighter)
-                    screen[q].color = Console::defaultBackground() |
+                    screen[q].color = defaultBackground() |
                         colors[syntaxHighlighter->highlightingState().highlightingType];
                 else
-                    screen[q].color = Console::defaultBackground() | Console::defaultForeground();
+                    screen[q].color = defaultBackground() | defaultForeground();
 #else
                 if (syntaxHighlighter)
                     screen[q].color = colors[syntaxHighlighter->highlightingState().highlightingType];
                 else
-                    screen[q].color = Console::defaultForeground();
+                    screen[q].color = defaultForeground();
 #endif
 
                 ++q;
@@ -1983,8 +2001,15 @@ Editor::Editor() :
     _recentLocation(NULL),
     _currentSuggestion(INVALID_POSITION)
 {
+#ifdef EDITOR_GUI_MODE
+    _width = 100;
+    _height = 50;
+#else
     Console::setLineMode(false);
     Console::getSize(_width, _height);
+
+    _brightBackground = Console::brightBackground();
+#endif
 
     setDimensions();
 
@@ -1997,14 +2022,14 @@ Editor::Editor() :
     else
         _unicodeLimit16 = false;
 #endif
-
-    _brightBackground = Console::brightBackground();
 }
 
 Editor::~Editor()
 {
+#ifndef EDITOR_GUI_MODE
     Console::setLineMode(true);
     Console::clear();
+#endif
 }
 
 SyntaxHighlighter* Editor::syntaxHighlighter(DocumentType documentType)
@@ -2133,6 +2158,10 @@ void Editor::updateScreen(bool redrawAll)
     }
 
 #ifdef PLATFORM_WINDOWS
+
+#ifdef EDITOR_GUI_MODE
+
+#else
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
@@ -2163,6 +2192,8 @@ void Editor::updateScreen(bool redrawAll)
 
         redrawAll = changed > 2;
     }
+#endif
+
 #else
     Console::showCursor(false);
 #endif
@@ -2170,6 +2201,10 @@ void Editor::updateScreen(bool redrawAll)
     if (redrawAll)
     {
 #ifdef PLATFORM_WINDOWS
+
+#ifdef EDITOR_GUI_MODE
+
+#else
         SMALL_RECT rect;
         rect.Top = csbi.srWindow.Top; rect.Left = csbi.srWindow.Left;
         rect.Bottom = rect.Top + _height - 1; rect.Right = rect.Left + _width - 1;
@@ -2177,6 +2212,8 @@ void Editor::updateScreen(bool redrawAll)
         rc = WriteConsoleOutput(handle,
             reinterpret_cast<CHAR_INFO*>(_screen.values()), size, { 0, 0 }, &rect);
         ASSERT(rc);
+#endif
+
 #else
         for (int j = 0; j < _height; ++j)
         {
@@ -2224,6 +2261,10 @@ void Editor::updateScreen(bool redrawAll)
             if (start <= end)
             {
 #ifdef PLATFORM_WINDOWS
+
+#ifdef EDITOR_GUI_MODE
+
+#else
                 COORD pos;
                 pos.X = start - jw; pos.Y = j;
 
@@ -2235,6 +2276,8 @@ void Editor::updateScreen(bool redrawAll)
                 rc = WriteConsoleOutput(handle,
                     reinterpret_cast<CHAR_INFO*>(_screen.values()), size, pos, &rect);
                 ASSERT(rc);
+#endif
+
 #else
                 for (int i = start; i <= end; ++i)
                 {
@@ -2259,12 +2302,16 @@ void Editor::updateScreen(bool redrawAll)
         }
     }
 
-    Console::setCursorPosition(1, _width - 10);
-    Console::writeFormatted(STR("%c%10lld"), redrawAll ? '*' : ' ', Timer::ticks() - ticks);
 
+#ifdef PLATFORM_WINDOWS
+
+#ifdef EDITOR_GUI_MODE
+
+#else
     Console::setCursorPosition(line, col);
+#endif
 
-#ifndef PLATFORM_WINDOWS
+#else
     Console::showCursor(true);
 #endif
 }
@@ -2273,9 +2320,9 @@ void Editor::updateStatusLine()
 {
     for (int p = (_height - 1) * _width; p < _screen.size(); ++p)
 #ifdef PLATFORM_WINDOWS
-        _screen[p].color = Console::defaultBackground() | Console::defaultForeground();
+        _screen[p].color = defaultBackground() | defaultForeground();
 #else
-        _screen[p].color = Console::defaultForeground();
+        _screen[p].color = defaultForeground();
 #endif
 
     if (!_message.empty())
@@ -2343,7 +2390,10 @@ bool Editor::processInput()
     bool update = false, modified = false;
     bool autocomplete = false, redrawAll = false;
 
+#ifndef EDITOR_GUI_MODE
     _inputEvents = Console::readInput();
+#endif
+
     bool multipleInputEvents = _inputEvents.size() > 1;
 
     for (int i = 0; i < _inputEvents.size(); ++i)
@@ -2870,8 +2920,11 @@ void Editor::showCommandLine()
 
 void Editor::buildProject()
 {
+#ifdef EDITOR_GUI_MODE
+
+#else
     Console::setLineMode(true);
-    Console::setColor(Console::defaultForeground(), Console::defaultBackground());
+    Console::setColor(defaultForeground(), defaultBackground());
     Console::clear();
 
     saveAllDocuments();
@@ -2888,6 +2941,7 @@ void Editor::buildProject()
     Console::readLine();
 
     Console::setLineMode(false);
+#endif
 }
 
 bool Editor::processCommand(const String& command)
@@ -3284,53 +3338,4 @@ void Editor::pasteFromClipboard(String& text)
     else
         text.clear();
 #endif
-}
-
-int MAIN(int argc, const char_t** argv)
-{
-    try
-    {
-        for (int i = 1; i < argc; ++i)
-        {
-            if (strCompare(argv[i], STR("--version")) == 0)
-            {
-                Console::writeLine(STR("ev text editor version 1.7\n"
-                    "web: https://andreylevichev.github.io/ev-text-editor\n"
-                    "Copyright (C) Andrey Levichev, 2018\n\n"
-                    "usage: ev [OPTIONS] [FILE]...\n\n"
-                    "OPTIONS:\n"
-                    "\t--version\tprint version information and exit\n"
-                    "\t--dark\t\tassume dark screen background\n"
-                    "\t--bright\tassume bright screen background\n\n"));
-
-                return 0;
-            }
-        }
-
-        Editor editor;
-
-        for (int i = 1; i < argc; ++i)
-        {
-            if (strCompare(argv[i], STR("--bright")) == 0)
-                editor.brightBackground() = true;
-            else if (strCompare(argv[i], STR("--dark")) == 0)
-                editor.brightBackground() = false;
-            else
-                editor.openDocument(argv[i]);
-        }
-
-        editor.run();
-    }
-    catch (Exception& ex)
-    {
-        Console::writeLine(ex.message());
-        return 1;
-    }
-    catch (...)
-    {
-        Console::writeLine(STR("unknown error"));
-        return 1;
-    }
-
-    return 0;
 }
