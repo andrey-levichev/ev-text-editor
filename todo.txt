@@ -3,6 +3,7 @@ release:
 figure out keycode to key combination mapping
 * clipboard integration on macos
 * run release version in profiler, memory/thread checker
+* comment highlighting bug (/*//)
 
 editor:
 * delete to start/end of line
