@@ -1344,7 +1344,6 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     ASSERT(_line > 0 && _column > 0);
     ASSERT(_preferredColumn > 0);
     ASSERT(_top > 0 && _left > 0);
-    ASSERT(_prevTopPosition >= 0 && _prevTopPosition <= _text.length());
     ASSERT(_topPosition >= 0 && _topPosition <= _text.length());
     ASSERT(_x > 0 && _y > 0);
     ASSERT(_width > 0 && _height > 0);
@@ -2133,7 +2132,6 @@ void Editor::setDimensions()
 void Editor::updateScreen(bool redrawAll)
 {
     int line, col;
-    int64_t ticks = Timer::ticks();
 
     _prevScreen = _screen;
 
@@ -2301,7 +2299,6 @@ void Editor::updateScreen(bool redrawAll)
             }
         }
     }
-
 
 #ifdef PLATFORM_WINDOWS
 

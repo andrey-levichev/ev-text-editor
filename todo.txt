@@ -4,6 +4,7 @@ figure out keycode to key combination mapping
 * clipboard integration on macos
 * run release version in profiler, memory/thread checker
 * comment highlighting bug (/*//)
+* mouse scrolling doesn't work on windows 10
 
 editor:
 * delete to start/end of line
