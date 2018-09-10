@@ -2309,6 +2309,7 @@ void Editor::updateScreen(bool redrawAll)
 #endif
 
 #else
+    Console::setCursorPosition(line, col);
     Console::showCursor(true);
 #endif
 }

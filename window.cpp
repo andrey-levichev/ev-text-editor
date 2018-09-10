@@ -4,8 +4,8 @@
 
 Map<HWND, Window*> Window::_windows;
 
-Window::Window(const char_t* windowClass) :
-    _windowClass(windowClass),
+Window::Window(const char_t* category) :
+    _category(category),
     _handle(NULL)
 {
     WNDCLASSEX wc;
@@ -20,7 +20,7 @@ Window::Window(const char_t* windowClass) :
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = NULL;
     wc.lpszMenuName = NULL;
-    wc.lpszClassName = reinterpret_cast<LPCWSTR>(windowClass);
+    wc.lpszClassName = reinterpret_cast<LPCWSTR>(category);
     wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
     RegisterClassEx(&wc);
@@ -37,7 +37,7 @@ void Window::create(const char_t* title, int width, int height)
     if (_handle)
         throw Exception(STR("window already created"));
 
-    if (!CreateWindow(reinterpret_cast<LPCWSTR>(_windowClass), reinterpret_cast<LPCWSTR>(title),
+    if (!CreateWindow(reinterpret_cast<LPCWSTR>(_category), reinterpret_cast<LPCWSTR>(title),
         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
         width, height, NULL, NULL, GetModuleHandle(NULL), this))
     {

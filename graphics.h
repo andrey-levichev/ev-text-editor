@@ -53,25 +53,25 @@ enum ParagraphAlignment
     PARAGRAPH_ALIGNMENT_CENTER
 };
 
-// ComPtr
+// __ComPtr
 
 template<typename _Interface>
-class ComPtr
+class __ComPtr
 {
 public:
-    ComPtr(const ComPtr<_Interface>& other) :
+    __ComPtr(const __ComPtr<_Interface>& other) :
         _ptr(other._ptr)
     {
         _ptr->AddRef();
     }
 
-    ~ComPtr()
+    ~__ComPtr()
     {
         if (_ptr)
             _ptr->Release();
     }
 
-    ComPtr& operator=(const ComPtr& other)
+    __ComPtr& operator=(const __ComPtr& other)
     {
         if (_ptr)
             _ptr->Release();
@@ -93,7 +93,7 @@ public:
     }
 
 protected:
-    ComPtr() :
+    __ComPtr() :
         _ptr(NULL)
     {
     }
@@ -102,110 +102,106 @@ protected:
     _Interface* _ptr;
 };
 
-// forward declarations
+// __DrawingFactory
 
-class Graphics;
-
-// DrawingFactory
-
-class DrawingFactory : public ComPtr<ID2D1Factory>
+class __DrawingFactory : public __ComPtr<ID2D1Factory>
 {
 public:
-    DrawingFactory();
+    __DrawingFactory();
 };
 
-// RenderTarget
+// __RenderTarget
 
-class RenderTarget : public ComPtr<ID2D1HwndRenderTarget>
+class __RenderTarget : public __ComPtr<ID2D1HwndRenderTarget>
 {
 public:
-    RenderTarget(DrawingFactory& factory, HWND window);
+    __RenderTarget(__DrawingFactory& factory, HWND window);
 };
 
-// SolidBrush
+// __SolidBrush
 
-class SolidBrush : public ComPtr<ID2D1SolidColorBrush>
+class __SolidBrush : public __ComPtr<ID2D1SolidColorBrush>
 {
 public:
-    SolidBrush(RenderTarget& renderTarget, const D2D1_COLOR_F& color);
+    __SolidBrush(__RenderTarget& renderTarget, const D2D1_COLOR_F& color);
 };
 
-// TextFactory
+// __TextFactory
 
-class TextFactory : public ComPtr<IDWriteFactory>
+class __TextFactory : public __ComPtr<IDWriteFactory>
 {
 public:
-    TextFactory();
+    __TextFactory();
 };
 
-// TextFormat
+// __TextFormat
 
-class TextFormat : public ComPtr<IDWriteTextFormat>
+class __TextFormat : public __ComPtr<IDWriteTextFormat>
 {
 public:
-    TextFormat(TextFactory& factory, const String& fontName,
+    __TextFormat(__TextFactory& factory, const String& fontName,
                DWRITE_FONT_WEIGHT fontWeight,
                DWRITE_FONT_STYLE fontStyle,
                DWRITE_FONT_STRETCH fontStretch,
                float fontSize, const String& locale);
 };
 
-// TextLayout
+// __TextLayout
 
-class TextLayout : public ComPtr<IDWriteTextLayout>
+class __TextLayout : public __ComPtr<IDWriteTextLayout>
 {
 public:
-    TextLayout(TextFactory& factory, const String& text,
-               TextFormat& textFormat, float width, float height, bool legacyFontMeasuring);
+    __TextLayout(__TextFactory& factory, const String& text,
+               __TextFormat& textFormat, float width, float height, bool legacyFontMeasuring);
 };
 
-// EllipsisTrimmingSign
+// __EllipsisTrimmingSign
 
-class EllipsisTrimmingSign : public ComPtr<IDWriteInlineObject>
+class __EllipsisTrimmingSign : public __ComPtr<IDWriteInlineObject>
 {
 public:
-    EllipsisTrimmingSign(TextFactory& factory, TextFormat& textFormat);
+    __EllipsisTrimmingSign(__TextFactory& factory, __TextFormat& textFormat);
 };
 
-// ImagingFactory
+// __ImagingFactory
 
-class ImagingFactory : public ComPtr<IWICImagingFactory>
+class __ImagingFactory : public __ComPtr<IWICImagingFactory>
 {
 public:
-    ImagingFactory();
+    __ImagingFactory();
 };
 
-// BitmapDecoder
+// __BitmapDecoder
 
-class BitmapDecoder : public ComPtr<IWICBitmapDecoder>
+class __BitmapDecoder : public __ComPtr<IWICBitmapDecoder>
 {
 public:
-    BitmapDecoder(ImagingFactory& factory, const String& fileName);
+    __BitmapDecoder(__ImagingFactory& factory, const String& fileName);
 };
 
-// BitmapFrameDecode
+// __BitmapFrameDecode
 
-class BitmapFrameDecode : public ComPtr<IWICBitmapFrameDecode>
+class __BitmapFrameDecode : public __ComPtr<IWICBitmapFrameDecode>
 {
 public:
-    BitmapFrameDecode(BitmapDecoder& decoder);
+    __BitmapFrameDecode(__BitmapDecoder& decoder);
 };
 
-// FormatConverter
+// __FormatConverter
 
-class FormatConverter : public ComPtr<IWICFormatConverter>
+class __FormatConverter : public __ComPtr<IWICFormatConverter>
 {
 public:
-    FormatConverter(ImagingFactory& factory, BitmapFrameDecode& frame);
+    __FormatConverter(__ImagingFactory& factory, __BitmapFrameDecode& frame);
 };
 
-// Bitmap
+// __Bitmap
 
-class Bitmap : public ComPtr<ID2D1Bitmap>
+class __Bitmap : public __ComPtr<ID2D1Bitmap>
 {
 public:
-    Bitmap(RenderTarget& renderTarget,
-           ImagingFactory& imagingFactory, const String& fileName);
+    __Bitmap(__RenderTarget& renderTarget,
+           __ImagingFactory& imagingFactory, const String& fileName);
 };
 
 // TextBlock
@@ -213,21 +209,21 @@ public:
 class TextBlock
 {
 public:
-    TextBlock(TextFactory& textFactory, const String& font, float fontSize, bool bold,
+    TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold,
               const String& text, const Size& size) :
         _textFormat(textFactory, font.chars(),
             bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
             DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us")),
         _textLayout(textFactory, text, _textFormat, size.width, size.height, true)
     {
-
     }
 
     Size getTextSize() const;
 
 private:
-    TextFormat _textFormat;
-    TextLayout _textLayout;
+    __TextFormat _textFormat;
+    __TextLayout _textLayout;
+
     friend class Graphics;
 };
 
@@ -236,14 +232,15 @@ private:
 class Image
 {
 public:
-    Image(RenderTarget& renderTarget,
-            ImagingFactory& imagingFactory, const String& fileName) :
+    Image(__RenderTarget& renderTarget,
+            __ImagingFactory& imagingFactory, const String& fileName) :
         _bitmap(renderTarget, imagingFactory, fileName)
     {
     }
 
 private:
-    Bitmap _bitmap;
+    __Bitmap _bitmap;
+
     friend class Graphics;
 };
 
@@ -291,10 +288,10 @@ public:
     Size getSize();
 
 private:
-    DrawingFactory _drawingFactory;
-    ImagingFactory _imagingFactory;
-    TextFactory _textFactory;
-    RenderTarget _renderTarget;
+    __DrawingFactory _drawingFactory;
+    __ImagingFactory _imagingFactory;
+    __TextFactory _textFactory;
+    __RenderTarget _renderTarget;
 };
 
 #endif

@@ -9,16 +9,11 @@
 class Window
 {
 public:
-    Window(const char_t* windowClass);
+    Window(const char_t* category);
     virtual ~Window();
 
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
-
-    HWND handle() const
-    {
-        return _handle;
-    }
 
     void create(const char_t* title, int width, int height);
     void show();
@@ -34,7 +29,7 @@ private:
         HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
 private:
-    const char_t* _windowClass;
+    const char_t* _category;
     HWND _handle;
 
     Unique<Graphics> _graphics;

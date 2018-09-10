@@ -1,12 +1,12 @@
 #include <graphics.h>
 
-DrawingFactory::DrawingFactory()
+__DrawingFactory::__DrawingFactory()
 {
     if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &_ptr)))
         throw Exception(STR("failed to create Direct2D factory"));
 }
 
-RenderTarget::RenderTarget(DrawingFactory& factory, HWND window)
+__RenderTarget::__RenderTarget(__DrawingFactory& factory, HWND window)
 {
     RECT rc;
     GetClientRect(window, &rc);
@@ -17,20 +17,20 @@ RenderTarget::RenderTarget(DrawingFactory& factory, HWND window)
         throw Exception(STR("failed to create render target"));
 }
 
-SolidBrush::SolidBrush(RenderTarget& renderTarget, const D2D1_COLOR_F& color)
+__SolidBrush::__SolidBrush(__RenderTarget& renderTarget, const D2D1_COLOR_F& color)
 {
     if (FAILED(renderTarget->CreateSolidColorBrush(color, &_ptr)))
         throw Exception(STR("failed to create brush"));
 }
 
-TextFactory::TextFactory()
+__TextFactory::__TextFactory()
 {
     if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
                                    __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&_ptr))))
         throw Exception(STR("failed to create DirectWrite factory"));
 }
 
-TextFormat::TextFormat(TextFactory& factory, const String& fontName,
+__TextFormat::__TextFormat(__TextFactory& factory, const String& fontName,
                        DWRITE_FONT_WEIGHT fontWeight,
                        DWRITE_FONT_STYLE fontStyle,
                        DWRITE_FONT_STRETCH fontStretch,
@@ -42,8 +42,8 @@ TextFormat::TextFormat(TextFactory& factory, const String& fontName,
         throw Exception(STR("failed to create text format"));
 }
 
-TextLayout::TextLayout(TextFactory& factory, const String& text,
-                       TextFormat& textFormat, float width, float height, bool legacyFontMeasuring)
+__TextLayout::__TextLayout(__TextFactory& factory, const String& text,
+                       __TextFormat& textFormat, float width, float height, bool legacyFontMeasuring)
 {
     HRESULT hr;
 
@@ -58,13 +58,13 @@ TextLayout::TextLayout(TextFactory& factory, const String& text,
         throw Exception(STR("failed to create text layout"));
 }
 
-EllipsisTrimmingSign::EllipsisTrimmingSign(TextFactory& factory, TextFormat& textFormat)
+__EllipsisTrimmingSign::__EllipsisTrimmingSign(__TextFactory& factory, __TextFormat& textFormat)
 {
     if (FAILED(factory->CreateEllipsisTrimmingSign(textFormat, &_ptr)))
         throw Exception(STR("failed to create trimming sign"));
 }
 
-ImagingFactory::ImagingFactory()
+__ImagingFactory::__ImagingFactory()
 {
     if (FAILED(CoCreateInstance(CLSID_WICImagingFactory,
                                 NULL, CLSCTX_INPROC_SERVER,
@@ -72,20 +72,20 @@ ImagingFactory::ImagingFactory()
         throw Exception(STR("Failed to create WIC imaging factory"));
 }
 
-BitmapDecoder::BitmapDecoder(ImagingFactory& factory, const String& fileName)
+__BitmapDecoder::__BitmapDecoder(__ImagingFactory& factory, const String& fileName)
 {
     if (FAILED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()),
                NULL, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &_ptr)))
         throw Exception(STR("Failed to create WIC decoder"));
 }
 
-BitmapFrameDecode::BitmapFrameDecode(BitmapDecoder& decoder)
+__BitmapFrameDecode::__BitmapFrameDecode(__BitmapDecoder& decoder)
 {
     if (FAILED(decoder->GetFrame(0, &_ptr)))
         throw Exception(STR("Failed to load bitmap frame"));
 }
 
-FormatConverter::FormatConverter(ImagingFactory& factory, BitmapFrameDecode& frame)
+__FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDecode& frame)
 {
     if (FAILED(factory->CreateFormatConverter(&_ptr)))
         throw Exception(STR("Failed to create WIC format converter"));
@@ -95,12 +95,12 @@ FormatConverter::FormatConverter(ImagingFactory& factory, BitmapFrameDecode& fra
         throw Exception(STR("Failed to initialize WIC format converter"));
 }
 
-Bitmap::Bitmap(RenderTarget& renderTarget,
-               ImagingFactory& imagingFactory, const String& fileName)
+__Bitmap::__Bitmap(__RenderTarget& renderTarget,
+               __ImagingFactory& imagingFactory, const String& fileName)
 {
-    BitmapDecoder bitmapDecoder(imagingFactory, fileName.chars());
-    BitmapFrameDecode frame(bitmapDecoder);
-    FormatConverter formatConverter(imagingFactory, frame);
+    __BitmapDecoder bitmapDecoder(imagingFactory, fileName.chars());
+    __BitmapFrameDecode frame(bitmapDecoder);
+    __FormatConverter formatConverter(imagingFactory, frame);
 
     if (FAILED(renderTarget->CreateBitmapFromWicBitmap(formatConverter, &_ptr)))
         throw Exception(STR("Failed to create D2D bitmap"));
@@ -132,45 +132,45 @@ void Graphics::endDraw()
 
 void Graphics::drawLine(const Point& p1, const Point& p2, Color color, float width)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ p1.x, p1.y }, { p2.x, p2.y }, brush, width);
 }
 
 void Graphics::drawHorizontalLine(float y, float x1, float x2, Color color, float width)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ x1, y }, { x2, y }, brush, width);
 }
 
 void Graphics::drawVerticalLine(float x, float y1, float y2, Color color, float width)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ x, y1 }, { x, y2 }, brush, width);
 }
 
 void Graphics::drawRectangle(const Rect& rect, Color color, float borderWidth)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush, borderWidth);
 }
 
 void Graphics::drawRoundedRectangle(const Rect& rect, Color color,
                                     float cornerRadius, float borderWidth)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawRoundedRectangle({ { rect.left, rect.top,
         rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush, borderWidth);
 }
 
 void Graphics::fillRectangle(const Rect& rect, Color color)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->FillRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush);
 }
 
 void Graphics::fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->FillRoundedRectangle({ { rect.left, rect.top,
         rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush);
 }
@@ -179,8 +179,8 @@ void Graphics::drawText(const String& font, float fontSize, bool bold,
                         const Rect& rect, TextAlignment textAlignment, ParagraphAlignment paragraphAlignment,
                         Color color, const String& text)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
-    TextFormat textFormat(_textFactory, font.chars(),
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __TextFormat textFormat(_textFactory, font.chars(),
                           bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
                           DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us"));
 
@@ -226,7 +226,7 @@ void Graphics::drawText(const String& font, float fontSize, bool bold,
 
 void Graphics::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color)
 {
-    SolidBrush brush(_renderTarget, D2D1::ColorF(color));
+    __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawTextLayout({ pos.x, pos.y }, textBlock._textLayout, brush);
 }
 
