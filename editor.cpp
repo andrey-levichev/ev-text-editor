@@ -10,14 +10,12 @@ bool charIsWord(unichar_t ch)
 bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 {
     return (!charIsWord(prevCh) && charIsWord(ch)) ||
-        ((charIsWord(prevCh) || charIsSpace(prevCh)) && !(charIsWord(ch) || charIsSpace(ch))) ||
-        (prevCh != '\n' && ch == '\n');
+        ((charIsWord(prevCh) || charIsSpace(prevCh)) && !(charIsWord(ch) || charIsSpace(ch)));
 }
 
 bool isCharBoundary(unichar_t prevCh, unichar_t ch)
 {
-    return (charIsSpace(prevCh) && !charIsSpace(ch)) ||
-        (prevCh != '\n' && ch == '\n');
+    return (charIsSpace(prevCh) && !charIsSpace(ch));
 }
 
 ForegroundColor defaultForeground()
@@ -36,6 +34,19 @@ BackgroundColor defaultBackground()
 #else
     return Console::defaultBackground();
 #endif
+}
+
+// ScreenCell
+
+ScreenCell::ScreenCell() :
+#ifdef PLATFORM_WINDOWS
+    ch(' '),
+    color(defaultForeground() | defaultBackground())
+#else
+    ch(0),
+    color(defaultForeground())
+#endif
+{
 }
 
 // CppSyntaxHighlighter
@@ -1258,13 +1269,16 @@ void Document::open(const String& filename)
     _filename = filename;
 
 	File file;
+	bool executable = false;
+
 	if (file.open(filename))
 	{
         ByteBuffer bytes = file.read();
         _text.assign(Unicode::bytesToString(bytes, _encoding, _bom, _crLf));
-
-        determineDocumentType(file.isExecutable());
+        executable = file.isExecutable();
     }
+
+    determineDocumentType(executable);
 }
 
 void Document::save()
@@ -1356,7 +1370,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
         FOREGROUND_COLOR_BLUE, FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_BRIGHT_BLACK,
         FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_MAGENTA,
         FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_MAGENTA, FOREGROUND_COLOR_BLUE,
-        FOREGROUND_COLOR_CYAN, defaultForeground(),  FOREGROUND_COLOR_YELLOW };
+        FOREGROUND_COLOR_CYAN, defaultForeground(), FOREGROUND_COLOR_YELLOW };
 
     const ForegroundColor darkBackgroundColors[] = { defaultForeground(),
         FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, defaultForeground(),

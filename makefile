@@ -34,7 +34,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: editor.gui.dbg.vcpp.exe
+all: editor.dbg.vcpp.exe
 
 editor.dbg.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS)
@@ -107,7 +107,6 @@ depl.win: editor.vcpp.exe
 	move /y editor.vcpp.exe $(EDITOR_NAME).exe
 	"C:\Program Files\7-Zip\7z.exe" a $(EDITOR_NAME)-win.zip $(EDITOR_NAME).exe
 	move /y $(EDITOR_NAME)-win.zip docs
-	move /y $(EDITOR_NAME).exe C:\Apps
 
 depl.mac: editor.clang
 	mv editor.clang $(EDITOR_NAME)

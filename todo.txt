@@ -4,8 +4,10 @@ figure out keycode to key combination mapping
 * clipboard integration on macos
 * run release version in profiler, memory/thread checker
 * comment highlighting bugs
-(/*//), comment after preprocessor directive
+/*/, comment after preprocessor directive
 * mouse scrolling doesn't work on windows 10
+* highlighting gets messed up on saving
+* cursor jumps to another line after save
 
 editor:
 * delete to start/end of line

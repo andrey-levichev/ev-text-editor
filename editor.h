@@ -12,10 +12,7 @@ struct ScreenCell
     char16_t ch;
     uint16_t color;
 
-    ScreenCell() :
-        ch(0), color(BACKGROUND_COLOR_BLACK)
-    {
-    }
+    ScreenCell();
 
     friend bool operator==(const ScreenCell& left, const ScreenCell& right)
     {
