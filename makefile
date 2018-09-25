@@ -107,6 +107,7 @@ depl.win: editor.vcpp.exe
 	move /y editor.vcpp.exe $(EDITOR_NAME).exe
 	"C:\Program Files\7-Zip\7z.exe" a $(EDITOR_NAME)-win.zip $(EDITOR_NAME).exe
 	move /y $(EDITOR_NAME)-win.zip docs
+    move /y $(EDITOR_NAME).exe C:\Users\alevichev
 
 depl.mac: editor.clang
 	mv editor.clang $(EDITOR_NAME)
