@@ -62,12 +62,14 @@ struct HighlightingState
 {
     HighlightingType highlightingType;
     int charsRemaining;
+    bool reset;
     unichar_t startCh, prevCh;
-    String _word;
+    String word;
 
     HighlightingState() :
         highlightingType(HIGHLIGHTING_TYPE_NONE),
-        charsRemaining(0), startCh(0), prevCh(0)
+        charsRemaining(0), reset(false),
+        startCh(0), prevCh(0)
     {
     }
 };

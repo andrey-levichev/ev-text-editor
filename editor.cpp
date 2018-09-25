@@ -200,7 +200,8 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
         if (_highlightingState.charsRemaining > 0)
             return;
 
-        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
+        if (_highlightingState.reset)
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
     }
 
     unichar_t ch = text.charAt(pos);
@@ -210,7 +211,10 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
         if (_highlightingState.prevCh == '\\')
             _highlightingState.prevCh = 0;
         else if (ch == _highlightingState.startCh)
+        {
             _highlightingState.charsRemaining = 1;
+            _highlightingState.reset = true;
+        }
         else if (ch == '\\')
             _highlightingState.prevCh = ch;
 
@@ -230,7 +234,10 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
     else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
     {
         if (ch == '\n')
+        {
             _highlightingState.charsRemaining = 1;
+            _highlightingState.reset = true;
+        }
 
         return;
     }
@@ -243,7 +250,10 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
             if (pos < text.length())
             {
                 if (text.charAt(pos) == '/')
+                {
                     _highlightingState.charsRemaining = 2;
+                    _highlightingState.reset = true;
+                }
             }
         }
 
@@ -254,7 +264,11 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
         if (ch == '\n')
         {
             if (_highlightingState.prevCh != '\\')
+            {
                 _highlightingState.charsRemaining = 1;
+                _highlightingState.reset = true;
+            }
+
             _highlightingState.prevCh = 0;
         }
         else if (ch == '\\')
@@ -286,12 +300,13 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
         }
         while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
 
-        _highlightingState._word = text.substr(s, pos - s);
-        _highlightingState.charsRemaining = _highlightingState._word.length();
+        _highlightingState.word = text.substr(s, pos - s);
+        _highlightingState.charsRemaining = _highlightingState.word.charLength();
+        _highlightingState.reset = true;
 
-        if (_keywords.contains(_highlightingState._word))
+        if (_keywords.contains(_highlightingState.word))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
-        else if (_types.contains(_highlightingState._word))
+        else if (_types.contains(_highlightingState.word))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TYPE;
         else
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_IDENT;
@@ -305,7 +320,11 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
             ch = text.charAt(pos);
 
             if (ch == '*')
+            {
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_MULTILINE_COMMENT;
+                _highlightingState.charsRemaining = 2;
+                _highlightingState.reset = false;
+            }
             else if (ch == '/')
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_SINGLELINE_COMMENT;
         }
@@ -329,10 +348,19 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
                     break;
             }
 
-            _highlightingState._word = text.substr(q, pos - q);
+            _highlightingState.word = text.substr(q, pos - q);
 
-            if (_preprocessor.contains(_highlightingState._word))
+            if (_preprocessor.contains(_highlightingState.word))
+            {
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_PREPROCESSOR;
+
+                if (_highlightingState.word == STR("else") ||
+                    _highlightingState.word == STR("endif"))
+                {
+                    _highlightingState.charsRemaining = _highlightingState.word.charLength() + 1;
+                    _highlightingState.reset = true;
+                }
+            }
         }
     }
 }
@@ -366,7 +394,8 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
         if (_highlightingState.charsRemaining > 0)
             return;
 
-        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
+        if (_highlightingState.reset)
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
     }
 
     unichar_t ch = text.charAt(pos);
@@ -376,7 +405,10 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
         if (_highlightingState.prevCh == '\\')
             _highlightingState.prevCh = 0;
         else if (ch == _highlightingState.startCh)
+        {
             _highlightingState.charsRemaining = 1;
+            _highlightingState.reset = true;
+        }
         else if (ch == '\\')
             _highlightingState.prevCh = ch;
 
@@ -396,7 +428,10 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
     else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_SINGLELINE_COMMENT)
     {
         if (ch == '\n')
+        {
             _highlightingState.charsRemaining = 1;
+            _highlightingState.reset = true;
+        }
 
         return;
     }
@@ -405,7 +440,11 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
         if (_highlightingState.startCh == '{')
         {
             if (ch == '}')
+            {
                 _highlightingState.charsRemaining = 1;
+                _highlightingState.reset = true;
+            }
+
             return;
         }
         else
@@ -440,10 +479,11 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
         }
         while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
 
-        _highlightingState._word = text.substr(s, pos - s);
-        _highlightingState.charsRemaining = _highlightingState._word.length();
+        _highlightingState.word = text.substr(s, pos - s);
+        _highlightingState.charsRemaining = _highlightingState.word.charLength();
+        _highlightingState.reset = true;
 
-        if (_keywords.contains(_highlightingState._word))
+        if (_keywords.contains(_highlightingState.word))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_KEYWORD;
         else
         {
@@ -481,7 +521,8 @@ void XmlSyntaxHighlighter::highlightChar(const String& text, int pos)
         if (_highlightingState.charsRemaining > 0)
             return;
 
-        _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
+        if (_highlightingState.reset)
+            _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
     }
 
     unichar_t ch = text.charAt(pos);
@@ -489,7 +530,10 @@ void XmlSyntaxHighlighter::highlightChar(const String& text, int pos)
     if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_TAG)
     {
         if (ch == '>')
+        {
             _highlightingState.charsRemaining = 1;
+            _highlightingState.reset = true;
+        }
         else if (charIsSpace(ch))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_ATTRIBUTE;
 
@@ -503,6 +547,7 @@ void XmlSyntaxHighlighter::highlightChar(const String& text, int pos)
         {
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
             _highlightingState.charsRemaining = 1;
+            _highlightingState.reset = true;
         }
         else if (ch == '/')
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
@@ -534,6 +579,7 @@ void XmlSyntaxHighlighter::highlightChar(const String& text, int pos)
             {
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
                 _highlightingState.charsRemaining = 1;
+                _highlightingState.reset = true;
             }
             else if (ch == '/')
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
@@ -551,6 +597,7 @@ void XmlSyntaxHighlighter::highlightChar(const String& text, int pos)
             {
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
                 _highlightingState.charsRemaining = 1;
+                _highlightingState.reset = true;
             }
             else if (ch == '/')
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_TAG;
@@ -575,7 +622,10 @@ void XmlSyntaxHighlighter::highlightChar(const String& text, int pos)
                     if (pos < text.length())
                     {
                         if (text.charAt(pos) == '>')
+                        {
                             _highlightingState.charsRemaining = 3;
+                            _highlightingState.reset = true;
+                        }
                     }
                 }
             }
@@ -2368,6 +2418,9 @@ void Editor::updateStatusLine()
         if (doc.modified())
             _status += '*';
 
+        if (_recordingMacro)
+            _status += STR("  REC");
+
         int percent = doc.text().length() == 0 ?
             100 : doc.position() * 100 / doc.text().length();
 
@@ -2631,16 +2684,6 @@ bool Editor::processInput()
                             doc.uncommentLines();
                             modified = update = true;
                         }
-                        else if (keyEvent.ch == '-')
-                        {
-                            doc.unindentLines();
-                            modified = update = true;
-                        }
-                        else if (keyEvent.ch == '=')
-                        {
-                            doc.indentLines();
-                            modified = update = true;
-                        }
                         else if (keyEvent.ch == '\'')
                         {
                             findUniqueWords();
@@ -2672,6 +2715,8 @@ bool Editor::processInput()
                                 _recordingMacro = true;
                                 _macro.clear();
                             }
+
+                            update = true;
                         }
                         else if (keyEvent.ch == 'm')
                         {

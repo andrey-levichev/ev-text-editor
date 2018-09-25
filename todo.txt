@@ -3,11 +3,6 @@ release:
 figure out keycode to key combination mapping
 * clipboard integration on macos
 * run release version in profiler, memory/thread checker
-* comment highlighting bugs
-/*/, comment after preprocessor directive
-* mouse scrolling doesn't work on windows 10
-* highlighting gets messed up on saving
-* cursor jumps to another line after save
 
 editor:
 * delete to start/end of line
@@ -32,7 +27,8 @@ editor:
 * syntax highlighting improvements
 improved document type detection with shebang
 support for other languages
-better highlighting for numbers and nested strings
+better highlighting for numbers, nested strings
+comments in preprocessor directive
 cache highlighting info
 document type override
 * autocomplete improvements
