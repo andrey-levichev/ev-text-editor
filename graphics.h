@@ -265,9 +265,10 @@ public:
     void fillRectangle(const Rect& rect, Color color);
     void fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius);
 
-    void drawText(const String& font, float fontSize, bool bold,
-                  const Rect& rect, TextAlignment textAlignment, ParagraphAlignment paragraphAlignment,
-                  Color color, const String& text);
+    void drawText(const String& font, float fontSize, const String& text, const Rect& rect,
+        Color color = 0x000000, TextAlignment textAlignment = TEXT_ALIGNMENT_LEFT,
+        ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP,
+        bool bold = false, bool wrapLines = false);
 
     void drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color);
 

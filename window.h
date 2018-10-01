@@ -32,9 +32,10 @@ private:
     const char_t* _category;
     HWND _handle;
 
-    Unique<Graphics> _graphics;
-
     static Map<HWND, Window*> _windows;
+
+    Unique<Graphics> _graphics;
+    String _text;
 };
 
 #endif

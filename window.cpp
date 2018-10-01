@@ -1,4 +1,5 @@
 #include <window.h>
+#include <file.h>
 
 // Window
 
@@ -113,11 +114,17 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
 void Window::onCreate()
 {
     _graphics.create(_handle);
+
+    File file(STR("t.cpp"));
+    ByteBuffer bytes = file.read();
+
+    TextEncoding encoding;
+    bool bom, crLf;
+    _text = Unicode::bytesToString(bytes, encoding, bom, crLf);
 }
 
 void Window::onDestroy()
 {
-    _graphics.reset();
     PostQuitMessage(0);
 }
 
@@ -125,9 +132,10 @@ void Window::onPaint()
 {
     _graphics->beginDraw();
 
-    _graphics->drawText(STR("Segoe UI"), 20, false, { 0, 0, 200, 50 },
-        TEXT_ALIGNMENT_LEFT, PARAGRAPH_ALIGNMENT_TOP, 0x000000,
-        String::format(STR("%p"), this));
+    Size size = _graphics->getSize();
+    Rect rect = { 0, 0, size.width, size.height };
+
+    _graphics->drawText(STR("Lucida Console"), 13, _text, rect);
 
     _graphics->endDraw();
 }

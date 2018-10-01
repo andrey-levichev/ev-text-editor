@@ -7,6 +7,7 @@
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* commandLine, int cmdShow)
 {
     CoInitialize(NULL);
+    SetProcessDPIAware();
 
     try
     {

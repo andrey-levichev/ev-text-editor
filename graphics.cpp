@@ -175,9 +175,9 @@ void Graphics::fillRoundedRectangle(const Rect& rect, Color color, float cornerR
         rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush);
 }
 
-void Graphics::drawText(const String& font, float fontSize, bool bold,
-                        const Rect& rect, TextAlignment textAlignment, ParagraphAlignment paragraphAlignment,
-                        Color color, const String& text)
+void Graphics::drawText(const String& font, float fontSize, const String& text, const Rect& rect,
+    Color color, TextAlignment textAlignment, ParagraphAlignment paragraphAlignment,
+    bool bold, bool wrapLines)
 {
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     __TextFormat textFormat(_textFactory, font.chars(),
@@ -218,6 +218,8 @@ void Graphics::drawText(const String& font, float fontSize, bool bold,
 
     textFormat->SetTextAlignment(txtAlign);
     textFormat->SetParagraphAlignment(paraAlign);
+    textFormat->SetWordWrapping(wrapLines ?
+        DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
         { rect.left, rect.top, rect.right, rect.bottom }, brush,
