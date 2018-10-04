@@ -2,39 +2,45 @@
 #define WINDOW_INCLUDED
 
 #include <foundation.h>
+
+#ifdef EDITOR_GUI_MODE
 #include <graphics.h>
+#else
+#include <console.h>
+#endif
 
 // Window
 
 class Window
 {
 public:
-    Window(const char_t* category);
-    virtual ~Window();
+    Window();
+    ~Window();
 
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
 
-    void create(const char_t* title, int width, int height);
+    void create(const char_t* title, int width = 0, int height = 0);
     void show();
 
-protected:
-    virtual void onCreate();
-    virtual void onDestroy();
-    virtual void onPaint();
-    virtual void onResize(int width, int height);
+private:
+    void onCreate();
+    void onDestroy();
+    void onPaint();
+    void onResize(int width, int height);
 
 private:
-    static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
-
-private:
-    const char_t* _category;
-    HWND _handle;
-
-    static Map<HWND, Window*> _windows;
-
-    Unique<Graphics> _graphics;
+    uintptr_t _handle;
     String _text;
+
+#ifdef EDITOR_GUI_MODE
+private:
+    Unique<Graphics> _graphics;
+
+private:
+    static Map<HWND, Window*> _windows;
+    static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+#endif
 };
 
 #endif

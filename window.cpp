@@ -3,10 +3,9 @@
 
 // Window
 
-Map<HWND, Window*> Window::_windows;
-
-Window::Window(const char_t* category) : _category(category), _handle(NULL)
+Window::Window() : _handle(NULL)
 {
+#ifdef EDITOR_GUI_MODE
     WNDCLASSEX wc;
 
     wc.cbSize = sizeof(WNDCLASSEX);
@@ -19,40 +18,98 @@ Window::Window(const char_t* category) : _category(category), _handle(NULL)
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = NULL;
     wc.lpszMenuName = NULL;
-    wc.lpszClassName = reinterpret_cast<LPCWSTR>(category);
+    wc.lpszClassName = L"EvEditorWindow";
     wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
     RegisterClassEx(&wc);
+#endif
 }
 
 Window::~Window()
 {
+#ifdef EDITOR_GUI_MODE
     if (_handle)
-        DestroyWindow(_handle);
+        DestroyWindow(reinterpret_cast<HWND>(_handle));
+#endif
 }
 
 void Window::create(const char_t* title, int width, int height)
 {
+#ifdef EDITOR_GUI_MODE
     if (_handle)
         throw Exception(STR("window already created"));
 
-    if (!CreateWindow(reinterpret_cast<LPCWSTR>(_category), reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
-                      CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, GetModuleHandle(NULL), this))
+    if (!CreateWindow(L"EvEditorWindow", reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
+                      CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
+                      NULL, NULL, GetModuleHandle(NULL), this))
     {
         throw Exception(STR("failed to create window"));
     }
+#endif
 }
 
 void Window::show()
 {
+#ifdef EDITOR_GUI_MODE
     if (_handle)
     {
-        ShowWindow(_handle, SW_SHOWDEFAULT);
-        UpdateWindow(_handle);
+        ShowWindow(reinterpret_cast<HWND>(_handle), SW_SHOWDEFAULT);
+        UpdateWindow(reinterpret_cast<HWND>(_handle));
     }
     else
         throw Exception(STR("window not created"));
+#endif
 }
+
+void Window::onCreate()
+{
+    File file(STR("t.cpp"));
+    ByteBuffer bytes = file.read();
+
+    TextEncoding encoding;
+    bool bom, crLf;
+    _text = Unicode::bytesToString(bytes, encoding, bom, crLf);
+
+#ifdef EDITOR_GUI_MODE
+    _graphics.create(reinterpret_cast<HWND>(_handle));
+#else
+    Console::clear();
+#endif
+}
+
+void Window::onDestroy()
+{
+#ifdef EDITOR_GUI_MODE
+    PostQuitMessage(0);
+#endif
+}
+
+void Window::onPaint()
+{
+#ifdef EDITOR_GUI_MODE
+    _graphics->beginDraw();
+
+    Size size = _graphics->getSize();
+    Rect rect = { 0, 0, size.width, size.height };
+
+    _graphics->drawText(STR("Lucida Console"), 13, _text, rect);
+
+    _graphics->endDraw();
+#else
+    Console::write(1, 1, _text);
+#endif
+}
+
+void Window::onResize(int width, int height)
+{
+#ifdef EDITOR_GUI_MODE
+    _graphics->resize(width, height);
+#endif
+}
+
+#ifdef EDITOR_GUI_MODE
+
+Map<HWND, Window*> Window::_windows;
 
 LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -76,7 +133,7 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
         switch (message)
         {
         case WM_CREATE:
-            window->_handle = handle;
+            window->_handle = reinterpret_cast<uintptr_t>(handle);
             _windows.add(handle, window);
             window->onCreate();
             break;
@@ -108,36 +165,4 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
     return DefWindowProc(handle, message, wParam, lParam);
 }
 
-void Window::onCreate()
-{
-    _graphics.create(_handle);
-
-    File file(STR("t.cpp"));
-    ByteBuffer bytes = file.read();
-
-    TextEncoding encoding;
-    bool bom, crLf;
-    _text = Unicode::bytesToString(bytes, encoding, bom, crLf);
-}
-
-void Window::onDestroy()
-{
-    PostQuitMessage(0);
-}
-
-void Window::onPaint()
-{
-    _graphics->beginDraw();
-
-    Size size = _graphics->getSize();
-    Rect rect = { 0, 0, size.width, size.height };
-
-    _graphics->drawText(STR("Lucida Console"), 13, _text, rect);
-
-    _graphics->endDraw();
-}
-
-void Window::onResize(int width, int height)
-{
-    _graphics->resize(width, height);
-}
+#endif

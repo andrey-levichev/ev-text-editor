@@ -3,11 +3,14 @@ EDITOR_NAME=ev
 TEST_HEADERS=test.h foundation.h console.h file.h
 TEST_SOURCES=test.cpp foundation.cpp console.cpp file.cpp
 
-EDITOR_HEADERS=editor.h foundation.h console.h file.h
-EDITOR_SOURCES=main.cpp editor.cpp foundation.cpp console.cpp file.cpp
+COMMON_HEADERS=editor.h foundation.h file.h application.h
+COMMON_SOURCES=editor.cpp foundation.cpp file.cpp application.cpp main.cpp
 
-EDITOR_GUI_HEADERS=editor.h application.h graphics.h window.h foundation.h file.h
-EDITOR_GUI_SOURCES=main.cpp editor.cpp application.cpp graphics.cpp window.cpp foundation.cpp file.cpp
+EDITOR_HEADERS=$(COMMON_HEADERS) console.h window.h
+EDITOR_SOURCES=$(COMMON_SOURCES) console.cpp window.cpp
+
+EDITOR_GUI_HEADERS=$(COMMON_HEADERS) graphics.h window.h
+EDITOR_GUI_SOURCES=$(COMMON_SOURCES) graphics.cpp window.cpp
 
 TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o
 

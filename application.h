@@ -4,19 +4,27 @@
 #include <foundation.h>
 #include <window.h>
 
+#ifndef EDITOR_GUI_MODE
+#include <console.h>
+#endif
+
 // Application
 
 class Application
 {
+private:
+    static const char_t* APPLICATION_NAME;
+
 public:
-    Application(const char_t* commandLine) : _commandLine(commandLine), _window(STR("EditorMainWindow"))
+    Application(const String& commandLine) :
+        _commandLine(commandLine)
     {
     }
 
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
 
-    const char_t* commandLine() const
+    const String& commandLine() const
     {
         return _commandLine;
     }
@@ -28,9 +36,18 @@ public:
 
     void run();
 
+    static void showMessage(const String& message);
+    static void showMessage(const char_t* message);
+    static void showErrorMessage(const String& message);
+    static void showErrorMessage(const char_t* message);
+
 private:
-    const char_t* _commandLine;
+    const String _commandLine;
     Window _window;
+
+#ifndef EDITOR_GUI_MODE
+    Array<InputEvent> _inputEvents;
+#endif
 };
 
 #endif
