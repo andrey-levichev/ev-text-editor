@@ -17,7 +17,8 @@
 
 // 32/64 bit
 
-#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || defined(_M_ARM64) || defined(__sparcv9) || defined(_ARCH_PPC64)
+#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || defined(_M_ARM64) || defined(__sparcv9) || \
+    defined(_ARCH_PPC64)
 #define ARCH_64BIT
 #else
 #define ARCH_32BIT
@@ -212,10 +213,12 @@ typedef unsigned char byte_t;
 #ifdef ABORT_ON_ASSERT_FAILURE
 
 #define ASSERT_MSG(condition, message) \
-    do { \
-        if (!(condition)) { \
-            PUTS(STR("assertion failed in ") \
-                STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message); \
+    do \
+    { \
+        if (!(condition)) \
+        { \
+            PUTS(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") \
+                     message); \
             abort(); \
         } \
     } while (false)
@@ -223,10 +226,11 @@ typedef unsigned char byte_t;
 #else
 
 #define ASSERT_MSG(condition, message) \
-    do { \
+    do \
+    { \
         if (!(condition)) \
-            throw Exception(STR("assertion failed in ") \
-                STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") message); \
+            throw Exception(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) \
+                                STR(": ") message); \
     } while (false)
 
 #endif
@@ -235,43 +239,54 @@ typedef unsigned char byte_t;
 #define ASSERT_FAIL(message) ASSERT_MSG(false, message)
 
 #define ASSERT_EXCEPTION(exception, ...) \
-    do { \
-        try { \
+    do \
+    { \
+        try \
+        { \
             __VA_ARGS__; \
         } \
-        catch (exception&) { \
+        catch (exception&) \
+        { \
             break; \
         } \
-        catch (...) { \
+        catch (...) \
+        { \
             ASSERT_FAIL(STR("expected ") STR(#exception)); \
         } \
         ASSERT_FAIL(STR("expected ") STR(#exception)); \
-    } while(false)
+    } while (false)
 
 #define ASSERT_NO_EXCEPTION(...) \
-    do { \
-        try { __VA_ARGS__; } \
-        catch (...) { \
+    do \
+    { \
+        try \
+        { \
+            __VA_ARGS__; \
+        } \
+        catch (...) \
+        { \
             ASSERT_FAIL(STR("unexpected exception")); \
         } \
     } while (false)
 
 #define ASSERT_EXCEPTION_MSG(exception, msg, ...) \
-    do { \
-        try { \
+    do \
+    { \
+        try \
+        { \
             __VA_ARGS__; \
         } \
-        catch (exception& ex) \
+        catch (exception & ex) \
         { \
-            ASSERT_MSG(strFind(ex.message(), msg), \
-                STR(#exception) STR(" doesn't contain expected message")); \
+            ASSERT_MSG(strFind(ex.message(), msg), STR(#exception) STR(" doesn't contain expected message")); \
             break; \
         } \
-        catch (...) { \
+        catch (...) \
+        { \
             ASSERT_FAIL(STR("expected ") STR(#exception)); \
         } \
         ASSERT_FAIL(STR("expected ") STR(#exception)); \
-    } while(false)
+    } while (false)
 
 #else
 
@@ -396,7 +411,7 @@ inline int hash(unsigned long long val)
 
 inline int hash(float val)
 {
-    int *h = reinterpret_cast<int*>(&val);
+    int* h = reinterpret_cast<int*>(&val);
     return *h;
 }
 
@@ -440,7 +455,7 @@ struct Timer
 
 inline uint16_t swapBytes(uint16_t value)
 {
-    return (value << 8) | (value >> 8 );
+    return (value << 8) | (value >> 8);
 }
 
 #ifndef COMPILER_XL_CPP
@@ -469,16 +484,14 @@ inline char32_t swapBytes(char32_t value)
 
 inline uint64_t swapBytes(uint64_t value)
 {
-    value = ((value << 8) & 0xff00ff00ff00ff00ull) |
-        ((value >> 8) & 0x00ff00ff00ff00ffull);
-    value = ((value << 16) & 0xffff0000ffff0000ull) |
-        ((value >> 16) & 0x0000ffff0000ffffull);
+    value = ((value << 8) & 0xff00ff00ff00ff00ull) | ((value >> 8) & 0x00ff00ff00ff00ffull);
+    value = ((value << 16) & 0xffff0000ffff0000ull) | ((value >> 16) & 0x0000ffff0000ffffull);
     return (value << 32) | (value >> 32);
 }
 
 inline void swapBytes(uint16_t* values, int len)
 {
-    ASSERT(values ? len >=0 : len == 0);
+    ASSERT(values ? len >= 0 : len == 0);
 
     for (int i = 0; i < len; ++i)
         values[i] = swapBytes(values[i]);
@@ -486,7 +499,7 @@ inline void swapBytes(uint16_t* values, int len)
 
 inline void swapBytes(uint32_t* values, int len)
 {
-    ASSERT(values ? len >=0 : len == 0);
+    ASSERT(values ? len >= 0 : len == 0);
 
     for (int i = 0; i < len; ++i)
         values[i] = swapBytes(values[i]);
@@ -494,7 +507,7 @@ inline void swapBytes(uint32_t* values, int len)
 
 inline void swapBytes(uint64_t* values, int len)
 {
-    ASSERT(values ? len >=0 : len == 0);
+    ASSERT(values ? len >= 0 : len == 0);
 
     for (int i = 0; i < len; ++i)
         values[i] = swapBytes(values[i]);
@@ -566,7 +579,7 @@ template<typename _Type, typename... _Args>
 inline void construct(_Type* ptr, _Args&&... args)
 {
     ASSERT(ptr);
-    ::new(ptr) _Type(static_cast<_Args&&>(args)...);
+    ::new (ptr) _Type(static_cast<_Args&&>(args)...);
 }
 
 template<typename _Type, typename... _Args>
@@ -576,7 +589,7 @@ inline _Type* create(_Args&&... args)
 
     try
     {
-        ::new(ptr) _Type(static_cast<_Args&&>(args)...);
+        ::new (ptr) _Type(static_cast<_Args&&>(args)...);
     }
     catch (...)
     {
@@ -642,7 +655,7 @@ inline _Type* createArrayFill(int size, int capacity, _Args&&... args)
     try
     {
         for (; i < size; ++i)
-            ::new(ptr + i) _Type(static_cast<_Args&&>(args)...);
+            ::new (ptr + i) _Type(static_cast<_Args&&>(args)...);
     }
     catch (...)
     {
@@ -665,7 +678,7 @@ inline _Type* createArrayCopy(int size, int capacity, const _Type* values)
     try
     {
         for (; i < size; ++i)
-            ::new(ptr + i) _Type(values[i]);
+            ::new (ptr + i) _Type(values[i]);
     }
     catch (...)
     {
@@ -688,7 +701,7 @@ inline _Type* createArrayMove(int size, int capacity, _Type* values)
     try
     {
         for (; i < size; ++i)
-            ::new(ptr + i) _Type(static_cast<_Type&&>(values[i]));
+            ::new (ptr + i) _Type(static_cast<_Type&&>(values[i]));
     }
     catch (...)
     {
@@ -699,7 +712,7 @@ inline _Type* createArrayMove(int size, int capacity, _Type* values)
     return ptr;
 }
 
-};
+}
 
 // swap
 
@@ -717,20 +730,17 @@ template<typename _Type>
 class Unique
 {
 public:
-    Unique() :
-        _ptr(NULL)
+    Unique() : _ptr(NULL)
     {
     }
 
-    Unique(Unique<_Type>&& other) :
-        _ptr(other._ptr)
+    Unique(Unique<_Type>&& other) : _ptr(other._ptr)
     {
         other._ptr = NULL;
     }
 
     template<typename _T>
-    Unique(Unique<_T>&& other) :
-        _ptr(other.release())
+    Unique(Unique<_T>&& other) : _ptr(other.release())
     {
     }
 
@@ -826,8 +836,7 @@ public:
     friend int hash(const Unique<_T>& val);
 
 protected:
-    Unique(_Type* ptr)
-        : _ptr(ptr)
+    Unique(_Type* ptr) : _ptr(ptr)
     {
     }
 
@@ -863,43 +872,36 @@ protected:
         _Type object;
 
         template<typename... _Args>
-        RefCountedObject(_Args&&... args) :
-            refCount(1),
-            object(static_cast<_Args&&>(args)...)
+        RefCountedObject(_Args&&... args) : refCount(1), object(static_cast<_Args&&>(args)...)
         {
         }
     };
 
 public:
-    Shared() :
-        _sharedPtr(NULL)
+    Shared() : _sharedPtr(NULL)
     {
     }
 
-    Shared(const Shared<_Type>& other) :
-        _sharedPtr(other._sharedPtr)
+    Shared(const Shared<_Type>& other) : _sharedPtr(other._sharedPtr)
     {
         if (_sharedPtr)
             addRef();
     }
 
     template<typename _T>
-    Shared(const Shared<_T>& other) :
-        _sharedPtr(reinterpret_cast<RefCountedObject*>(other.refCountedObject()))
+    Shared(const Shared<_T>& other) : _sharedPtr(reinterpret_cast<RefCountedObject*>(other.refCountedObject()))
     {
         if (_sharedPtr)
             addRef();
     }
 
-    Shared(Shared<_Type>&& other) :
-        _sharedPtr(other._sharedPtr)
+    Shared(Shared<_Type>&& other) : _sharedPtr(other._sharedPtr)
     {
         other._sharedPtr = NULL;
     }
 
     template<typename _T>
-    Shared(Shared<_T>&& other) :
-        _sharedPtr(reinterpret_cast<RefCountedObject*>(other.release()))
+    Shared(Shared<_T>&& other) : _sharedPtr(reinterpret_cast<RefCountedObject*>(other.release()))
     {
     }
 
@@ -1023,8 +1025,7 @@ public:
     friend int hash(const Shared<_T>& val);
 
 protected:
-    Shared(RefCountedObject* sharedPtr)
-        : _sharedPtr(sharedPtr)
+    Shared(RefCountedObject* sharedPtr) : _sharedPtr(sharedPtr)
     {
     }
 
@@ -1061,8 +1062,7 @@ template<typename _Type>
 class Buffer
 {
 public:
-    Buffer() :
-        _size(0), _values(NULL)
+    Buffer() : _size(0), _values(NULL)
     {
     }
 
@@ -1257,8 +1257,7 @@ public:
     }
 
 protected:
-    Buffer(int size, _Type* values) :
-        _size(size), _values(values)
+    Buffer(int size, _Type* values) : _size(size), _values(values)
     {
         ASSERT(values ? size >= 0 : size == 0);
     }
@@ -1318,8 +1317,7 @@ class String;
 class ConstStringIterator
 {
 public:
-    ConstStringIterator(const String& str) :
-        _str(str), _pos(NULL)
+    ConstStringIterator(const String& str) : _str(str), _pos(NULL)
     {
     }
 
@@ -1346,10 +1344,7 @@ public:
     typedef ConstStringIterator ConstIterator;
 
 public:
-    String() :
-        _length(0),
-        _capacity(0),
-        _chars(NULL)
+    String() : _length(0), _capacity(0), _chars(NULL)
     {
     }
 
@@ -1436,16 +1431,13 @@ public:
 
     int compare(const String& str, bool caseSensitive = true) const
     {
-        return caseSensitive ?
-            strCompare(this->chars(), str.chars()) :
-            strCompareNoCase(this->chars(), str.chars());
+        return caseSensitive ? strCompare(this->chars(), str.chars()) : strCompareNoCase(this->chars(), str.chars());
     }
 
     int compare(const char_t* chars, bool caseSensitive = true) const
     {
-        return caseSensitive ?
-            strCompare(this->chars(), chars ? chars : STR("")) :
-            strCompareNoCase(this->chars(), chars ? chars : STR(""));
+        return caseSensitive ? strCompare(this->chars(), chars ? chars : STR("")) :
+                               strCompareNoCase(this->chars(), chars ? chars : STR(""));
     }
 
     int find(const String& str, bool caseSensitive = true, int pos = 0) const;
@@ -1798,8 +1790,7 @@ template<typename _Type>
 class ArrayIterator
 {
 public:
-    ArrayIterator(Array<_Type>& array) :
-        _array(array), _index(-1)
+    ArrayIterator(Array<_Type>& array) : _array(array), _index(-1)
     {
     }
 
@@ -1846,8 +1837,7 @@ template<typename _Type>
 class ConstArrayIterator
 {
 public:
-    ConstArrayIterator(const Array<_Type>& array) :
-        _array(array), _index(-1)
+    ConstArrayIterator(const Array<_Type>& array) : _array(array), _index(-1)
     {
     }
 
@@ -1904,8 +1894,7 @@ public:
     typedef ConstArrayIterator<_Type> ConstIterator;
 
 public:
-    Array() :
-        _size(0), _capacity(0), _values(NULL)
+    Array() : _size(0), _capacity(0), _values(NULL)
     {
     }
 
@@ -2282,8 +2271,7 @@ public:
     }
 
 protected:
-    Array(int size, int capacity, _Type* values) :
-        _size(size), _capacity(capacity), _values(values)
+    Array(int size, int capacity, _Type* values) : _size(size), _capacity(capacity), _values(values)
     {
         ASSERT(values ? size >= 0 : size == 0);
         ASSERT(capacity >= 0 && size <= capacity);
@@ -2317,9 +2305,13 @@ protected:
 
         while (true)
         {
-            do ++i; while (_values[i] < pivot);
+            do
+                ++i;
+            while (_values[i] < pivot);
 
-            do --j; while (pivot < _values[j]);
+            do
+                --j;
+            while (pivot < _values[j]);
 
             if (i >= j)
                 return j;
@@ -2343,8 +2335,7 @@ struct ListNode
     ListNode<_Type>* prev;
     ListNode<_Type>* next;
 
-    ListNode(const _Type& value, ListNode<_Type>* prev, ListNode<_Type>* next) :
-        value(value), prev(prev), next(next)
+    ListNode(const _Type& value, ListNode<_Type>* prev, ListNode<_Type>* next) : value(value), prev(prev), next(next)
     {
     }
 
@@ -2363,8 +2354,7 @@ template<typename _Type>
 class ListIterator
 {
 public:
-    ListIterator(List<_Type>& list) :
-        _list(list), _node(NULL)
+    ListIterator(List<_Type>& list) : _list(list), _node(NULL)
     {
     }
 
@@ -2410,8 +2400,7 @@ template<typename _Type>
 class ConstListIterator
 {
 public:
-    ConstListIterator(const List<_Type>& list) :
-        _list(list), _node(NULL)
+    ConstListIterator(const List<_Type>& list) : _list(list), _node(NULL)
     {
     }
 
@@ -2467,13 +2456,11 @@ public:
     typedef ConstListIterator<_Type> ConstIterator;
 
 public:
-    List() :
-        _first(NULL), _last(NULL)
+    List() : _first(NULL), _last(NULL)
     {
     }
 
-    List(int size) :
-        _first(NULL), _last(NULL)
+    List(int size) : _first(NULL), _last(NULL)
     {
         ASSERT(size >= 0);
 
@@ -2489,8 +2476,7 @@ public:
         }
     }
 
-    List(int size, const _Type& value) :
-        _first(NULL), _last(NULL)
+    List(int size, const _Type& value) : _first(NULL), _last(NULL)
     {
         ASSERT(size >= 0);
 
@@ -2506,8 +2492,7 @@ public:
         }
     }
 
-    List(int size, const _Type* values) :
-        _first(NULL), _last(NULL)
+    List(int size, const _Type* values) : _first(NULL), _last(NULL)
     {
         ASSERT(values ? size >= 0 : size == 0);
 
@@ -2523,8 +2508,7 @@ public:
         }
     }
 
-    List(const List<_Type>& other) :
-        _first(NULL), _last(NULL)
+    List(const List<_Type>& other) : _first(NULL), _last(NULL)
     {
         try
         {
@@ -2831,7 +2815,7 @@ protected:
 
         try
         {
-            ::new(ptr) ListNode<_Type>(value, prev, next);
+            ::new (ptr) ListNode<_Type>(value, prev, next);
         }
         catch (...)
         {
@@ -2848,7 +2832,7 @@ protected:
 
         try
         {
-            ::new(ptr) ListNode<_Type>(static_cast<_Type&&>(value), prev, next);
+            ::new (ptr) ListNode<_Type>(static_cast<_Type&&>(value), prev, next);
         }
         catch (...)
         {
@@ -2882,35 +2866,28 @@ struct KeyValue
     const _Key key;
     _Value value;
 
-    KeyValue(const _Key& key) :
-        key(key), value()
+    KeyValue(const _Key& key) : key(key), value()
     {
     }
 
-    KeyValue(_Key&& key) :
-        key(static_cast<_Key&&>(key)), value()
+    KeyValue(_Key&& key) : key(static_cast<_Key&&>(key)), value()
     {
     }
 
-    KeyValue(const _Key& key, const _Value& value) :
-        key(key), value(value)
+    KeyValue(const _Key& key, const _Value& value) : key(key), value(value)
     {
     }
 
-    KeyValue(_Key&& key, _Value&& value) :
-        key(static_cast<_Key&&>(key)),
-        value(static_cast<_Value&&>(value))
+    KeyValue(_Key&& key, _Value&& value) : key(static_cast<_Key&&>(key)), value(static_cast<_Value&&>(value))
     {
     }
 
-    KeyValue(const KeyValue<_Key, _Value>& other) :
-        key(other.key), value(other.value)
+    KeyValue(const KeyValue<_Key, _Value>& other) : key(other.key), value(other.value)
     {
     }
 
     KeyValue(KeyValue<_Key, _Value>&& other) :
-        key(const_cast<_Key&&>(other.key)),
-        value(static_cast<_Value&&>(other.value))
+        key(const_cast<_Key&&>(other.key)), value(static_cast<_Value&&>(other.value))
     {
     }
 };
@@ -2924,8 +2901,7 @@ template<typename _Key, typename _Value>
 class MapIterator
 {
 public:
-    MapIterator(Map<_Key, _Value>& map) :
-        _map(map), _index(0), _node(NULL)
+    MapIterator(Map<_Key, _Value>& map) : _map(map), _index(0), _node(NULL)
     {
     }
 
@@ -2989,8 +2965,7 @@ template<typename _Key, typename _Value>
 class ConstMapIterator
 {
 public:
-    ConstMapIterator(const Map<_Key, _Value>& map) :
-        _map(map), _index(0), _node(NULL)
+    ConstMapIterator(const Map<_Key, _Value>& map) : _map(map), _index(0), _node(NULL)
     {
     }
 
@@ -3064,23 +3039,17 @@ public:
     typedef ConstMapIterator<_Key, _Value> ConstIterator;
 
 public:
-    Map(int numBuckets = 0) :
-        _keyValues(numBuckets),
-        _size(0),
-        _maxLoadFactor(0.75f)
+    Map(int numBuckets = 0) : _keyValues(numBuckets), _size(0), _maxLoadFactor(0.75f)
     {
         ASSERT(numBuckets >= 0);
     }
 
     Map(const Map<_Key, _Value>& other) :
-        _keyValues(other._keyValues),
-        _size(other._size),
-        _maxLoadFactor(other._maxLoadFactor)
+        _keyValues(other._keyValues), _size(other._size), _maxLoadFactor(other._maxLoadFactor)
     {
     }
 
-    Map(Map<_Key, _Value>&& other) :
-        _keyValues(static_cast<Array<List<KeyValue<_Key, _Value>>>&&>(other._keyValues))
+    Map(Map<_Key, _Value>&& other) : _keyValues(static_cast<Array<List<KeyValue<_Key, _Value>>>&&>(other._keyValues))
     {
         _size = other._size;
         other._size = 0;
@@ -3277,8 +3246,7 @@ public:
             }
         }
 
-        bucket.addLast(KeyValue<_Key, _Value>(
-            static_cast<_Key&&>(key), static_cast<_Value&&>(value)));
+        bucket.addLast(KeyValue<_Key, _Value>(static_cast<_Key&&>(key), static_cast<_Value&&>(value)));
 
         ++_size;
     }
@@ -3318,8 +3286,7 @@ public:
         for (int i = 0; i < _keyValues.size(); ++i)
         {
             for (auto node = _keyValues[i].first(); node; node = node->next)
-                tmp.add(const_cast<_Key&&>(node->value.key),
-                    static_cast<_Value&&>(node->value.value));
+                tmp.add(const_cast<_Key&&>(node->value.key), static_cast<_Value&&>(node->value.value));
         }
 
         swap(*this, tmp);
@@ -3363,8 +3330,7 @@ template<typename _Type>
 class ConstSetIterator
 {
 public:
-    ConstSetIterator(const Set<_Type>& set) :
-        _set(set), _index(0), _node(NULL)
+    ConstSetIterator(const Set<_Type>& set) : _set(set), _index(0), _node(NULL)
     {
     }
 
@@ -3434,23 +3400,16 @@ public:
     typedef ConstSetIterator<_Type> ConstIterator;
 
 public:
-    Set(int numBuckets = 0) :
-        _values(numBuckets),
-        _size(0),
-        _maxLoadFactor(0.75f)
+    Set(int numBuckets = 0) : _values(numBuckets), _size(0), _maxLoadFactor(0.75f)
     {
         ASSERT(numBuckets >= 0);
     }
 
-    Set(const Set<_Type>& other) :
-        _values(other._values),
-        _size(other._size),
-        _maxLoadFactor(other._maxLoadFactor)
+    Set(const Set<_Type>& other) : _values(other._values), _size(other._size), _maxLoadFactor(other._maxLoadFactor)
     {
     }
 
-    Set(Set<_Type>&& other) :
-        _values(static_cast<Array<List<_Type>>&&>(other._values))
+    Set(Set<_Type>&& other) : _values(static_cast<Array<List<_Type>>&&>(other._values))
     {
         _size = other._size;
         other._size = 0;
@@ -3645,4 +3604,3 @@ protected:
 };
 
 #endif
-

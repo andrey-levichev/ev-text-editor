@@ -9,9 +9,7 @@
 class Application
 {
 public:
-    Application(const char_t* commandLine) :
-        _commandLine(commandLine),
-        _window(STR("EditorMainWindow"))
+    Application(const char_t* commandLine) : _commandLine(commandLine), _window(STR("EditorMainWindow"))
     {
     }
 

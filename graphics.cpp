@@ -13,7 +13,7 @@ __RenderTarget::__RenderTarget(__DrawingFactory& factory, HWND window)
     D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
 
     if (FAILED(factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(),
-               D2D1::HwndRenderTargetProperties(window, size), &_ptr)))
+                                               D2D1::HwndRenderTargetProperties(window, size), &_ptr)))
         throw Exception(STR("failed to create render target"));
 }
 
@@ -25,34 +25,31 @@ __SolidBrush::__SolidBrush(__RenderTarget& renderTarget, const D2D1_COLOR_F& col
 
 __TextFactory::__TextFactory()
 {
-    if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
-                                   __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&_ptr))))
+    if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                                   reinterpret_cast<IUnknown**>(&_ptr))))
         throw Exception(STR("failed to create DirectWrite factory"));
 }
 
-__TextFormat::__TextFormat(__TextFactory& factory, const String& fontName,
-                       DWRITE_FONT_WEIGHT fontWeight,
-                       DWRITE_FONT_STYLE fontStyle,
-                       DWRITE_FONT_STRETCH fontStretch,
-                       float fontSize, const String& locale)
+__TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRITE_FONT_WEIGHT fontWeight,
+                           DWRITE_FONT_STYLE fontStyle, DWRITE_FONT_STRETCH fontStretch, float fontSize,
+                           const String& locale)
 {
-    if (FAILED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), NULL,
-                                         fontWeight, fontStyle, fontStretch, fontSize,
-                                         reinterpret_cast<const WCHAR*>(locale.chars()), &_ptr)))
+    if (FAILED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), NULL, fontWeight, fontStyle,
+                                         fontStretch, fontSize, reinterpret_cast<const WCHAR*>(locale.chars()), &_ptr)))
         throw Exception(STR("failed to create text format"));
 }
 
-__TextLayout::__TextLayout(__TextFactory& factory, const String& text,
-                       __TextFormat& textFormat, float width, float height, bool legacyFontMeasuring)
+__TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width,
+                           float height, bool legacyFontMeasuring)
 {
     HRESULT hr;
 
     if (legacyFontMeasuring)
         hr = factory->CreateGdiCompatibleTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
-                textFormat, width, height, 1, NULL, false, &_ptr);
+                                                    textFormat, width, height, 1, NULL, false, &_ptr);
     else
-        hr = factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
-            textFormat, width, height, &_ptr);
+        hr = factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat, width,
+                                       height, &_ptr);
 
     if (FAILED(hr))
         throw Exception(STR("failed to create text layout"));
@@ -66,16 +63,15 @@ __EllipsisTrimmingSign::__EllipsisTrimmingSign(__TextFactory& factory, __TextFor
 
 __ImagingFactory::__ImagingFactory()
 {
-    if (FAILED(CoCreateInstance(CLSID_WICImagingFactory,
-                                NULL, CLSCTX_INPROC_SERVER,
-                                __uuidof(IWICImagingFactory), reinterpret_cast<void**>(&_ptr))))
+    if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, __uuidof(IWICImagingFactory),
+                                reinterpret_cast<void**>(&_ptr))))
         throw Exception(STR("Failed to create WIC imaging factory"));
 }
 
 __BitmapDecoder::__BitmapDecoder(__ImagingFactory& factory, const String& fileName)
 {
-    if (FAILED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()),
-               NULL, GENERIC_READ, WICDecodeMetadataCacheOnLoad, &_ptr)))
+    if (FAILED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()), NULL, GENERIC_READ,
+                                                  WICDecodeMetadataCacheOnLoad, &_ptr)))
         throw Exception(STR("Failed to create WIC decoder"));
 }
 
@@ -90,13 +86,12 @@ __FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDec
     if (FAILED(factory->CreateFormatConverter(&_ptr)))
         throw Exception(STR("Failed to create WIC format converter"));
 
-    if (FAILED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA,
-                                      WICBitmapDitherTypeNone, NULL, 0, WICBitmapPaletteTypeMedianCut)))
+    if (FAILED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, NULL, 0,
+                                WICBitmapPaletteTypeMedianCut)))
         throw Exception(STR("Failed to initialize WIC format converter"));
 }
 
-__Bitmap::__Bitmap(__RenderTarget& renderTarget,
-               __ImagingFactory& imagingFactory, const String& fileName)
+__Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName)
 {
     __BitmapDecoder bitmapDecoder(imagingFactory, fileName.chars());
     __BitmapFrameDecode frame(bitmapDecoder);
@@ -109,12 +104,11 @@ __Bitmap::__Bitmap(__RenderTarget& renderTarget,
 Size TextBlock::getTextSize() const
 {
     DWRITE_TEXT_METRICS textMetrics;
-	_textLayout->GetMetrics(&textMetrics);
+    _textLayout->GetMetrics(&textMetrics);
     return { textMetrics.width, textMetrics.height };
 }
 
-Graphics::Graphics(HWND window) :
-    _renderTarget(_drawingFactory, window)
+Graphics::Graphics(HWND window) : _renderTarget(_drawingFactory, window)
 {
 }
 
@@ -154,12 +148,11 @@ void Graphics::drawRectangle(const Rect& rect, Color color, float borderWidth)
     _renderTarget->DrawRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush, borderWidth);
 }
 
-void Graphics::drawRoundedRectangle(const Rect& rect, Color color,
-                                    float cornerRadius, float borderWidth)
+void Graphics::drawRoundedRectangle(const Rect& rect, Color color, float cornerRadius, float borderWidth)
 {
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
-    _renderTarget->DrawRoundedRectangle({ { rect.left, rect.top,
-        rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush, borderWidth);
+    _renderTarget->DrawRoundedRectangle(
+        { { rect.left, rect.top, rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush, borderWidth);
 }
 
 void Graphics::fillRectangle(const Rect& rect, Color color)
@@ -171,18 +164,16 @@ void Graphics::fillRectangle(const Rect& rect, Color color)
 void Graphics::fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius)
 {
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
-    _renderTarget->FillRoundedRectangle({ { rect.left, rect.top,
-        rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush);
+    _renderTarget->FillRoundedRectangle(
+        { { rect.left, rect.top, rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush);
 }
 
-void Graphics::drawText(const String& font, float fontSize, const String& text, const Rect& rect,
-    Color color, TextAlignment textAlignment, ParagraphAlignment paragraphAlignment,
-    bool bold, bool wrapLines)
+void Graphics::drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color,
+                        TextAlignment textAlignment, ParagraphAlignment paragraphAlignment, bool bold, bool wrapLines)
 {
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
-    __TextFormat textFormat(_textFactory, font.chars(),
-                          bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
-                          DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us"));
+    __TextFormat textFormat(_textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
+                            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us"));
 
     DWRITE_TEXT_ALIGNMENT txtAlign;
     switch (textAlignment)
@@ -218,12 +209,11 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
 
     textFormat->SetTextAlignment(txtAlign);
     textFormat->SetParagraphAlignment(paraAlign);
-    textFormat->SetWordWrapping(wrapLines ?
-        DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
+    textFormat->SetWordWrapping(wrapLines ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
-        { rect.left, rect.top, rect.right, rect.bottom }, brush,
-        D2D1_DRAW_TEXT_OPTIONS_CLIP, DWRITE_MEASURING_MODE_GDI_CLASSIC);
+                            { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,
+                            DWRITE_MEASURING_MODE_GDI_CLASSIC);
 }
 
 void Graphics::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color)
@@ -249,7 +239,7 @@ void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
 
 void Graphics::resize(int width, int height)
 {
-    _renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height)});
+    _renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height) });
 }
 
 Size Graphics::getSize()

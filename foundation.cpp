@@ -72,7 +72,7 @@ char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 {
 #ifdef PLATFORM_AIX
     int len = strlen(searchStr);
-	for (; *str; ++str)
+    for (; *str; ++str)
         if (!strncasecmp(str, searchStr, len))
             return str;
 
@@ -86,7 +86,7 @@ const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
 {
 #ifdef PLATFORM_AIX
     int len = strlen(searchStr);
-	for (; *str; ++str)
+    for (; *str; ++str)
         if (!strncasecmp(str, searchStr, len))
             return str;
 
@@ -138,9 +138,9 @@ void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
 {
 #ifdef PLATFORM_AIX
     va_list args2;
-	va_copy(args2, args);
-	int len = vsnprintf(0, 0, format, args2);
-	va_end(args2);
+    va_copy(args2, args);
+    int len = vsnprintf(0, 0, format, args2);
+    va_end(args2);
 
     if (len > 0)
     {
@@ -172,112 +172,94 @@ int strLen(const char_t* str)
 char_t* strCopy(char_t* destStr, const char_t* srcStr)
 {
     return reinterpret_cast<char_t*>(
-        wcscpy(reinterpret_cast<wchar_t*>(destStr),
-            reinterpret_cast<const wchar_t*>(srcStr)));
+        wcscpy(reinterpret_cast<wchar_t*>(destStr), reinterpret_cast<const wchar_t*>(srcStr)));
 }
 
 int strCompare(const char_t* left, const char_t* right)
 {
-    return wcscmp(reinterpret_cast<const wchar_t*>(left),
-        reinterpret_cast<const wchar_t*>(right));
+    return wcscmp(reinterpret_cast<const wchar_t*>(left), reinterpret_cast<const wchar_t*>(right));
 }
 
 int strCompareLen(const char_t* left, const char_t* right, int len)
 {
-    return wcsncmp(reinterpret_cast<const wchar_t*>(left),
-        reinterpret_cast<const wchar_t*>(right), len);
+    return wcsncmp(reinterpret_cast<const wchar_t*>(left), reinterpret_cast<const wchar_t*>(right), len);
 }
 
 int strCompareNoCase(const char_t* left, const char_t* right)
 {
-    return _wcsicmp(reinterpret_cast<const wchar_t*>(left),
-        reinterpret_cast<const wchar_t*>(right));
+    return _wcsicmp(reinterpret_cast<const wchar_t*>(left), reinterpret_cast<const wchar_t*>(right));
 }
 
 int strCompareLenNoCase(const char_t* left, const char_t* right, int len)
 {
-    return _wcsnicmp(reinterpret_cast<const wchar_t*>(left),
-        reinterpret_cast<const wchar_t*>(right), len);
+    return _wcsnicmp(reinterpret_cast<const wchar_t*>(left), reinterpret_cast<const wchar_t*>(right), len);
 }
 
 char_t* strFind(char_t* str, const char_t* searchStr)
 {
     return reinterpret_cast<char_t*>(
-        wcsstr(reinterpret_cast<wchar_t*>(str),
-            reinterpret_cast<const wchar_t*>(searchStr)));
+        wcsstr(reinterpret_cast<wchar_t*>(str), reinterpret_cast<const wchar_t*>(searchStr)));
 }
 
 const char_t* strFind(const char_t* str, const char_t* searchStr)
 {
     return reinterpret_cast<const char_t*>(
-        wcsstr(reinterpret_cast<const wchar_t*>(str),
-            reinterpret_cast<const wchar_t*>(searchStr)));
+        wcsstr(reinterpret_cast<const wchar_t*>(str), reinterpret_cast<const wchar_t*>(searchStr)));
 }
 
 char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 {
-    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT,
-        FIND_FROMSTART | LINGUISTIC_IGNORECASE,
-        reinterpret_cast<const wchar_t*>(str), -1,
-        reinterpret_cast<const wchar_t*>(searchStr), -1,
-        NULL, NULL, NULL, 0);
+    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, FIND_FROMSTART | LINGUISTIC_IGNORECASE,
+                                reinterpret_cast<const wchar_t*>(str), -1, reinterpret_cast<const wchar_t*>(searchStr),
+                                -1, NULL, NULL, NULL, 0);
 
     return index >= 0 ? str + index : NULL;
 }
 
 const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
 {
-    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT,
-        FIND_FROMSTART | LINGUISTIC_IGNORECASE,
-        reinterpret_cast<const wchar_t*>(str), -1,
-        reinterpret_cast<const wchar_t*>(searchStr), -1,
-        NULL, NULL, NULL, 0);
+    int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, FIND_FROMSTART | LINGUISTIC_IGNORECASE,
+                                reinterpret_cast<const wchar_t*>(str), -1, reinterpret_cast<const wchar_t*>(searchStr),
+                                -1, NULL, NULL, NULL, 0);
 
     return index >= 0 ? str + index : NULL;
 }
 
 long strToLong(const char_t* str, char_t** end, int base)
 {
-    return wcstol(reinterpret_cast<const wchar_t*>(str),
-        reinterpret_cast<wchar_t**>(end), base);
+    return wcstol(reinterpret_cast<const wchar_t*>(str), reinterpret_cast<wchar_t**>(end), base);
 }
 
 unsigned long strToULong(const char_t* str, char_t** end, int base)
 {
-    return wcstoul(reinterpret_cast<const wchar_t*>(str),
-        reinterpret_cast<wchar_t**>(end), base);
+    return wcstoul(reinterpret_cast<const wchar_t*>(str), reinterpret_cast<wchar_t**>(end), base);
 }
 
 long long strToLLong(const char_t* str, char_t** end, int base)
 {
-    return wcstoll(reinterpret_cast<const wchar_t*>(str),
-        reinterpret_cast<wchar_t**>(end), base);
+    return wcstoll(reinterpret_cast<const wchar_t*>(str), reinterpret_cast<wchar_t**>(end), base);
 }
 
 unsigned long long strToULLong(const char_t* str, char_t** end, int base)
 {
-    return wcstoull(reinterpret_cast<const wchar_t*>(str),
-        reinterpret_cast<wchar_t**>(end), base);
+    return wcstoull(reinterpret_cast<const wchar_t*>(str), reinterpret_cast<wchar_t**>(end), base);
 }
 
 float strToFloat(const char_t* str, char_t** end)
 {
-    return wcstof(reinterpret_cast<const wchar_t*>(str),
-        reinterpret_cast<wchar_t**>(end));
+    return wcstof(reinterpret_cast<const wchar_t*>(str), reinterpret_cast<wchar_t**>(end));
 }
 
 double strToDouble(const char_t* str, char_t** end)
 {
-    return wcstod(reinterpret_cast<const wchar_t*>(str),
-        reinterpret_cast<wchar_t**>(end));
+    return wcstod(reinterpret_cast<const wchar_t*>(str), reinterpret_cast<wchar_t**>(end));
 }
 
 void formatString(char_t* str, const char_t* format, ...)
 {
     va_list args;
     va_start(args, format);
-    vswprintf(reinterpret_cast<wchar_t*>(str),
-        reinterpret_cast<const wchar_t*>(format), args);
+    vswprintf(reinterpret_cast<wchar_t*>(str), reinterpret_cast<const wchar_t*>(format), args);
     va_end(args);
 }
 
@@ -292,8 +274,7 @@ void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
     if (len > 0)
     {
         *str = Memory::allocate<char_t>(len + 1);
-        _vsnwprintf(reinterpret_cast<wchar_t*>(*str),
-            len + 1, reinterpret_cast<const wchar_t*>(format), args);
+        _vsnwprintf(reinterpret_cast<wchar_t*>(*str), len + 1, reinterpret_cast<const wchar_t*>(format), args);
     }
     else
         *str = 0;
@@ -375,8 +356,7 @@ int utf8CharToUnicode(const char* in, char32_t& ch)
     {
         uint8_t ch2 = *in++;
         uint8_t ch3 = *in++;
-        ch = ((ch1 & 0x0f) << 12) |
-            ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
+        ch = ((ch1 & 0x0f) << 12) | ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
         return 3;
     }
     else
@@ -384,8 +364,7 @@ int utf8CharToUnicode(const char* in, char32_t& ch)
         uint8_t ch2 = *in++;
         uint8_t ch3 = *in++;
         uint8_t ch4 = *in++;
-        ch = ((ch1 & 0x07) << 18) |
-            ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
+        ch = ((ch1 & 0x07) << 18) | ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
         return 4;
     }
 }
@@ -432,8 +411,7 @@ int utf16CharToUnicode(const char16_t* in, char32_t& ch)
     else
     {
         char16_t ch2 = *in++;
-        ch = ((((ch1 & 0x03c0) >> 6) + 1) << 16) |
-            ((ch1 & 0x003f) << 10) | (ch2 & 0x03ff);
+        ch = ((((ch1 & 0x03c0) >> 6) + 1) << 16) | ((ch1 & 0x003f) << 10) | (ch2 & 0x03ff);
         return 2;
     }
 }
@@ -450,8 +428,7 @@ int utf16CharToUnicodeSwapBytes(const char16_t* in, char32_t& ch)
     else
     {
         char16_t ch2 = swapBytes(*in++);
-        ch = ((((ch1 & 0x03c0) >> 6) + 1) << 16) |
-            ((ch1 & 0x003f) << 10) | (ch2 & 0x03ff);
+        ch = ((((ch1 & 0x03c0) >> 6) + 1) << 16) | ((ch1 & 0x003f) << 10) | (ch2 & 0x03ff);
         return 2;
     }
 }
@@ -465,8 +442,7 @@ int unicodeCharToUtf16(char32_t ch, char16_t* out)
     }
     else
     {
-        *out++ = 0xd800 |
-            ((((ch & 0x1f0000) >> 16) - 1) << 6) | ((ch & 0x00fc00) >> 10);
+        *out++ = 0xd800 | ((((ch & 0x1f0000) >> 16) - 1) << 6) | ((ch & 0x00fc00) >> 10);
         *out++ = 0xdc00 | (ch & 0x03ff);
         return 2;
     }
@@ -542,8 +518,7 @@ const char* utf8CharForward(const char* pos)
     do
     {
         ++pos;
-    }
-    while ((*pos & 0xc0) == 0x80);
+    } while ((*pos & 0xc0) == 0x80);
 
     return pos;
 }
@@ -553,8 +528,7 @@ const char* utf8CharBack(const char* pos)
     do
     {
         --pos;
-    }
-    while ((*pos & 0xc0) == 0x80);
+    } while ((*pos & 0xc0) == 0x80);
 
     return pos;
 }
@@ -826,8 +800,7 @@ int String::find(const String& str, bool caseSensitive, int pos) const
 
     if (_length > 0 && str._length > 0)
     {
-        const char_t* p = caseSensitive ?
-            strFind(_chars + pos, str._chars) : strFindNoCase(_chars + pos, str._chars);
+        const char_t* p = caseSensitive ? strFind(_chars + pos, str._chars) : strFindNoCase(_chars + pos, str._chars);
 
         if (p)
             return p - _chars;
@@ -842,8 +815,7 @@ int String::find(const char_t* chars, bool caseSensitive, int pos) const
 
     if (_length > 0 && chars && *chars)
     {
-        const char_t* p = caseSensitive ?
-            strFind(_chars + pos, chars) : strFindNoCase(_chars + pos, chars);
+        const char_t* p = caseSensitive ? strFind(_chars + pos, chars) : strFindNoCase(_chars + pos, chars);
 
         if (p)
             return p - _chars;
@@ -887,9 +859,8 @@ bool String::startsWith(const String& str, bool caseSensitive) const
 {
     if (str._length > 0 && _length > 0)
     {
-        return caseSensitive ?
-            strCompareLen(_chars, str._chars, str._length) == 0 :
-            strCompareLenNoCase(_chars, str._chars, str._length) == 0;
+        return caseSensitive ? strCompareLen(_chars, str._chars, str._length) == 0 :
+                               strCompareLenNoCase(_chars, str._chars, str._length) == 0;
     }
     else
         return false;
@@ -902,9 +873,8 @@ bool String::startsWith(const char_t* chars, bool caseSensitive) const
         int len = strLen(chars);
         if (len > 0 && _length > 0)
         {
-            return caseSensitive ?
-                strCompareLen(_chars, chars, len) == 0 :
-                strCompareLenNoCase(_chars, chars, len) == 0;
+            return caseSensitive ? strCompareLen(_chars, chars, len) == 0 :
+                                   strCompareLenNoCase(_chars, chars, len) == 0;
         }
     }
 
@@ -915,9 +885,8 @@ bool String::endsWith(const String& str, bool caseSensitive) const
 {
     if (str._length > 0 && _length > 0 && str._length <= _length)
     {
-        return caseSensitive ?
-            strCompare(_chars + _length - str._length, str._chars) == 0 :
-            strCompareNoCase(_chars + _length - str._length, str._chars) == 0;
+        return caseSensitive ? strCompare(_chars + _length - str._length, str._chars) == 0 :
+                               strCompareNoCase(_chars + _length - str._length, str._chars) == 0;
     }
     else
         return false;
@@ -930,9 +899,8 @@ bool String::endsWith(const char_t* chars, bool caseSensitive) const
         int len = strLen(chars);
         if (len > 0 && _length > 0 && len <= _length)
         {
-            return caseSensitive ?
-                strCompare(_chars + _length - len, chars) == 0 :
-                strCompareNoCase(_chars + _length - len, chars) == 0;
+            return caseSensitive ? strCompare(_chars + _length - len, chars) == 0 :
+                                   strCompareNoCase(_chars + _length - len, chars) == 0;
         }
     }
 
@@ -1233,8 +1201,7 @@ void String::eraseString(const String& str, bool caseSensitive)
                     from = _chars;
                     while ((found = findFunc(from, str._chars)) != NULL)
                     {
-                        strMove(found, found + str._length,
-                            _chars + _length - found - str._length + 1);
+                        strMove(found, found + str._length, _chars + _length - found - str._length + 1);
 
                         from = found;
                         _length -= str._length;
@@ -1277,8 +1244,7 @@ void String::eraseString(const char_t* chars, bool caseSensitive)
                     from = _chars;
                     while ((found = findFunc(from, chars)) != NULL)
                     {
-                        strMove(found, found + len,
-                            _chars + _length - found - len + 1);
+                        strMove(found, found + len, _chars + _length - found - len + 1);
 
                         from = found;
                         _length -= len;
@@ -1403,7 +1369,7 @@ void String::replaceString(const String& searchStr, const String& replaceStr, bo
                     while ((found = findFunc(from, searchStr._chars)) != NULL)
                     {
                         strMove(found + replaceStr._length, found + searchStr._length,
-                            _chars + _length - found - searchStr._length + 1);
+                                _chars + _length - found - searchStr._length + 1);
                         strCopyLen(found, replaceStr._chars, replaceStr._length);
 
                         from = found + replaceStr._length;
@@ -1453,8 +1419,7 @@ void String::replaceString(const char_t* searchChars, const char_t* replaceChars
                     from = _chars;
                     while ((found = findFunc(from, searchChars)) != NULL)
                     {
-                        strMove(found + replaceLen, found + searchLen,
-                            _chars + _length - found - searchLen + 1);
+                        strMove(found + replaceLen, found + searchLen, _chars + _length - found - searchLen + 1);
                         strCopyLen(found, replaceChars, replaceLen);
 
                         from = found + replaceLen;
@@ -1872,8 +1837,7 @@ String Unicode::bytesToString(int size, const byte_t* bytes, TextEncoding& encod
         bom = true;
         bomOffset = 2;
     }
-    else if (size >= 3 && bytes[0] == 0xef &&
-        bytes[1] == 0xbb && bytes[2] == 0xbf)
+    else if (size >= 3 && bytes[0] == 0xef && bytes[1] == 0xbb && bytes[2] == 0xbf)
     {
         encoding = TEXT_ENCODING_UTF8;
         bom = true;

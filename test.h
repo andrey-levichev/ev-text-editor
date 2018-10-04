@@ -12,23 +12,19 @@ void printPlatformInfo();
 class Test
 {
 public:
-    Test() :
-        _val(0)
+    Test() : _val(0)
     {
     }
 
-    Test(int val) :
-        _val(val)
+    Test(int val) : _val(val)
     {
     }
 
-    Test(const Test& other) :
-        _val(other._val)
+    Test(const Test& other) : _val(other._val)
     {
     }
 
-    Test(Test&& other) :
-        _val(other._val)
+    Test(Test&& other) : _val(other._val)
     {
         other._val = 0;
     }
@@ -103,4 +99,3 @@ struct Derived : public Base
 };
 
 #endif
-

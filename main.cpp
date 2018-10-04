@@ -41,13 +41,13 @@ int MAIN(int argc, const char_t** argv)
             if (strCompare(argv[i], STR("--version")) == 0)
             {
                 Console::writeLine(STR("ev text editor version 1.7\n"
-                    "web: https://andreylevichev.github.io/ev-text-editor\n"
-                    "Copyright (C) Andrey Levichev, 2018\n\n"
-                    "usage: ev [OPTIONS] [FILE]...\n\n"
-                    "OPTIONS:\n"
-                    "\t--version\tprint version information and exit\n"
-                    "\t--dark\t\tassume dark screen background\n"
-                    "\t--bright\tassume bright screen background\n\n"));
+                                       "web: https://andreylevichev.github.io/ev-text-editor\n"
+                                       "Copyright (C) Andrey Levichev, 2018\n\n"
+                                       "usage: ev [OPTIONS] [FILE]...\n\n"
+                                       "OPTIONS:\n"
+                                       "\t--version\tprint version information and exit\n"
+                                       "\t--dark\t\tassume dark screen background\n"
+                                       "\t--bright\tassume bright screen background\n\n"));
 
                 return 0;
             }

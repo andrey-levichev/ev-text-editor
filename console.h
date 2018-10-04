@@ -103,20 +103,17 @@ struct InputEvent
         WindowEvent windowEvent;
     } event;
 
-    InputEvent(KeyEvent keyEvent) :
-        eventType(INPUT_EVENT_TYPE_KEY)
+    InputEvent(KeyEvent keyEvent) : eventType(INPUT_EVENT_TYPE_KEY)
     {
         event.keyEvent = keyEvent;
     }
 
-    InputEvent(MouseEvent mouseEvent) :
-        eventType(INPUT_EVENT_TYPE_MOUSE)
+    InputEvent(MouseEvent mouseEvent) : eventType(INPUT_EVENT_TYPE_MOUSE)
     {
         event.mouseEvent = mouseEvent;
     }
 
-    InputEvent(WindowEvent windowEvent) :
-        eventType(INPUT_EVENT_TYPE_WINDOW)
+    InputEvent(WindowEvent windowEvent) : eventType(INPUT_EVENT_TYPE_WINDOW)
     {
         event.windowEvent = windowEvent;
     }

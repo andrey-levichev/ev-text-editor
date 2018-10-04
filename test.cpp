@@ -15,8 +15,7 @@ int compareUniString(const _Char* str1, const _Char* str2)
         if (!*str1)
             return 0;
 
-    return static_cast<unsigned>(*str1) >
-        static_cast<unsigned>(*str2) ? 1 : -1;
+    return static_cast<unsigned>(*str1) > static_cast<unsigned>(*str2) ? 1 : -1;
 }
 
 template<typename _SeqType, typename _ElemType>
@@ -864,13 +863,13 @@ void testString()
     const char16_t* CHARS16 = u"\x0024\x00a2\x20ac\xd800\xdf48";
     const char32_t* CHARS32 = U"\x00000024\x000000a2\x000020ac\x00010348";
 
-    #ifdef CHAR_ENCODING_UTF8
+#ifdef CHAR_ENCODING_UTF8
     const char_t* CHARS = CHARS8;
     const char_t* BIG_CHAR = "\xf0\x90\x8d\x88";
-    #else
+#else
     const char_t* CHARS = CHARS16;
     const char_t* BIG_CHAR = u"\xd800\xdf48";
-    #endif
+#endif
 
     unichar_t zc = 0;
     const char_t* np = NULL;
@@ -2547,7 +2546,7 @@ void testString()
         String s(STR("abc"));
         s.replaceString(STR(""), STR("a"));
         ASSERT(s == STR("abc"));
-        s.replaceString(np,  STR("a"));
+        s.replaceString(np, STR("a"));
         ASSERT(s == STR("abc"));
     }
 
@@ -2861,8 +2860,8 @@ void testString()
     // String format(const char_t* format, ...)
     // String format(const char_t* format, va_list args)
 
-    ASSERT(String::format(STR("str = %s, int = %d, float = %g"),
-            STR("abc"), 123, 123.45) == STR("str = abc, int = 123, float = 123.45"));
+    ASSERT(String::format(STR("str = %s, int = %d, float = %g"), STR("abc"), 123, 123.45) ==
+           STR("str = abc, int = 123, float = 123.45"));
 
     // String operator+(const String& left, const String& right)
     // String operator+(const String& left, const char_t* right)
@@ -2905,10 +2904,17 @@ void testUnicode()
 #endif
 
     const byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
-    const byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
-    ALIGN_AS(2) const byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
-    ALIGN_AS(2) const byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00, 0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
-    ALIGN_AS(2) const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
+    const byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2,
+                                           0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
+    ALIGN_AS(2)
+    const byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00,
+                                          0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
+    ALIGN_AS(2)
+    const byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00,
+                                           0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
+    ALIGN_AS(2)
+    const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a,
+                                           0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
 
     // static String bytesToString(ByteBuffer& bytes, TextEncoding& encoding, bool& bom, bool& crLf)
     // static String bytesToString(int size, byte_t* bytes, TextEncoding& encoding, bool& bom, bool& crLf)
@@ -3002,11 +3008,11 @@ void testUnicode()
 
 void testStringIterator()
 {
-    #ifdef CHAR_ENCODING_UTF8
+#ifdef CHAR_ENCODING_UTF8
     const char_t* CHARS = "\x24\xc2\xa2\xe2\x82\xac\xf0\x90\x8d\x88";
-    #else
+#else
     const char_t* CHARS = u"\x0024\x00a2\x20ac\xd800\xdf48";
-    #endif
+#endif
 
     {
         String s;
@@ -4218,7 +4224,6 @@ void testList()
         ASSERT(cl.last()->value == 2);
     }
 
-
     // ListNode<_Type>* find(const _Type& value)
 
     {
@@ -4478,43 +4483,43 @@ void testList()
     }
 
     {
-         List<Unique<int>> l;
-         l.addLast(createUnique<int>(1));
-         l.addLast(createUnique<int>(2));
-         ASSERT(!l.find(createUnique<int>(0)));
-         ASSERT(l.find(createUnique<int>(2)));
+        List<Unique<int>> l;
+        l.addLast(createUnique<int>(1));
+        l.addLast(createUnique<int>(2));
+        ASSERT(!l.find(createUnique<int>(0)));
+        ASSERT(l.find(createUnique<int>(2)));
     }
 
     {
-         List<Unique<int>> l;
-         l.addLast(createUnique<int>(1));
-         l.insertBefore(l.first(), createUnique<int>(2));
-         l.removeFirst();
-         ASSERT(*l.last()->value == 1);
+        List<Unique<int>> l;
+        l.addLast(createUnique<int>(1));
+        l.insertBefore(l.first(), createUnique<int>(2));
+        l.removeFirst();
+        ASSERT(*l.last()->value == 1);
     }
 
     {
-         List<Unique<int>> l;
-         l.addFirst(createUnique<int>(1));
-         l.insertAfter(l.last(), createUnique<int>(2));
-         l.removeLast();
-         ASSERT(*l.last()->value == 1);
+        List<Unique<int>> l;
+        l.addFirst(createUnique<int>(1));
+        l.insertAfter(l.last(), createUnique<int>(2));
+        l.removeLast();
+        ASSERT(*l.last()->value == 1);
     }
 
     {
-         List<Unique<int>> l;
-         l.addLast(createUnique<int>(1));
-         l.addLast(createUnique<int>(2));
-         l.remove(l.first());
-         ASSERT(*l.last()->value == 2);
+        List<Unique<int>> l;
+        l.addLast(createUnique<int>(1));
+        l.addLast(createUnique<int>(2));
+        l.remove(l.first());
+        ASSERT(*l.last()->value == 2);
     }
 
     {
-         List<Unique<int>> l;
-         l.addLast(createUnique<int>(1));
-         l.addLast(createUnique<int>(2));
-         l.clear();
-         ASSERT(l.empty());
+        List<Unique<int>> l;
+        l.addLast(createUnique<int>(1));
+        l.addLast(createUnique<int>(2));
+        l.clear();
+        ASSERT(l.empty());
     }
 }
 
@@ -5568,7 +5573,7 @@ void testFile()
         ASSERT(f.isOpen());
     }
 
-    // bool isExecutable() const
+        // bool isExecutable() const
 
 #ifdef PLATFORM_WINDOWS
     {
@@ -5944,8 +5949,7 @@ void testConsoleReadInput()
                     if (charIsPrint(keyEvent.ch))
                         Console::writeLine(keyEvent.ch);
                     else
-                        Console::writeLineFormatted(STR("\\x%02x"),
-                            static_cast<unsigned>(keyEvent.ch));
+                        Console::writeLineFormatted(STR("\\x%02x"), static_cast<unsigned>(keyEvent.ch));
                     break;
                 }
             }
@@ -5955,27 +5959,26 @@ void testConsoleReadInput()
 
                 switch (mouseEvent.button)
                 {
-                    case MOUSE_BUTTON_PRIMARY:
-                        Console::writeFormatted(STR("primary mouse button: %s "),
-                            mouseEvent.buttonDown ? STR("down") : STR("up"));
-                        break;
-                    case MOUSE_BUTTON_SECONDARY:
-                        Console::writeFormatted(STR("secondary mouse button: %s "),
-                            mouseEvent.buttonDown ? STR("down") : STR("up"));
-                        break;
-                    case MOUSE_BUTTON_WHEEL:
-                        Console::writeFormatted(STR("mouse wheel: %s "),
-                            mouseEvent.buttonDown ? STR("down") : STR("up"));
-                        break;
-                    case MOUSE_BUTTON_WHEEL_UP:
-                        Console::writeFormatted(STR("mouse scrolled up "));
-                        break;
-                    case MOUSE_BUTTON_WHEEL_DOWN:
-                        Console::writeFormatted(STR("mouse scrolled down "));
-                        break;
-                    default:
-                        Console::writeFormatted(STR("mouse moved "));
-                        break;
+                case MOUSE_BUTTON_PRIMARY:
+                    Console::writeFormatted(STR("primary mouse button: %s "),
+                                            mouseEvent.buttonDown ? STR("down") : STR("up"));
+                    break;
+                case MOUSE_BUTTON_SECONDARY:
+                    Console::writeFormatted(STR("secondary mouse button: %s "),
+                                            mouseEvent.buttonDown ? STR("down") : STR("up"));
+                    break;
+                case MOUSE_BUTTON_WHEEL:
+                    Console::writeFormatted(STR("mouse wheel: %s "), mouseEvent.buttonDown ? STR("down") : STR("up"));
+                    break;
+                case MOUSE_BUTTON_WHEEL_UP:
+                    Console::writeFormatted(STR("mouse scrolled up "));
+                    break;
+                case MOUSE_BUTTON_WHEEL_DOWN:
+                    Console::writeFormatted(STR("mouse scrolled down "));
+                    break;
+                default:
+                    Console::writeFormatted(STR("mouse moved "));
+                    break;
                 }
 
                 Console::writeFormatted(STR("position: %dx%d"), mouseEvent.x, mouseEvent.y);
@@ -5992,8 +5995,7 @@ void testConsoleReadInput()
             else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
             {
                 WindowEvent windowEvent = event.event.windowEvent;
-                Console::writeLineFormatted(STR("window size: %dx%d"),
-                    windowEvent.width, windowEvent.height);
+                Console::writeLineFormatted(STR("window size: %dx%d"), windowEvent.width, windowEvent.height);
             }
         }
     }
@@ -6060,8 +6062,7 @@ void testInput()
     {
         ch = _getwch();
         _cwprintf(L"%c \\x%02x\n", ch, static_cast<uint8_t>(ch));
-    }
-    while (ch != 0x1b);
+    } while (ch != 0x1b);
 #endif
 }
 
@@ -6142,12 +6143,12 @@ void runTests()
 
     testSupport();
     testFoundation();
-//    testFile();
-//    testConsole();
-//    testConsoleWrite();
-//    testConsoleReadChar();
-//    testConsoleReadLine();
-//    testConsoleReadInput();
+    //    testFile();
+    //    testConsole();
+    //    testConsoleWrite();
+    //    testConsoleReadChar();
+    //    testConsoleReadLine();
+    //    testConsoleReadInput();
 }
 
 int MAIN(int argc, const char_t** argv)

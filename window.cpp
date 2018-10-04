@@ -5,9 +5,7 @@
 
 Map<HWND, Window*> Window::_windows;
 
-Window::Window(const char_t* category) :
-    _category(category),
-    _handle(NULL)
+Window::Window(const char_t* category) : _category(category), _handle(NULL)
 {
     WNDCLASSEX wc;
 
@@ -38,9 +36,8 @@ void Window::create(const char_t* title, int width, int height)
     if (_handle)
         throw Exception(STR("window already created"));
 
-    if (!CreateWindow(reinterpret_cast<LPCWSTR>(_category), reinterpret_cast<LPCWSTR>(title),
-        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-        width, height, NULL, NULL, GetModuleHandle(NULL), this))
+    if (!CreateWindow(reinterpret_cast<LPCWSTR>(_category), reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
+                      CW_USEDEFAULT, CW_USEDEFAULT, width, height, NULL, NULL, GetModuleHandle(NULL), this))
     {
         throw Exception(STR("failed to create window"));
     }

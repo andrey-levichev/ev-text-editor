@@ -67,9 +67,7 @@ struct HighlightingState
     String word;
 
     HighlightingState() :
-        highlightingType(HIGHLIGHTING_TYPE_NONE),
-        charsRemaining(0), reset(false),
-        startCh(0), prevCh(0)
+        highlightingType(HIGHLIGHTING_TYPE_NONE), charsRemaining(0), reset(false), startCh(0), prevCh(0)
     {
     }
 };
@@ -79,8 +77,7 @@ struct HighlightingState
 class SyntaxHighlighter
 {
 public:
-    SyntaxHighlighter(DocumentType documentType = DOCUMENT_TYPE_TEXT) :
-        _documentType(documentType)
+    SyntaxHighlighter(DocumentType documentType = DOCUMENT_TYPE_TEXT) : _documentType(documentType)
     {
     }
 
@@ -141,8 +138,7 @@ protected:
 class XmlSyntaxHighlighter : public SyntaxHighlighter
 {
 public:
-    XmlSyntaxHighlighter() :
-        SyntaxHighlighter(DOCUMENT_TYPE_XML)
+    XmlSyntaxHighlighter() : SyntaxHighlighter(DOCUMENT_TYPE_XML)
     {
     }
 
@@ -298,11 +294,10 @@ public:
 
 protected:
     void setPositionLineColumn(int pos);
-    void positionToLineColumn(int startPos, int startLine, int startColumn,
-        int newPos, int& line, int& column);
+    void positionToLineColumn(int startPos, int startLine, int startColumn, int newPos, int& line, int& column);
 
-    void lineColumnToPosition(int startPos, int startLine, int startColumn,
-        int newLine, int newColumn, int& pos, int& line, int& column);
+    void lineColumnToPosition(int startPos, int startLine, int startColumn, int newLine, int newColumn, int& pos,
+                              int& line, int& column);
 
     int findLineStart(int pos) const;
     int findLineEnd(int pos) const;
@@ -316,7 +311,7 @@ protected:
 
     int findPosition(int pos, const String& searchStr, bool caseSesitive, bool next) const;
 
-    void changeLines(int(Document::* lineOp)(int));
+    void changeLines(int (Document::*lineOp)(int));
 
     int indentLine(int pos);
     int unindentLine(int pos);
@@ -363,8 +358,7 @@ struct RecentLocation
     ListNode<Document>* document;
     int line;
 
-    RecentLocation(ListNode<Document>* document, int line) :
-        document(document), line(line)
+    RecentLocation(ListNode<Document>* document, int line) : document(document), line(line)
     {
     }
 };
@@ -376,8 +370,7 @@ struct AutocompleteSuggestion
     String word;
     int rank;
 
-    AutocompleteSuggestion(const String& word, int rank) :
-        word(word), rank(rank)
+    AutocompleteSuggestion(const String& word, int rank) : word(word), rank(rank)
     {
     }
 

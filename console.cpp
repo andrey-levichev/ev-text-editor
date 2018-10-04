@@ -60,252 +60,249 @@ struct KeyMapping
     KeyEvent keyEvent;
 };
 
-static KeyMapping keyMapping[] =
-    {
-        { 7, "\x1b[15;5~", { KEY_F5, 0, true, true } },
-        { 7, "\x1b[17;5~", { KEY_F6, 0, true, true } },
-        { 7, "\x1b[18;5~", { KEY_F7, 0, true, true } },
-        { 7, "\x1b[19;5~", { KEY_F8, 0, true, true } },
-        { 7, "\x1b[20;5~", { KEY_F9, 0, true, true } },
-        { 7, "\x1b[21;5~", { KEY_F10, 0, true, true } },
-        { 7, "\x1b[23;5~", { KEY_F11, 0, true, true } },
-        { 7, "\x1b[24;5~", { KEY_F12, 0, true, true } },
-        { 7, "\x1b[15;3~", { KEY_F5, 0, true, false, true } },
-        { 7, "\x1b[17;3~", { KEY_F6, 0, true, false, true } },
-        { 7, "\x1b[18;3~", { KEY_F7, 0, true, false, true } },
-        { 7, "\x1b[19;3~", { KEY_F8, 0, true, false, true } },
-        { 7, "\x1b[20;3~", { KEY_F9, 0, true, false, true } },
-        { 7, "\x1b[21;3~", { KEY_F10, 0, true, false, true } },
-        { 7, "\x1b[23;3~", { KEY_F11, 0, true, false, true } },
-        { 7, "\x1b[24;3~", { KEY_F12, 0, true, false, true } },
-        { 7, "\x1b[15;7~", { KEY_F5, 0, true, true, true } },
-        { 7, "\x1b[17;7~", { KEY_F6, 0, true, true, true } },
-        { 7, "\x1b[18;7~", { KEY_F7, 0, true, true, true } },
-        { 7, "\x1b[19;7~", { KEY_F8, 0, true, true, true } },
-        { 7, "\x1b[20;7~", { KEY_F9, 0, true, true, true } },
-        { 7, "\x1b[21;7~", { KEY_F10, 0, true, true, true } },
-        { 7, "\x1b[23;7~", { KEY_F11, 0, true, true, true } },
-        { 7, "\x1b[24;7~", { KEY_F12, 0, true, true, true } },
-        { 7, "\x1b[15;2~", { KEY_F5, 0, true, false, false, true } },
-        { 7, "\x1b[17;2~", { KEY_F6, 0, true, false, false, true } },
-        { 7, "\x1b[18;2~", { KEY_F7, 0, true, false, false, true } },
-        { 7, "\x1b[19;2~", { KEY_F8, 0, true, false, false, true } },
-        { 7, "\x1b[20;2~", { KEY_F9, 0, true, false, false, true } },
-        { 7, "\x1b[21;2~", { KEY_F10, 0, true, false, false, true } },
-        { 7, "\x1b[23;2~", { KEY_F11, 0, true, false, false, true } },
-        { 7, "\x1b[24;2~", { KEY_F12, 0, true, false, false, true } },
-        { 7, "\x1b[15;6~", { KEY_F5, 0, true, true, false, true } },
-        { 7, "\x1b[17;6~", { KEY_F6, 0, true, true, false, true } },
-        { 7, "\x1b[18;6~", { KEY_F7, 0, true, true, false, true } },
-        { 7, "\x1b[19;6~", { KEY_F8, 0, true, true, false, true } },
-        { 7, "\x1b[20;6~", { KEY_F9, 0, true, true, false, true } },
-        { 7, "\x1b[21;6~", { KEY_F10, 0, true, true, false, true } },
-        { 7, "\x1b[23;6~", { KEY_F11, 0, true, true, false, true } },
-        { 7, "\x1b[24;6~", { KEY_F12, 0, true, true, false, true } },
-        { 7, "\x1b[15;4~", { KEY_F5, 0, true, false, true, true } },
-        { 7, "\x1b[17;4~", { KEY_F6, 0, true, false, true, true } },
-        { 7, "\x1b[18;4~", { KEY_F7, 0, true, false, true, true } },
-        { 7, "\x1b[19;4~", { KEY_F8, 0, true, false, true, true } },
-        { 7, "\x1b[20;4~", { KEY_F9, 0, true, false, true, true } },
-        { 7, "\x1b[21;4~", { KEY_F10, 0, true, false, true, true } },
-        { 7, "\x1b[23;4~", { KEY_F11, 0, true, false, true, true } },
-        { 7, "\x1b[24;4~", { KEY_F12, 0, true, false, true, true } },
-        { 7, "\x1b[15;8~", { KEY_F5, 0, true, true, true, true } },
-        { 7, "\x1b[17;8~", { KEY_F6, 0, true, true, true, true } },
-        { 7, "\x1b[18;8~", { KEY_F7, 0, true, true, true, true } },
-        { 7, "\x1b[19;8~", { KEY_F8, 0, true, true, true, true } },
-        { 7, "\x1b[20;8~", { KEY_F9, 0, true, true, true, true } },
-        { 7, "\x1b[21;8~", { KEY_F10, 0, true, true, true, true } },
-        { 7, "\x1b[23;8~", { KEY_F11, 0, true, true, true, true } },
-        { 7, "\x1b[24;8~", { KEY_F12, 0, true, true, true, true } },
-        { 6, "\x1b\x1b[11~", { KEY_F1, 0, true, false, true } },
-        { 6, "\x1b\x1b[12~", { KEY_F2, 0, true, false, true } },
-        { 6, "\x1b\x1b[13~", { KEY_F3, 0, true, false, true } },
-        { 6, "\x1b\x1b[14~", { KEY_F4, 0, true, false, true } },
-        { 6, "\x1b\x1b[15~", { KEY_F5, 0, true, false, true } },
-        { 6, "\x1b\x1b[17~", { KEY_F6, 0, true, false, true } },
-        { 6, "\x1b\x1b[18~", { KEY_F7, 0, true, false, true } },
-        { 6, "\x1b\x1b[19~", { KEY_F8, 0, true, false, true } },
-        { 6, "\x1b\x1b[20~", { KEY_F9, 0, true, false, true } },
-        { 6, "\x1b\x1b[21~", { KEY_F10, 0, true, false, true } },
-        { 6, "\x1b\x1b[23~", { KEY_F11, 0, true, false, true } },
-        { 6, "\x1b\x1b[24~", { KEY_F12, 0, true, false, true } },
-        { 6, "\x1b\x1b[25~", { KEY_F3, 0, true, false, true, true } },
-        { 6, "\x1b\x1b[26~", { KEY_F4, 0, true, false, true, true } },
-        { 6, "\x1b\x1b[28~", { KEY_F5, 0, true, false, true, true } },
-        { 6, "\x1b\x1b[29~", { KEY_F6, 0, true, false, true, true } },
-        { 6, "\x1b\x1b[31~", { KEY_F7, 0, true, false, true, true } },
-        { 6, "\x1b\x1b[32~", { KEY_F8, 0, true, false, true, true } },
-        { 6, "\x1b\x1b[33~", { KEY_F9, 0, true, false, true, true } },
-        { 6, "\x1b\x1b[34~", { KEY_F10, 0, true, false, true, true } },
-        { 6, "\x1b[3;2~", { KEY_BACKSPACE, 0, true, false, false, true } },
-        { 6, "\x1b[3;6~", { KEY_BACKSPACE, 0, true, true, false, true } },
-        { 6, "\x1b[3;4~", { KEY_BACKSPACE, 0, true, false, true, true } },
-        { 6, "\x1b[3;8~", { KEY_BACKSPACE, 0, true, true, true, true } },
-        { 6, "\x1b[1;5A", { KEY_UP, 0, true, true } },
-        { 6, "\x1b[1;5B", { KEY_DOWN, 0, true, true } },
-        { 6, "\x1b[1;5C", { KEY_RIGHT, 0, true, true } },
-        { 6, "\x1b[1;5D", { KEY_LEFT, 0, true, true } },
-        { 6, "\x1b[1;3A", { KEY_UP, 0, true, false, true } },
-        { 6, "\x1b[1;3B", { KEY_DOWN, 0, true, false, true } },
-        { 6, "\x1b[1;3C", { KEY_RIGHT, 0, true, false, true } },
-        { 6, "\x1b[1;3D", { KEY_LEFT, 0, true, false, true } },
-        { 6, "\x1b[1;7A", { KEY_UP, 0, true, true, true } },
-        { 6, "\x1b[1;7B", { KEY_DOWN, 0, true, true, true } },
-        { 6, "\x1b[1;7C", { KEY_RIGHT, 0, true, true, true } },
-        { 6, "\x1b[1;7D", { KEY_LEFT, 0, true, true, true } },
-        { 6, "\x1b[1;2A", { KEY_UP, 0, true, false, false, true } },
-        { 6, "\x1b[1;2B", { KEY_DOWN, 0, true, false, false, true } },
-        { 6, "\x1b[1;2C", { KEY_RIGHT, 0, true, false, false, true } },
-        { 6, "\x1b[1;2D", { KEY_LEFT, 0, true, false, false, true } },
-        { 6, "\x1b[1;6A", { KEY_UP, 0, true, true, false, true } },
-        { 6, "\x1b[1;6B", { KEY_DOWN, 0, true, true, false, true } },
-        { 6, "\x1b[1;6C", { KEY_RIGHT, 0, true, true, false, true } },
-        { 6, "\x1b[1;6D", { KEY_LEFT, 0, true, true, false, true } },
-        { 6, "\x1b[1;4A", { KEY_UP, 0, true, false, true, true } },
-        { 6, "\x1b[1;4B", { KEY_DOWN, 0, true, false, true, true } },
-        { 6, "\x1b[1;4C", { KEY_RIGHT, 0, true, false, true, true } },
-        { 6, "\x1b[1;4D", { KEY_LEFT, 0, true, false, true, true } },
-        { 6, "\x1b[1;8A", { KEY_UP, 0, true, true, true, true } },
-        { 6, "\x1b[1;8B", { KEY_DOWN, 0, true, true, true, true } },
-        { 6, "\x1b[1;8C", { KEY_RIGHT, 0, true, true, true, true } },
-        { 6, "\x1b[1;8D", { KEY_LEFT, 0, true, true, true, true } },
-        { 6, "\x1b[2;5~", { KEY_INSERT, 0, true, true } },
-        { 6, "\x1b[3;5~", { KEY_DELETE, 0, true, true } },
-        { 6, "\x1b[1;5H", { KEY_HOME, 0, true, true } },
-        { 6, "\x1b[1;5F", { KEY_END, 0, true, true } },
-        { 6, "\x1b[5;5~", { KEY_PGUP, 0, true, true } },
-        { 6, "\x1b[6;5~", { KEY_PGDN, 0, true, true } },
-        { 6, "\x1b[2;3~", { KEY_INSERT, 0, true, false, true } },
-        { 6, "\x1b[3;3~", { KEY_DELETE, 0, true, false, true } },
-        { 6, "\x1b[1;3H", { KEY_HOME, 0, true, false, true } },
-        { 6, "\x1b[1;3F", { KEY_END, 0, true, false, true } },
-        { 6, "\x1b[5;3~", { KEY_PGUP, 0, true, false, true } },
-        { 6, "\x1b[6;3~", { KEY_PGDN, 0, true, false, true } },
-        { 6, "\x1b[2;7~", { KEY_INSERT, 0, true, true, true } },
-        { 6, "\x1b[3;7~", { KEY_DELETE, 0, true, true, true } },
-        { 6, "\x1b[1;7H", { KEY_HOME, 0, true, true, true } },
-        { 6, "\x1b[1;7F", { KEY_END, 0, true, true, true } },
-        { 6, "\x1b[5;7~", { KEY_PGUP, 0, true, true, true } },
-        { 6, "\x1b[6;7~", { KEY_PGDN, 0, true, true, true } },
-        { 6, "\x1b[2;2~", { KEY_INSERT, 0, true, false, false, true } },
-        { 6, "\x1b[3;2~", { KEY_DELETE, 0, true, false, false, true } },
-        { 6, "\x1b[1;2H", { KEY_HOME, 0, true, false, false, true } },
-        { 6, "\x1b[1;2F", { KEY_END, 0, true, false, false, true } },
-        { 6, "\x1b[5;2~", { KEY_PGUP, 0, true, false, false, true } },
-        { 6, "\x1b[6;2~", { KEY_PGDN, 0, true, false, false, true } },
-        { 6, "\x1b[2;6~", { KEY_INSERT, 0, true, true, false, true } },
-        { 6, "\x1b[3;6~", { KEY_DELETE, 0, true, true, false, true } },
-        { 6, "\x1b[1;6H", { KEY_HOME, 0, true, true, false, true } },
-        { 6, "\x1b[1;6F", { KEY_END, 0, true, true, false, true } },
-        { 6, "\x1b[5;6~", { KEY_PGUP, 0, true, true, false, true } },
-        { 6, "\x1b[6;6~", { KEY_PGDN, 0, true, true, false, true } },
-        { 6, "\x1b[2;4~", { KEY_INSERT, 0, true, false, true, true } },
-        { 6, "\x1b[3;4~", { KEY_DELETE, 0, true, false, true, true } },
-        { 6, "\x1b[1;4H", { KEY_HOME, 0, true, false, true, true } },
-        { 6, "\x1b[1;4F", { KEY_END, 0, true, false, true, true } },
-        { 6, "\x1b[5;4~", { KEY_PGUP, 0, true, false, true, true } },
-        { 6, "\x1b[6;4~", { KEY_PGDN, 0, true, false, true, true } },
-        { 6, "\x1b[2;8~", { KEY_INSERT, 0, true, true, true, true } },
-        { 6, "\x1b[3;8~", { KEY_DELETE, 0, true, true, true, true } },
-        { 6, "\x1b[1;8H", { KEY_HOME, 0, true, true, true, true } },
-        { 6, "\x1b[1;8F", { KEY_END, 0, true, true, true, true } },
-        { 6, "\x1b[5;8~", { KEY_PGUP, 0, true, true, true, true } },
-        { 6, "\x1b[6;8~", { KEY_PGDN, 0, true, true, true, true } },
-        { 5, "\x1b[11~", { KEY_F1, 0, true } },
-        { 5, "\x1b[12~", { KEY_F2, 0, true } },
-        { 5, "\x1b[13~", { KEY_F3, 0, true } },
-        { 5, "\x1b[14~", { KEY_F4, 0, true } },
-        { 5, "\x1b[15~", { KEY_F5, 0, true } },
-        { 5, "\x1b[17~", { KEY_F6, 0, true } },
-        { 5, "\x1b[18~", { KEY_F7, 0, true } },
-        { 5, "\x1b[19~", { KEY_F8, 0, true } },
-        { 5, "\x1b[20~", { KEY_F9, 0, true } },
-        { 5, "\x1b[21~", { KEY_F10, 0, true } },
-        { 5, "\x1b[23~", { KEY_F11, 0, true } },
-        { 5, "\x1b[24~", { KEY_F12, 0, true } },
-        { 5, "\x1b[23~", { KEY_F1, 0, true, false, false, true } },
-        { 5, "\x1b[24~", { KEY_F2, 0, true, false, false, true } },
-        { 5, "\x1b[25~", { KEY_F3, 0, true, false, false, true } },
-        { 5, "\x1b[26~", { KEY_F4, 0, true, false, false, true } },
-        { 5, "\x1b[28~", { KEY_F5, 0, true, false, false, true } },
-        { 5, "\x1b[29~", { KEY_F6, 0, true, false, false, true } },
-        { 5, "\x1b[31~", { KEY_F7, 0, true, false, false, true } },
-        { 5, "\x1b[32~", { KEY_F8, 0, true, false, false, true } },
-        { 5, "\x1b[33~", { KEY_F9, 0, true, false, false, true } },
-        { 5, "\x1b[34~", { KEY_F10, 0, true, false, false, true } },
-        { 5, "\x1b[23~", { KEY_F11, 0, true, false, false, true } },
-        { 5, "\x1b[24~", { KEY_F12, 0, true, false, false, true } },
-        { 5, "\x1b\x1b[2~", { KEY_INSERT, 0, true, false, true } },
-        { 5, "\x1b\x1b[3~", { KEY_DELETE, 0, true, false, true } },
-        { 5, "\x1b\x1b[1~", { KEY_HOME, 0, true, false, true } },
-        { 5, "\x1b\x1b[4~", { KEY_END, 0, true, false, true } },
-        { 5, "\x1b\x1b[5~", { KEY_PGUP, 0, true, false, true } },
-        { 5, "\x1b\x1b[6~", { KEY_PGDN, 0, true, false, true } },
-        { 4, "\x1b[2~", { KEY_INSERT, 0, true } },
-        { 4, "\x1b[3~", { KEY_DELETE, 0, true } },
-        { 4, "\x1b[1~", { KEY_HOME, 0, true } },
-        { 4, "\x1b[4~", { KEY_END, 0, true } },
-        { 4, "\x1b[5~", { KEY_PGUP, 0, true } },
-        { 4, "\x1b[6~", { KEY_PGDN, 0, true } },
-        { 4, "\x1b\x1b[A", { KEY_UP, 0, true, false, true } },
-        { 4, "\x1b\x1b[B", { KEY_DOWN, 0, true, false, true } },
-        { 4, "\x1b\x1b[C", { KEY_RIGHT, 0, true, false, true } },
-        { 4, "\x1b\x1b[D", { KEY_LEFT, 0, true, false, true } },
-        { 4, "\x1b\x1bOA", { KEY_UP, 0, true, true, true } },
-        { 4, "\x1b\x1bOB", { KEY_DOWN, 0, true, true, true } },
-        { 4, "\x1b\x1bOC", { KEY_RIGHT, 0, true, true, true } },
-        { 4, "\x1b\x1bOD", { KEY_LEFT, 0, true, true, true } },
-        { 4, "\x1bO5P", { KEY_F1, 0, true, true } },
-        { 4, "\x1bO5Q", { KEY_F2, 0, true, true } },
-        { 4, "\x1bO5R", { KEY_F3, 0, true, true } },
-        { 4, "\x1bO5S", { KEY_F4, 0, true, true } },
-        { 4, "\x1bO3P", { KEY_F1, 0, true, false, true } },
-        { 4, "\x1bO3Q", { KEY_F2, 0, true, false, true } },
-        { 4, "\x1bO3R", { KEY_F3, 0, true, false, true } },
-        { 4, "\x1bO3S", { KEY_F4, 0, true, false, true } },
-        { 4, "\x1bO7P", { KEY_F1, 0, true, true, true } },
-        { 4, "\x1bO7Q", { KEY_F2, 0, true, true, true } },
-        { 4, "\x1bO7R", { KEY_F3, 0, true, true, true } },
-        { 4, "\x1bO7S", { KEY_F4, 0, true, true, true } },
-        { 4, "\x1bO2P", { KEY_F1, 0, true, false, false, true } },
-        { 4, "\x1bO2Q", { KEY_F2, 0, true, false, false, true } },
-        { 4, "\x1bO2R", { KEY_F3, 0, true, false, false, true } },
-        { 4, "\x1bO2S", { KEY_F4, 0, true, false, false, true } },
-        { 4, "\x1bO6P", { KEY_F1, 0, true, true, false, true } },
-        { 4, "\x1bO6Q", { KEY_F2, 0, true, true, false, true } },
-        { 4, "\x1bO6R", { KEY_F3, 0, true, true, false, true } },
-        { 4, "\x1bO6S", { KEY_F4, 0, true, true, false, true } },
-        { 4, "\x1bO4P", { KEY_F1, 0, true, false, true, true } },
-        { 4, "\x1bO4Q", { KEY_F2, 0, true, false, true, true } },
-        { 4, "\x1bO4R", { KEY_F3, 0, true, false, true, true } },
-        { 4, "\x1bO4S", { KEY_F4, 0, true, false, true, true } },
-        { 4, "\x1bO8P", { KEY_F1, 0, true, true, true, true } },
-        { 4, "\x1bO8Q", { KEY_F2, 0, true, true, true, true } },
-        { 4, "\x1bO8R", { KEY_F3, 0, true, true, true, true } },
-        { 4, "\x1bO8S", { KEY_F4, 0, true, true, true, true } },
-        { 4, "\x1b\x1b[Z", { KEY_TAB, 0, true, false, true, true } },
-        { 4, "\x1b[[A", { KEY_F1, 0, true } },
-        { 4, "\x1b[[B", { KEY_F2, 0, true } },
-        { 4, "\x1b[[C", { KEY_F3, 0, true } },
-        { 4, "\x1b[[D", { KEY_F4, 0, true } },
-        { 4, "\x1b[[E", { KEY_F5, 0, true } },
-        { 3, "\x1b[A", { KEY_UP, 0, true } },
-        { 3, "\x1b[B", { KEY_DOWN, 0, true } },
-        { 3, "\x1b[C", { KEY_RIGHT, 0, true } },
-        { 3, "\x1b[D", { KEY_LEFT, 0, true } },
-        { 3, "\x1bOA", { KEY_UP, 0, true, true } },
-        { 3, "\x1bOB", { KEY_DOWN, 0, true, true } },
-        { 3, "\x1bOC", { KEY_RIGHT, 0, true, true } },
-        { 3, "\x1bOD", { KEY_LEFT, 0, true, true } },
-        { 3, "\x1b[Z", { KEY_TAB, 0, true, false, false, true } },
-        { 3, "\x1bOP", { KEY_F1, 0, true } },
-        { 3, "\x1bOQ", { KEY_F2, 0, true } },
-        { 3, "\x1bOR", { KEY_F3, 0, true } },
-        { 3, "\x1bOS", { KEY_F4, 0, true } },
-        { 3, "\x1b[H", { KEY_HOME, 0, true } },
-        { 3, "\x1b[F", { KEY_END, 0, true } }
-    };
+static KeyMapping keyMapping[] = { { 7, "\x1b[15;5~", { KEY_F5, 0, true, true } },
+                                   { 7, "\x1b[17;5~", { KEY_F6, 0, true, true } },
+                                   { 7, "\x1b[18;5~", { KEY_F7, 0, true, true } },
+                                   { 7, "\x1b[19;5~", { KEY_F8, 0, true, true } },
+                                   { 7, "\x1b[20;5~", { KEY_F9, 0, true, true } },
+                                   { 7, "\x1b[21;5~", { KEY_F10, 0, true, true } },
+                                   { 7, "\x1b[23;5~", { KEY_F11, 0, true, true } },
+                                   { 7, "\x1b[24;5~", { KEY_F12, 0, true, true } },
+                                   { 7, "\x1b[15;3~", { KEY_F5, 0, true, false, true } },
+                                   { 7, "\x1b[17;3~", { KEY_F6, 0, true, false, true } },
+                                   { 7, "\x1b[18;3~", { KEY_F7, 0, true, false, true } },
+                                   { 7, "\x1b[19;3~", { KEY_F8, 0, true, false, true } },
+                                   { 7, "\x1b[20;3~", { KEY_F9, 0, true, false, true } },
+                                   { 7, "\x1b[21;3~", { KEY_F10, 0, true, false, true } },
+                                   { 7, "\x1b[23;3~", { KEY_F11, 0, true, false, true } },
+                                   { 7, "\x1b[24;3~", { KEY_F12, 0, true, false, true } },
+                                   { 7, "\x1b[15;7~", { KEY_F5, 0, true, true, true } },
+                                   { 7, "\x1b[17;7~", { KEY_F6, 0, true, true, true } },
+                                   { 7, "\x1b[18;7~", { KEY_F7, 0, true, true, true } },
+                                   { 7, "\x1b[19;7~", { KEY_F8, 0, true, true, true } },
+                                   { 7, "\x1b[20;7~", { KEY_F9, 0, true, true, true } },
+                                   { 7, "\x1b[21;7~", { KEY_F10, 0, true, true, true } },
+                                   { 7, "\x1b[23;7~", { KEY_F11, 0, true, true, true } },
+                                   { 7, "\x1b[24;7~", { KEY_F12, 0, true, true, true } },
+                                   { 7, "\x1b[15;2~", { KEY_F5, 0, true, false, false, true } },
+                                   { 7, "\x1b[17;2~", { KEY_F6, 0, true, false, false, true } },
+                                   { 7, "\x1b[18;2~", { KEY_F7, 0, true, false, false, true } },
+                                   { 7, "\x1b[19;2~", { KEY_F8, 0, true, false, false, true } },
+                                   { 7, "\x1b[20;2~", { KEY_F9, 0, true, false, false, true } },
+                                   { 7, "\x1b[21;2~", { KEY_F10, 0, true, false, false, true } },
+                                   { 7, "\x1b[23;2~", { KEY_F11, 0, true, false, false, true } },
+                                   { 7, "\x1b[24;2~", { KEY_F12, 0, true, false, false, true } },
+                                   { 7, "\x1b[15;6~", { KEY_F5, 0, true, true, false, true } },
+                                   { 7, "\x1b[17;6~", { KEY_F6, 0, true, true, false, true } },
+                                   { 7, "\x1b[18;6~", { KEY_F7, 0, true, true, false, true } },
+                                   { 7, "\x1b[19;6~", { KEY_F8, 0, true, true, false, true } },
+                                   { 7, "\x1b[20;6~", { KEY_F9, 0, true, true, false, true } },
+                                   { 7, "\x1b[21;6~", { KEY_F10, 0, true, true, false, true } },
+                                   { 7, "\x1b[23;6~", { KEY_F11, 0, true, true, false, true } },
+                                   { 7, "\x1b[24;6~", { KEY_F12, 0, true, true, false, true } },
+                                   { 7, "\x1b[15;4~", { KEY_F5, 0, true, false, true, true } },
+                                   { 7, "\x1b[17;4~", { KEY_F6, 0, true, false, true, true } },
+                                   { 7, "\x1b[18;4~", { KEY_F7, 0, true, false, true, true } },
+                                   { 7, "\x1b[19;4~", { KEY_F8, 0, true, false, true, true } },
+                                   { 7, "\x1b[20;4~", { KEY_F9, 0, true, false, true, true } },
+                                   { 7, "\x1b[21;4~", { KEY_F10, 0, true, false, true, true } },
+                                   { 7, "\x1b[23;4~", { KEY_F11, 0, true, false, true, true } },
+                                   { 7, "\x1b[24;4~", { KEY_F12, 0, true, false, true, true } },
+                                   { 7, "\x1b[15;8~", { KEY_F5, 0, true, true, true, true } },
+                                   { 7, "\x1b[17;8~", { KEY_F6, 0, true, true, true, true } },
+                                   { 7, "\x1b[18;8~", { KEY_F7, 0, true, true, true, true } },
+                                   { 7, "\x1b[19;8~", { KEY_F8, 0, true, true, true, true } },
+                                   { 7, "\x1b[20;8~", { KEY_F9, 0, true, true, true, true } },
+                                   { 7, "\x1b[21;8~", { KEY_F10, 0, true, true, true, true } },
+                                   { 7, "\x1b[23;8~", { KEY_F11, 0, true, true, true, true } },
+                                   { 7, "\x1b[24;8~", { KEY_F12, 0, true, true, true, true } },
+                                   { 6, "\x1b\x1b[11~", { KEY_F1, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[12~", { KEY_F2, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[13~", { KEY_F3, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[14~", { KEY_F4, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[15~", { KEY_F5, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[17~", { KEY_F6, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[18~", { KEY_F7, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[19~", { KEY_F8, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[20~", { KEY_F9, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[21~", { KEY_F10, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[23~", { KEY_F11, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[24~", { KEY_F12, 0, true, false, true } },
+                                   { 6, "\x1b\x1b[25~", { KEY_F3, 0, true, false, true, true } },
+                                   { 6, "\x1b\x1b[26~", { KEY_F4, 0, true, false, true, true } },
+                                   { 6, "\x1b\x1b[28~", { KEY_F5, 0, true, false, true, true } },
+                                   { 6, "\x1b\x1b[29~", { KEY_F6, 0, true, false, true, true } },
+                                   { 6, "\x1b\x1b[31~", { KEY_F7, 0, true, false, true, true } },
+                                   { 6, "\x1b\x1b[32~", { KEY_F8, 0, true, false, true, true } },
+                                   { 6, "\x1b\x1b[33~", { KEY_F9, 0, true, false, true, true } },
+                                   { 6, "\x1b\x1b[34~", { KEY_F10, 0, true, false, true, true } },
+                                   { 6, "\x1b[3;2~", { KEY_BACKSPACE, 0, true, false, false, true } },
+                                   { 6, "\x1b[3;6~", { KEY_BACKSPACE, 0, true, true, false, true } },
+                                   { 6, "\x1b[3;4~", { KEY_BACKSPACE, 0, true, false, true, true } },
+                                   { 6, "\x1b[3;8~", { KEY_BACKSPACE, 0, true, true, true, true } },
+                                   { 6, "\x1b[1;5A", { KEY_UP, 0, true, true } },
+                                   { 6, "\x1b[1;5B", { KEY_DOWN, 0, true, true } },
+                                   { 6, "\x1b[1;5C", { KEY_RIGHT, 0, true, true } },
+                                   { 6, "\x1b[1;5D", { KEY_LEFT, 0, true, true } },
+                                   { 6, "\x1b[1;3A", { KEY_UP, 0, true, false, true } },
+                                   { 6, "\x1b[1;3B", { KEY_DOWN, 0, true, false, true } },
+                                   { 6, "\x1b[1;3C", { KEY_RIGHT, 0, true, false, true } },
+                                   { 6, "\x1b[1;3D", { KEY_LEFT, 0, true, false, true } },
+                                   { 6, "\x1b[1;7A", { KEY_UP, 0, true, true, true } },
+                                   { 6, "\x1b[1;7B", { KEY_DOWN, 0, true, true, true } },
+                                   { 6, "\x1b[1;7C", { KEY_RIGHT, 0, true, true, true } },
+                                   { 6, "\x1b[1;7D", { KEY_LEFT, 0, true, true, true } },
+                                   { 6, "\x1b[1;2A", { KEY_UP, 0, true, false, false, true } },
+                                   { 6, "\x1b[1;2B", { KEY_DOWN, 0, true, false, false, true } },
+                                   { 6, "\x1b[1;2C", { KEY_RIGHT, 0, true, false, false, true } },
+                                   { 6, "\x1b[1;2D", { KEY_LEFT, 0, true, false, false, true } },
+                                   { 6, "\x1b[1;6A", { KEY_UP, 0, true, true, false, true } },
+                                   { 6, "\x1b[1;6B", { KEY_DOWN, 0, true, true, false, true } },
+                                   { 6, "\x1b[1;6C", { KEY_RIGHT, 0, true, true, false, true } },
+                                   { 6, "\x1b[1;6D", { KEY_LEFT, 0, true, true, false, true } },
+                                   { 6, "\x1b[1;4A", { KEY_UP, 0, true, false, true, true } },
+                                   { 6, "\x1b[1;4B", { KEY_DOWN, 0, true, false, true, true } },
+                                   { 6, "\x1b[1;4C", { KEY_RIGHT, 0, true, false, true, true } },
+                                   { 6, "\x1b[1;4D", { KEY_LEFT, 0, true, false, true, true } },
+                                   { 6, "\x1b[1;8A", { KEY_UP, 0, true, true, true, true } },
+                                   { 6, "\x1b[1;8B", { KEY_DOWN, 0, true, true, true, true } },
+                                   { 6, "\x1b[1;8C", { KEY_RIGHT, 0, true, true, true, true } },
+                                   { 6, "\x1b[1;8D", { KEY_LEFT, 0, true, true, true, true } },
+                                   { 6, "\x1b[2;5~", { KEY_INSERT, 0, true, true } },
+                                   { 6, "\x1b[3;5~", { KEY_DELETE, 0, true, true } },
+                                   { 6, "\x1b[1;5H", { KEY_HOME, 0, true, true } },
+                                   { 6, "\x1b[1;5F", { KEY_END, 0, true, true } },
+                                   { 6, "\x1b[5;5~", { KEY_PGUP, 0, true, true } },
+                                   { 6, "\x1b[6;5~", { KEY_PGDN, 0, true, true } },
+                                   { 6, "\x1b[2;3~", { KEY_INSERT, 0, true, false, true } },
+                                   { 6, "\x1b[3;3~", { KEY_DELETE, 0, true, false, true } },
+                                   { 6, "\x1b[1;3H", { KEY_HOME, 0, true, false, true } },
+                                   { 6, "\x1b[1;3F", { KEY_END, 0, true, false, true } },
+                                   { 6, "\x1b[5;3~", { KEY_PGUP, 0, true, false, true } },
+                                   { 6, "\x1b[6;3~", { KEY_PGDN, 0, true, false, true } },
+                                   { 6, "\x1b[2;7~", { KEY_INSERT, 0, true, true, true } },
+                                   { 6, "\x1b[3;7~", { KEY_DELETE, 0, true, true, true } },
+                                   { 6, "\x1b[1;7H", { KEY_HOME, 0, true, true, true } },
+                                   { 6, "\x1b[1;7F", { KEY_END, 0, true, true, true } },
+                                   { 6, "\x1b[5;7~", { KEY_PGUP, 0, true, true, true } },
+                                   { 6, "\x1b[6;7~", { KEY_PGDN, 0, true, true, true } },
+                                   { 6, "\x1b[2;2~", { KEY_INSERT, 0, true, false, false, true } },
+                                   { 6, "\x1b[3;2~", { KEY_DELETE, 0, true, false, false, true } },
+                                   { 6, "\x1b[1;2H", { KEY_HOME, 0, true, false, false, true } },
+                                   { 6, "\x1b[1;2F", { KEY_END, 0, true, false, false, true } },
+                                   { 6, "\x1b[5;2~", { KEY_PGUP, 0, true, false, false, true } },
+                                   { 6, "\x1b[6;2~", { KEY_PGDN, 0, true, false, false, true } },
+                                   { 6, "\x1b[2;6~", { KEY_INSERT, 0, true, true, false, true } },
+                                   { 6, "\x1b[3;6~", { KEY_DELETE, 0, true, true, false, true } },
+                                   { 6, "\x1b[1;6H", { KEY_HOME, 0, true, true, false, true } },
+                                   { 6, "\x1b[1;6F", { KEY_END, 0, true, true, false, true } },
+                                   { 6, "\x1b[5;6~", { KEY_PGUP, 0, true, true, false, true } },
+                                   { 6, "\x1b[6;6~", { KEY_PGDN, 0, true, true, false, true } },
+                                   { 6, "\x1b[2;4~", { KEY_INSERT, 0, true, false, true, true } },
+                                   { 6, "\x1b[3;4~", { KEY_DELETE, 0, true, false, true, true } },
+                                   { 6, "\x1b[1;4H", { KEY_HOME, 0, true, false, true, true } },
+                                   { 6, "\x1b[1;4F", { KEY_END, 0, true, false, true, true } },
+                                   { 6, "\x1b[5;4~", { KEY_PGUP, 0, true, false, true, true } },
+                                   { 6, "\x1b[6;4~", { KEY_PGDN, 0, true, false, true, true } },
+                                   { 6, "\x1b[2;8~", { KEY_INSERT, 0, true, true, true, true } },
+                                   { 6, "\x1b[3;8~", { KEY_DELETE, 0, true, true, true, true } },
+                                   { 6, "\x1b[1;8H", { KEY_HOME, 0, true, true, true, true } },
+                                   { 6, "\x1b[1;8F", { KEY_END, 0, true, true, true, true } },
+                                   { 6, "\x1b[5;8~", { KEY_PGUP, 0, true, true, true, true } },
+                                   { 6, "\x1b[6;8~", { KEY_PGDN, 0, true, true, true, true } },
+                                   { 5, "\x1b[11~", { KEY_F1, 0, true } },
+                                   { 5, "\x1b[12~", { KEY_F2, 0, true } },
+                                   { 5, "\x1b[13~", { KEY_F3, 0, true } },
+                                   { 5, "\x1b[14~", { KEY_F4, 0, true } },
+                                   { 5, "\x1b[15~", { KEY_F5, 0, true } },
+                                   { 5, "\x1b[17~", { KEY_F6, 0, true } },
+                                   { 5, "\x1b[18~", { KEY_F7, 0, true } },
+                                   { 5, "\x1b[19~", { KEY_F8, 0, true } },
+                                   { 5, "\x1b[20~", { KEY_F9, 0, true } },
+                                   { 5, "\x1b[21~", { KEY_F10, 0, true } },
+                                   { 5, "\x1b[23~", { KEY_F11, 0, true } },
+                                   { 5, "\x1b[24~", { KEY_F12, 0, true } },
+                                   { 5, "\x1b[23~", { KEY_F1, 0, true, false, false, true } },
+                                   { 5, "\x1b[24~", { KEY_F2, 0, true, false, false, true } },
+                                   { 5, "\x1b[25~", { KEY_F3, 0, true, false, false, true } },
+                                   { 5, "\x1b[26~", { KEY_F4, 0, true, false, false, true } },
+                                   { 5, "\x1b[28~", { KEY_F5, 0, true, false, false, true } },
+                                   { 5, "\x1b[29~", { KEY_F6, 0, true, false, false, true } },
+                                   { 5, "\x1b[31~", { KEY_F7, 0, true, false, false, true } },
+                                   { 5, "\x1b[32~", { KEY_F8, 0, true, false, false, true } },
+                                   { 5, "\x1b[33~", { KEY_F9, 0, true, false, false, true } },
+                                   { 5, "\x1b[34~", { KEY_F10, 0, true, false, false, true } },
+                                   { 5, "\x1b[23~", { KEY_F11, 0, true, false, false, true } },
+                                   { 5, "\x1b[24~", { KEY_F12, 0, true, false, false, true } },
+                                   { 5, "\x1b\x1b[2~", { KEY_INSERT, 0, true, false, true } },
+                                   { 5, "\x1b\x1b[3~", { KEY_DELETE, 0, true, false, true } },
+                                   { 5, "\x1b\x1b[1~", { KEY_HOME, 0, true, false, true } },
+                                   { 5, "\x1b\x1b[4~", { KEY_END, 0, true, false, true } },
+                                   { 5, "\x1b\x1b[5~", { KEY_PGUP, 0, true, false, true } },
+                                   { 5, "\x1b\x1b[6~", { KEY_PGDN, 0, true, false, true } },
+                                   { 4, "\x1b[2~", { KEY_INSERT, 0, true } },
+                                   { 4, "\x1b[3~", { KEY_DELETE, 0, true } },
+                                   { 4, "\x1b[1~", { KEY_HOME, 0, true } },
+                                   { 4, "\x1b[4~", { KEY_END, 0, true } },
+                                   { 4, "\x1b[5~", { KEY_PGUP, 0, true } },
+                                   { 4, "\x1b[6~", { KEY_PGDN, 0, true } },
+                                   { 4, "\x1b\x1b[A", { KEY_UP, 0, true, false, true } },
+                                   { 4, "\x1b\x1b[B", { KEY_DOWN, 0, true, false, true } },
+                                   { 4, "\x1b\x1b[C", { KEY_RIGHT, 0, true, false, true } },
+                                   { 4, "\x1b\x1b[D", { KEY_LEFT, 0, true, false, true } },
+                                   { 4, "\x1b\x1bOA", { KEY_UP, 0, true, true, true } },
+                                   { 4, "\x1b\x1bOB", { KEY_DOWN, 0, true, true, true } },
+                                   { 4, "\x1b\x1bOC", { KEY_RIGHT, 0, true, true, true } },
+                                   { 4, "\x1b\x1bOD", { KEY_LEFT, 0, true, true, true } },
+                                   { 4, "\x1bO5P", { KEY_F1, 0, true, true } },
+                                   { 4, "\x1bO5Q", { KEY_F2, 0, true, true } },
+                                   { 4, "\x1bO5R", { KEY_F3, 0, true, true } },
+                                   { 4, "\x1bO5S", { KEY_F4, 0, true, true } },
+                                   { 4, "\x1bO3P", { KEY_F1, 0, true, false, true } },
+                                   { 4, "\x1bO3Q", { KEY_F2, 0, true, false, true } },
+                                   { 4, "\x1bO3R", { KEY_F3, 0, true, false, true } },
+                                   { 4, "\x1bO3S", { KEY_F4, 0, true, false, true } },
+                                   { 4, "\x1bO7P", { KEY_F1, 0, true, true, true } },
+                                   { 4, "\x1bO7Q", { KEY_F2, 0, true, true, true } },
+                                   { 4, "\x1bO7R", { KEY_F3, 0, true, true, true } },
+                                   { 4, "\x1bO7S", { KEY_F4, 0, true, true, true } },
+                                   { 4, "\x1bO2P", { KEY_F1, 0, true, false, false, true } },
+                                   { 4, "\x1bO2Q", { KEY_F2, 0, true, false, false, true } },
+                                   { 4, "\x1bO2R", { KEY_F3, 0, true, false, false, true } },
+                                   { 4, "\x1bO2S", { KEY_F4, 0, true, false, false, true } },
+                                   { 4, "\x1bO6P", { KEY_F1, 0, true, true, false, true } },
+                                   { 4, "\x1bO6Q", { KEY_F2, 0, true, true, false, true } },
+                                   { 4, "\x1bO6R", { KEY_F3, 0, true, true, false, true } },
+                                   { 4, "\x1bO6S", { KEY_F4, 0, true, true, false, true } },
+                                   { 4, "\x1bO4P", { KEY_F1, 0, true, false, true, true } },
+                                   { 4, "\x1bO4Q", { KEY_F2, 0, true, false, true, true } },
+                                   { 4, "\x1bO4R", { KEY_F3, 0, true, false, true, true } },
+                                   { 4, "\x1bO4S", { KEY_F4, 0, true, false, true, true } },
+                                   { 4, "\x1bO8P", { KEY_F1, 0, true, true, true, true } },
+                                   { 4, "\x1bO8Q", { KEY_F2, 0, true, true, true, true } },
+                                   { 4, "\x1bO8R", { KEY_F3, 0, true, true, true, true } },
+                                   { 4, "\x1bO8S", { KEY_F4, 0, true, true, true, true } },
+                                   { 4, "\x1b\x1b[Z", { KEY_TAB, 0, true, false, true, true } },
+                                   { 4, "\x1b[[A", { KEY_F1, 0, true } },
+                                   { 4, "\x1b[[B", { KEY_F2, 0, true } },
+                                   { 4, "\x1b[[C", { KEY_F3, 0, true } },
+                                   { 4, "\x1b[[D", { KEY_F4, 0, true } },
+                                   { 4, "\x1b[[E", { KEY_F5, 0, true } },
+                                   { 3, "\x1b[A", { KEY_UP, 0, true } },
+                                   { 3, "\x1b[B", { KEY_DOWN, 0, true } },
+                                   { 3, "\x1b[C", { KEY_RIGHT, 0, true } },
+                                   { 3, "\x1b[D", { KEY_LEFT, 0, true } },
+                                   { 3, "\x1bOA", { KEY_UP, 0, true, true } },
+                                   { 3, "\x1bOB", { KEY_DOWN, 0, true, true } },
+                                   { 3, "\x1bOC", { KEY_RIGHT, 0, true, true } },
+                                   { 3, "\x1bOD", { KEY_LEFT, 0, true, true } },
+                                   { 3, "\x1b[Z", { KEY_TAB, 0, true, false, false, true } },
+                                   { 3, "\x1bOP", { KEY_F1, 0, true } },
+                                   { 3, "\x1bOQ", { KEY_F2, 0, true } },
+                                   { 3, "\x1bOR", { KEY_F3, 0, true } },
+                                   { 3, "\x1bOS", { KEY_F4, 0, true } },
+                                   { 3, "\x1b[H", { KEY_HOME, 0, true } },
+                                   { 3, "\x1b[F", { KEY_END, 0, true } } };
 
 #endif
 
@@ -341,11 +338,11 @@ Console::Constructor::Constructor()
         rc = GetConsoleScreenBufferInfo(handle, &csbi);
         ASSERT(rc);
 
-        _defaultForeground = static_cast<ForegroundColor>(csbi.wAttributes &
-            (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY));
+        _defaultForeground = static_cast<ForegroundColor>(
+            csbi.wAttributes & (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY));
 
-        _defaultBackground = static_cast<BackgroundColor>(csbi.wAttributes &
-            (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY));
+        _defaultBackground = static_cast<BackgroundColor>(
+            csbi.wAttributes & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY));
 #else
         int rc = setvbuf(stdout, NULL, _IONBF, 0);
         ASSERT(rc == 0);
@@ -393,7 +390,7 @@ bool Console::brightBackground()
 {
 #ifdef PLATFORM_WINDOWS
     return ((_defaultBackground & BACKGROUND_INTENSITY) != 0) ||
-        ((_defaultBackground & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE)) != 0);
+           ((_defaultBackground & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE)) != 0);
 #else
     return true;
 #endif
@@ -405,11 +402,10 @@ void Console::setLineMode(bool lineMode)
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
     ASSERT(handle);
 
-    BOOL rc = SetConsoleMode(handle, lineMode ?
-        ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT |
-            ENABLE_EXTENDED_FLAGS | ENABLE_INSERT_MODE | ENABLE_QUICK_EDIT_MODE :
-        ENABLE_EXTENDED_FLAGS | ENABLE_INSERT_MODE | ENABLE_MOUSE_INPUT |
-            ENABLE_WINDOW_INPUT);
+    BOOL rc = SetConsoleMode(
+        handle, lineMode ? ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_EXTENDED_FLAGS |
+                               ENABLE_INSERT_MODE | ENABLE_QUICK_EDIT_MODE :
+                           ENABLE_EXTENDED_FLAGS | ENABLE_INSERT_MODE | ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT);
     ASSERT(rc);
 
     handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -428,7 +424,6 @@ void Console::setLineMode(bool lineMode)
         ta.c_lflag |= ECHO | ICANON;
         rc = tcsetattr(STDIN_FILENO, TCSANOW, &ta);
         ASSERT(rc == 0);
-
 
         printf("\x1b[?1000l");
     }
@@ -649,16 +644,14 @@ unichar_t Console::readChar()
     {
         uint8_t ch2 = getchar();
         uint8_t ch3 = getchar();
-        return ((ch1 & 0x0f) << 12) |
-            ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
+        return ((ch1 & 0x0f) << 12) | ((ch2 & 0x3f) << 6) | (ch3 & 0x3f);
     }
     else
     {
         uint8_t ch2 = getchar();
         uint8_t ch3 = getchar();
         uint8_t ch4 = getchar();
-        return ((ch1 & 0x07) << 18) |
-            ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
+        return ((ch1 & 0x07) << 18) | ((ch2 & 0x3f) << 12) | ((ch3 & 0x3f) << 6) | (ch4 & 0x3f);
     }
 #endif
 }
@@ -917,8 +910,8 @@ const Array<InputEvent>& Console::readInput()
                 ASSERT(rc);
 
                 MouseEvent mouseEvent = { MOUSE_BUTTON_NONE, true,
-                    inputRec.Event.MouseEvent.dwMousePosition.X - csbi.srWindow.Left + 1,
-                    inputRec.Event.MouseEvent.dwMousePosition.Y - csbi.srWindow.Top + 1 };
+                                          inputRec.Event.MouseEvent.dwMousePosition.X - csbi.srWindow.Left + 1,
+                                          inputRec.Event.MouseEvent.dwMousePosition.Y - csbi.srWindow.Top + 1 };
 
                 if (inputRec.Event.MouseEvent.dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED)
                     mouseEvent.button = MOUSE_BUTTON_PRIMARY;
@@ -928,9 +921,9 @@ const Array<InputEvent>& Console::readInput()
                     mouseEvent.button = MOUSE_BUTTON_SECONDARY;
                 else if (inputRec.Event.MouseEvent.dwEventFlags & MOUSE_WHEELED)
                 {
-                    mouseEvent.button = *reinterpret_cast<int*>(
-                        &inputRec.Event.MouseEvent.dwButtonState) > 0 ?
-                        MOUSE_BUTTON_WHEEL_UP : MOUSE_BUTTON_WHEEL_DOWN;
+                    mouseEvent.button = *reinterpret_cast<int*>(&inputRec.Event.MouseEvent.dwButtonState) > 0 ?
+                                            MOUSE_BUTTON_WHEEL_UP :
+                                            MOUSE_BUTTON_WHEEL_DOWN;
                 }
 
                 if (mouseEvent.button != MOUSE_BUTTON_NONE)
@@ -951,9 +944,8 @@ const Array<InputEvent>& Console::readInput()
             }
             else if (inputRec.EventType == WINDOW_BUFFER_SIZE_EVENT)
             {
-                WindowEvent windowEvent = {
-                    inputRec.Event.WindowBufferSizeEvent.dwSize.X,
-                    inputRec.Event.WindowBufferSizeEvent.dwSize.Y };
+                WindowEvent windowEvent = { inputRec.Event.WindowBufferSizeEvent.dwSize.X,
+                                            inputRec.Event.WindowBufferSizeEvent.dwSize.Y };
                 _inputEvents.addLast(windowEvent);
             }
         }
@@ -1038,47 +1030,47 @@ const Array<InputEvent>& Console::readInput()
 
                             switch (button)
                             {
-                                case 0:
-                                    mouseEvent.button = MOUSE_BUTTON_PRIMARY;
-                                    break;
-                                case 1:
-                                    mouseEvent.button = MOUSE_BUTTON_WHEEL;
-                                    break;
-                                case 2:
-                                    mouseEvent.button = MOUSE_BUTTON_SECONDARY;
-                                    break;
-                                case 64:
-                                    mouseEvent.button = MOUSE_BUTTON_WHEEL_UP;
-                                    break;
-                                case 65:
-                                    mouseEvent.button = MOUSE_BUTTON_WHEEL_DOWN;
-                                    break;
-                                case 16:
-                                    mouseEvent.button = MOUSE_BUTTON_PRIMARY;
-                                    mouseEvent.ctrl = true;
-                                    break;
-                                case 17:
-                                    mouseEvent.button = MOUSE_BUTTON_WHEEL;
-                                    mouseEvent.ctrl = true;
-                                    break;
-                                case 18:
-                                    mouseEvent.button = MOUSE_BUTTON_SECONDARY;
-                                    mouseEvent.ctrl = true;
-                                    break;
-                                case 80:
-                                    mouseEvent.button = MOUSE_BUTTON_WHEEL_UP;
-                                    mouseEvent.ctrl = true;
-                                    break;
-                                case 81:
-                                    mouseEvent.button = MOUSE_BUTTON_WHEEL_DOWN;
-                                    mouseEvent.ctrl = true;
-                                    break;
+                            case 0:
+                                mouseEvent.button = MOUSE_BUTTON_PRIMARY;
+                                break;
+                            case 1:
+                                mouseEvent.button = MOUSE_BUTTON_WHEEL;
+                                break;
+                            case 2:
+                                mouseEvent.button = MOUSE_BUTTON_SECONDARY;
+                                break;
+                            case 64:
+                                mouseEvent.button = MOUSE_BUTTON_WHEEL_UP;
+                                break;
+                            case 65:
+                                mouseEvent.button = MOUSE_BUTTON_WHEEL_DOWN;
+                                break;
+                            case 16:
+                                mouseEvent.button = MOUSE_BUTTON_PRIMARY;
+                                mouseEvent.ctrl = true;
+                                break;
+                            case 17:
+                                mouseEvent.button = MOUSE_BUTTON_WHEEL;
+                                mouseEvent.ctrl = true;
+                                break;
+                            case 18:
+                                mouseEvent.button = MOUSE_BUTTON_SECONDARY;
+                                mouseEvent.ctrl = true;
+                                break;
+                            case 80:
+                                mouseEvent.button = MOUSE_BUTTON_WHEEL_UP;
+                                mouseEvent.ctrl = true;
+                                break;
+                            case 81:
+                                mouseEvent.button = MOUSE_BUTTON_WHEEL_DOWN;
+                                mouseEvent.ctrl = true;
+                                break;
                             }
 
-                             _inputEvents.addLast(InputEvent(mouseEvent));
-                             p += 2 + n;
+                            _inputEvents.addLast(InputEvent(mouseEvent));
+                            p += 2 + n;
 
-                             continue;
+                            continue;
                         }
                     }
 

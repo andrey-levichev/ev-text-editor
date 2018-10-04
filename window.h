@@ -25,8 +25,7 @@ protected:
     virtual void onResize(int width, int height);
 
 private:
-    static LRESULT CALLBACK windowProc(
-        HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+    static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
 private:
     const char_t* _category;

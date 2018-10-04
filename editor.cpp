@@ -10,7 +10,7 @@ bool charIsWord(unichar_t ch)
 bool isWordBoundary(unichar_t prevCh, unichar_t ch)
 {
     return (!charIsWord(prevCh) && charIsWord(ch)) ||
-        ((charIsWord(prevCh) || charIsSpace(prevCh)) && !(charIsWord(ch) || charIsSpace(ch)));
+           ((charIsWord(prevCh) || charIsSpace(prevCh)) && !(charIsWord(ch) || charIsSpace(ch)));
 }
 
 bool isCharBoundary(unichar_t prevCh, unichar_t ch)
@@ -40,19 +40,16 @@ BackgroundColor defaultBackground()
 
 ScreenCell::ScreenCell() :
 #ifdef PLATFORM_WINDOWS
-    ch(' '),
-    color(defaultForeground() | defaultBackground())
+    ch(' '), color(defaultForeground() | defaultBackground())
 #else
-    ch(0),
-    color(defaultForeground())
+    ch(0), color(defaultForeground())
 #endif
 {
 }
 
 // CppSyntaxHighlighter
 
-CppSyntaxHighlighter::CppSyntaxHighlighter() :
-    SyntaxHighlighter(DOCUMENT_TYPE_CPP)
+CppSyntaxHighlighter::CppSyntaxHighlighter() : SyntaxHighlighter(DOCUMENT_TYPE_CPP)
 {
     _keywords.add(String(STR("alignas")));
     _keywords.add(String(STR("alignof")));
@@ -222,11 +219,9 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
     }
     else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_NUMBER)
     {
-        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
-                ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
-                ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
-                ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
-                ch == '.' || ch == '+' || ch == '-'))
+        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' || ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
+              ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' || ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
+              ch == '.' || ch == '+' || ch == '-'))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
         else
             return;
@@ -297,8 +292,7 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
                 ch = text.charAt(pos);
             else
                 break;
-        }
-        while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
+        } while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
 
         _highlightingState.word = text.substr(s, pos - s);
         _highlightingState.charsRemaining = _highlightingState.word.charLength();
@@ -354,8 +348,7 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
             {
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_PREPROCESSOR;
 
-                if (_highlightingState.word == STR("else") ||
-                    _highlightingState.word == STR("endif"))
+                if (_highlightingState.word == STR("else") || _highlightingState.word == STR("endif"))
                 {
                     _highlightingState.charsRemaining = _highlightingState.word.charLength() + 1;
                     _highlightingState.reset = true;
@@ -365,8 +358,7 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
     }
 }
 
-ShellSyntaxHighlighter::ShellSyntaxHighlighter() :
-    SyntaxHighlighter(DOCUMENT_TYPE_SHELL)
+ShellSyntaxHighlighter::ShellSyntaxHighlighter() : SyntaxHighlighter(DOCUMENT_TYPE_SHELL)
 {
     _keywords.add(String(STR("case")));
     _keywords.add(String(STR("do")));
@@ -416,11 +408,9 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
     }
     else if (_highlightingState.highlightingType == HIGHLIGHTING_TYPE_NUMBER)
     {
-        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' ||
-                ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
-                ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' ||
-                ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
-                ch == '.' || ch == '+' || ch == '-'))
+        if (!(charIsDigit(ch) || ch == 'x' || ch == 'X' || ch == 'a' || ch == 'A' || ch == 'b' || ch == 'B' ||
+              ch == 'c' || ch == 'C' || ch == 'd' || ch == 'D' || ch == 'e' || ch == 'E' || ch == 'f' || ch == 'F' ||
+              ch == '.' || ch == '+' || ch == '-'))
             _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
         else
             return;
@@ -476,8 +466,7 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
                 ch = text.charAt(pos);
             else
                 break;
-        }
-        while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
+        } while (charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_');
 
         _highlightingState.word = text.substr(s, pos - s);
         _highlightingState.charsRemaining = _highlightingState.word.charLength();
@@ -669,8 +658,7 @@ void XmlSyntaxHighlighter::highlightChar(const String& text, int pos)
 
 // Document
 
-Document::Document(Editor* editor) :
-    _editor(editor)
+Document::Document(Editor* editor) : _editor(editor)
 {
     clear();
     setDimensions(1, 1, 1, 1);
@@ -868,8 +856,7 @@ bool Document::moveToLine(int line)
     ASSERT(line > 0);
 
     int prev = _position;
-    lineColumnToPosition(_position, _line, _column,
-        line, _preferredColumn, _position, _line, _column);
+    lineColumnToPosition(_position, _line, _column, line, _preferredColumn, _position, _line, _column);
 
     if (_position != prev)
     {
@@ -887,8 +874,7 @@ bool Document::moveToLineColumn(int line, int column)
     ASSERT(line > 0 && column > 0);
 
     int prev = _position;
-    lineColumnToPosition(_position, _line, _column,
-        line, column, _position, _line, _column);
+    lineColumnToPosition(_position, _line, _column, line, column, _position, _line, _column);
 
     _preferredColumn = _column;
 
@@ -1136,7 +1122,7 @@ String Document::copyDeleteText(bool copy)
             if (_selection < 0)
             {
                 _text.erase(start, end - start);
-                lineColumnToPosition(start, _line, 1, _line, _preferredColumn,  _position, _line, _column);
+                lineColumnToPosition(start, _line, 1, _line, _preferredColumn, _position, _line, _column);
             }
             else
             {
@@ -1165,7 +1151,7 @@ void Document::pasteText(const String& text)
     {
         int start = findLineStart(_position);
         _text.insert(start, text);
-        lineColumnToPosition(start, _line, 1, _line, _preferredColumn,  _position, _line, _column);
+        lineColumnToPosition(start, _line, 1, _line, _preferredColumn, _position, _line, _column);
     }
     else
     {
@@ -1257,8 +1243,8 @@ bool Document::find(const String& searchStr, bool caseSesitive, bool next)
 
     int p = findPosition(_position, searchStr, caseSesitive, next);
 
-	if (p != INVALID_POSITION && p != _position)
-	{
+    if (p != INVALID_POSITION && p != _position)
+    {
         setPositionLineColumn(p);
 
         if (!_selectionMode)
@@ -1276,8 +1262,8 @@ bool Document::replace(const String& searchStr, const String& replaceStr, bool c
 
     int p = findPosition(_position, searchStr, caseSesitive, false);
 
-	if (p == _position)
-	{
+    if (p == _position)
+    {
         _text.replace(p, replaceStr, searchStr.length());
         p += replaceStr.length();
 
@@ -1318,11 +1304,11 @@ void Document::open(const String& filename)
     clear();
     _filename = filename;
 
-	File file;
-	bool executable = false;
+    File file;
+    bool executable = false;
 
-	if (file.open(filename))
-	{
+    if (file.open(filename))
+    {
         ByteBuffer bytes = file.read();
         _text.assign(Unicode::bytesToString(bytes, _encoding, _bom, _crLf));
         executable = file.isExecutable();
@@ -1338,8 +1324,8 @@ void Document::save()
 
     trimTrailingWhitespace();
 
-	File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
-	file.write(Unicode::stringToBytes(_text, _encoding, _bom, _crLf));
+    File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
+    file.write(Unicode::stringToBytes(_text, _encoding, _bom, _crLf));
 
     lineColumnToPosition(0, 1, 1, _line, _column, _position, _line, _column);
 
@@ -1415,23 +1401,31 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     int p = _topPosition;
     int len = _left + _width - 1;
 
-    const ForegroundColor brightBackgroundColors[] = { defaultForeground(),
-        FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, defaultForeground(),
-        FOREGROUND_COLOR_BLUE, FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_BRIGHT_BLACK,
-        FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_MAGENTA,
-        FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_MAGENTA, FOREGROUND_COLOR_BLUE,
-        FOREGROUND_COLOR_CYAN, defaultForeground(), FOREGROUND_COLOR_YELLOW };
+    const ForegroundColor brightBackgroundColors[] = {
+        defaultForeground(),      FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED,          defaultForeground(),
+        FOREGROUND_COLOR_BLUE,    FOREGROUND_COLOR_CYAN,   FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_BRIGHT_BLACK,
+        FOREGROUND_COLOR_MAGENTA, FOREGROUND_COLOR_CYAN,   FOREGROUND_COLOR_MAGENTA,      FOREGROUND_COLOR_BLUE,
+        FOREGROUND_COLOR_CYAN,    defaultForeground(),     FOREGROUND_COLOR_YELLOW
+    };
 
     const ForegroundColor darkBackgroundColors[] = { defaultForeground(),
-        FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, defaultForeground(),
-        FOREGROUND_COLOR_BRIGHT_GREEN, FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_WHITE,
-        FOREGROUND_COLOR_WHITE, FOREGROUND_COLOR_BRIGHT_MAGENTA,
-        FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_BRIGHT_MAGENTA, FOREGROUND_COLOR_BRIGHT_GREEN,
-        FOREGROUND_COLOR_BRIGHT_CYAN, defaultForeground(), FOREGROUND_COLOR_BRIGHT_YELLOW };
+                                                     FOREGROUND_COLOR_BRIGHT_YELLOW,
+                                                     FOREGROUND_COLOR_BRIGHT_RED,
+                                                     defaultForeground(),
+                                                     FOREGROUND_COLOR_BRIGHT_GREEN,
+                                                     FOREGROUND_COLOR_BRIGHT_CYAN,
+                                                     FOREGROUND_COLOR_WHITE,
+                                                     FOREGROUND_COLOR_WHITE,
+                                                     FOREGROUND_COLOR_BRIGHT_MAGENTA,
+                                                     FOREGROUND_COLOR_BRIGHT_CYAN,
+                                                     FOREGROUND_COLOR_BRIGHT_MAGENTA,
+                                                     FOREGROUND_COLOR_BRIGHT_GREEN,
+                                                     FOREGROUND_COLOR_BRIGHT_CYAN,
+                                                     defaultForeground(),
+                                                     FOREGROUND_COLOR_BRIGHT_YELLOW };
 
     SyntaxHighlighter* syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
-    const ForegroundColor* colors = _editor-> brightBackground() ?
-        brightBackgroundColors : darkBackgroundColors;
+    const ForegroundColor* colors = _editor->brightBackground() ? brightBackgroundColors : darkBackgroundColors;
 
     if (syntaxHighlighter)
     {
@@ -1491,8 +1485,8 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
 
 #ifdef PLATFORM_WINDOWS
                 if (syntaxHighlighter)
-                    screen[q].color = defaultBackground() |
-                        colors[syntaxHighlighter->highlightingState().highlightingType];
+                    screen[q].color =
+                        defaultBackground() | colors[syntaxHighlighter->highlightingState().highlightingType];
                 else
                     screen[q].color = defaultBackground() | defaultForeground();
 #else
@@ -1532,8 +1526,7 @@ void Document::setPositionLineColumn(int pos)
     _preferredColumn = _column;
 }
 
-void Document::positionToLineColumn(int startPos, int startLine, int startColumn,
-        int newPos, int& line, int& column)
+void Document::positionToLineColumn(int startPos, int startLine, int startColumn, int newPos, int& line, int& column)
 {
     ASSERT(startPos >= 0 && startPos <= _text.length());
     ASSERT(startLine > 0 && startColumn > 0);
@@ -1576,8 +1569,8 @@ void Document::positionToLineColumn(int startPos, int startLine, int startColumn
     }
 }
 
-void Document::lineColumnToPosition(int startPos, int startLine, int startColumn,
-        int newLine, int newColumn, int& pos, int& line, int& column)
+void Document::lineColumnToPosition(int startPos, int startLine, int startColumn, int newLine, int newColumn, int& pos,
+                                    int& line, int& column)
 {
     ASSERT(startPos >= 0 && startPos <= _text.length());
     ASSERT(startLine > 0 && startColumn > 0);
@@ -1734,8 +1727,7 @@ int Document::findWordBack(int pos) const
 
                 prevCh = ch;
                 prevPos = p;
-            }
-            while (p > 0);
+            } while (p > 0);
         }
     }
 
@@ -1791,8 +1783,7 @@ int Document::findCharsBack(int pos) const
 
                 prevCh = ch;
                 prevPos = p;
-            }
-            while (p > 0);
+            } while (p > 0);
         }
     }
 
@@ -1819,7 +1810,7 @@ int Document::findPosition(int pos, const String& searchStr, bool caseSesitive, 
     return p;
 }
 
-void Document::changeLines(int(Document::* lineOp)(int))
+void Document::changeLines(int (Document::*lineOp)(int))
 {
     ASSERT(lineOp);
 
@@ -1858,8 +1849,7 @@ void Document::changeLines(int(Document::* lineOp)(int))
             p = (this->*lineOp)(p);
             p = findPreviousLine(p);
             ++n;
-        }
-        while (p != INVALID_POSITION && p >= start);
+        } while (p != INVALID_POSITION && p >= start);
 
         end = start;
         while (--n > 0)
@@ -2030,17 +2020,17 @@ void Document::trimTrailingWhitespace()
 
 void Document::determineDocumentType(bool fileExecutable)
 {
-    if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) ||
-            _filename.endsWith(STR(".cpp")) || _filename.endsWith(STR(".hpp")))
+    if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) || _filename.endsWith(STR(".cpp")) ||
+        _filename.endsWith(STR(".hpp")))
         _documentType = DOCUMENT_TYPE_CPP;
-    else if (_filename.endsWith(STR(".sh")) ||_filename.endsWith(STR(".ksh")))
+    else if (_filename.endsWith(STR(".sh")) || _filename.endsWith(STR(".ksh")))
         _documentType = DOCUMENT_TYPE_SHELL;
     else if (_filename.endsWith(STR(".bat")) || _filename.endsWith(STR(".cmd")))
         _documentType = DOCUMENT_TYPE_BATCH;
     else if (_filename.endsWith(STR(".ps1")))
         _documentType = DOCUMENT_TYPE_POWERSHELL;
-    else if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")) ||
-            _filename.endsWith(STR(".htm")) || _filename.endsWith(STR(".html")) || _text.startsWith(STR("<?xml")))
+    else if (_filename.endsWith(STR(".xml")) || _filename.endsWith(STR(".xsd")) || _filename.endsWith(STR(".htm")) ||
+             _filename.endsWith(STR(".html")) || _text.startsWith(STR("<?xml")))
         _documentType = DOCUMENT_TYPE_XML;
     else if (_filename.endsWith(STR(".py")))
         _documentType = DOCUMENT_TYPE_PYTHON;
@@ -2056,13 +2046,8 @@ void Document::determineDocumentType(bool fileExecutable)
 // Editor
 
 Editor::Editor() :
-    _commandLine(Document(this), NULL, NULL),
-    _document(NULL),
-    _lastDocument(NULL),
-    _recordingMacro(false),
-    _caseSesitive(true),
-    _recentLocation(NULL),
-    _currentSuggestion(INVALID_POSITION)
+    _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL), _recordingMacro(false),
+    _caseSesitive(true), _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
 {
 #ifdef EDITOR_GUI_MODE
     _width = 100;
@@ -2179,7 +2164,8 @@ void Editor::run()
     setDimensions();
     updateScreen(true);
 
-    while (processInput());
+    while (processInput())
+        ;
 }
 
 void Editor::setDimensions()
@@ -2232,7 +2218,8 @@ void Editor::updateScreen(bool redrawAll)
     ASSERT(rc);
 
     COORD size;
-    size.X = _width; size.Y = _height;
+    size.X = _width;
+    size.Y = _height;
 
     if (!redrawAll)
     {
@@ -2268,11 +2255,12 @@ void Editor::updateScreen(bool redrawAll)
 
 #else
         SMALL_RECT rect;
-        rect.Top = csbi.srWindow.Top; rect.Left = csbi.srWindow.Left;
-        rect.Bottom = rect.Top + _height - 1; rect.Right = rect.Left + _width - 1;
+        rect.Top = csbi.srWindow.Top;
+        rect.Left = csbi.srWindow.Left;
+        rect.Bottom = rect.Top + _height - 1;
+        rect.Right = rect.Left + _width - 1;
 
-        rc = WriteConsoleOutput(handle,
-            reinterpret_cast<CHAR_INFO*>(_screen.values()), size, { 0, 0 }, &rect);
+        rc = WriteConsoleOutput(handle, reinterpret_cast<CHAR_INFO*>(_screen.values()), size, { 0, 0 }, &rect);
         ASSERT(rc);
 #endif
 
@@ -2328,15 +2316,15 @@ void Editor::updateScreen(bool redrawAll)
 
 #else
                 COORD pos;
-                pos.X = start - jw; pos.Y = j;
+                pos.X = start - jw;
+                pos.Y = j;
 
                 SMALL_RECT rect;
                 rect.Top = rect.Bottom = csbi.srWindow.Top + pos.Y;
                 rect.Left = csbi.srWindow.Left + pos.X;
                 rect.Right = rect.Left + end - jw;
 
-                rc = WriteConsoleOutput(handle,
-                    reinterpret_cast<CHAR_INFO*>(_screen.values()), size, pos, &rect);
+                rc = WriteConsoleOutput(handle, reinterpret_cast<CHAR_INFO*>(_screen.values()), size, pos, &rect);
                 ASSERT(rc);
 #endif
 
@@ -2405,7 +2393,9 @@ void Editor::updateStatusLine()
             for (int i = 0, q = 0; i < _width - 3; ++i, q = _message.charForward(q))
                 _screen[p++].ch = _message.charAt(q);
 
-            _screen[p++].ch = '.'; _screen[p++].ch = '.'; _screen[p++].ch = '.';
+            _screen[p++].ch = '.';
+            _screen[p++].ch = '.';
+            _screen[p++].ch = '.';
         }
 
         _message.clear();
@@ -2421,8 +2411,7 @@ void Editor::updateStatusLine()
         if (_recordingMacro)
             _status += STR("  REC");
 
-        int percent = doc.text().length() == 0 ?
-            100 : doc.position() * 100 / doc.text().length();
+        int percent = doc.text().length() == 0 ? 100 : doc.position() * 100 / doc.text().length();
 
         _status += doc.encoding() == TEXT_ENCODING_UTF8 ? STR("  UTF-8") : STR("  UTF-16");
         _status += doc.crlf() ? STR("  CRLF") : STR("  LF");
@@ -2441,10 +2430,12 @@ void Editor::updateStatusLine()
         }
         else
         {
-            _screen[p++].ch = '.'; _screen[p++].ch = '.'; _screen[p++].ch = '.';
+            _screen[p++].ch = '.';
+            _screen[p++].ch = '.';
+            _screen[p++].ch = '.';
 
-            for (int i = _status.charBack(_status.length(), _width - 3);
-                    i < _status.length(); i = _status.charForward(i))
+            for (int i = _status.charBack(_status.length(), _width - 3); i < _status.length();
+                 i = _status.charForward(i))
                 _screen[p++].ch = _status.charAt(i);
         }
     }
@@ -2889,9 +2880,7 @@ bool Editor::processInput()
                 if (mouseEvent.buttonDown)
                 {
                     if (mouseEvent.button == MOUSE_BUTTON_PRIMARY)
-                        update = doc.moveToLineColumn(
-                            doc.top() + mouseEvent.y - 1,
-                            doc.left() +  mouseEvent.x - 1);
+                        update = doc.moveToLineColumn(doc.top() + mouseEvent.y - 1, doc.left() + mouseEvent.x - 1);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_UP)
                         update = doc.moveLines(-20);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_DOWN)
@@ -3170,8 +3159,7 @@ void Editor::updateRecentLocations()
 
     for (node = _recentLocations.first(); node; node = node->next)
     {
-        if (node->value.document == _document &&
-                abs(node->value.line - _document->value.line()) <= 5)
+        if (node->value.document == _document && abs(node->value.line - _document->value.line()) <= 5)
         {
             node->value.line = _document->value.line();
             break;
@@ -3184,8 +3172,7 @@ void Editor::updateRecentLocations()
         _recentLocations.remove(node);
     }
     else
-        _recentLocations.addLast(
-            RecentLocation(_document, _document->value.line()));
+        _recentLocations.addLast(RecentLocation(_document, _document->value.line()));
 
     if (_recentLocations.size() > 10)
         _recentLocations.removeFirst();
@@ -3193,19 +3180,17 @@ void Editor::updateRecentLocations()
 
 bool Editor::moveToNextRecentLocation()
 {
-    _recentLocation = _recentLocation && _recentLocation->next ?
-        _recentLocation->next : _recentLocations.first();
+    _recentLocation = _recentLocation && _recentLocation->next ? _recentLocation->next : _recentLocations.first();
 
     if (_recentLocation)
     {
         if (_recentLocation->value.document == _document &&
             abs(_recentLocation->value.line - _document->value.line()) <= 5)
         {
-            _recentLocation = _recentLocation->next ?
-                _recentLocation->next : _recentLocations.first();
+            _recentLocation = _recentLocation->next ? _recentLocation->next : _recentLocations.first();
 
             if (_recentLocation->value.document == _document &&
-                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
+                abs(_recentLocation->value.line - _document->value.line()) <= 5)
                 return false;
         }
 
@@ -3220,19 +3205,17 @@ bool Editor::moveToNextRecentLocation()
 
 bool Editor::moveToPrevRecentLocation()
 {
-    _recentLocation = _recentLocation && _recentLocation->prev ?
-        _recentLocation->prev : _recentLocations.last();
+    _recentLocation = _recentLocation && _recentLocation->prev ? _recentLocation->prev : _recentLocations.last();
 
     if (_recentLocation)
     {
         if (_recentLocation->value.document == _document &&
             abs(_recentLocation->value.line - _document->value.line()) <= 5)
         {
-            _recentLocation = _recentLocation->prev ?
-                _recentLocation->prev : _recentLocations.last();
+            _recentLocation = _recentLocation->prev ? _recentLocation->prev : _recentLocations.last();
 
             if (_recentLocation->value.document == _document &&
-                    abs(_recentLocation->value.line - _document->value.line()) <= 5)
+                abs(_recentLocation->value.line - _document->value.line()) <= 5)
                 return false;
         }
 
@@ -3384,8 +3367,8 @@ void Editor::pasteFromClipboard(String& text)
 
         TextEncoding encoding;
         bool bom, crLf;
-        text = Unicode::bytesToString(wcslen(reinterpret_cast<wchar_t*>(ptr)) * 2,
-            reinterpret_cast<byte_t*>(ptr), encoding, bom, crLf);
+        text = Unicode::bytesToString(wcslen(reinterpret_cast<wchar_t*>(ptr)) * 2, reinterpret_cast<byte_t*>(ptr),
+                                      encoding, bom, crLf);
 
         GlobalUnlock(hText);
 

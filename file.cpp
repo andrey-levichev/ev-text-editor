@@ -2,13 +2,11 @@
 
 // File
 
-File::File() :
-    _handle(INVALID_HANDLE_VALUE)
+File::File() : _handle(INVALID_HANDLE_VALUE)
 {
 }
 
-File::File(const String& filename, int openMode) :
-    _handle(INVALID_HANDLE_VALUE)
+File::File(const String& filename, int openMode) : _handle(INVALID_HANDLE_VALUE)
 {
     if (!open(filename, openMode))
         throw Exception(STR("failed to open file"));
@@ -82,8 +80,8 @@ bool File::open(const String& filename, int openMode)
     if ((openMode & FILE_MODE_TRUNCATE) != 0)
         disposition = CREATE_ALWAYS;
 
-    _handle = CreateFile(reinterpret_cast<LPCTSTR>(filename.chars()),
-        access, 0, NULL, disposition, FILE_ATTRIBUTE_NORMAL, NULL);
+    _handle = CreateFile(reinterpret_cast<LPCTSTR>(filename.chars()), access, 0, NULL, disposition,
+                         FILE_ATTRIBUTE_NORMAL, NULL);
 #else
     int mode = 0;
 
@@ -138,17 +136,17 @@ int64_t File::setPosition(int64_t offset, FilePosition position)
     DWORD pos;
     switch (position)
     {
-        case FILE_POSITION_START:
-            pos = FILE_BEGIN;
-            break;
-        case FILE_POSITION_CURRENT:
-            pos = FILE_CURRENT;
-            break;
-        case FILE_POSITION_END:
-            pos = FILE_END;
-            break;
-        default:
-            throw Exception(STR("invalid position"));
+    case FILE_POSITION_START:
+        pos = FILE_BEGIN;
+        break;
+    case FILE_POSITION_CURRENT:
+        pos = FILE_CURRENT;
+        break;
+    case FILE_POSITION_END:
+        pos = FILE_END;
+        break;
+    default:
+        throw Exception(STR("invalid position"));
     }
 
     BOOL rc = SetFilePointerEx(_handle, off, &newOff, pos);
@@ -159,17 +157,17 @@ int64_t File::setPosition(int64_t offset, FilePosition position)
     int pos;
     switch (position)
     {
-        case FILE_POSITION_START:
-            pos = SEEK_SET;
-            break;
-        case FILE_POSITION_CURRENT:
-            pos = SEEK_CUR;
-            break;
-        case FILE_POSITION_END:
-            pos = SEEK_END;
-            break;
-        default:
-            throw Exception(STR("invalid position"));
+    case FILE_POSITION_START:
+        pos = SEEK_SET;
+        break;
+    case FILE_POSITION_CURRENT:
+        pos = SEEK_CUR;
+        break;
+    case FILE_POSITION_END:
+        pos = SEEK_END;
+        break;
+    default:
+        throw Exception(STR("invalid position"));
     }
 
     int newOff = lseek(_handle, offset, pos);
@@ -185,7 +183,7 @@ ByteBuffer File::read(int size)
         throw Exception(STR("file not open"));
 
 #ifdef PLATFORM_WINDOWS
-    DWORD bytesSize = size < 0 ? this->size() : size,  bytesRead;
+    DWORD bytesSize = size < 0 ? this->size() : size, bytesRead;
 #else
     ssize_t bytesSize = size < 0 ? this->size() : size, bytesRead;
 #endif
@@ -262,8 +260,7 @@ void File::write(int size, const void* data)
 bool File::exists(const String& filename)
 {
 #ifdef PLATFORM_WINDOWS
-    return GetFileAttributes(reinterpret_cast<LPCTSTR>(
-        filename.chars())) != INVALID_FILE_ATTRIBUTES;
+    return GetFileAttributes(reinterpret_cast<LPCTSTR>(filename.chars())) != INVALID_FILE_ATTRIBUTES;
 #else
     return access(filename.chars(), F_OK) == 0;
 #endif

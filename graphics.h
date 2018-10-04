@@ -59,8 +59,7 @@ template<typename _Interface>
 class __ComPtr
 {
 public:
-    __ComPtr(const __ComPtr<_Interface>& other) :
-        _ptr(other._ptr)
+    __ComPtr(const __ComPtr<_Interface>& other) : _ptr(other._ptr)
     {
         _ptr->AddRef();
     }
@@ -93,8 +92,7 @@ public:
     }
 
 protected:
-    __ComPtr() :
-        _ptr(NULL)
+    __ComPtr() : _ptr(NULL)
     {
     }
 
@@ -139,11 +137,8 @@ public:
 class __TextFormat : public __ComPtr<IDWriteTextFormat>
 {
 public:
-    __TextFormat(__TextFactory& factory, const String& fontName,
-               DWRITE_FONT_WEIGHT fontWeight,
-               DWRITE_FONT_STYLE fontStyle,
-               DWRITE_FONT_STRETCH fontStretch,
-               float fontSize, const String& locale);
+    __TextFormat(__TextFactory& factory, const String& fontName, DWRITE_FONT_WEIGHT fontWeight,
+                 DWRITE_FONT_STYLE fontStyle, DWRITE_FONT_STRETCH fontStretch, float fontSize, const String& locale);
 };
 
 // __TextLayout
@@ -151,8 +146,8 @@ public:
 class __TextLayout : public __ComPtr<IDWriteTextLayout>
 {
 public:
-    __TextLayout(__TextFactory& factory, const String& text,
-               __TextFormat& textFormat, float width, float height, bool legacyFontMeasuring);
+    __TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width, float height,
+                 bool legacyFontMeasuring);
 };
 
 // __EllipsisTrimmingSign
@@ -200,8 +195,7 @@ public:
 class __Bitmap : public __ComPtr<ID2D1Bitmap>
 {
 public:
-    __Bitmap(__RenderTarget& renderTarget,
-           __ImagingFactory& imagingFactory, const String& fileName);
+    __Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName);
 };
 
 // TextBlock
@@ -209,11 +203,10 @@ public:
 class TextBlock
 {
 public:
-    TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold,
-              const String& text, const Size& size) :
-        _textFormat(textFactory, font.chars(),
-            bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
-            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us")),
+    TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
+              const Size& size) :
+        _textFormat(textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
+                    DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us")),
         _textLayout(textFactory, text, _textFormat, size.width, size.height, true)
     {
     }
@@ -232,8 +225,7 @@ private:
 class Image
 {
 public:
-    Image(__RenderTarget& renderTarget,
-            __ImagingFactory& imagingFactory, const String& fileName) :
+    Image(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName) :
         _bitmap(renderTarget, imagingFactory, fileName)
     {
     }
@@ -259,21 +251,20 @@ public:
     void drawVerticalLine(float x, float y1, float y2, Color color, float width = 1);
 
     void drawRectangle(const Rect& rect, Color color, float borderWidth = 1);
-    void drawRoundedRectangle(const Rect& rect, Color color,
-                              float cornerRadius, float borderWidth = 1);
+    void drawRoundedRectangle(const Rect& rect, Color color, float cornerRadius, float borderWidth = 1);
 
     void fillRectangle(const Rect& rect, Color color);
     void fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius);
 
-    void drawText(const String& font, float fontSize, const String& text, const Rect& rect,
-        Color color = 0x000000, TextAlignment textAlignment = TEXT_ALIGNMENT_LEFT,
-        ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP,
-        bool bold = false, bool wrapLines = false);
+    void drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color = 0x000000,
+                  TextAlignment textAlignment = TEXT_ALIGNMENT_LEFT,
+                  ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP, bool bold = false,
+                  bool wrapLines = false);
 
     void drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color);
 
-    Unique<TextBlock> createTextBlock(const String& font, float fontSize,
-                                         bool bold, const String& text, const Size& size)
+    Unique<TextBlock> createTextBlock(const String& font, float fontSize, bool bold, const String& text,
+                                      const Size& size)
     {
         return createUnique<TextBlock>(_textFactory, font, fontSize, bold, text, size);
     }
