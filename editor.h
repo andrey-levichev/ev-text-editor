@@ -4,6 +4,7 @@
 #include <foundation.h>
 #include <file.h>
 #include <console.h>
+#include <window.h>
 
 // ScreenCell
 
@@ -393,11 +394,11 @@ struct AutocompleteSuggestion
 
 // Editor
 
-class Editor
+class Editor : public Window
 {
 public:
     Editor();
-    ~Editor();
+    virtual ~Editor();
 
     bool brightBackground() const
     {
@@ -417,7 +418,8 @@ public:
     void saveAllDocuments();
     void closeDocument();
 
-    void run();
+    virtual void onCreate();
+    virtual void onInput(const Array<InputEvent>& inputEvents);
 
 protected:
     void setDimensions();
@@ -447,7 +449,6 @@ protected:
     ListNode<Document>* _document;
     ListNode<Document>* _lastDocument;
 
-    Array<InputEvent> _inputEvents;
     bool _recordingMacro;
     Array<InputEvent> _macro;
 

@@ -44,10 +44,7 @@ public:
 private:
     const String _commandLine;
     Window _window;
-
-#ifndef EDITOR_GUI_MODE
     Array<InputEvent> _inputEvents;
-#endif
 };
 
 #endif

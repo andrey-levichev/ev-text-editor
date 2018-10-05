@@ -6,10 +6,10 @@ const char_t* Application::APPLICATION_NAME = STR("ev");
 
 void Application::run()
 {
-#ifdef EDITOR_GUI_MODE
     _window.create(APPLICATION_NAME);
     _window.show();
 
+#ifdef EDITOR_GUI_MODE
     MSG msg;
 
     while (GetMessage(&msg, NULL, 0, 0))
@@ -18,27 +18,10 @@ void Application::run()
         DispatchMessage(&msg);
     }
 #else
-    _inputEvents = Console::readInput();
-
-    for (int i = 0; i < _inputEvents.size(); ++i)
+    while (_window.handle())
     {
-        InputEvent event = _inputEvents[i];
-
-        if (event.eventType == INPUT_EVENT_TYPE_KEY)
-        {
-            KeyEvent keyEvent = event.event.keyEvent;
-
-        }
-        else if (event.eventType == INPUT_EVENT_TYPE_MOUSE)
-        {
-            MouseEvent mouseEvent = event.event.mouseEvent;
-
-        }
-        else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
-        {
-            WindowEvent windowEvent = event.event.windowEvent;
-        }
-
+        _inputEvents = Console::readInput();
+        _window.onInput(_inputEvents);
     }
 #endif
 }

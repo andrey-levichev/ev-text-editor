@@ -1,9 +1,10 @@
 #include <window.h>
 #include <file.h>
+#include <application.h>
 
 // Window
 
-Window::Window() : _handle(NULL)
+Window::Window() : _handle(0)
 {
 #ifdef EDITOR_GUI_MODE
     WNDCLASSEX wc;
@@ -30,81 +31,56 @@ Window::~Window()
 #ifdef EDITOR_GUI_MODE
     if (_handle)
         DestroyWindow(reinterpret_cast<HWND>(_handle));
+#else
+    _handle = 0;
+    onDestroy();
 #endif
 }
 
 void Window::create(const char_t* title, int width, int height)
 {
-#ifdef EDITOR_GUI_MODE
     if (_handle)
         throw Exception(STR("window already created"));
 
+#ifdef EDITOR_GUI_MODE
     if (!CreateWindow(L"EvEditorWindow", reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
                       CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
                       NULL, NULL, GetModuleHandle(NULL), this))
     {
         throw Exception(STR("failed to create window"));
     }
+#else
+    _handle = 1;
+    onCreate();
 #endif
 }
 
 void Window::show()
 {
-#ifdef EDITOR_GUI_MODE
     if (_handle)
     {
+#ifdef EDITOR_GUI_MODE
         ShowWindow(reinterpret_cast<HWND>(_handle), SW_SHOWDEFAULT);
         UpdateWindow(reinterpret_cast<HWND>(_handle));
+#endif
     }
     else
         throw Exception(STR("window not created"));
-#endif
 }
 
-void Window::onCreate()
+void Window::destroy()
 {
-    File file(STR("t.cpp"));
-    ByteBuffer bytes = file.read();
-
-    TextEncoding encoding;
-    bool bom, crLf;
-    _text = Unicode::bytesToString(bytes, encoding, bom, crLf);
-
+    if (_handle)
+    {
 #ifdef EDITOR_GUI_MODE
-    _graphics.create(reinterpret_cast<HWND>(_handle));
+        DestroyWindow(reinterpret_cast<HWND>(_handle));
 #else
-    Console::clear();
+        _handle = 0;
+        onDestroy();
 #endif
-}
-
-void Window::onDestroy()
-{
-#ifdef EDITOR_GUI_MODE
-    PostQuitMessage(0);
-#endif
-}
-
-void Window::onPaint()
-{
-#ifdef EDITOR_GUI_MODE
-    _graphics->beginDraw();
-
-    Size size = _graphics->getSize();
-    Rect rect = { 0, 0, size.width, size.height };
-
-    _graphics->drawText(STR("Lucida Console"), 13, _text, rect);
-
-    _graphics->endDraw();
-#else
-    Console::write(1, 1, _text);
-#endif
-}
-
-void Window::onResize(int width, int height)
-{
-#ifdef EDITOR_GUI_MODE
-    _graphics->resize(width, height);
-#endif
+    }
+    else
+        throw Exception(STR("window not created"));
 }
 
 #ifdef EDITOR_GUI_MODE
@@ -139,27 +115,24 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
             break;
 
         case WM_DESTROY:
-            window->onDestroy();
-            window->_handle = NULL;
+            window->_handle = 0;
             _windows.remove(handle);
+            window->onDestroy();
+            PostQuitMessage(0);
             break;
 
         case WM_PAINT:
             window->onPaint();
             break;
-
-        case WM_SIZE:
-            window->onResize(LOWORD(lParam), HIWORD(lParam));
-            break;
         }
     }
     catch (Exception& ex)
     {
-        MessageBox(NULL, reinterpret_cast<LPCWSTR>(ex.message()), L"Error", MB_OK | MB_ICONERROR);
+        Application::showErrorMessage(ex.message());
     }
     catch (...)
     {
-        MessageBox(NULL, L"unknown error", L"Error", MB_OK | MB_ICONERROR);
+        Application::showErrorMessage(STR("unknown error"));
     }
 
     return DefWindowProc(handle, message, wParam, lParam);
