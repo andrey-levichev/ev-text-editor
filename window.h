@@ -13,7 +13,11 @@
 class Window
 {
 public:
-    Window();
+    Window() :
+        _handle(0)
+    {
+    }
+
     virtual ~Window();
 
     Window(const Window&) = delete;
@@ -24,7 +28,9 @@ public:
         return _handle;
     }
 
-    void create(const char_t* title, int width = 0, int height = 0);
+    void create(const char_t* className,
+        const char_t* title, int width = 0, int height = 0);
+
     void show();
     void destroy();
 
@@ -43,6 +49,8 @@ public:
     virtual void onInput(const Array<InputEvent>& inputEvents)
     {
     }
+
+    static void registerClass(const char_t* className);
 
 private:
     uintptr_t _handle;

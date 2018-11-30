@@ -30,8 +30,6 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* command
 
 #else
 
-#include <console.h>
-
 int MAIN(int argc, const char_t** argv)
 {
     try

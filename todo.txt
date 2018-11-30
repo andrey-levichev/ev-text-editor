@@ -48,6 +48,8 @@ use memory mapping and on demand/background loading
 group small insert/delete changes and apply together
 store text as a list of lines/blocks
 redraw as few characters as possible instead of enitre screen
+* move to prev/next paragraph
+* quick open for files in current directoy
 
 foundation:
 * log debug output and memory allocations

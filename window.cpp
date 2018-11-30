@@ -4,28 +4,6 @@
 
 // Window
 
-Window::Window() : _handle(0)
-{
-#ifdef EDITOR_GUI_MODE
-    WNDCLASSEX wc;
-
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = windowProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = GetModuleHandle(NULL);
-    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = NULL;
-    wc.lpszMenuName = NULL;
-    wc.lpszClassName = L"EvEditorWindow";
-    wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-
-    RegisterClassEx(&wc);
-#endif
-}
-
 Window::~Window()
 {
 #ifdef EDITOR_GUI_MODE
@@ -37,13 +15,13 @@ Window::~Window()
 #endif
 }
 
-void Window::create(const char_t* title, int width, int height)
+void Window::create(const char_t* className, const char_t* title, int width, int height)
 {
     if (_handle)
         throw Exception(STR("window already created"));
 
 #ifdef EDITOR_GUI_MODE
-    if (!CreateWindow(L"EvEditorWindow", reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
+    if (!CreateWindow(reinterpret_cast<LPCWSTR>(className), reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
                       CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
                       NULL, NULL, GetModuleHandle(NULL), this))
     {
@@ -81,6 +59,28 @@ void Window::destroy()
     }
     else
         throw Exception(STR("window not created"));
+}
+
+void Window::registerClass(const char_t* className)
+{
+#ifdef EDITOR_GUI_MODE
+    WNDCLASSEX wc;
+
+    wc.cbSize = sizeof(WNDCLASSEX);
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = windowProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = 0;
+    wc.hInstance = GetModuleHandle(NULL);
+    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = NULL;
+    wc.lpszMenuName = NULL;
+    wc.lpszClassName = reinterpret_cast<LPCWSTR>(className);
+    wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+    RegisterClassEx(&wc);
+#endif
 }
 
 #ifdef EDITOR_GUI_MODE

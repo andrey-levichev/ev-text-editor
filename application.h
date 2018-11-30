@@ -3,6 +3,7 @@
 
 #include <foundation.h>
 #include <window.h>
+#include <editor.h>
 
 #ifndef EDITOR_GUI_MODE
 #include <console.h>
@@ -14,6 +15,7 @@ class Application
 {
 private:
     static const char_t* APPLICATION_NAME;
+    static const char_t* WINDOW_CLASS;
 
 public:
     Application(const String& commandLine) :
@@ -43,7 +45,7 @@ public:
 
 private:
     const String _commandLine;
-    Window _window;
+    Editor _window;
     Array<InputEvent> _inputEvents;
 };
 

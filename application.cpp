@@ -3,10 +3,13 @@
 // Application
 
 const char_t* Application::APPLICATION_NAME = STR("ev");
+const char_t* Application::WINDOW_CLASS = STR("evWindow");
 
 void Application::run()
 {
-    _window.create(APPLICATION_NAME);
+    Window::registerClass(WINDOW_CLASS);
+
+    _window.create(WINDOW_CLASS, APPLICATION_NAME);
     _window.show();
 
 #ifdef EDITOR_GUI_MODE
