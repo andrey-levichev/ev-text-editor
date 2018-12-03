@@ -7,10 +7,20 @@ const char_t* Application::WINDOW_CLASS = STR("evWindow");
 
 void Application::run()
 {
+    for (int i = 1; i < _argc; ++i)
+    {
+        if (strCompare(_argv[i], STR("--bright")) == 0)
+            _editor.brightBackground() = true;
+        else if (strCompare(_argv[i], STR("--dark")) == 0)
+            _editor.brightBackground() = false;
+        else
+            _editor.openDocument(_argv[i]);
+    }
+
     Window::registerClass(WINDOW_CLASS);
 
-    _window.create(WINDOW_CLASS, APPLICATION_NAME);
-    _window.show();
+    _editor.create(WINDOW_CLASS, APPLICATION_NAME);
+    _editor.show();
 
 #ifdef EDITOR_GUI_MODE
     MSG msg;
@@ -21,10 +31,10 @@ void Application::run()
         DispatchMessage(&msg);
     }
 #else
-    while (_window.handle())
+    while (_editor.handle())
     {
         _inputEvents = Console::readInput();
-        _window.onInput(_inputEvents);
+        _editor.onInput(_inputEvents);
     }
 #endif
 }

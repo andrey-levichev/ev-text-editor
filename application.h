@@ -18,22 +18,17 @@ private:
     static const char_t* WINDOW_CLASS;
 
 public:
-    Application(const String& commandLine) :
-        _commandLine(commandLine)
+    Application(int argc, const char_t** argv) :
+        _argc(argc), _argv(argv)
     {
     }
 
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
 
-    const String& commandLine() const
-    {
-        return _commandLine;
-    }
-
     Window& window()
     {
-        return _window;
+        return _editor;
     }
 
     void run();
@@ -44,8 +39,9 @@ public:
     static void showErrorMessage(const char_t* message);
 
 private:
-    const String _commandLine;
-    Editor _window;
+    int _argc;
+    const char_t** _argv;
+    Editor _editor;
     Array<InputEvent> _inputEvents;
 };
 
