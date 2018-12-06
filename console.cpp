@@ -42,8 +42,6 @@ void printArgs(const char_t* format, va_list args)
 
 #endif
 
-static const char* controlKeys = "@abcdefghijklmnopqrstuvwxyz[\\]^_";
-
 #ifdef PLATFORM_UNIX
 
 static volatile bool screenSizeChanged = false;
@@ -887,7 +885,7 @@ const Array<InputEvent>& Console::readInput()
                     if (inputRec.Event.KeyEvent.uChar.UnicodeChar == 0)
                         continue;
                     if (inputRec.Event.KeyEvent.uChar.UnicodeChar < 0x20)
-                        keyEvent.ch = controlKeys[inputRec.Event.KeyEvent.uChar.UnicodeChar];
+                        keyEvent.ch = CONTROL_KEYS[inputRec.Event.KeyEvent.uChar.UnicodeChar];
                     else
                         keyEvent.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
                     break;
@@ -1099,7 +1097,7 @@ const Array<InputEvent>& Console::readInput()
                 keyEvent.key = KEY_BACKSPACE;
             else if (ch < 0x20)
             {
-                keyEvent.ch = controlKeys[ch];
+                keyEvent.ch = CONTROL_KEYS[ch];
                 keyEvent.ctrl = true;
             }
             else

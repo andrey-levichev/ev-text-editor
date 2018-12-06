@@ -1,5 +1,9 @@
 #include <application.h>
 
+#ifndef EDITOR_GUI_MODE
+#include <console.h>
+#endif
+
 // Application
 
 const char_t* Application::APPLICATION_NAME = STR("ev");
@@ -10,17 +14,17 @@ void Application::run()
     for (int i = 1; i < _argc; ++i)
     {
         if (strCompare(_argv[i], STR("--bright")) == 0)
-            _editor.brightBackground() = true;
+            _window.brightBackground() = true;
         else if (strCompare(_argv[i], STR("--dark")) == 0)
-            _editor.brightBackground() = false;
+            _window.brightBackground() = false;
         else
-            _editor.openDocument(_argv[i]);
+            _window.openDocument(_argv[i]);
     }
 
     Window::registerClass(WINDOW_CLASS);
 
-    _editor.create(WINDOW_CLASS, APPLICATION_NAME);
-    _editor.show();
+    _window.create(WINDOW_CLASS, APPLICATION_NAME);
+    _window.show();
 
 #ifdef EDITOR_GUI_MODE
     MSG msg;
@@ -30,12 +34,12 @@ void Application::run()
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+
 #else
-    while (_editor.handle())
-    {
-        _inputEvents = Console::readInput();
-        _editor.onInput(_inputEvents);
-    }
+
+    while (_window.handle())
+        _window.processInput();
+
 #endif
 }
 

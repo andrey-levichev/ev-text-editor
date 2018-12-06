@@ -2,12 +2,7 @@
 #define APPLICATION_INCLUDED
 
 #include <foundation.h>
-#include <window.h>
 #include <editor.h>
-
-#ifndef EDITOR_GUI_MODE
-#include <console.h>
-#endif
 
 // Application
 
@@ -28,7 +23,7 @@ public:
 
     Window& window()
     {
-        return _editor;
+        return _window;
     }
 
     void run();
@@ -41,8 +36,7 @@ public:
 private:
     int _argc;
     const char_t** _argv;
-    Editor _editor;
-    Array<InputEvent> _inputEvents;
+    Editor _window;
 };
 
 #endif

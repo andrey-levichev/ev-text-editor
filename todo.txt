@@ -1,4 +1,4 @@
-release:
+to do:
 * many ctrl and alt combinations don't work on Linux
 figure out keycode to key combination mapping
 * clipboard integration on macos
@@ -7,6 +7,8 @@ figure out keycode to key combination mapping
 str gets highlighted as var after $var at the end of line
 --abc=123 command line option highlighted as var assignment
 * console in GUI mode?
+* multiple input events in gui mode
+* what value to return from window proc?
 
 editor:
 * delete to start/end of line

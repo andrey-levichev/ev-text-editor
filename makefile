@@ -1,16 +1,16 @@
 EDITOR_NAME=ev
 
-TEST_HEADERS=test.h foundation.h console.h file.h
-TEST_SOURCES=test.cpp foundation.cpp console.cpp file.cpp
+TEST_HEADERS=test.h foundation.h input.h file.h  console.h
+TEST_SOURCES=test.cpp foundation.cpp input.cpp file.cpp console.cpp
 
-COMMON_HEADERS=editor.h foundation.h file.h application.h
-COMMON_SOURCES=editor.cpp foundation.cpp file.cpp application.cpp main.cpp
+COMMON_HEADERS=foundation.h input.h file.h application.h window.h editor.h
+COMMON_SOURCES=foundation.cpp input.cpp file.cpp application.cpp window.cpp editor.cpp main.cpp
 
-EDITOR_HEADERS=$(COMMON_HEADERS) console.h window.h
-EDITOR_SOURCES=$(COMMON_SOURCES) console.cpp window.cpp
+EDITOR_HEADERS=$(COMMON_HEADERS) console.h
+EDITOR_SOURCES=$(COMMON_SOURCES) console.cpp
 
-EDITOR_GUI_HEADERS=$(COMMON_HEADERS) graphics.h window.h
-EDITOR_GUI_SOURCES=$(COMMON_SOURCES) graphics.cpp window.cpp
+EDITOR_GUI_HEADERS=$(COMMON_HEADERS) graphics.h
+EDITOR_GUI_SOURCES=$(COMMON_SOURCES) graphics.cpp
 
 TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o
 
@@ -37,13 +37,13 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: editor.dbg.vcpp.exe
+all: editor.gui.dbg.vcpp.exe
 
 editor.dbg.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS)
+	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS) /subsystem:console
 
 editor.gui.dbg.vcpp.exe: $(EDITOR_GUI_HEADERS) $(EDITOR_GUI_SOURCES)
-	cl /DEDITOR_GUI_MODE $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_GUI_SOURCES) $(VCPP_LINKER_OPTIONS)
+	cl /DEDITOR_GUI_MODE $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_GUI_SOURCES) $(VCPP_LINKER_OPTIONS) /subsystem:windows
 
 editor.dbg.gcc: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(EDITOR_SOURCES)

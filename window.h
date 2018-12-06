@@ -2,11 +2,7 @@
 #define WINDOW_INCLUDED
 
 #include <foundation.h>
-#include <console.h>
-
-#ifdef EDITOR_GUI_MODE
-#include <graphics.h>
-#endif
+#include <input.h>
 
 // Window
 
@@ -29,10 +25,11 @@ public:
     }
 
     void create(const char_t* className,
-        const char_t* title, int width = 0, int height = 0);
+                const char_t* title, int width = 0, int height = 0);
 
     void show();
     void destroy();
+    void processInput();
 
     virtual void onCreate()
     {
@@ -55,9 +52,11 @@ public:
 private:
     uintptr_t _handle;
 
+    static Array<InputEvent> _inputEvents;
+
 #ifdef EDITOR_GUI_MODE
-    static Map<HWND, Window*> _windows;
     static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+    static Map<HWND, Window*> _windows;
 #endif
 };
 

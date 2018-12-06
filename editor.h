@@ -426,7 +426,6 @@ protected:
     void updateScreen(bool redrawAll);
     void updateStatusLine();
 
-    bool processInput();
     void showCommandLine();
     void buildProject();
 

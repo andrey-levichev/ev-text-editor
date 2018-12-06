@@ -1,6 +1,6 @@
 #include <application.h>
 
-int main(int argc, const char_t** argv)
+int run(int argc, const char_t** argv)
 {
     try
     {
@@ -9,13 +9,13 @@ int main(int argc, const char_t** argv)
             if (strCompare(argv[i], STR("--version")) == 0)
             {
                 Application::showMessage(STR("ev text editor version 2.0\n"
-                                       "web: https://monsterdaddy.github.io/ev-text-editor\n"
-                                       "Copyright (C) monsterdaddy, 2018\n\n"
-                                       "usage: ev [OPTIONS] [FILE]...\n\n"
-                                       "OPTIONS:\n\n"
-                                       "--version - print version information and exit\n"
-                                       "--dark - assume dark screen background\n"
-                                       "--bright - assume bright screen background\n"));
+                                             "web: https://monsterdaddy.github.io/ev-text-editor\n"
+                                             "Copyright (C) monsterdaddy, 2018\n\n"
+                                             "usage: ev [OPTIONS] [FILE]...\n\n"
+                                             "OPTIONS:\n\n"
+                                             "--version - print version information and exit\n"
+                                             "--dark - assume dark screen background\n"
+                                             "--bright - assume bright screen background\n"));
 
                 return 0;
             }
@@ -45,7 +45,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* command
     CoInitialize(NULL);
     SetProcessDPIAware();
 
-    int rc = main(__argc, reinterpret_cast<const char_t**>(const_cast<const wchar_t**>(__wargv)));
+    int rc = run(__argc, reinterpret_cast<const char_t**>(const_cast<const wchar_t**>(__wargv)));
 
     CoUninitialize();
 
@@ -56,7 +56,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* command
 
 int MAIN(int argc, const char_t** argv)
 {
-    return main(argc, argv);
+    return run(argc, argv);
 }
 
 #endif
