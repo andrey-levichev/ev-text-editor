@@ -9,5 +9,6 @@
 *.sol
 *.xlc
 *.dSYM
+*.log
 t.*
 .DS_Store
