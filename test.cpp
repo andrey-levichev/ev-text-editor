@@ -6155,7 +6155,9 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        testFile();
+        File f(STR("test.log"), FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
+        f.write(Unicode::stringToBytes(STR("die traitor1"), TEXT_ENCODING_UTF8, false, false));
+        f.write(Unicode::stringToBytes(STR("die traitor2"), TEXT_ENCODING_UTF8, false, false));
     }
     catch (Exception& ex)
     {

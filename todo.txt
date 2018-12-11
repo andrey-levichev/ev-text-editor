@@ -9,8 +9,11 @@ str gets highlighted as var after $var at the end of line
 * console in GUI mode?
 * multiple input events in gui mode
 * what value to return from window proc?
+* minimal rebuild
+* execution tracing
 
 editor:
+* auto detect line endings
 * delete to start/end of line
 * autocomplete on enter
 * go to matching brace
@@ -38,6 +41,7 @@ comments in preprocessor directive
 cache highlighting info
 document type override
 * autocomplete improvements
+complete longest
 give nearby words higher priority
 scan all documents in current directory
 more efficient data structure
