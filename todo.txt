@@ -10,7 +10,6 @@ str gets highlighted as var after $var at the end of line
 * multiple input events in gui mode
 * what value to return from window proc?
 * minimal rebuild
-* execution tracing
 
 editor:
 * auto detect line endings

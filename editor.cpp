@@ -1346,11 +1346,7 @@ void Document::clear()
     _documentType = DOCUMENT_TYPE_TEXT;
     _encoding = TEXT_ENCODING_UTF8;
     _bom = false;
-#ifdef PLATFORM_WINDOWS
-    _crLf = true;
-#else
-    _crLf = false;
-#endif
+    _crLf = CRLF;
 
     _line = _column = 1;
     _preferredColumn = 1;

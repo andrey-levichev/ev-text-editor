@@ -1,4 +1,17 @@
 #include <foundation.h>
+#include <file.h>
+
+// debug logging
+
+void logDebugMessage(const char_t* message)
+{
+    static File _log;
+
+    if (!_log.isOpen())
+        _log.open(STR("debug.log"), FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
+
+    _log.write(strLen(message) * sizeof(char_t), reinterpret_cast<const byte_t*>(message));
+}
 
 // string support
 

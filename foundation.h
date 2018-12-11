@@ -174,6 +174,8 @@ typedef char32_t unichar_t;
 #define MAIN wmain
 #define STR(arg) u##arg
 #define PUTS _putws
+#define CRLF true
+#define NEWLINE STR("\r\n")
 
 typedef char16_t char_t;
 
@@ -181,13 +183,16 @@ typedef char16_t char_t;
 
 #define CHAR_ENCODING_UTF8
 #define MAIN main
-#define PUTS puts
 
 #ifdef COMPILER_XL_CPP
 #define STR(arg) arg
 #else
 #define STR(arg) u8##arg
 #endif
+
+#define PUTS puts
+#define CRLF false
+#define NEWLINE STR("\n")
 
 typedef char char_t;
 
@@ -298,6 +303,14 @@ typedef unsigned char byte_t;
 #define ASSERT_EXCEPTION_MSG(exception, msg, ...)
 
 #endif
+
+// debug logging
+
+void logDebugMessage(const char_t* message);
+
+#define LOG logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR_MACRO(__FUNCTION__) NEWLINE)
+#define LOG_MSG(msg) logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR(msg) NEWLINE)
+#define LOG_STMT(...) __VA_ARGS__; logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR(#__VA_ARGS__) NEWLINE)
 
 // Exception
 
