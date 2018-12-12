@@ -1,0 +1,2 @@
+exec cinnamon-session
+
