@@ -21,7 +21,7 @@ VCPP_DEBUG_OPTIONS=/RTCsu /MTd /Zi
 VCPP_RELEASE_OPTIONS=/MT /Ox
 VCPP_LINKER_OPTIONS=/link user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib
 
-GCC_OPTIONS=-Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -lrt -static-libstdc++
+GCC_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -lrt -static-libstdc++
 GCC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 GCC_RELEASE_OPTIONS=-O3
 
@@ -37,7 +37,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: editor.gui.dbg.vcpp.exe
+all: editor.dbg.clang
 
 editor.dbg.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS) /subsystem:console

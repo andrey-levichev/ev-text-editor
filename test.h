@@ -82,6 +82,10 @@ struct Base
 {
     int val;
 
+    virtual ~Base()
+    {
+    }
+
     virtual void f()
     {
         val = 123;
