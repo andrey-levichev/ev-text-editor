@@ -419,6 +419,7 @@ public:
     void closeDocument();
 
     virtual void onCreate();
+    virtual void onPaint();
     virtual void onInput(const Array<InputEvent>& inputEvents);
 
 protected:

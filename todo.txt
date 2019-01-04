@@ -12,6 +12,7 @@ str gets highlighted as var after $var at the end of line
 * minimal rebuild
 
 editor:
+* run command, run last command
 * auto detect line endings
 * delete to start/end of line
 * autocomplete on enter

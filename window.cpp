@@ -126,21 +126,25 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
             window->_handle = reinterpret_cast<uintptr_t>(handle);
             _windows.add(handle, window);
             window->onCreate();
-            break;
+            return 0;
 
         case WM_DESTROY:
             window->_handle = 0;
             _windows.remove(handle);
             window->onDestroy();
             PostQuitMessage(0);
-            break;
+            return 0;
 
         case WM_PAINT:
             window->onPaint();
-            break;
+            return 0;
+
+        case WM_ERASEBKGND:
+            return 1;
 
         case WM_KEYDOWN:
             {
+                LOG_MSG("WM_KEYDOWN");
                 _inputEvents.clear();
 
                 KeyEvent keyEvent = { KEY_NONE };
@@ -263,12 +267,16 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
 
                     _inputEvents.addLast(keyEvent);
                     window->onInput(_inputEvents);
+
+                    LOG_MSG("WM_KEYDOWN processed");
+                    return 0;
                 }
             }
             break;
 
         case WM_CHAR:
             {
+                LOG_MSG("WM_CHAR");
                 _inputEvents.clear();
 
                 KeyEvent keyEvent = { KEY_NONE };
@@ -287,6 +295,9 @@ LRESULT CALLBACK Window::windowProc(HWND handle, UINT message, WPARAM wParam, LP
 
                     _inputEvents.addLast(keyEvent);
                     window->onInput(_inputEvents);
+
+                    LOG_MSG("WM_CHAR processed");
+                    return 0;
                 }
             }
             break;

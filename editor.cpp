@@ -2161,6 +2161,10 @@ void Editor::onCreate()
     updateScreen(true);
 }
 
+void Editor::onPaint()
+{
+}
+
 void Editor::onInput(const Array<InputEvent>& inputEvents)
 {
     bool update = false, modified = false;
