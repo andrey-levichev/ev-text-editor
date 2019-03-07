@@ -12,7 +12,7 @@ str gets highlighted as var after $var at the end of line
 * minimal rebuild
 * indent/unindent seems buggy with text longer than one screen
 * stop at newline when deleting word back?
-* toggle selection, indent should work after paste
+* toggle selection doesn't work sometimes
 * preserve console output when exiting
 * lines get shifted after paste, paging and indent
 

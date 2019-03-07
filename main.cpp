@@ -9,8 +9,8 @@ int run(int argc, const char_t** argv)
             if (strCompare(argv[i], STR("--version")) == 0)
             {
                 Application::showMessage(STR("ev text editor version 2.0\n"
-                                             "web: https://monsterdaddy.github.io/ev-text-editor\n"
-                                             "Copyright (C) monsterdaddy, 2018\n\n"
+                                             "web: github.com/andrey-levichev/ev-text-editor\n"
+                                             "Copyright (C) Andrey Levichev, 2019\n\n"
                                              "usage: ev [OPTIONS] [FILE]...\n\n"
                                              "OPTIONS:\n\n"
                                              "--version - print version information and exit\n"
