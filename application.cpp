@@ -27,6 +27,7 @@ void Application::run()
     _window.show();
 
 #ifdef EDITOR_GUI_MODE
+
     MSG msg;
 
     while (GetMessage(&msg, NULL, 0, 0))

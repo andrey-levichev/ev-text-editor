@@ -1,20 +1,16 @@
 to do:
-* many ctrl and alt combinations don't work on Linux
-figure out keycode to key combination mapping
-* clipboard integration on macos
-* run release version in profiler, memory/thread checker
+* console in GUI mode?
 * shell script highlighting
 str gets highlighted as var after $var at the end of line
 --abc=123 command line option highlighted as var assignment
-* console in GUI mode?
-* multiple input events in gui mode
+* multiple input events in GUI mode
 * what value to return from window proc?
-* minimal rebuild
-* indent/unindent seems buggy with text longer than one screen
+* weird behavior with keyboard input in GUI mode
 * stop at newline when deleting word back?
 * toggle selection doesn't work sometimes
-* preserve console output when exiting
-* lines get shifted after paste, paging and indent
+* indent/unindent seems buggy with selection larger than one screen
+select large block from middle till end, unindent, cursor is beyod eof
+seems like screen redraw issue, alt+' doesn't help
 
 editor:
 * run command, run last command
@@ -61,6 +57,9 @@ store text as a list of lines/blocks
 redraw as few characters as possible instead of enitre screen
 * move to prev/next paragraph
 * quick open for files in current directoy
+* preserve console output when exiting
+* many ctrl and alt combinations don't work in Linux console
+* clipboard integration on macos
 
 foundation:
 * log debug output and memory allocations
@@ -93,3 +92,8 @@ file system access
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
+
+misc:
+* minimal rebuild
+* run release version in profiler, memory/thread checker
+
