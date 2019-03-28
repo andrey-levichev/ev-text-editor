@@ -6155,7 +6155,6 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        runTests();
     }
     catch (Exception& ex)
     {

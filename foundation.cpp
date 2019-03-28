@@ -13,6 +13,11 @@ void logDebugMessage(const char_t* message)
     _log.write(strLen(message) * sizeof(char_t), reinterpret_cast<const byte_t*>(message));
 }
 
+void logDebugMessage(const String& message)
+{
+    logDebugMessage(message.chars());
+}
+
 // string support
 
 char_t* strSet(char_t* str, unichar_t ch, int len)

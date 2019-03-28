@@ -62,7 +62,7 @@ redraw as few characters as possible instead of enitre screen
 * clipboard integration on macos
 
 foundation:
-* log debug output and memory allocations
+* log complex objects and memory allocations
 * international support
 locales (formatting, string compare/search/case conversion)
 encoding conversion
@@ -85,9 +85,7 @@ simple parsing a la scanf
 simple regular expressions
 type safe string formatting
 * convert any object to string
-* files
-memory mapped I/O
-file system access
+* memory mapped I/O, file system access
 * date and time
 * threads/atomics/async
 * function objects (function/bind)

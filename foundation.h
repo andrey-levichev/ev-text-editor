@@ -306,11 +306,22 @@ typedef unsigned char byte_t;
 
 // debug logging
 
+class String;
+
 void logDebugMessage(const char_t* message);
+void logDebugMessage(const String& message);
 
 #define LOG logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR_MACRO(__FUNCTION__) NEWLINE)
 #define LOG_MSG(msg) logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR(msg) NEWLINE)
 #define LOG_STMT(...) __VA_ARGS__; logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR(#__VA_ARGS__) NEWLINE)
+
+#define LOG_FMT(msg) \
+    do \
+    { \
+        logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ")); \
+        logDebugMessage(msg); \
+        logDebugMessage(NEWLINE); \
+    } while (false)
 
 // Exception
 
