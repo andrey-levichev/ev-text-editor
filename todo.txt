@@ -11,6 +11,7 @@ str gets highlighted as var after $var at the end of line
 * indent/unindent seems buggy with selection larger than one screen
 select large block from middle till end, unindent, cursor is beyod eof
 seems like screen redraw issue, alt+' doesn't help
+* don't trim whitespace by default
 
 editor:
 * run command, run last command
