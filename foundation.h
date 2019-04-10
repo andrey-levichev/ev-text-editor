@@ -217,31 +217,31 @@ typedef unsigned char byte_t;
 
 #ifdef ABORT_ON_ASSERT_FAILURE
 
-#define ASSERT_MSG(condition, message) \
+#define ASSERT_MSG(condition, msg) \
     do \
     { \
         if (!(condition)) \
         { \
             PUTS(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") \
-                     message); \
+                     msg); \
             abort(); \
         } \
     } while (false)
 
 #else
 
-#define ASSERT_MSG(condition, message) \
+#define ASSERT_MSG(condition, msg) \
     do \
     { \
         if (!(condition)) \
             throw Exception(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) \
-                                STR(": ") message); \
+                                STR(": ") msg); \
     } while (false)
 
 #endif
 
 #define ASSERT(...) ASSERT_MSG(__VA_ARGS__, STR(#__VA_ARGS__))
-#define ASSERT_FAIL(message) ASSERT_MSG(false, message)
+#define ASSERT_FAIL(msg) ASSERT_MSG(false, msg)
 
 #define ASSERT_EXCEPTION(exception, ...) \
     do \
@@ -283,7 +283,7 @@ typedef unsigned char byte_t;
         } \
         catch (exception & ex) \
         { \
-            ASSERT_MSG(strFind(ex.message(), msg), STR(#exception) STR(" doesn't contain expected message")); \
+            ASSERT_MSG(strFind(ex.message(), STR(msg)), STR(#exception) STR(" doesn't contain expected message")); \
             break; \
         } \
         catch (...) \
@@ -295,9 +295,9 @@ typedef unsigned char byte_t;
 
 #else
 
-#define ASSERT_MSG(condition, message)
+#define ASSERT_MSG(condition, msg)
 #define ASSERT(...)
-#define ASSERT_FAIL(message)
+#define ASSERT_FAIL(msg)
 #define ASSERT_EXCEPTION(exception, ...)
 #define ASSERT_NO_EXCEPTION(...)
 #define ASSERT_EXCEPTION_MSG(exception, msg, ...)
@@ -311,15 +311,15 @@ class String;
 void logDebugMessage(const char_t* message);
 void logDebugMessage(const String& message);
 
-#define LOG logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR_MACRO(__FUNCTION__) NEWLINE)
-#define LOG_MSG(msg) logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR(msg) NEWLINE)
+#define LOG_LOC logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR_MACRO(__FUNCTION__) NEWLINE)
+#define LOG_MSG(msg) logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") msg NEWLINE)
 #define LOG_STMT(...) __VA_ARGS__; logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR(#__VA_ARGS__) NEWLINE)
 
-#define LOG_FMT(msg) \
+#define LOG_FMT(fmt, ...) \
     do \
     { \
         logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ")); \
-        logDebugMessage(msg); \
+        logDebugMessage(String::format(STR(fmt), __VA_ARGS__)); \
         logDebugMessage(NEWLINE); \
     } while (false)
 

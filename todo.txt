@@ -1,5 +1,4 @@
 to do:
-* console in GUI mode?
 * shell script highlighting
 str gets highlighted as var after $var at the end of line
 --abc=123 command line option highlighted as var assignment
@@ -93,6 +92,7 @@ type safe string formatting
 * type traits
 
 misc:
-* minimal rebuild
+* minimal rebuild, precompiled headers
+* split foundation into a library
 * run release version in profiler, memory/thread checker
 

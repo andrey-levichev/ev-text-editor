@@ -6155,6 +6155,14 @@ int MAIN(int argc, const char_t** argv)
 {
     try
     {
+        LOG_LOC;
+        LOG_MSG("abc");
+        int i = 123;
+        LOG_STMT(++i);
+        LOG_FMT("var=%d", i);
+        ASSERT_MSG(i == 124, "msg");
+        ASSERT_FAIL("zhopa");
+        ASSERT_EXCEPTION_MSG(Exception, "zhopa", printPlatformInfo());
     }
     catch (Exception& ex)
     {
