@@ -1,71 +1,134 @@
 #include <application.h>
 
-#ifndef EDITOR_GUI_MODE
+#ifndef GUI_MODE
 #include <console.h>
 #endif
 
 // Application
 
-const char_t* Application::APPLICATION_NAME = STR("ev");
-const char_t* Application::WINDOW_CLASS = STR("evWindow");
-
 Application* Application::_application = NULL;
 
 Application::~Application()
 {
-#ifdef EDITOR_GUI_MODE
-
-    if (_handle)
-        DestroyWindow(reinterpret_cast<HWND>(_handle));
-
+#ifdef GUI_MODE
+    if (_window)
+        DestroyWindow(reinterpret_cast<HWND>(_window));
 #else
-    _handle = 0;
+    _window = 0;
     onDestroy();
 #endif
 }
 
-void Application::create(const char_t* className, const char_t* title, int width, int height)
+void Application::run()
 {
-    if (_handle)
+    registerClass(WINDOW_CLASS);
+    createWindow(WINDOW_CLASS, WINDOW_TITLE);
+    showWindow();
+
+#ifdef GUI_MODE
+    MSG msg;
+
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+#else
+    while (_window)
+        onInput(Console::readInput());
+#endif
+}
+
+#ifdef GUI_MODE
+
+void Application::showMessage(const String& message)
+{
+    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
+               L"Message", MB_OK);
+}
+
+void Application::showMessage(const char_t* message)
+{
+    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
+               L"Message", MB_OK);
+}
+
+void Application::showErrorMessage(const String& message)
+{
+    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
+               L"Error", MB_OK | MB_ICONERROR);
+}
+
+void Application::showErrorMessage(const char_t* message)
+{
+    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
+               L"Error", MB_OK | MB_ICONERROR);
+}
+
+#else
+
+void Application::showMessage(const String& message)
+{
+    Console::writeLine(message);
+}
+
+void Application::showMessage(const char_t* message)
+{
+    Console::writeLine(message);
+}
+
+void Application::showErrorMessage(const String& message)
+{
+    Console::writeLine(message);
+}
+
+void Application::showErrorMessage(const char_t* message)
+{
+    Console::writeLine(message);
+}
+
+#endif
+
+void Application::createWindow(const char_t* className, const char_t* title, int width, int height)
+{
+    if (_window)
         throw Exception(STR("window already created"));
 
-#ifdef EDITOR_GUI_MODE
-
-    _handle = reinterpret_cast<uintptr_t>(CreateWindow(reinterpret_cast<LPCWSTR>(className),
+#ifdef GUI_MODE
+    _window = reinterpret_cast<uintptr_t>(CreateWindow(reinterpret_cast<LPCWSTR>(className),
         reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
         NULL, NULL, GetModuleHandle(NULL), NULL));
 
-    if (!_handle)
+    if (!_window)
         throw Exception(STR("failed to create window"));
-
 #else
-    _handle = 1;
+    _window = 1;
     onCreate();
 #endif
 }
 
-void Application::show()
+void Application::showWindow()
 {
-    if (_handle)
+    if (_window)
     {
-#ifdef EDITOR_GUI_MODE
-        ShowWindow(reinterpret_cast<HWND>(_handle), SW_SHOWDEFAULT);
-        UpdateWindow(reinterpret_cast<HWND>(_handle));
+#ifdef GUI_MODE
+        ShowWindow(reinterpret_cast<HWND>(_window), SW_SHOWDEFAULT);
+        UpdateWindow(reinterpret_cast<HWND>(_window));
 #endif
     }
     else
         throw Exception(STR("window not created"));
 }
 
-void Application::destroy()
+void Application::destroyWindow()
 {
-    if (_handle)
+    if (_window)
     {
-#ifdef EDITOR_GUI_MODE
-        DestroyWindow(reinterpret_cast<HWND>(_handle));
+#ifdef GUI_MODE
+        DestroyWindow(reinterpret_cast<HWND>(_window));
 #else
-        _handle = 0;
+        _window = 0;
         onDestroy();
 #endif
     }
@@ -75,7 +138,7 @@ void Application::destroy()
 
 void Application::registerClass(const char_t* className)
 {
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
     WNDCLASSEX wc;
 
     wc.cbSize = sizeof(WNDCLASSEX);
@@ -95,111 +158,12 @@ void Application::registerClass(const char_t* className)
 #endif
 }
 
-void Application::run()
-{
-//    for (int i = 1; i < _argc; ++i)
-//    {
-//        if (strCompare(_argv[i], STR("--bright")) == 0)
-//            _window.brightBackground() = true;
-//        else if (strCompare(_argv[i], STR("--dark")) == 0)
-//            _window.brightBackground() = false;
-//        else
-//            _window.openDocument(_argv[i]);
-//    }
-
-    registerClass(WINDOW_CLASS);
-    create(WINDOW_CLASS, APPLICATION_NAME);
-    show();
-
-#ifdef EDITOR_GUI_MODE
-
-    MSG msg;
-
-    while (GetMessage(&msg, NULL, 0, 0))
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-#else
-
-    while (_handle)
-    {
-        _inputEvents = Console::readInput();
-        onInput(_inputEvents);
-    }
-
-#endif
-}
-
-int run(int argc, const char_t** argv)
-{
-    try
-    {
-        for (int i = 1; i < argc; ++i)
-        {
-            if (strCompare(argv[i], STR("--version")) == 0)
-            {
-                Application::showMessage(STR("ev text editor version 2.0\n"
-                                             "web: github.com/andrey-levichev/ev-text-editor\n"
-                                             "Copyright (C) Andrey Levichev, 2019\n\n"
-                                             "usage: ev [OPTIONS] [FILE]...\n\n"
-                                             "OPTIONS:\n\n"
-                                             "--version - print version information and exit\n"
-                                             "--dark - assume dark screen background\n"
-                                             "--bright - assume bright screen background\n"));
-
-                return 0;
-            }
-        }
-
-        Application app(argc, argv);
-        app.run();
-    }
-    catch (Exception& ex)
-    {
-        Application::showErrorMessage(ex.message());
-        return 1;
-    }
-    catch (...)
-    {
-        Application::showErrorMessage(STR("unknown error"));
-        return 1;
-    }
-
-    return 0;
-}
-
-#ifdef EDITOR_GUI_MODE
-
-void Application::showMessage(const String& message)
-{
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
-               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK);
-}
-
-void Application::showMessage(const char_t* message)
-{
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
-               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK);
-}
-
-void Application::showErrorMessage(const String& message)
-{
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
-               reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
-               MB_OK | MB_ICONERROR);
-}
-
-void Application::showErrorMessage(const char_t* message)
-{
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
-               reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
-               MB_OK | MB_ICONERROR);
-}
+#ifdef GUI_MODE
 
 LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static Array<InputEvent> inputEvents;
+
     try
     {
         switch (message)
@@ -209,7 +173,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             return 0;
 
         case WM_DESTROY:
-            _application->_handle = 0;
+            _application->_window = 0;
             _application->onDestroy();
             PostQuitMessage(0);
             return 0;
@@ -223,7 +187,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
         case WM_KEYDOWN:
             {
-                _application->_inputEvents.clear();
+                inputEvents.clear();
 
                 KeyEvent keyEvent = { KEY_NONE };
                 keyEvent.keyDown = true;
@@ -343,8 +307,8 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                     keyEvent.alt = GetKeyState(VK_MENU);
                     keyEvent.shift = GetKeyState(VK_SHIFT);
 
-                    _application->_inputEvents.addLast(keyEvent);
-                    _application->onInput(_application->_inputEvents);
+                    inputEvents.addLast(keyEvent);
+                    _application->onInput(inputEvents);
 
                     return 0;
                 }
@@ -353,7 +317,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
         case WM_CHAR:
             {
-                _application->_inputEvents.clear();
+                inputEvents.clear();
 
                 KeyEvent keyEvent = { KEY_NONE };
                 keyEvent.keyDown = true;
@@ -369,8 +333,8 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                     keyEvent.alt = GetKeyState(VK_MENU);
                     keyEvent.shift = GetKeyState(VK_SHIFT);
 
-                    _application->_inputEvents.addLast(keyEvent);
-                    _application->onInput(_application->_inputEvents);
+                    inputEvents.addLast(keyEvent);
+                    _application->onInput(inputEvents);
 
                     return 0;
                 }
@@ -388,45 +352,6 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
     }
 
     return DefWindowProc(handle, message, wParam, lParam);
-}
-
-int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* commandLine, int cmdShow)
-{
-    CoInitialize(NULL);
-    SetProcessDPIAware();
-
-    int rc = run(__argc, reinterpret_cast<const char_t**>(const_cast<const wchar_t**>(__wargv)));
-
-    CoUninitialize();
-
-    return rc;
-}
-
-#else
-
-void Application::showMessage(const String& message)
-{
-    Console::writeLine(message);
-}
-
-void Application::showMessage(const char_t* message)
-{
-    Console::writeLine(message);
-}
-
-void Application::showErrorMessage(const String& message)
-{
-    Console::writeLine(message);
-}
-
-void Application::showErrorMessage(const char_t* message)
-{
-    Console::writeLine(message);
-}
-
-int MAIN(int argc, const char_t** argv)
-{
-    return run(argc, argv);
 }
 
 #endif

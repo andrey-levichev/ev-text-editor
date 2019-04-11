@@ -4,7 +4,7 @@ TEST_HEADERS=test.h foundation.h input.h file.h  console.h
 TEST_SOURCES=test.cpp foundation.cpp input.cpp file.cpp console.cpp
 
 COMMON_HEADERS=foundation.h input.h file.h application.h editor.h
-COMMON_SOURCES=foundation.cpp input.cpp file.cpp application.cpp editor.cpp
+COMMON_SOURCES=foundation.cpp input.cpp file.cpp application.cpp editor.cpp main.cpp
 
 EDITOR_HEADERS=$(COMMON_HEADERS) console.h
 EDITOR_SOURCES=$(COMMON_SOURCES) console.cpp
@@ -43,7 +43,7 @@ editor.dbg.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS) /subsystem:console
 
 editor.gui.dbg.vcpp.exe: $(EDITOR_GUI_HEADERS) $(EDITOR_GUI_SOURCES)
-	cl /DEDITOR_GUI_MODE $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_GUI_SOURCES) $(VCPP_LINKER_OPTIONS) /subsystem:windows
+	cl /DGUI_MODE $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_GUI_SOURCES) $(VCPP_LINKER_OPTIONS) /subsystem:windows
 
 editor.dbg.gcc: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(EDITOR_SOURCES)

@@ -8,21 +8,11 @@
 
 class Application
 {
-private:
-    static const char_t* APPLICATION_NAME;
-    static const char_t* WINDOW_CLASS;
-
 public:
-    Application() :
-        _argc(0), _argv(NULL),
-        _handle(0)
-    {
-        _application = this;
-    }
-
     Application(int argc, const char_t** argv) :
-        _argc(argc), _argv(argv),
-        _handle(0)
+        _argc(argc), _argv(argv), _window(0),
+        WINDOW_CLASS(STR("WINDOW_CLASS")),
+        WINDOW_TITLE(STR("Application"))
     {
         _application = this;
     }
@@ -32,12 +22,21 @@ public:
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
 
-    void create(const char_t* className,
+    void run();
+
+    static void showMessage(const String& message);
+    static void showMessage(const char_t* message);
+    static void showErrorMessage(const String& message);
+    static void showErrorMessage(const char_t* message);
+
+protected:
+    void createWindow(const char_t* className,
                 const char_t* title, int width = 0, int height = 0);
 
-    void show();
-    void destroy();
-    void run();
+    void showWindow();
+    void destroyWindow();
+
+    static void registerClass(const char_t* className);
 
     virtual void onCreate()
     {
@@ -55,20 +54,17 @@ public:
     {
     }
 
-    static void registerClass(const char_t* className);
-    static void showMessage(const String& message);
-    static void showMessage(const char_t* message);
-    static void showErrorMessage(const String& message);
-    static void showErrorMessage(const char_t* message);
-
-private:
+protected:
     int _argc;
     const char_t** _argv;
-    uintptr_t _handle;
-    Array<InputEvent> _inputEvents;
+    uintptr_t _window;
 
-#ifdef EDITOR_GUI_MODE
+    const char_t* WINDOW_CLASS;
+    const char_t* WINDOW_TITLE;
+
     static Application* _application;
+
+#ifdef GUI_MODE
     static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 #endif
 };

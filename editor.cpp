@@ -21,7 +21,7 @@ bool isCharBoundary(unichar_t prevCh, unichar_t ch)
 
 ForegroundColor defaultForeground()
 {
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
     return FOREGROUND_COLOR_BLACK;
 #else
     return Console::defaultForeground();
@@ -30,7 +30,7 @@ ForegroundColor defaultForeground()
 
 BackgroundColor defaultBackground()
 {
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
     return BACKGROUND_COLOR_BRIGHT_WHITE;
 #else
     return Console::defaultBackground();
@@ -2042,11 +2042,12 @@ void Document::determineDocumentType(bool fileExecutable)
 
 // Editor
 
-Editor::Editor() :
+Editor::Editor(int argc, const char_t** argv) :
+    Application(argc, argv),
     _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL), _recordingMacro(false),
     _caseSesitive(true), _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
 {
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
     _width = 100;
     _height = 50;
 #else
@@ -2071,7 +2072,7 @@ Editor::Editor() :
 
 Editor::~Editor()
 {
-#ifndef EDITOR_GUI_MODE
+#ifndef GUI_MODE
     Console::setLineMode(true);
     Console::clear();
 #endif
@@ -2156,6 +2157,30 @@ void Editor::closeDocument()
 
 void Editor::onCreate()
 {
+    for (int i = 1; i < _argc; ++i)
+    {
+        if (strCompare(_argv[i], STR("--version")) == 0)
+        {
+            Application::showMessage(STR("ev text editor version 2.0\n"
+                                            "web: github.com/andrey-levichev/ev-text-editor\n"
+                                            "Copyright (C) Andrey Levichev, 2019\n\n"
+                                            "usage: ev [OPTIONS] [FILE]...\n\n"
+                                            "OPTIONS:\n\n"
+                                            "--version - print version information and exit\n"
+                                            "--dark - assume dark screen background\n"
+                                            "--bright - assume bright screen background\n"));
+
+            destroyWindow();
+            return;
+        }
+        else if (strCompare(_argv[i], STR("--bright")) == 0)
+            _brightBackground = true;
+        else if (strCompare(_argv[i], STR("--dark")) == 0)
+            _brightBackground = false;
+        else
+            openDocument(_argv[i]);
+    }
+
     _document = _documents.first();
 
     setDimensions();
@@ -2461,7 +2486,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                     else if (keyEvent.key == KEY_F10)
                     {
                         saveAllDocuments();
-                        destroy();
+                        destroyWindow();
                         return;
                     }
                     else if (keyEvent.key == KEY_LEFT)
@@ -2524,7 +2549,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                                 {
                                     if (!processCommand(_commandLine.value.text()))
                                     {
-                                        destroy();
+                                        destroyWindow();
                                         return;
                                     }
                                 }
@@ -2571,7 +2596,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                         }
                         else
                         {
-                            destroy();
+                            destroyWindow();
                             return;
                         }
                     }
@@ -2651,7 +2676,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                         }
                         else
                         {
-                            destroy();
+                            destroyWindow();
                             return;
                         }
                     }
@@ -2720,7 +2745,7 @@ void Editor::updateScreen(bool redrawAll)
 
 #ifdef PLATFORM_WINDOWS
 
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
 
 #else
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -2764,7 +2789,7 @@ void Editor::updateScreen(bool redrawAll)
     {
 #ifdef PLATFORM_WINDOWS
 
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
 
 #else
         SMALL_RECT rect;
@@ -2825,7 +2850,7 @@ void Editor::updateScreen(bool redrawAll)
             {
 #ifdef PLATFORM_WINDOWS
 
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
 
 #else
                 COORD pos;
@@ -2867,7 +2892,7 @@ void Editor::updateScreen(bool redrawAll)
 
 #ifdef PLATFORM_WINDOWS
 
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
 
 #else
     Console::setCursorPosition(line, col);
@@ -2966,7 +2991,7 @@ void Editor::showCommandLine()
 
 void Editor::buildProject()
 {
-#ifdef EDITOR_GUI_MODE
+#ifdef GUI_MODE
 
 #else
     Console::setLineMode(true);
