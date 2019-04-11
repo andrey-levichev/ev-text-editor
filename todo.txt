@@ -13,6 +13,7 @@ seems like screen redraw issue, alt+' doesn't help
 * don't trim whitespace by default
 
 editor:
+* readonly mode
 * run command, run last command
 * auto detect line endings
 * delete to start/end of line

@@ -3,8 +3,8 @@ EDITOR_NAME=ev
 TEST_HEADERS=test.h foundation.h input.h file.h  console.h
 TEST_SOURCES=test.cpp foundation.cpp input.cpp file.cpp console.cpp
 
-COMMON_HEADERS=foundation.h input.h file.h application.h window.h editor.h
-COMMON_SOURCES=foundation.cpp input.cpp file.cpp application.cpp window.cpp editor.cpp main.cpp
+COMMON_HEADERS=foundation.h input.h file.h application.h editor.h
+COMMON_SOURCES=foundation.cpp input.cpp file.cpp application.cpp editor.cpp
 
 EDITOR_HEADERS=$(COMMON_HEADERS) console.h
 EDITOR_SOURCES=$(COMMON_SOURCES) console.cpp
@@ -37,7 +37,7 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: test.dbg.vcpp.exe
+all: editor.gui.dbg.vcpp.exe
 
 editor.dbg.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS) /subsystem:console

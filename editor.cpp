@@ -1,4 +1,5 @@
 #include <editor.h>
+#include <console.h>
 
 const int TAB_SIZE = 4;
 

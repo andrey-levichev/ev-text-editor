@@ -2,9 +2,8 @@
 #define EDITOR_INCLUDED
 
 #include <foundation.h>
+#include <application.h>
 #include <file.h>
-#include <console.h>
-#include <window.h>
 
 // ScreenCell
 
@@ -394,7 +393,7 @@ struct AutocompleteSuggestion
 
 // Editor
 
-class Editor : public Window
+class Editor : public Application
 {
 public:
     Editor();
