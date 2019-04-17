@@ -6,6 +6,7 @@
 
 // Application
 
+const char_t* Application::WINDOW_CLASS = STR("WINDOW_CLASS");
 Application* Application::_application = NULL;
 
 Application::~Application()
@@ -21,8 +22,8 @@ Application::~Application()
 
 void Application::run()
 {
-    registerClass(WINDOW_CLASS);
-    createWindow(WINDOW_CLASS, WINDOW_TITLE);
+    registerClass();
+    createWindow(_title);
     showWindow();
 
 #ifdef GUI_MODE
@@ -89,13 +90,13 @@ void Application::showErrorMessage(const char_t* message)
 
 #endif
 
-void Application::createWindow(const char_t* className, const char_t* title, int width, int height)
+void Application::createWindow(const char_t* title, int width, int height)
 {
     if (_window)
         throw Exception(STR("window already created"));
 
 #ifdef GUI_MODE
-    _window = reinterpret_cast<uintptr_t>(CreateWindow(reinterpret_cast<LPCWSTR>(className),
+    _window = reinterpret_cast<uintptr_t>(CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS),
         reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
         NULL, NULL, GetModuleHandle(NULL), NULL));
@@ -136,7 +137,7 @@ void Application::destroyWindow()
         throw Exception(STR("window not created"));
 }
 
-void Application::registerClass(const char_t* className)
+void Application::registerClass()
 {
 #ifdef GUI_MODE
     WNDCLASSEX wc;
@@ -151,7 +152,7 @@ void Application::registerClass(const char_t* className)
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = NULL;
     wc.lpszMenuName = NULL;
-    wc.lpszClassName = reinterpret_cast<LPCWSTR>(className);
+    wc.lpszClassName = reinterpret_cast<LPCWSTR>(WINDOW_CLASS);
     wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
     RegisterClassEx(&wc);
@@ -169,8 +170,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
         switch (message)
         {
         case WM_CREATE:
-            _application->onCreate();
-            return 0;
+            return _application->onCreate() ? 0 : -1;
 
         case WM_DESTROY:
             _application->_window = 0;
@@ -183,7 +183,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             return 0;
 
         case WM_ERASEBKGND:
-            return 1;
+            return 0;
 
         case WM_KEYDOWN:
             {

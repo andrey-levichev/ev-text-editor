@@ -2043,7 +2043,7 @@ void Document::determineDocumentType(bool fileExecutable)
 // Editor
 
 Editor::Editor(int argc, const char_t** argv) :
-    Application(argc, argv),
+    Application(argc, argv, STR("ev")),
     _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL), _recordingMacro(false),
     _caseSesitive(true), _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
 {
@@ -2155,7 +2155,7 @@ void Editor::closeDocument()
     }
 }
 
-void Editor::onCreate()
+bool Editor::onCreate()
 {
     for (int i = 1; i < _argc; ++i)
     {
@@ -2170,8 +2170,7 @@ void Editor::onCreate()
                                             "--dark - assume dark screen background\n"
                                             "--bright - assume bright screen background\n"));
 
-            destroyWindow();
-            return;
+            return false;
         }
         else if (strCompare(_argv[i], STR("--bright")) == 0)
             _brightBackground = true;
@@ -2185,6 +2184,8 @@ void Editor::onCreate()
 
     setDimensions();
     updateScreen(true);
+
+    return true;
 }
 
 void Editor::onPaint()

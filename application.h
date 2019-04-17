@@ -9,10 +9,8 @@
 class Application
 {
 public:
-    Application(int argc, const char_t** argv) :
-        _argc(argc), _argv(argv), _window(0),
-        WINDOW_CLASS(STR("WINDOW_CLASS")),
-        WINDOW_TITLE(STR("Application"))
+    Application(int argc, const char_t** argv, const char_t* title = STR("Application")) :
+        _argc(argc), _argv(argv), _window(0), _title(title)
     {
         _application = this;
     }
@@ -30,16 +28,15 @@ public:
     static void showErrorMessage(const char_t* message);
 
 protected:
-    void createWindow(const char_t* className,
-                const char_t* title, int width = 0, int height = 0);
-
+    void createWindow(const char_t* title, int width = 0, int height = 0);
     void showWindow();
     void destroyWindow();
 
-    static void registerClass(const char_t* className);
+    static void registerClass();
 
-    virtual void onCreate()
+    virtual bool onCreate()
     {
+        return true;
     }
 
     virtual void onDestroy()
@@ -58,10 +55,9 @@ protected:
     int _argc;
     const char_t** _argv;
     uintptr_t _window;
+    const char_t* _title;
 
-    const char_t* WINDOW_CLASS;
-    const char_t* WINDOW_TITLE;
-
+    static const char_t* WINDOW_CLASS;
     static Application* _application;
 
 #ifdef GUI_MODE

@@ -417,7 +417,7 @@ public:
     void saveAllDocuments();
     void closeDocument();
 
-    virtual void onCreate();
+    virtual bool onCreate();
     virtual void onPaint();
     virtual void onInput(const Array<InputEvent>& inputEvents);
 
