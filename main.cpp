@@ -4,17 +4,17 @@ int run(int argc, const char_t** argv)
 {
     try
     {
-        Editor editor(argc, argv);
-        editor.run();
+        Application app(argc, argv);
+        app.run();
     }
     catch (Exception& ex)
     {
-        Application::showErrorMessage(ex.message());
+        Application::reportError(ex.message());
         return 1;
     }
     catch (...)
     {
-        Application::showErrorMessage(STR("unknown error"));
+        Application::reportError(STR("unknown error"));
         return 1;
     }
 

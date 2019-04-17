@@ -24,8 +24,8 @@ public:
 
     static void showMessage(const String& message);
     static void showMessage(const char_t* message);
-    static void showErrorMessage(const String& message);
-    static void showErrorMessage(const char_t* message);
+    static void reportError(const String& message);
+    static void reportError(const char_t* message);
 
 protected:
     void createWindow(const char_t* title, int width = 0, int height = 0);

@@ -11,13 +11,15 @@ Application* Application::_application = NULL;
 
 Application::~Application()
 {
-#ifdef GUI_MODE
     if (_window)
+    {
+#ifdef GUI_MODE
         DestroyWindow(reinterpret_cast<HWND>(_window));
 #else
-    _window = 0;
-    onDestroy();
+        onDestroy();
+        _window = 0;
 #endif
+    }
 }
 
 void Application::run()
@@ -27,12 +29,15 @@ void Application::run()
     showWindow();
 
 #ifdef GUI_MODE
-    MSG msg;
-
-    while (GetMessage(&msg, NULL, 0, 0))
+    while (_window)
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        MSG msg;
+
+        if (GetMessage(&msg, NULL, 0, 0) != -1)
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
     }
 #else
     while (_window)
@@ -45,25 +50,25 @@ void Application::run()
 void Application::showMessage(const String& message)
 {
     MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
-               L"Message", MB_OK);
+               L"Message", MB_OK | MB_TASKMODAL);
 }
 
 void Application::showMessage(const char_t* message)
 {
     MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
-               L"Message", MB_OK);
+               L"Message", MB_OK | MB_TASKMODAL);
 }
 
-void Application::showErrorMessage(const String& message)
+void Application::reportError(const String& message)
 {
     MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
-               L"Error", MB_OK | MB_ICONERROR);
+               L"Error", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 }
 
-void Application::showErrorMessage(const char_t* message)
+void Application::reportError(const char_t* message)
 {
     MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
-               L"Error", MB_OK | MB_ICONERROR);
+               L"Error", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 }
 
 #else
@@ -78,12 +83,12 @@ void Application::showMessage(const char_t* message)
     Console::writeLine(message);
 }
 
-void Application::showErrorMessage(const String& message)
+void Application::reportError(const String& message)
 {
     Console::writeLine(message);
 }
 
-void Application::showErrorMessage(const char_t* message)
+void Application::reportError(const char_t* message)
 {
     Console::writeLine(message);
 }
@@ -129,8 +134,8 @@ void Application::destroyWindow()
 #ifdef GUI_MODE
         DestroyWindow(reinterpret_cast<HWND>(_window));
 #else
-        _window = 0;
         onDestroy();
+        _window = 0;
 #endif
     }
     else
@@ -173,9 +178,8 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             return _application->onCreate() ? 0 : -1;
 
         case WM_DESTROY:
-            _application->_window = 0;
             _application->onDestroy();
-            PostQuitMessage(0);
+            _application->_window = 0;
             return 0;
 
         case WM_PAINT:
@@ -344,11 +348,11 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
     }
     catch (Exception& ex)
     {
-        Application::showErrorMessage(ex.message());
+        Application::reportError(ex.message());
     }
     catch (...)
     {
-        Application::showErrorMessage(STR("unknown error"));
+        Application::reportError(STR("unknown error"));
     }
 
     return DefWindowProc(handle, message, wParam, lParam);
