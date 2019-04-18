@@ -397,7 +397,6 @@ class Editor : public Application
 {
 public:
     Editor(int argc, const char_t** argv);
-    virtual ~Editor();
 
     bool brightBackground() const
     {
@@ -417,11 +416,13 @@ public:
     void saveAllDocuments();
     void closeDocument();
 
-    virtual bool onCreate();
+    virtual bool start();
+    virtual void run();
+
+protected:
     virtual void onPaint();
     virtual void onInput(const Array<InputEvent>& inputEvents);
 
-protected:
     void setDimensions();
     void updateScreen(bool redrawAll);
     void updateStatusLine();

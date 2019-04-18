@@ -175,7 +175,8 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
         switch (message)
         {
         case WM_CREATE:
-            return _application->onCreate() ? 0 : -1;
+            _application->onCreate();
+            return 0;
 
         case WM_DESTROY:
             _application->onDestroy();

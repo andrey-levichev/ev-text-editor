@@ -2051,9 +2051,7 @@ Editor::Editor(int argc, const char_t** argv) :
     _width = 100;
     _height = 50;
 #else
-    Console::setLineMode(false);
     Console::getSize(_width, _height);
-
     _brightBackground = Console::brightBackground();
 #endif
 
@@ -2067,14 +2065,6 @@ Editor::Editor(int argc, const char_t** argv) :
         _unicodeLimit16 = strstr(term, "xterm") != NULL;
     else
         _unicodeLimit16 = false;
-#endif
-}
-
-Editor::~Editor()
-{
-#ifndef GUI_MODE
-    Console::setLineMode(true);
-    Console::clear();
 #endif
 }
 
@@ -2155,7 +2145,7 @@ void Editor::closeDocument()
     }
 }
 
-bool Editor::onCreate()
+bool Editor::start()
 {
     for (int i = 1; i < _argc; ++i)
     {
@@ -2181,11 +2171,24 @@ bool Editor::onCreate()
     }
 
     _document = _documents.first();
-
     setDimensions();
-    updateScreen(true);
 
     return true;
+}
+
+void Editor::run()
+{
+#ifndef GUI_MODE
+    Console::setLineMode(false);
+#endif
+
+    updateScreen(true);
+    Application::run();
+
+#ifndef GUI_MODE
+    Console::setLineMode(true);
+    Console::clear();
+#endif
 }
 
 void Editor::onPaint()

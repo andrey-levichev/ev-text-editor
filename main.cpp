@@ -4,8 +4,10 @@ int run(int argc, const char_t** argv)
 {
     try
     {
-        Application app(argc, argv);
-        app.run();
+        Editor app(argc, argv);
+
+        if (app.start())
+            app.run();
     }
     catch (Exception& ex)
     {

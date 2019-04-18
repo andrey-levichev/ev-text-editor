@@ -20,7 +20,12 @@ public:
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
 
-    void run();
+    virtual bool start()
+    {
+        return true;
+    }
+
+    virtual void run();
 
     static void showMessage(const String& message);
     static void showMessage(const char_t* message);
@@ -34,9 +39,8 @@ protected:
 
     static void registerClass();
 
-    virtual bool onCreate()
+    virtual void onCreate()
     {
-        return true;
     }
 
     virtual void onDestroy()
