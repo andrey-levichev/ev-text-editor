@@ -194,7 +194,6 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 inputEvents.clear();
 
                 KeyEvent keyEvent = { KEY_NONE };
-                keyEvent.keyDown = true;
 
                 switch (wParam)
                 {
@@ -324,7 +323,6 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 inputEvents.clear();
 
                 KeyEvent keyEvent = { KEY_NONE };
-                keyEvent.keyDown = true;
 
                 if (wParam > 0)
                 {

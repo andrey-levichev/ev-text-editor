@@ -2213,419 +2213,416 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
             {
                 KeyEvent keyEvent = event.event.keyEvent;
 
-                if (keyEvent.keyDown)
+                if (_recordingMacro)
                 {
-                    if (_recordingMacro)
-                    {
-                        if (!(keyEvent.alt && (keyEvent.ch == 'r' || keyEvent.ch == 'm')))
-                            _macro.addLast(event);
-                    }
+                    if (!(keyEvent.alt && (keyEvent.ch == 'r' || keyEvent.ch == 'm')))
+                        _macro.addLast(event);
+                }
 
-                    if (keyEvent.ctrl)
+                if (keyEvent.ctrl)
+                {
+                    if (keyEvent.key == KEY_LEFT || keyEvent.ch == 'b')
                     {
-                        if (keyEvent.key == KEY_LEFT || keyEvent.ch == 'b')
-                        {
-                            update = doc.moveWordBack();
-                        }
-                        else if (keyEvent.key == KEY_RIGHT || keyEvent.ch == 'w')
-                        {
-                            update = doc.moveWordForward();
-                        }
-                        else if (keyEvent.key == KEY_UP || keyEvent.ch == '^')
-                        {
-                            update = moveToPrevRecentLocation();
-                        }
-                        else if (keyEvent.key == KEY_DOWN)
-                        {
-                            update = moveToNextRecentLocation();
-                        }
-                        else if (keyEvent.key == KEY_DELETE || keyEvent.ch == 'd')
-                        {
-                            modified = update = doc.deleteWordForward();
-                        }
-                        else if (keyEvent.key == KEY_BACKSPACE || keyEvent.ch == ']')
-                        {
-                            modified = update = doc.deleteWordBack();
-                        }
-                        else if (keyEvent.key == KEY_PGUP)
-                        {
-                            update = doc.moveLines(20);
-                        }
-                        else if (keyEvent.key == KEY_PGDN)
-                        {
-                            update = doc.moveLines(20);
-                        }
-                        else if (keyEvent.key == KEY_HOME)
-                        {
-                            update = doc.moveToStart();
-                        }
-                        else if (keyEvent.key == KEY_END)
-                        {
-                            update = doc.moveToEnd();
-                        }
-                        else if (keyEvent.ch == 't')
-                        {
-                            doc.insertChar(0x9);
-                            update = modified = true;
-                        }
-                        else if (keyEvent.ch == 'h')
-                        {
-                            update = doc.moveToLineStart();
-                        }
-                        else if (keyEvent.ch == 'e')
-                        {
-                            update = doc.moveToLineEnd();
-                        }
-                        else if (keyEvent.ch == 'p')
-                        {
-                            update = doc.moveLines(-(_height - 1));
-                        }
-                        else if (keyEvent.ch == 'n')
-                        {
-                            update = doc.moveLines(_height - 1);
-                        }
-                        else if (keyEvent.ch == 'g')
-                        {
-                            _searchStr = doc.currentWord();
-
-                            if (!_searchStr.empty())
-                            {
-                                _caseSesitive = true;
-                                update = doc.find(_searchStr, _caseSesitive, true);
-                            }
-                        }
-                        else if (keyEvent.ch == 'f')
-                        {
-                            if (!_searchStr.empty())
-                                update = doc.find(_searchStr, _caseSesitive, true);
-                        }
-                        else if (keyEvent.ch == 'r')
-                        {
-                            if (!_searchStr.empty())
-                                modified = update = doc.replace(_searchStr, _replaceStr, _caseSesitive);
-                        }
-                        else if (keyEvent.ch == 'a')
-                        {
-                            doc.markSelection();
-                        }
-                        else if (keyEvent.ch == 'x')
-                        {
-                            _buffer = doc.copyDeleteText(false);
-                            copyToClipboard(_buffer);
-
-                            if (!_buffer.empty())
-                                modified = update = true;
-                        }
-                        else if (keyEvent.ch == 'c' || keyEvent.ch == 'k')
-                        {
-                            _buffer = doc.copyDeleteText(true);
-                            copyToClipboard(_buffer);
-                        }
-                        else if (keyEvent.ch == 'v' || keyEvent.ch == 'l')
-                        {
-                            pasteFromClipboard(_buffer);
-
-                            if (!_buffer.empty())
-                            {
-                                doc.pasteText(_buffer);
-                                modified = update = true;
-                            }
-                        }
+                        update = doc.moveWordBack();
                     }
-                    else if (keyEvent.alt)
+                    else if (keyEvent.key == KEY_RIGHT || keyEvent.ch == 'w')
                     {
-                        if (keyEvent.key == KEY_LEFT)
-                        {
-                            update = doc.moveWordBack();
-                        }
-                        else if (keyEvent.key == KEY_RIGHT)
-                        {
-                            update = doc.moveWordForward();
-                        }
-                        else if (keyEvent.key == KEY_UP)
-                        {
-                            update = moveToPrevRecentLocation();
-                        }
-                        else if (keyEvent.key == KEY_DOWN)
-                        {
-                            update = moveToNextRecentLocation();
-                        }
-                        else if (keyEvent.key == KEY_DELETE)
-                        {
-                            modified = update = doc.deleteWordForward();
-                        }
-                        else if (keyEvent.key == KEY_BACKSPACE)
-                        {
-                            modified = update = doc.deleteWordBack();
-                        }
-                        else if (keyEvent.key == KEY_PGUP || keyEvent.ch == 'p')
-                        {
-                            update = doc.moveLines(-20);
-                        }
-                        else if (keyEvent.key == KEY_PGDN || keyEvent.ch == 'n')
-                        {
-                            update = doc.moveLines(20);
-                        }
-                        else if (keyEvent.key == KEY_HOME || keyEvent.ch == 'h')
-                        {
-                            update = doc.moveToStart();
-                        }
-                        else if (keyEvent.key == KEY_END || keyEvent.ch == 'e')
-                        {
-                            update = doc.moveToEnd();
-                        }
-                        else if (keyEvent.ch == 'a')
-                        {
-                            update = doc.toggleSelectionStart();
-                        }
-                        else if (keyEvent.ch == 'b')
-                        {
-                            update = doc.moveCharsBack();
-                        }
-                        else if (keyEvent.ch == 'w')
-                        {
-                            update = doc.moveCharsForward();
-                        }
-                        else if (keyEvent.ch == 'd')
-                        {
-                            modified = update = doc.deleteCharsForward();
-                        }
-                        else if (keyEvent.ch == ']')
-                        {
-                            modified = update = doc.deleteCharsBack();
-                        }
-                        else if (keyEvent.ch == ',')
-                        {
-                            auto doc = _document->prev ? _document->prev : _documents.last();
-
-                            if (doc != _document)
-                            {
-                                _document = doc;
-                                update = true;
-                            }
-                        }
-                        else if (keyEvent.ch == '.')
-                        {
-                            auto doc = _document->next ? _document->next : _documents.first();
-
-                            if (doc != _document)
-                            {
-                                _document = doc;
-                                update = true;
-                            }
-                        }
-                        else if (keyEvent.ch == '/')
-                        {
-                            doc.commentLines();
-                            modified = update = true;
-                        }
-                        else if (keyEvent.ch == '\\')
-                        {
-                            doc.uncommentLines();
-                            modified = update = true;
-                        }
-                        else if (keyEvent.ch == '\'')
-                        {
-                            findUniqueWords();
-                            updateScreen(true);
-                        }
-                        else if (keyEvent.ch >= '0' && keyEvent.ch <= '9')
-                        {
-                            int n = keyEvent.ch == '0' ? 10 : keyEvent.ch - '0';
-
-                            for (auto doc = _documents.first(); doc; doc = doc->next)
-                            {
-                                if (--n == 0)
-                                {
-                                    if (doc != _document)
-                                    {
-                                        _document = doc;
-                                        update = true;
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                        else if (keyEvent.ch == 'r')
-                        {
-                            if (_recordingMacro)
-                                _recordingMacro = false;
-                            else
-                            {
-                                _recordingMacro = true;
-                                _macro.clear();
-                            }
-
-                            update = true;
-                        }
-                        else if (keyEvent.ch == 'm')
-                        {
-                            if (!_recordingMacro && _macro.size() > 0)
-                            {
-                                multipleInputEvents = false;
-                                onInput(_macro);
-                            }
-                        }
+                        update = doc.moveWordForward();
                     }
-                    else if (keyEvent.key == KEY_F2)
+                    else if (keyEvent.key == KEY_UP || keyEvent.ch == '^')
                     {
-                        showCommandLine();
-                        update = true;
-                    }
-                    else if (keyEvent.key == KEY_F5)
-                    {
-                        buildProject();
-                        updateScreen(true);
-                    }
-                    else if (keyEvent.key == KEY_F8)
-                    {
-                        saveDocument();
-                        update = true;
-                    }
-                    else if (keyEvent.key == KEY_F9)
-                    {
-                        saveAllDocuments();
-                        update = true;
-                    }
-                    else if (keyEvent.key == KEY_F10)
-                    {
-                        saveAllDocuments();
-                        destroyWindow();
-                        return;
-                    }
-                    else if (keyEvent.key == KEY_LEFT)
-                    {
-                        update = doc.moveBack();
-                    }
-                    else if (keyEvent.key == KEY_RIGHT)
-                    {
-                        update = doc.moveForward();
-                    }
-                    else if (keyEvent.key == KEY_UP)
-                    {
-                        update = doc.moveLines(-1);
+                        update = moveToPrevRecentLocation();
                     }
                     else if (keyEvent.key == KEY_DOWN)
                     {
-                        update = doc.moveLines(1);
+                        update = moveToNextRecentLocation();
                     }
-                    else if (keyEvent.key == KEY_BACKSPACE)
+                    else if (keyEvent.key == KEY_DELETE || keyEvent.ch == 'd')
                     {
-                        modified = update = doc.deleteCharBack();
-
-                        if (_currentSuggestion != INVALID_POSITION)
-                        {
-                            _currentSuggestion = INVALID_POSITION;
-                            if (completeWord(1))
-                                autocomplete = true;
-                        }
+                        modified = update = doc.deleteWordForward();
                     }
-                    else if (keyEvent.key == KEY_DELETE)
+                    else if (keyEvent.key == KEY_BACKSPACE || keyEvent.ch == ']')
                     {
-                        modified = update = doc.deleteCharForward();
-                    }
-                    else if (keyEvent.key == KEY_HOME)
-                    {
-                        update = doc.moveToLineStart();
-                    }
-                    else if (keyEvent.key == KEY_END)
-                    {
-                        update = doc.moveToLineEnd();
+                        modified = update = doc.deleteWordBack();
                     }
                     else if (keyEvent.key == KEY_PGUP)
                     {
-                        redrawAll = update = doc.moveLines(-(_height - 1));
+                        update = doc.moveLines(20);
                     }
                     else if (keyEvent.key == KEY_PGDN)
                     {
-                        redrawAll = update = doc.moveLines(_height - 1);
+                        update = doc.moveLines(20);
                     }
-                    else if (keyEvent.key == KEY_ENTER)
+                    else if (keyEvent.key == KEY_HOME)
                     {
-                        if (_document == &_commandLine)
-                        {
-                            _document = _lastDocument;
-                            update = true;
+                        update = doc.moveToStart();
+                    }
+                    else if (keyEvent.key == KEY_END)
+                    {
+                        update = doc.moveToEnd();
+                    }
+                    else if (keyEvent.ch == 't')
+                    {
+                        doc.insertChar(0x9);
+                        update = modified = true;
+                    }
+                    else if (keyEvent.ch == 'h')
+                    {
+                        update = doc.moveToLineStart();
+                    }
+                    else if (keyEvent.ch == 'e')
+                    {
+                        update = doc.moveToLineEnd();
+                    }
+                    else if (keyEvent.ch == 'p')
+                    {
+                        update = doc.moveLines(-(_height - 1));
+                    }
+                    else if (keyEvent.ch == 'n')
+                    {
+                        update = doc.moveLines(_height - 1);
+                    }
+                    else if (keyEvent.ch == 'g')
+                    {
+                        _searchStr = doc.currentWord();
 
-                            try
-                            {
-                                if (!_commandLine.value.text().empty())
-                                {
-                                    if (!processCommand(_commandLine.value.text()))
-                                    {
-                                        destroyWindow();
-                                        return;
-                                    }
-                                }
-                            }
-                            catch (Exception& ex)
-                            {
-                                _message = ex.message();
-                            }
-                        }
-                        else
+                        if (!_searchStr.empty())
                         {
-                            if (multipleInputEvents)
-                                doc.insertChar('\n');
-                            else
-                                doc.insertNewLine();
+                            _caseSesitive = true;
+                            update = doc.find(_searchStr, _caseSesitive, true);
+                        }
+                    }
+                    else if (keyEvent.ch == 'f')
+                    {
+                        if (!_searchStr.empty())
+                            update = doc.find(_searchStr, _caseSesitive, true);
+                    }
+                    else if (keyEvent.ch == 'r')
+                    {
+                        if (!_searchStr.empty())
+                            modified = update = doc.replace(_searchStr, _replaceStr, _caseSesitive);
+                    }
+                    else if (keyEvent.ch == 'a')
+                    {
+                        doc.markSelection();
+                    }
+                    else if (keyEvent.ch == 'x')
+                    {
+                        _buffer = doc.copyDeleteText(false);
+                        copyToClipboard(_buffer);
+
+                        if (!_buffer.empty())
+                            modified = update = true;
+                    }
+                    else if (keyEvent.ch == 'c' || keyEvent.ch == 'k')
+                    {
+                        _buffer = doc.copyDeleteText(true);
+                        copyToClipboard(_buffer);
+                    }
+                    else if (keyEvent.ch == 'v' || keyEvent.ch == 'l')
+                    {
+                        pasteFromClipboard(_buffer);
+
+                        if (!_buffer.empty())
+                        {
+                            doc.pasteText(_buffer);
                             modified = update = true;
                         }
                     }
-                    else if (keyEvent.key == KEY_TAB)
+                }
+                else if (keyEvent.alt)
+                {
+                    if (keyEvent.key == KEY_LEFT)
                     {
-                        if (keyEvent.shift)
-                        {
-                            if (completeWord(-1))
-                                autocomplete = true;
-                            else
-                                doc.unindentLines();
-                        }
-                        else
-                        {
-                            if (completeWord(1))
-                                autocomplete = true;
-                            else
-                                doc.indentLines();
-                        }
-
-                        modified = update = true;
+                        update = doc.moveWordBack();
                     }
-                    else if (keyEvent.key == KEY_ESC)
+                    else if (keyEvent.key == KEY_RIGHT)
                     {
-                        if (_document == &_commandLine)
+                        update = doc.moveWordForward();
+                    }
+                    else if (keyEvent.key == KEY_UP)
+                    {
+                        update = moveToPrevRecentLocation();
+                    }
+                    else if (keyEvent.key == KEY_DOWN)
+                    {
+                        update = moveToNextRecentLocation();
+                    }
+                    else if (keyEvent.key == KEY_DELETE)
+                    {
+                        modified = update = doc.deleteWordForward();
+                    }
+                    else if (keyEvent.key == KEY_BACKSPACE)
+                    {
+                        modified = update = doc.deleteWordBack();
+                    }
+                    else if (keyEvent.key == KEY_PGUP || keyEvent.ch == 'p')
+                    {
+                        update = doc.moveLines(-20);
+                    }
+                    else if (keyEvent.key == KEY_PGDN || keyEvent.ch == 'n')
+                    {
+                        update = doc.moveLines(20);
+                    }
+                    else if (keyEvent.key == KEY_HOME || keyEvent.ch == 'h')
+                    {
+                        update = doc.moveToStart();
+                    }
+                    else if (keyEvent.key == KEY_END || keyEvent.ch == 'e')
+                    {
+                        update = doc.moveToEnd();
+                    }
+                    else if (keyEvent.ch == 'a')
+                    {
+                        update = doc.toggleSelectionStart();
+                    }
+                    else if (keyEvent.ch == 'b')
+                    {
+                        update = doc.moveCharsBack();
+                    }
+                    else if (keyEvent.ch == 'w')
+                    {
+                        update = doc.moveCharsForward();
+                    }
+                    else if (keyEvent.ch == 'd')
+                    {
+                        modified = update = doc.deleteCharsForward();
+                    }
+                    else if (keyEvent.ch == ']')
+                    {
+                        modified = update = doc.deleteCharsBack();
+                    }
+                    else if (keyEvent.ch == ',')
+                    {
+                        auto doc = _document->prev ? _document->prev : _documents.last();
+
+                        if (doc != _document)
                         {
-                            _document = _lastDocument;
+                            _document = doc;
                             update = true;
                         }
-                        else
+                    }
+                    else if (keyEvent.ch == '.')
+                    {
+                        auto doc = _document->next ? _document->next : _documents.first();
+
+                        if (doc != _document)
                         {
-                            destroyWindow();
-                            return;
+                            _document = doc;
+                            update = true;
                         }
                     }
-                    else if (charIsPrint(keyEvent.ch))
+                    else if (keyEvent.ch == '/')
                     {
-                        if (_currentSuggestion == INVALID_POSITION)
-                            doc.insertChar(keyEvent.ch);
-                        else
-                        {
-                            if (charIsWord(keyEvent.ch))
-                            {
-                                doc.insertChar(keyEvent.ch);
-                                if (completeWord(0))
-                                    autocomplete = true;
-                            }
-                            else
-                            {
-                                doc.insertChar(keyEvent.ch, true);
-                                _uniqueWords[_suggestions[_currentSuggestion].word] = INT_MAX;
-                                _currentSuggestion = INVALID_POSITION;
-                            }
-                        }
-
+                        doc.commentLines();
                         modified = update = true;
                     }
+                    else if (keyEvent.ch == '\\')
+                    {
+                        doc.uncommentLines();
+                        modified = update = true;
+                    }
+                    else if (keyEvent.ch == '\'')
+                    {
+                        findUniqueWords();
+                        updateScreen(true);
+                    }
+                    else if (keyEvent.ch >= '0' && keyEvent.ch <= '9')
+                    {
+                        int n = keyEvent.ch == '0' ? 10 : keyEvent.ch - '0';
+
+                        for (auto doc = _documents.first(); doc; doc = doc->next)
+                        {
+                            if (--n == 0)
+                            {
+                                if (doc != _document)
+                                {
+                                    _document = doc;
+                                    update = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else if (keyEvent.ch == 'r')
+                    {
+                        if (_recordingMacro)
+                            _recordingMacro = false;
+                        else
+                        {
+                            _recordingMacro = true;
+                            _macro.clear();
+                        }
+
+                        update = true;
+                    }
+                    else if (keyEvent.ch == 'm')
+                    {
+                        if (!_recordingMacro && _macro.size() > 0)
+                        {
+                            multipleInputEvents = false;
+                            onInput(_macro);
+                        }
+                    }
+                }
+                else if (keyEvent.key == KEY_F2)
+                {
+                    showCommandLine();
+                    update = true;
+                }
+                else if (keyEvent.key == KEY_F5)
+                {
+                    buildProject();
+                    updateScreen(true);
+                }
+                else if (keyEvent.key == KEY_F8)
+                {
+                    saveDocument();
+                    update = true;
+                }
+                else if (keyEvent.key == KEY_F9)
+                {
+                    saveAllDocuments();
+                    update = true;
+                }
+                else if (keyEvent.key == KEY_F10)
+                {
+                    saveAllDocuments();
+                    destroyWindow();
+                    return;
+                }
+                else if (keyEvent.key == KEY_LEFT)
+                {
+                    update = doc.moveBack();
+                }
+                else if (keyEvent.key == KEY_RIGHT)
+                {
+                    update = doc.moveForward();
+                }
+                else if (keyEvent.key == KEY_UP)
+                {
+                    update = doc.moveLines(-1);
+                }
+                else if (keyEvent.key == KEY_DOWN)
+                {
+                    update = doc.moveLines(1);
+                }
+                else if (keyEvent.key == KEY_BACKSPACE)
+                {
+                    modified = update = doc.deleteCharBack();
+
+                    if (_currentSuggestion != INVALID_POSITION)
+                    {
+                        _currentSuggestion = INVALID_POSITION;
+                        if (completeWord(1))
+                            autocomplete = true;
+                    }
+                }
+                else if (keyEvent.key == KEY_DELETE)
+                {
+                    modified = update = doc.deleteCharForward();
+                }
+                else if (keyEvent.key == KEY_HOME)
+                {
+                    update = doc.moveToLineStart();
+                }
+                else if (keyEvent.key == KEY_END)
+                {
+                    update = doc.moveToLineEnd();
+                }
+                else if (keyEvent.key == KEY_PGUP)
+                {
+                    redrawAll = update = doc.moveLines(-(_height - 1));
+                }
+                else if (keyEvent.key == KEY_PGDN)
+                {
+                    redrawAll = update = doc.moveLines(_height - 1);
+                }
+                else if (keyEvent.key == KEY_ENTER)
+                {
+                    if (_document == &_commandLine)
+                    {
+                        _document = _lastDocument;
+                        update = true;
+
+                        try
+                        {
+                            if (!_commandLine.value.text().empty())
+                            {
+                                if (!processCommand(_commandLine.value.text()))
+                                {
+                                    destroyWindow();
+                                    return;
+                                }
+                            }
+                        }
+                        catch (Exception& ex)
+                        {
+                            _message = ex.message();
+                        }
+                    }
+                    else
+                    {
+                        if (multipleInputEvents)
+                            doc.insertChar('\n');
+                        else
+                            doc.insertNewLine();
+                        modified = update = true;
+                    }
+                }
+                else if (keyEvent.key == KEY_TAB)
+                {
+                    if (keyEvent.shift)
+                    {
+                        if (completeWord(-1))
+                            autocomplete = true;
+                        else
+                            doc.unindentLines();
+                    }
+                    else
+                    {
+                        if (completeWord(1))
+                            autocomplete = true;
+                        else
+                            doc.indentLines();
+                    }
+
+                    modified = update = true;
+                }
+                else if (keyEvent.key == KEY_ESC)
+                {
+                    if (_document == &_commandLine)
+                    {
+                        _document = _lastDocument;
+                        update = true;
+                    }
+                    else
+                    {
+                        destroyWindow();
+                        return;
+                    }
+                }
+                else if (charIsPrint(keyEvent.ch))
+                {
+                    if (_currentSuggestion == INVALID_POSITION)
+                        doc.insertChar(keyEvent.ch);
+                    else
+                    {
+                        if (charIsWord(keyEvent.ch))
+                        {
+                            doc.insertChar(keyEvent.ch);
+                            if (completeWord(0))
+                                autocomplete = true;
+                        }
+                        else
+                        {
+                            doc.insertChar(keyEvent.ch, true);
+                            _uniqueWords[_suggestions[_currentSuggestion].word] = INT_MAX;
+                            _currentSuggestion = INVALID_POSITION;
+                        }
+                    }
+
+                    modified = update = true;
                 }
             }
             else if (event.eventType == INPUT_EVENT_TYPE_MOUSE)
@@ -2659,30 +2656,27 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
             {
                 KeyEvent keyEvent = event.event.keyEvent;
 
-                if (keyEvent.keyDown)
+                if (keyEvent.key == KEY_F2)
                 {
-                    if (keyEvent.key == KEY_F2)
+                    showCommandLine();
+                    update = true;
+                }
+                else if (keyEvent.key == KEY_F5)
+                {
+                    buildProject();
+                    updateScreen(true);
+                }
+                else if (keyEvent.key == KEY_ESC)
+                {
+                    if (_document == &_commandLine)
                     {
-                        showCommandLine();
+                        _document = _lastDocument;
                         update = true;
                     }
-                    else if (keyEvent.key == KEY_F5)
+                    else
                     {
-                        buildProject();
-                        updateScreen(true);
-                    }
-                    else if (keyEvent.key == KEY_ESC)
-                    {
-                        if (_document == &_commandLine)
-                        {
-                            _document = _lastDocument;
-                            update = true;
-                        }
-                        else
-                        {
-                            destroyWindow();
-                            return;
-                        }
+                        destroyWindow();
+                        return;
                     }
                 }
             }

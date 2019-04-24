@@ -53,7 +53,6 @@ struct KeyEvent
 {
     Key key;
     unichar_t ch;
-    bool keyDown;
     bool ctrl, alt, shift;
 };
 

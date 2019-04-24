@@ -796,107 +796,109 @@ const Array<InputEvent>& Console::readInput()
 
             if (inputRec.EventType == KEY_EVENT)
             {
-                KeyEvent keyEvent = { KEY_NONE };
-                keyEvent.keyDown = inputRec.Event.KeyEvent.bKeyDown;
-
-                switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
+                if (inputRec.Event.KeyEvent.bKeyDown)
                 {
-                case VK_ESCAPE:
-                    keyEvent.key = KEY_ESC;
-                    break;
-                case VK_TAB:
-                    keyEvent.key = KEY_TAB;
-                    keyEvent.ch = '\t';
-                    break;
-                case VK_BACK:
-                    keyEvent.key = KEY_BACKSPACE;
-                    break;
-                case VK_RETURN:
-                    keyEvent.key = KEY_ENTER;
-                    keyEvent.ch = '\n';
-                    break;
-                case VK_UP:
-                    keyEvent.key = KEY_UP;
-                    break;
-                case VK_DOWN:
-                    keyEvent.key = KEY_DOWN;
-                    break;
-                case VK_LEFT:
-                    keyEvent.key = KEY_LEFT;
-                    break;
-                case VK_RIGHT:
-                    keyEvent.key = KEY_RIGHT;
-                    break;
-                case VK_INSERT:
-                    keyEvent.key = KEY_INSERT;
-                    break;
-                case VK_DELETE:
-                    keyEvent.key = KEY_DELETE;
-                    break;
-                case VK_HOME:
-                    keyEvent.key = KEY_HOME;
-                    break;
-                case VK_END:
-                    keyEvent.key = KEY_END;
-                    break;
-                case VK_PRIOR:
-                    keyEvent.key = KEY_PGUP;
-                    break;
-                case VK_NEXT:
-                    keyEvent.key = KEY_PGDN;
-                    break;
-                case VK_F1:
-                    keyEvent.key = KEY_F1;
-                    break;
-                case VK_F2:
-                    keyEvent.key = KEY_F2;
-                    break;
-                case VK_F3:
-                    keyEvent.key = KEY_F3;
-                    break;
-                case VK_F4:
-                    keyEvent.key = KEY_F4;
-                    break;
-                case VK_F5:
-                    keyEvent.key = KEY_F5;
-                    break;
-                case VK_F6:
-                    keyEvent.key = KEY_F6;
-                    break;
-                case VK_F7:
-                    keyEvent.key = KEY_F7;
-                    break;
-                case VK_F8:
-                    keyEvent.key = KEY_F8;
-                    break;
-                case VK_F9:
-                    keyEvent.key = KEY_F9;
-                    break;
-                case VK_F10:
-                    keyEvent.key = KEY_F10;
-                    break;
-                case VK_F11:
-                    keyEvent.key = KEY_F11;
-                    break;
-                case VK_F12:
-                    keyEvent.key = KEY_F12;
-                    break;
-                default:
-                    if (inputRec.Event.KeyEvent.uChar.UnicodeChar == 0)
-                        continue;
-                    if (inputRec.Event.KeyEvent.uChar.UnicodeChar < 0x20)
-                        keyEvent.ch = CONTROL_KEYS[inputRec.Event.KeyEvent.uChar.UnicodeChar];
-                    else
-                        keyEvent.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
-                    break;
+                    KeyEvent keyEvent = { KEY_NONE };
+
+                    switch (inputRec.Event.KeyEvent.wVirtualKeyCode)
+                    {
+                    case VK_ESCAPE:
+                        keyEvent.key = KEY_ESC;
+                        break;
+                    case VK_TAB:
+                        keyEvent.key = KEY_TAB;
+                        keyEvent.ch = '\t';
+                        break;
+                    case VK_BACK:
+                        keyEvent.key = KEY_BACKSPACE;
+                        break;
+                    case VK_RETURN:
+                        keyEvent.key = KEY_ENTER;
+                        keyEvent.ch = '\n';
+                        break;
+                    case VK_UP:
+                        keyEvent.key = KEY_UP;
+                        break;
+                    case VK_DOWN:
+                        keyEvent.key = KEY_DOWN;
+                        break;
+                    case VK_LEFT:
+                        keyEvent.key = KEY_LEFT;
+                        break;
+                    case VK_RIGHT:
+                        keyEvent.key = KEY_RIGHT;
+                        break;
+                    case VK_INSERT:
+                        keyEvent.key = KEY_INSERT;
+                        break;
+                    case VK_DELETE:
+                        keyEvent.key = KEY_DELETE;
+                        break;
+                    case VK_HOME:
+                        keyEvent.key = KEY_HOME;
+                        break;
+                    case VK_END:
+                        keyEvent.key = KEY_END;
+                        break;
+                    case VK_PRIOR:
+                        keyEvent.key = KEY_PGUP;
+                        break;
+                    case VK_NEXT:
+                        keyEvent.key = KEY_PGDN;
+                        break;
+                    case VK_F1:
+                        keyEvent.key = KEY_F1;
+                        break;
+                    case VK_F2:
+                        keyEvent.key = KEY_F2;
+                        break;
+                    case VK_F3:
+                        keyEvent.key = KEY_F3;
+                        break;
+                    case VK_F4:
+                        keyEvent.key = KEY_F4;
+                        break;
+                    case VK_F5:
+                        keyEvent.key = KEY_F5;
+                        break;
+                    case VK_F6:
+                        keyEvent.key = KEY_F6;
+                        break;
+                    case VK_F7:
+                        keyEvent.key = KEY_F7;
+                        break;
+                    case VK_F8:
+                        keyEvent.key = KEY_F8;
+                        break;
+                    case VK_F9:
+                        keyEvent.key = KEY_F9;
+                        break;
+                    case VK_F10:
+                        keyEvent.key = KEY_F10;
+                        break;
+                    case VK_F11:
+                        keyEvent.key = KEY_F11;
+                        break;
+                    case VK_F12:
+                        keyEvent.key = KEY_F12;
+                        break;
+                    default:
+                        if (inputRec.Event.KeyEvent.uChar.UnicodeChar == 0)
+                            continue;
+                        if (inputRec.Event.KeyEvent.uChar.UnicodeChar < 0x20)
+                            keyEvent.ch = CONTROL_KEYS[inputRec.Event.KeyEvent.uChar.UnicodeChar];
+                        else
+                            keyEvent.ch = inputRec.Event.KeyEvent.uChar.UnicodeChar;
+                        break;
+                    }
+
+                    DWORD modifierKeys = inputRec.Event.KeyEvent.dwControlKeyState;
+                    keyEvent.ctrl = (modifierKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+                    keyEvent.alt = (modifierKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+                    keyEvent.shift = (modifierKeys & SHIFT_PRESSED) != 0;
+
+                    _inputEvents.addLast(keyEvent);
                 }
-
-                DWORD modifierKeys = inputRec.Event.KeyEvent.dwControlKeyState;
-                keyEvent.ctrl = (modifierKeys & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-                keyEvent.alt = (modifierKeys & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
-                keyEvent.shift = (modifierKeys & SHIFT_PRESSED) != 0;
-
-                _inputEvents.addLast(keyEvent);
             }
             else if (inputRec.EventType == MOUSE_EVENT)
             {
