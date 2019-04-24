@@ -37,8 +37,6 @@ protected:
     void showWindow();
     void destroyWindow();
 
-    static void registerClass();
-
     virtual void onCreate()
     {
     }

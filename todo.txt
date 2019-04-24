@@ -1,10 +1,11 @@
-to do:
+gui:
+* trouble with message box and wm_paint handler
+* weird behavior with keyboard input in GUI mode
+
+bugs:
 * shell script highlighting
 str gets highlighted as var after $var at the end of line
 --abc=123 command line option highlighted as var assignment
-* multiple input events in GUI mode
-* what value to return from window proc?
-* weird behavior with keyboard input in GUI mode
 * stop at newline when deleting word back?
 * toggle selection doesn't work sometimes
 * indent/unindent seems buggy with selection larger than one screen
@@ -56,6 +57,7 @@ use memory mapping and on demand/background loading
 group small insert/delete changes and apply together
 store text as a list of lines/blocks
 redraw as few characters as possible instead of enitre screen
+multiple input events in GUI mode
 * move to prev/next paragraph
 * quick open for files in current directoy
 * preserve console output when exiting
@@ -93,7 +95,8 @@ type safe string formatting
 * type traits
 
 misc:
+* create public web page
 * minimal rebuild, precompiled headers
 * split foundation into a library
 * run release version in profiler, memory/thread checker
-
+* gcc compiled code on Solaris and AIX doesn't link

@@ -1,6 +1,8 @@
 #include <editor.h>
 #include <console.h>
 
+const char_t* APPLICATION_NAME = STR("ev");
+
 const int TAB_SIZE = 4;
 
 bool charIsWord(unichar_t ch)
@@ -2171,8 +2173,6 @@ bool Editor::start()
     }
 
     _document = _documents.first();
-    setDimensions();
-
     return true;
 }
 

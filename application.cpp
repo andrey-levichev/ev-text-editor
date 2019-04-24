@@ -6,6 +6,8 @@
 
 // Application
 
+extern const char_t* APPLICATION_NAME;
+
 const char_t* Application::WINDOW_CLASS = STR("WINDOW_CLASS");
 Application* Application::_application = NULL;
 
@@ -24,7 +26,6 @@ Application::~Application()
 
 void Application::run()
 {
-    registerClass();
     createWindow(_title);
     showWindow();
 
@@ -33,11 +34,13 @@ void Application::run()
     {
         MSG msg;
 
-        if (GetMessage(&msg, NULL, 0, 0) != -1)
+        if (GetMessage(&msg, NULL, 0, 0) > 0)
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+        else
+            break;
     }
 #else
     while (_window)
@@ -50,25 +53,25 @@ void Application::run()
 void Application::showMessage(const String& message)
 {
     MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
-               L"Message", MB_OK | MB_TASKMODAL);
+               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_TASKMODAL);
 }
 
 void Application::showMessage(const char_t* message)
 {
     MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
-               L"Message", MB_OK | MB_TASKMODAL);
+               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_TASKMODAL);
 }
 
 void Application::reportError(const String& message)
 {
     MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
-               L"Error", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_ICONERROR | MB_TASKMODAL);
 }
 
 void Application::reportError(const char_t* message)
 {
     MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
-               L"Error", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_ICONERROR | MB_TASKMODAL);
 }
 
 #else
@@ -101,6 +104,24 @@ void Application::createWindow(const char_t* title, int width, int height)
         throw Exception(STR("window already created"));
 
 #ifdef GUI_MODE
+    WNDCLASSEX wc;
+
+    wc.cbSize = sizeof(WNDCLASSEX);
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = windowProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = 0;
+    wc.hInstance = GetModuleHandle(NULL);
+    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = NULL;
+    wc.lpszMenuName = NULL;
+    wc.lpszClassName = reinterpret_cast<LPCWSTR>(WINDOW_CLASS);
+    wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+
+    ATOM rc = RegisterClassEx(&wc);
+    ASSERT(rc != 0);
+
     _window = reinterpret_cast<uintptr_t>(CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS),
         reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
@@ -140,28 +161,6 @@ void Application::destroyWindow()
     }
     else
         throw Exception(STR("window not created"));
-}
-
-void Application::registerClass()
-{
-#ifdef GUI_MODE
-    WNDCLASSEX wc;
-
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = windowProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = GetModuleHandle(NULL);
-    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = NULL;
-    wc.lpszMenuName = NULL;
-    wc.lpszClassName = reinterpret_cast<LPCWSTR>(WINDOW_CLASS);
-    wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-
-    RegisterClassEx(&wc);
-#endif
 }
 
 #ifdef GUI_MODE
