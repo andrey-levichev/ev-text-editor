@@ -1,6 +1,5 @@
 gui:
 * trouble with message box and wm_paint handler
-* weird behavior with keyboard input in GUI mode
 
 bugs:
 * shell script highlighting
@@ -12,6 +11,7 @@ str gets highlighted as var after $var at the end of line
 select large block from middle till end, unindent, cursor is beyod eof
 seems like screen redraw issue, alt+' doesn't help
 * don't trim whitespace by default
+* don't open directories as text files
 
 editor:
 * readonly mode

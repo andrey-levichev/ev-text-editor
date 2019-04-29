@@ -203,7 +203,6 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
                 case VK_TAB:
                     keyEvent.key = KEY_TAB;
-                    keyEvent.ch = '\t';
                     break;
 
                 case VK_BACK:
@@ -212,7 +211,6 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
                 case VK_RETURN:
                     keyEvent.key = KEY_ENTER;
-                    keyEvent.ch = '\n';
                     break;
 
                 case VK_UP:
@@ -324,7 +322,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
                 KeyEvent keyEvent = { KEY_NONE };
 
-                if (wParam > 0)
+                if (wParam > 0 && !(wParam == 0x08 || wParam == 0x09 || wParam == 0x0d || wParam == 0x1b))
                 {
                     if (wParam < 0x20)
                         keyEvent.ch = CONTROL_KEYS[wParam];
