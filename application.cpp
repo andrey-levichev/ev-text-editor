@@ -183,8 +183,12 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             return 0;
 
         case WM_PAINT:
-            _application->onPaint();
-            return 0;
+            if (GetForegroundWindow() == reinterpret_cast<HWND>(_application->_window))
+            {
+                _application->onPaint();
+                return 0;
+            }
+            break;
 
         case WM_ERASEBKGND:
             return 0;
@@ -334,11 +338,11 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
     }
     catch (Exception& ex)
     {
-        Application::reportError(ex.message());
+        reportError(ex.message());
     }
     catch (...)
     {
-        Application::reportError(STR("unknown error"));
+        reportError(STR("unknown error"));
     }
 
     return DefWindowProc(handle, message, wParam, lParam);
