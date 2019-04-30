@@ -197,22 +197,6 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
                 switch (wParam)
                 {
-                case VK_ESCAPE:
-                    keyEvent.key = KEY_ESC;
-                    break;
-
-                case VK_TAB:
-                    keyEvent.key = KEY_TAB;
-                    break;
-
-                case VK_BACK:
-                    keyEvent.key = KEY_BACKSPACE;
-                    break;
-
-                case VK_RETURN:
-                    keyEvent.key = KEY_ENTER;
-                    break;
-
                 case VK_UP:
                     keyEvent.key = KEY_UP;
                     break;
@@ -322,12 +306,18 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
                 KeyEvent keyEvent = { KEY_NONE };
 
-                if (wParam > 0 && !(wParam == 0x08 || wParam == 0x09 || wParam == 0x0d || wParam == 0x1b))
+                if (wParam > 0)
                 {
-                    if (wParam < 0x20)
-                        keyEvent.ch = CONTROL_KEYS[wParam];
+                    if (wParam == 0x08)
+                        keyEvent.key = KEY_BACKSPACE;
+                    else if (wParam == 0x09)
+                        keyEvent.key = KEY_TAB;
+                    else if (wParam == 0x0d)
+                        keyEvent.key = KEY_ENTER;
+                    else if (wParam == 0x1b)
+                        keyEvent.key = KEY_ESC;
                     else
-                        keyEvent.ch = wParam;
+                        keyEvent.ch = wParam < 0x20 ? CONTROL_KEYS[wParam] : wParam;
 
                     keyEvent.ctrl = GetKeyState(VK_CONTROL);
                     keyEvent.alt = GetKeyState(VK_MENU);
