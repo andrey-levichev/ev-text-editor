@@ -1,17 +1,19 @@
-gui:
-* trouble with message box and wm_paint handler
-
 bugs:
+* enable asserts in release version
+* always abort on assert failure?
+not going to work for unit tests
+* changeLines() doesn't redraw the screen with large selection
+reset relative positioning on redraw all
 * shell script highlighting
 str gets highlighted as var after $var at the end of line
 --abc=123 command line option highlighted as var assignment
+line follwing past the edge comment is also highlighted as comment
 * stop at newline when deleting word back?
 * toggle selection doesn't work sometimes
-* indent/unindent seems buggy with selection larger than one screen
-select large block from middle till end, unindent, cursor is beyod eof
-seems like screen redraw issue, alt+' doesn't help
 * don't trim whitespace by default
 * don't open directories as text files
+* ctrl+x after indent deletes entire indented block
+* second multiline indent doesn't work
 
 editor:
 * readonly mode
