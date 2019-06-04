@@ -1,5 +1,14 @@
 #include <foundation.h>
+#include <application.h>
 #include <file.h>
+
+// assert macros
+
+void terminate(const char_t* message)
+{
+    Application::reportError(message);
+    exit(1);
+}
 
 // debug logging
 

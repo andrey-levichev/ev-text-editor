@@ -173,7 +173,6 @@ typedef char32_t unichar_t;
 #define CHAR_ENCODING_UTF16
 #define MAIN wmain
 #define STR(arg) u##arg
-#define PUTS _putws
 #define CRLF true
 #define NEWLINE STR("\r\n")
 
@@ -190,7 +189,6 @@ typedef char16_t char_t;
 #define STR(arg) u8##arg
 #endif
 
-#define PUTS puts
 #define CRLF false
 #define NEWLINE STR("\n")
 
@@ -201,6 +199,10 @@ typedef char char_t;
 typedef unsigned char byte_t;
 #define INVALID_POSITION -1
 
+#define TO_STR(arg) #arg
+#define STR_MACRO(arg) STR(arg)
+#define NUM_MACRO(arg) STR_MACRO(TO_STR(arg))
+
 #ifdef COMPILER_XL_CPP
 #define ALIGN_AS(n) __attribute__((aligned(n)))
 #else
@@ -209,9 +211,7 @@ typedef unsigned char byte_t;
 
 // assert macros
 
-#define TO_STR(arg) #arg
-#define STR_MACRO(arg) STR(arg)
-#define NUM_MACRO(arg) STR_MACRO(TO_STR(arg))
+void terminate(const char_t* message);
 
 #ifdef ENABLE_ASSERT
 
@@ -221,11 +221,7 @@ typedef unsigned char byte_t;
     do \
     { \
         if (!(condition)) \
-        { \
-            PUTS(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") \
-                     msg); \
-            abort(); \
-        } \
+            terminate(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") msg); \
     } while (false)
 
 #else
@@ -234,8 +230,7 @@ typedef unsigned char byte_t;
     do \
     { \
         if (!(condition)) \
-            throw Exception(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) \
-                                STR(": ") msg); \
+            throw Exception(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") msg); \
     } while (false)
 
 #endif

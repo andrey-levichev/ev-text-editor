@@ -5855,7 +5855,7 @@ void testConsoleReadInput()
             {
                 KeyEvent keyEvent = event.event.keyEvent;
 
-                Console::writeFormatted(STR("key %s: "), keyEvent.keyDown ? STR("down") : STR("up"));
+                Console::write(STR("key: "));
 
                 if (keyEvent.ctrl)
                     Console::write(STR("ctrl "));
@@ -6140,29 +6140,15 @@ void printPlatformInfo()
 void runTests()
 {
     printPlatformInfo();
-
     testSupport();
     testFoundation();
-    //    testFile();
-    //    testConsole();
-    //    testConsoleWrite();
-    //    testConsoleReadChar();
-    //    testConsoleReadLine();
-    //    testConsoleReadInput();
 }
 
 int MAIN(int argc, const char_t** argv)
 {
     try
     {
-        LOG_LOC;
-        LOG_MSG("abc");
-        int i = 123;
-        LOG_STMT(++i);
-        LOG_FMT("var=%d", i);
-        ASSERT_MSG(i == 124, "msg");
-        ASSERT_FAIL("zhopa");
-        ASSERT_EXCEPTION_MSG(Exception, "zhopa", printPlatformInfo());
+        runTests();
     }
     catch (Exception& ex)
     {
