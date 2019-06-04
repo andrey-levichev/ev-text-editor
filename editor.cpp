@@ -2044,8 +2044,8 @@ void Document::determineDocumentType(bool fileExecutable)
 
 // Editor
 
-Editor::Editor(int argc, const char_t** argv) :
-    Application(argc, argv, STR("ev")),
+Editor::Editor(const Array<String>& args) :
+    Application(args, STR("ev")),
     _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL), _recordingMacro(false),
     _caseSesitive(true), _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
 {
@@ -2149,9 +2149,9 @@ void Editor::closeDocument()
 
 bool Editor::start()
 {
-    for (int i = 1; i < _argc; ++i)
+    for (int i = 1; i < _args.size(); ++i)
     {
-        if (strCompare(_argv[i], STR("--version")) == 0)
+        if (_args[i] == STR("--version"))
         {
             showMessage(STR("ev text editor version 2.0\n"
                                             "web: github.com/andrey-levichev/ev-text-editor\n"
@@ -2164,12 +2164,12 @@ bool Editor::start()
 
             return false;
         }
-        else if (strCompare(_argv[i], STR("--bright")) == 0)
+        else if (_args[i] == STR("--bright"))
             _brightBackground = true;
-        else if (strCompare(_argv[i], STR("--dark")) == 0)
+        else if (_args[i] == STR("--dark"))
             _brightBackground = false;
         else
-            openDocument(_argv[i]);
+            openDocument(_args[i]);
     }
 
     _document = _documents.first();
@@ -3401,4 +3401,12 @@ void Editor::pasteFromClipboard(String& text)
     else
         text.clear();
 #endif
+}
+
+void run(const Array<String>& args)
+{
+    Editor app(args);
+
+    if (app.start())
+        app.run();
 }

@@ -1,13 +1,17 @@
-#include <editor.h>
+#include <foundation.h>
 
-int run(int argc, const char_t** argv)
+void run(const Array<String>& args);
+
+int __run(int argc, const char_t** argv)
 {
     try
     {
-        Editor app(argc, argv);
+        Array<String> args;
 
-        if (app.start())
-            app.run();
+        for (int i = 0; i < argc; ++i)
+            args.addLast(argv[i]);
+
+        run(args);
     }
     catch (Exception& ex)
     {
@@ -30,7 +34,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* command
     CoInitialize(NULL);
     SetProcessDPIAware();
 
-    int rc = run(__argc, reinterpret_cast<const char_t**>(const_cast<const wchar_t**>(__wargv)));
+    int rc = __run(__argc, reinterpret_cast<const char_t**>(const_cast<const wchar_t**>(__wargv)));
 
     CoUninitialize();
 
@@ -41,7 +45,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* command
 
 int MAIN(int argc, const char_t** argv)
 {
-    return run(argc, argv);
+    return __run(argc, argv);
 }
 
 #endif

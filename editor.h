@@ -396,7 +396,7 @@ struct AutocompleteSuggestion
 class Editor : public Application
 {
 public:
-    Editor(int argc, const char_t** argv);
+    Editor(const Array<String>& args);
 
     bool brightBackground() const
     {

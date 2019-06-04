@@ -9,8 +9,8 @@
 class Application
 {
 public:
-    Application(int argc, const char_t** argv, const char_t* title = STR("Application")) :
-        _argc(argc), _argv(argv), _window(0), _title(title)
+    Application(const Array<String>& args, const char_t* title = STR("Application")) :
+        _args(args), _title(title), _window(0)
     {
         _application = this;
     }
@@ -49,10 +49,9 @@ protected:
     }
 
 protected:
-    int _argc;
-    const char_t** _argv;
-    uintptr_t _window;
+    Array<String> _args;
     const char_t* _title;
+    uintptr_t _window;
 
     static const char_t* WINDOW_CLASS;
     static Application* _application;
