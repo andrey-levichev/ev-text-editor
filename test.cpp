@@ -1,5 +1,7 @@
 #include <test.h>
 
+const char_t* APPLICATION_NAME = STR("test");
+
 int hash(const Unique<int>& val)
 {
     return val ? *val : 0;

@@ -11,12 +11,12 @@ int run(int argc, const char_t** argv)
     }
     catch (Exception& ex)
     {
-        Application::reportError(ex.message());
+        reportError(ex.message());
         return 1;
     }
     catch (...)
     {
-        Application::reportError(STR("unknown error"));
+        reportError(STR("unknown error"));
         return 1;
     }
 

@@ -2153,7 +2153,7 @@ bool Editor::start()
     {
         if (strCompare(_argv[i], STR("--version")) == 0)
         {
-            Application::showMessage(STR("ev text editor version 2.0\n"
+            showMessage(STR("ev text editor version 2.0\n"
                                             "web: github.com/andrey-levichev/ev-text-editor\n"
                                             "Copyright (C) Andrey Levichev, 2019\n\n"
                                             "usage: ev [OPTIONS] [FILE]...\n\n"

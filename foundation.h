@@ -209,9 +209,21 @@ typedef unsigned char byte_t;
 #define ALIGN_AS(n) alignas(n)
 #endif
 
+// diagnostic messages
+
+class String;
+
+void showMessage(const char_t* message);
+void showMessage(const String& message);
+void reportError(const char_t* message);
+void reportError(const String& message);
+
 // assert macros
 
+class String;
+
 void terminate(const char_t* message);
+void terminate(const String& message);
 
 #ifdef ENABLE_ASSERT
 

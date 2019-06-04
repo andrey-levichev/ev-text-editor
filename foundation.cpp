@@ -1,12 +1,75 @@
 #include <foundation.h>
-#include <application.h>
 #include <file.h>
+
+#ifndef GUI_MODE
+#include <console.h>
+#endif
+
+extern const char_t* APPLICATION_NAME;
+
+// diagnostic messages
+
+#ifdef GUI_MODE
+
+void showMessage(const char_t* message)
+{
+    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
+               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_TASKMODAL);
+}
+
+void showMessage(const String& message)
+{
+    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
+               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_TASKMODAL);
+}
+
+void reportError(const char_t* message)
+{
+    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
+               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_ICONERROR | MB_TASKMODAL);
+}
+
+void reportError(const String& message)
+{
+    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
+               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_ICONERROR | MB_TASKMODAL);
+}
+
+#else
+
+void showMessage(const char_t* message)
+{
+    Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message);
+}
+
+void showMessage(const String& message)
+{
+    Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message.chars());
+}
+
+void reportError(const char_t* message)
+{
+    Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message);
+}
+
+void reportError(const String& message)
+{
+    Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message.chars());
+}
+
+#endif
 
 // assert macros
 
 void terminate(const char_t* message)
 {
-    Application::reportError(message);
+    reportError(message);
+    exit(1);
+}
+
+void terminate(const String& message)
+{
+    reportError(message);
     exit(1);
 }
 

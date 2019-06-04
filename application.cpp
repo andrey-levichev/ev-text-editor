@@ -6,8 +6,6 @@
 
 // Application
 
-extern const char_t* APPLICATION_NAME;
-
 const char_t* Application::WINDOW_CLASS = STR("WINDOW_CLASS");
 Application* Application::_application = NULL;
 
@@ -47,56 +45,6 @@ void Application::run()
         onInput(Console::readInput());
 #endif
 }
-
-#ifdef GUI_MODE
-
-void Application::showMessage(const String& message)
-{
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
-               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_TASKMODAL);
-}
-
-void Application::showMessage(const char_t* message)
-{
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
-               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_TASKMODAL);
-}
-
-void Application::reportError(const String& message)
-{
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()),
-               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_ICONERROR | MB_TASKMODAL);
-}
-
-void Application::reportError(const char_t* message)
-{
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message),
-               reinterpret_cast<LPCWSTR>(APPLICATION_NAME), MB_OK | MB_ICONERROR | MB_TASKMODAL);
-}
-
-#else
-
-void Application::showMessage(const String& message)
-{
-    Console::writeLine(message);
-}
-
-void Application::showMessage(const char_t* message)
-{
-    Console::writeLine(message);
-}
-
-void Application::reportError(const String& message)
-{
-    Console::writeLine(message);
-}
-
-void Application::reportError(const char_t* message)
-{
-    Console::writeLine(message);
-}
-
-#endif
 
 void Application::createWindow(const char_t* title, int width, int height)
 {
