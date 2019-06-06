@@ -1,18 +1,18 @@
-EDITOR_NAME=ev
+APPLICATION_NAME=ev
 
 TEST_HEADERS=test.h foundation.h input.h file.h  console.h
 TEST_SOURCES=test.cpp foundation.cpp input.cpp file.cpp console.cpp
 
-COMMON_HEADERS=foundation.h input.h file.h application.h editor.h
-COMMON_SOURCES=foundation.cpp input.cpp file.cpp application.cpp editor.cpp main.cpp
+FOUNDATION_HEADERS=foundation.h input.h file.h application.h
+FOUNDATION_SOURCES=foundation.cpp input.cpp file.cpp application.cpp main.cpp
 
-EDITOR_HEADERS=$(COMMON_HEADERS) console.h
-EDITOR_SOURCES=$(COMMON_SOURCES) console.cpp
+APPLICATION_HEADERS=$(FOUNDATION_HEADERS) console.h editor.h
+APPLICATION_SOURCES=$(FOUNDATION_SOURCES) console.cpp editor.cpp
 
-EDITOR_GUI_HEADERS=$(COMMON_HEADERS) graphics.h
-EDITOR_GUI_SOURCES=$(COMMON_SOURCES) graphics.cpp
+APPLICATION_GUI_HEADERS=$(FOUNDATION_HEADERS) graphics.h editor.h
+APPLICATION_GUI_SOURCES=$(FOUNDATION_SOURCES) graphics.cpp editor.cpp
 
-TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o
+TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o t.*
 
 VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 /wd4723 \
 	/I. /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
@@ -37,43 +37,43 @@ XLC_OPTIONS=-q64 -qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306
 XLC_DEBUG_OPTIONS=-g -DENABLE_ASSERT
 XLC_RELEASE_OPTIONS=-O3 -qstrict=nans:infinities
 
-all: editor.dbg.vcpp.exe
+all: $(APPLICATION_NAME).dbg.vcpp.exe
 
-editor.dbg.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS)
+$(APPLICATION_NAME).dbg.vcpp.exe: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(APPLICATION_SOURCES) $(VCPP_LINKER_OPTIONS)
 
-editor.gui.dbg.vcpp.exe: $(EDITOR_GUI_HEADERS) $(EDITOR_GUI_SOURCES)
-	cl /DGUI_MODE $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(EDITOR_GUI_SOURCES) $(VCPP_LINKER_OPTIONS)
+$(APPLICATION_NAME).gui.dbg.vcpp.exe: $(APPLICATION_GUI_HEADERS) $(APPLICATION_GUI_SOURCES)
+	cl /DGUI_MODE $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(APPLICATION_GUI_SOURCES) $(VCPP_LINKER_OPTIONS)
 
-editor.dbg.gcc: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(EDITOR_SOURCES)
+$(APPLICATION_NAME).dbg.gcc: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	g++ $(GCC_OPTIONS) $(GCC_DEBUG_OPTIONS) $(APPLICATION_SOURCES)
 
-editor.dbg.clang: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	clang++ $(CLANG_OPTIONS) $(CLANG_DEBUG_OPTIONS) $(EDITOR_SOURCES)
+$(APPLICATION_NAME).dbg.clang: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	clang++ $(CLANG_OPTIONS) $(CLANG_DEBUG_OPTIONS) $(APPLICATION_SOURCES)
 
-editor.dbg.sol: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	CC $(SOL_OPTIONS) $(SOL_DEBUG_OPTIONS) $(EDITOR_SOURCES)
+$(APPLICATION_NAME).dbg.sol: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	CC $(SOL_OPTIONS) $(SOL_DEBUG_OPTIONS) $(APPLICATION_SOURCES)
 
-editor.dbg.xlc: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	xlC_r $(XLC_OPTIONS) $(XLC_DEBUG_OPTIONS) $(EDITOR_SOURCES)
+$(APPLICATION_NAME).dbg.xlc: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	xlC_r $(XLC_OPTIONS) $(XLC_DEBUG_OPTIONS) $(APPLICATION_SOURCES)
 
-editor.vcpp.exe: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	cl $(VCPP_OPTIONS) $(VCPP_RELEASE_OPTIONS) $(EDITOR_SOURCES) $(VCPP_LINKER_OPTIONS)
+$(APPLICATION_NAME).vcpp.exe: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	cl $(VCPP_OPTIONS) $(VCPP_RELEASE_OPTIONS) $(APPLICATION_SOURCES) $(VCPP_LINKER_OPTIONS)
 
-editor.gui.vcpp.exe: $(EDITOR_GUI_HEADERS) $(EDITOR_GUI_SOURCES)
-	cl /DGUI_MODE $(VCPP_OPTIONS) $(VCPP_RELEASE_OPTIONS) $(EDITOR_GUI_SOURCES) $(VCPP_LINKER_OPTIONS)
+$(APPLICATION_NAME).gui.vcpp.exe: $(APPLICATION_GUI_HEADERS) $(APPLICATION_GUI_SOURCES)
+	cl /DGUI_MODE $(VCPP_OPTIONS) $(VCPP_RELEASE_OPTIONS) $(APPLICATION_GUI_SOURCES) $(VCPP_LINKER_OPTIONS)
 
-editor.gcc: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	g++ $(GCC_OPTIONS) $(GCC_RELEASE_OPTIONS) $(EDITOR_SOURCES)
+$(APPLICATION_NAME).gcc: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	g++ $(GCC_OPTIONS) $(GCC_RELEASE_OPTIONS) $(APPLICATION_SOURCES)
 
-editor.clang: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	clang++ $(CLANG_OPTIONS) $(CLANG_RELEASE_OPTIONS) $(EDITOR_SOURCES)
+$(APPLICATION_NAME).clang: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	clang++ $(CLANG_OPTIONS) $(CLANG_RELEASE_OPTIONS) $(APPLICATION_SOURCES)
 
-editor.sol: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	CC $(SOL_OPTIONS) $(SOL_RELEASE_OPTIONS) $(EDITOR_SOURCES)
+$(APPLICATION_NAME).sol: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	CC $(SOL_OPTIONS) $(SOL_RELEASE_OPTIONS) $(APPLICATION_SOURCES)
 
-editor.xlc: $(EDITOR_HEADERS) $(EDITOR_SOURCES)
-	xlC_r $(XLC_OPTIONS) $(XLC_RELEASE_OPTIONS) $(EDITOR_SOURCES)
+$(APPLICATION_NAME).xlc: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES)
+	xlC_r $(XLC_OPTIONS) $(XLC_RELEASE_OPTIONS) $(APPLICATION_SOURCES)
 
 test.dbg.vcpp.exe: $(TEST_HEADERS) $(TEST_SOURCES)
 	cl $(VCPP_OPTIONS) $(VCPP_DEBUG_OPTIONS) $(TEST_SOURCES) $(VCPP_LINKER_OPTIONS)
@@ -109,32 +109,32 @@ clean:
 	-del $(TRASH)
 	-rm $(TRASH)
 
-depl.win: editor.vcpp.exe
-	move /y editor.vcpp.exe $(EDITOR_NAME).exe
-	"C:\Program Files\7-Zip\7z.exe" a $(EDITOR_NAME)-win.zip $(EDITOR_NAME).exe
-	move /y $(EDITOR_NAME)-win.zip docs
-    move /y $(EDITOR_NAME).exe C:\Users\alevichev
+depl.win: $(APPLICATION_NAME).vcpp.exe
+	move /y $(APPLICATION_NAME).vcpp.exe $(APPLICATION_NAME).exe
+	"C:\Program Files\7-Zip\7z.exe" a $(APPLICATION_NAME)-win.zip $(APPLICATION_NAME).exe
+	move /y $(APPLICATION_NAME)-win.zip docs
+    move /y $(APPLICATION_NAME).exe C:\Users\alevichev
 
-depl.mac: editor.clang
-	mv editor.clang $(EDITOR_NAME)
-	tar cJvf $(EDITOR_NAME)-mac.tar.bz2 $(EDITOR_NAME)
-	mv $(EDITOR_NAME)-mac.tar.bz2 docs
-	sudo mv $(EDITOR_NAME) /opt/bin
+depl.mac: $(APPLICATION_NAME).clang
+	mv $(APPLICATION_NAME).clang $(APPLICATION_NAME)
+	tar cJvf $(APPLICATION_NAME)-mac.tar.bz2 $(APPLICATION_NAME)
+	mv $(APPLICATION_NAME)-mac.tar.bz2 docs
+	sudo mv $(APPLICATION_NAME) /opt/bin
 
-depl.linux: editor.gcc
-	mv editor.gcc $(EDITOR_NAME)
-	tar acvf $(EDITOR_NAME)-linux.tar.bz2 $(EDITOR_NAME)
-	mv $(EDITOR_NAME)-linux.tar.bz2 docs
-	mv $(EDITOR_NAME) ~/bin/Linux
+depl.linux: $(APPLICATION_NAME).gcc
+	mv $(APPLICATION_NAME).gcc $(APPLICATION_NAME)
+	tar acvf $(APPLICATION_NAME)-linux.tar.bz2 $(APPLICATION_NAME)
+	mv $(APPLICATION_NAME)-linux.tar.bz2 docs
+	mv $(APPLICATION_NAME) ~/bin/Linux
 
-depl.solaris: editor.sol
-	mv editor.sol $(EDITOR_NAME)
-	tar acvf $(EDITOR_NAME)-solaris.tar.bz2 $(EDITOR_NAME)
-	mv $(EDITOR_NAME)-solaris.tar.bz2 docs
-	mv $(EDITOR_NAME) ~/bin/SunOS
+depl.solaris: $(APPLICATION_NAME).sol
+	mv $(APPLICATION_NAME).sol $(APPLICATION_NAME)
+	tar acvf $(APPLICATION_NAME)-solaris.tar.bz2 $(APPLICATION_NAME)
+	mv $(APPLICATION_NAME)-solaris.tar.bz2 docs
+	mv $(APPLICATION_NAME) ~/bin/SunOS
 
-depl.aix: editor.xlc
-	mv editor.xlc $(EDITOR_NAME)
-	tar acvf $(EDITOR_NAME)-aix.tar.bz2 $(EDITOR_NAME)
-	mv $(EDITOR_NAME)-aix.tar.bz2 docs
-	mv $(EDITOR_NAME) ~/bin/AIX
+depl.aix: $(APPLICATION_NAME).xlc
+	mv $(APPLICATION_NAME).xlc $(APPLICATION_NAME)
+	tar acvf $(APPLICATION_NAME)-aix.tar.bz2 $(APPLICATION_NAME)
+	mv $(APPLICATION_NAME)-aix.tar.bz2 docs
+	mv $(APPLICATION_NAME) ~/bin/AIX
