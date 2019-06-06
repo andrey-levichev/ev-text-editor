@@ -356,13 +356,11 @@ Console::Constructor::Constructor()
     }
     catch (Exception& ex)
     {
-        Console::writeLine(ex.message());
-        abort();
+        terminate(ex.message());
     }
     catch (...)
     {
-        Console::writeLine(STR("unknown error"));
-        abort();
+        terminate(STR("unknown error"));
     }
 }
 
@@ -374,13 +372,11 @@ Console::Constructor::~Constructor()
     }
     catch (Exception& ex)
     {
-        Console::writeLine(ex.message());
-        abort();
+        terminate(ex.message());
     }
     catch (...)
     {
-        Console::writeLine(STR("unknown error"));
-        abort();
+        terminate(STR("unknown error"));
     }
 }
 

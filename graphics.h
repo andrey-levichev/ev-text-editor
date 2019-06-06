@@ -1,5 +1,5 @@
-#ifndef RENDERER_INCLUDED
-#define RENDERER_INCLUDED
+#ifndef GRAPHICS_INCLUDED
+#define GRAPHICS_INCLUDED
 
 #include <foundation.h>
 #include <d2d1.h>

@@ -1,5 +1,10 @@
 bugs:
-* incorporate application and main into foundation
+* more generic makefile
+get rid of gui targets?
+use ifdefs to include console/graphics?
+get rid of ifden when including console
+why linker options for vc++?
+dpi aware for console
 * enable asserts in release version
 cleanup on terminate?
 macros needs STR() only for first string

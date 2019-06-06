@@ -6146,22 +6146,7 @@ void runTests()
     testFoundation();
 }
 
-int MAIN(int argc, const char_t** argv)
+void run(const Array<String>& args)
 {
-    try
-    {
-        runTests();
-    }
-    catch (Exception& ex)
-    {
-        Console::writeLine(ex.message());
-        return 1;
-    }
-    catch (...)
-    {
-        Console::writeLine(STR("unknown error"));
-        return 1;
-    }
-
-    return 0;
+    runTests();
 }
