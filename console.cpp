@@ -316,68 +316,45 @@ Array<char> Console::_inputChars(16);
 #endif
 
 Array<InputEvent> Console::_inputEvents;
-Console::Constructor Console::constructor;
 
-Console::Constructor::Constructor()
+void Console::initialize()
 {
-    try
-    {
 #ifdef PLATFORM_WINDOWS
-        int rc = _setmode(_fileno(stdin), _O_U16TEXT);
-        ASSERT(rc >= 0);
+    int rc = _setmode(_fileno(stdin), _O_U16TEXT);
+    ASSERT(rc >= 0);
 
-        rc = _setmode(_fileno(stdout), _O_U16TEXT);
-        ASSERT(rc >= 0);
+    rc = _setmode(_fileno(stdout), _O_U16TEXT);
+    ASSERT(rc >= 0);
 
-        HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-        ASSERT(handle);
+    HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    ASSERT(handle);
 
-        CONSOLE_SCREEN_BUFFER_INFO csbi;
-        rc = GetConsoleScreenBufferInfo(handle, &csbi);
-        ASSERT(rc);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    rc = GetConsoleScreenBufferInfo(handle, &csbi);
+    ASSERT(rc);
 
-        _defaultForeground = static_cast<ForegroundColor>(
-            csbi.wAttributes & (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY));
+    _defaultForeground = static_cast<ForegroundColor>(
+        csbi.wAttributes & (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY));
 
-        _defaultBackground = static_cast<BackgroundColor>(
-            csbi.wAttributes & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY));
+    _defaultBackground = static_cast<BackgroundColor>(
+        csbi.wAttributes & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY));
 #else
-        int rc = setvbuf(stdout, NULL, _IONBF, 0);
-        ASSERT(rc == 0);
+    int rc = setvbuf(stdout, NULL, _IONBF, 0);
+    ASSERT(rc == 0);
 
-        signal(SIGWINCH, onSIGWINCH);
+    signal(SIGWINCH, onSIGWINCH);
 
-        _defaultForeground = FOREGROUND_COLOR_DEFAULT;
-        _defaultBackground = BACKGROUND_COLOR_DEFAULT;
+    _defaultForeground = FOREGROUND_COLOR_DEFAULT;
+    _defaultBackground = BACKGROUND_COLOR_DEFAULT;
 #endif
 
-        setlocale(LC_ALL, "");
-        setLineMode(true);
-    }
-    catch (Exception& ex)
-    {
-        terminate(ex.message());
-    }
-    catch (...)
-    {
-        terminate(STR("unknown error"));
-    }
+    setlocale(LC_ALL, "");
+    setLineMode(true);
 }
 
-Console::Constructor::~Constructor()
+void Console::shutdown()
 {
-    try
-    {
-        setColor(_defaultForeground, _defaultBackground);
-    }
-    catch (Exception& ex)
-    {
-        terminate(ex.message());
-    }
-    catch (...)
-    {
-        terminate(STR("unknown error"));
-    }
+    setColor(_defaultForeground, _defaultBackground);
 }
 
 bool Console::brightBackground()

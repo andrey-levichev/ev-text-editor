@@ -111,6 +111,9 @@ public:
         return _defaultBackground;
     }
 
+    static void initialize();
+    static void shutdown();
+
     static void setLineMode(bool lineMode);
     static void setColor(ForegroundColor foreground, BackgroundColor background);
 
@@ -155,14 +158,6 @@ protected:
 #endif
 
     static Array<InputEvent> _inputEvents;
-
-    struct Constructor
-    {
-        Constructor();
-        ~Constructor();
-    };
-
-    static Constructor constructor;
 };
 
 #endif

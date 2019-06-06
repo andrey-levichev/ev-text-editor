@@ -1,8 +1,5 @@
 #include <application.h>
-
-#ifndef GUI_MODE
 #include <console.h>
-#endif
 
 // Application
 

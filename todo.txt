@@ -1,8 +1,4 @@
 bugs:
-* more generic makefile
-use ifdefs to include console/graphics?
-get rid of ifden when including console
-dpi aware for console, move console init to main?
 * enable asserts in release version
 cleanup on terminate?
 macros needs STR() only for first string
@@ -23,6 +19,7 @@ line follwing past the edge comment is also highlighted as comment
 * second multiline indent doesn't work
 
 editor:
+* support wildecards in file names on windows
 * readonly mode
 * run command, run last command
 * auto detect line endings
@@ -105,7 +102,7 @@ type safe string formatting
 
 misc:
 * create public web page
-* minimal rebuild, precompiled headers
+* minimal rebuild, precompiled headers, multiple targets
 * split foundation into a library
 * run release version in profiler, memory/thread checker
 * gcc compiled code on Solaris and AIX doesn't link

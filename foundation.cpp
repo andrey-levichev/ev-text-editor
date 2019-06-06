@@ -1,9 +1,6 @@
 #include <foundation.h>
 #include <file.h>
-
-#ifndef GUI_MODE
 #include <console.h>
-#endif
 
 extern const char_t* APPLICATION_NAME;
 
