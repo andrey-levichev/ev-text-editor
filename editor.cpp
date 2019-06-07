@@ -1,5 +1,4 @@
 #include <editor.h>
-#include <graphics.h>
 #include <console.h>
 
 const char_t* APPLICATION_NAME = STR("ev");

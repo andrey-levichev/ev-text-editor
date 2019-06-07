@@ -10,7 +10,7 @@ void __run(int argc, const char_t** argv)
         Array<String> args;
 
         for (int i = 0; i < argc; ++i)
-            args.addLast(argv[i]);
+            args.addLast(String(argv[i]));
 
         run(args);
     }

@@ -17,15 +17,16 @@ public:
 
     virtual ~Application();
 
-    Application(const Application&) = delete;
-    Application& operator=(const Application&) = delete;
-
     virtual bool start()
     {
         return true;
     }
 
     virtual void run();
+
+private:
+    Application(const Application&);
+    Application& operator=(const Application&);
 
 protected:
     void createWindow(const char_t* title, int width = 0, int height = 0);
