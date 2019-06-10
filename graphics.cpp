@@ -101,7 +101,7 @@ __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactor
         throw Exception(STR("Failed to create D2D bitmap"));
 }
 
-Size TextBlock::getTextSize() const
+Size __TextBlockD2d::getTextSize() const
 {
     DWRITE_TEXT_METRICS textMetrics;
     _textLayout->GetMetrics(&textMetrics);
@@ -219,22 +219,25 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
 void Graphics::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color)
 {
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
-    _renderTarget->DrawTextLayout({ pos.x, pos.y }, textBlock._textLayout, brush);
+    const __TextBlockD2d& textBlockD2d = dynamic_cast<const __TextBlockD2d&>(textBlock);
+
+    _renderTarget->DrawTextLayout({ pos.x, pos.y }, textBlockD2d._textLayout, brush);
 }
 
 void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
 {
     D2D1_RECT_F rect;
+    const __ImageD2d& imageD2d = dynamic_cast<const __ImageD2d&>(image);
 
     if (size)
         rect = { pos.x, pos.y, pos.x + size->width, pos.y + size->height };
     else
     {
-        D2D1_SIZE_F size = image._bitmap->GetSize();
+        D2D1_SIZE_F size = imageD2d._bitmap->GetSize();
         rect = { pos.x, pos.y, pos.x + size.width, pos.y + size.height };
     }
 
-    _renderTarget->DrawBitmap(image._bitmap, rect);
+    _renderTarget->DrawBitmap(imageD2d._bitmap, rect);
 }
 
 void Graphics::resize(int width, int height)

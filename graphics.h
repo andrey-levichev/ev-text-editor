@@ -203,7 +203,17 @@ public:
 class TextBlock
 {
 public:
-    TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
+    virtual ~TextBlock()
+    {
+    }
+
+    virtual Size getTextSize() const = 0;
+};
+
+class __TextBlockD2d : public TextBlock
+{
+public:
+    __TextBlockD2d(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
               const Size& size) :
         _textFormat(textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
                     DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us")),
@@ -211,7 +221,7 @@ public:
     {
     }
 
-    Size getTextSize() const;
+    virtual Size getTextSize() const;
 
 private:
     __TextFormat _textFormat;
@@ -225,7 +235,15 @@ private:
 class Image
 {
 public:
-    Image(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName) :
+    virtual ~Image()
+    {
+    }
+};
+
+class __ImageD2d : public Image
+{
+public:
+    __ImageD2d(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName) :
         _bitmap(renderTarget, imagingFactory, fileName)
     {
     }
@@ -266,14 +284,14 @@ public:
     Unique<TextBlock> createTextBlock(const String& font, float fontSize, bool bold, const String& text,
                                       const Size& size)
     {
-        return createUnique<TextBlock>(_textFactory, font, fontSize, bold, text, size);
+        return createUnique<__TextBlockD2d>(_textFactory, font, fontSize, bold, text, size);
     }
 
     void drawImage(const Image& image, const Point& pos, const Size* size = NULL);
 
     Unique<Image> createImage(const String& fileName)
     {
-        return createUnique<Image>(_renderTarget, _imagingFactory, fileName);
+        return createUnique<__ImageD2d>(_renderTarget, _imagingFactory, fileName);
     }
 
     void resize(int width, int height);
