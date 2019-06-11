@@ -1,5 +1,7 @@
 #include <graphics.h>
 
+#ifdef PLATFORM_WINDOWS
+
 __DrawingFactory::__DrawingFactory()
 {
     if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &_ptr)))
@@ -101,76 +103,106 @@ __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactor
         throw Exception(STR("Failed to create D2D bitmap"));
 }
 
-Size __TextBlockD2d::getTextSize() const
+#endif
+
+Size TextBlock::getTextSize() const
 {
+#ifdef PLATFORM_WINDOWS
     DWRITE_TEXT_METRICS textMetrics;
     _textLayout->GetMetrics(&textMetrics);
     return { textMetrics.width, textMetrics.height };
+#else
+    return { 0, 0 };
+#endif
 }
 
-Graphics::Graphics(HWND window) : _renderTarget(_drawingFactory, window)
+#ifdef PLATFORM_WINDOWS
+Graphics::Graphics(uintptr_t window)  :
+    _renderTarget(_drawingFactory, reinterpret_cast<HWND>(window))
+#else
+Graphics::Graphics(uintptr_t window)
+#endif
 {
 }
 
 void Graphics::beginDraw()
 {
+#ifdef PLATFORM_WINDOWS
     _renderTarget->BeginDraw();
     _renderTarget->SetTransform(D2D1::IdentityMatrix());
     _renderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
+#endif
 }
 
 void Graphics::endDraw()
 {
+#ifdef PLATFORM_WINDOWS
     _renderTarget->EndDraw();
+#endif
 }
 
 void Graphics::drawLine(const Point& p1, const Point& p2, Color color, float width)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ p1.x, p1.y }, { p2.x, p2.y }, brush, width);
+#endif
 }
 
 void Graphics::drawHorizontalLine(float y, float x1, float x2, Color color, float width)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ x1, y }, { x2, y }, brush, width);
+#endif
 }
 
 void Graphics::drawVerticalLine(float x, float y1, float y2, Color color, float width)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ x, y1 }, { x, y2 }, brush, width);
+#endif
 }
 
 void Graphics::drawRectangle(const Rect& rect, Color color, float borderWidth)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush, borderWidth);
+#endif
 }
 
 void Graphics::drawRoundedRectangle(const Rect& rect, Color color, float cornerRadius, float borderWidth)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawRoundedRectangle(
         { { rect.left, rect.top, rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush, borderWidth);
+#endif
 }
 
 void Graphics::fillRectangle(const Rect& rect, Color color)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->FillRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush);
+#endif
 }
 
 void Graphics::fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->FillRoundedRectangle(
         { { rect.left, rect.top, rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush);
+#endif
 }
 
 void Graphics::drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color,
                         TextAlignment textAlignment, ParagraphAlignment paragraphAlignment, bool bold, bool wrapLines)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     __TextFormat textFormat(_textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
                             DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us"));
@@ -214,39 +246,47 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
                             { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,
                             DWRITE_MEASURING_MODE_GDI_CLASSIC);
+#endif
 }
 
 void Graphics::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color)
 {
+#ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
-    const __TextBlockD2d& textBlockD2d = dynamic_cast<const __TextBlockD2d&>(textBlock);
-
-    _renderTarget->DrawTextLayout({ pos.x, pos.y }, textBlockD2d._textLayout, brush);
+    _renderTarget->DrawTextLayout({ pos.x, pos.y }, textBlock._textLayout, brush);
+#endif
 }
 
 void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
 {
+#ifdef PLATFORM_WINDOWS
     D2D1_RECT_F rect;
-    const __ImageD2d& imageD2d = dynamic_cast<const __ImageD2d&>(image);
 
     if (size)
         rect = { pos.x, pos.y, pos.x + size->width, pos.y + size->height };
     else
     {
-        D2D1_SIZE_F size = imageD2d._bitmap->GetSize();
+        D2D1_SIZE_F size = image._bitmap->GetSize();
         rect = { pos.x, pos.y, pos.x + size.width, pos.y + size.height };
     }
 
-    _renderTarget->DrawBitmap(imageD2d._bitmap, rect);
+    _renderTarget->DrawBitmap(image._bitmap, rect);
+#endif
 }
 
 void Graphics::resize(int width, int height)
 {
+#ifdef PLATFORM_WINDOWS
     _renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height) });
+#endif
 }
 
 Size Graphics::getSize()
 {
+#ifdef PLATFORM_WINDOWS
     D2D1_SIZE_F size = _renderTarget->GetSize();
     return { size.width, size.height };
+#else
+    return { 0, 0 };
+#endif
 }

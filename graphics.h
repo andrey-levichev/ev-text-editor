@@ -2,9 +2,6 @@
 #define GRAPHICS_INCLUDED
 
 #include <foundation.h>
-#include <d2d1.h>
-#include <dwrite.h>
-#include <wincodec.h>
 
 // Point
 
@@ -52,6 +49,12 @@ enum ParagraphAlignment
     PARAGRAPH_ALIGNMENT_BOTTOM,
     PARAGRAPH_ALIGNMENT_CENTER
 };
+
+#ifdef PLATFORM_WINDOWS
+
+#include <d2d1.h>
+#include <dwrite.h>
+#include <wincodec.h>
 
 // __ComPtr
 
@@ -198,22 +201,20 @@ public:
     __Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName);
 };
 
+#endif
+
 // TextBlock
 
 class TextBlock
 {
 public:
-    virtual ~TextBlock()
-    {
-    }
+    Size getTextSize() const;
 
-    virtual Size getTextSize() const = 0;
-};
+private:
 
-class __TextBlockD2d : public TextBlock
-{
-public:
-    __TextBlockD2d(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
+#ifdef PLATFORM_WINDOWS
+
+    TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
               const Size& size) :
         _textFormat(textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
                     DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us")),
@@ -221,11 +222,16 @@ public:
     {
     }
 
-    virtual Size getTextSize() const;
-
-private:
     __TextFormat _textFormat;
     __TextLayout _textLayout;
+
+#else
+
+    TextBlock()
+    {
+    }
+
+#endif
 
     friend class Graphics;
 };
@@ -234,22 +240,25 @@ private:
 
 class Image
 {
-public:
-    virtual ~Image()
-    {
-    }
-};
+private:
 
-class __ImageD2d : public Image
-{
-public:
-    __ImageD2d(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName) :
+#ifdef PLATFORM_WINDOWS
+
+    Image(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName) :
         _bitmap(renderTarget, imagingFactory, fileName)
     {
     }
 
-private:
+
     __Bitmap _bitmap;
+
+#else
+
+    Image()
+    {
+    }
+
+#endif
 
     friend class Graphics;
 };
@@ -259,7 +268,7 @@ private:
 class Graphics
 {
 public:
-    Graphics(HWND window);
+    Graphics(uintptr_t window);
 
     void beginDraw();
     void endDraw();
@@ -281,27 +290,39 @@ public:
 
     void drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color);
 
-    Unique<TextBlock> createTextBlock(const String& font, float fontSize, bool bold, const String& text,
+    TextBlock createTextBlock(const String& font, float fontSize, bool bold, const String& text,
                                       const Size& size)
     {
-        return createUnique<__TextBlockD2d>(_textFactory, font, fontSize, bold, text, size);
+#ifdef PLATFORM_WINDOWS
+        return TextBlock(_textFactory, font, fontSize, bold, text, size);
+#else
+        return TextBlock();
+#endif
     }
 
     void drawImage(const Image& image, const Point& pos, const Size* size = NULL);
 
-    Unique<Image> createImage(const String& fileName)
+    Image createImage(const String& fileName)
     {
-        return createUnique<__ImageD2d>(_renderTarget, _imagingFactory, fileName);
+#ifdef PLATFORM_WINDOWS
+        return Image(_renderTarget, _imagingFactory, fileName);
+#else
+        return Image();
+#endif
     }
 
     void resize(int width, int height);
     Size getSize();
+
+#ifdef PLATFORM_WINDOWS
 
 private:
     __DrawingFactory _drawingFactory;
     __ImagingFactory _imagingFactory;
     __TextFactory _textFactory;
     __RenderTarget _renderTarget;
+
+#endif
 };
 
 #endif

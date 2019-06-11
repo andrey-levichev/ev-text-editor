@@ -1,5 +1,5 @@
 bugs:
-* refactor graphics to be cross platform
+* replace GUI_MODE where appropriate
 * enable asserts in release version
 cleanup on terminate?
 macros needs STR() only for first string
