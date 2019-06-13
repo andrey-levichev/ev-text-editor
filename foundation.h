@@ -225,16 +225,14 @@ class String;
 void terminate(const char_t* message);
 void terminate(const String& message);
 
-#ifdef ENABLE_ASSERT
+#ifdef DISABLE_ASSERT
 
-#ifdef ABORT_ON_ASSERT_FAILURE
-
-#define ASSERT_MSG(condition, msg) \
-    do \
-    { \
-        if (!(condition)) \
-            terminate(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") msg); \
-    } while (false)
+#define ASSERT_MSG(condition, msg)
+#define ASSERT(...)
+#define ASSERT_FAIL(msg)
+#define ASSERT_EXCEPTION(exception, ...)
+#define ASSERT_NO_EXCEPTION(...)
+#define ASSERT_EXCEPTION_MSG(exception, msg, ...)
 
 #else
 
@@ -244,8 +242,6 @@ void terminate(const String& message);
         if (!(condition)) \
             throw Exception(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") msg); \
     } while (false)
-
-#endif
 
 #define ASSERT(...) ASSERT_MSG(__VA_ARGS__, STR(#__VA_ARGS__))
 #define ASSERT_FAIL(msg) ASSERT_MSG(false, msg)
@@ -299,15 +295,6 @@ void terminate(const String& message);
         } \
         ASSERT_FAIL(STR("expected ") STR(#exception)); \
     } while (false)
-
-#else
-
-#define ASSERT_MSG(condition, msg)
-#define ASSERT(...)
-#define ASSERT_FAIL(msg)
-#define ASSERT_EXCEPTION(exception, ...)
-#define ASSERT_NO_EXCEPTION(...)
-#define ASSERT_EXCEPTION_MSG(exception, msg, ...)
 
 #endif
 
