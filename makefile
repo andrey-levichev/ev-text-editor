@@ -15,7 +15,7 @@ VCPP_LINKER_OPTIONS=/link user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs
 
 GCC_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -lrt -static-libstdc++
 
-CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -lrt
+CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable
 
 SOL_OPTIONS=-std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2,wvarhidenmem
 
