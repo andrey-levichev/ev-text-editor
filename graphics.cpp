@@ -112,7 +112,8 @@ Size TextBlock::getTextSize() const
     _textLayout->GetMetrics(&textMetrics);
     return { textMetrics.width, textMetrics.height };
 #else
-    return { 0, 0 };
+    Size size = { 0, 0 };
+    return size;
 #endif
 }
 
@@ -287,6 +288,7 @@ Size Graphics::getSize()
     D2D1_SIZE_F size = _renderTarget->GetSize();
     return { size.width, size.height };
 #else
-    return { 0, 0 };
+    Size size = { 0, 0 };
+    return size;
 #endif
 }
