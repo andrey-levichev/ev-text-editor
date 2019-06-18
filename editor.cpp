@@ -1296,6 +1296,7 @@ bool Document::replaceAll(const String& searchStr, const String& replaceStr, boo
     _modified = true;
     _selectionMode = false;
     _selection = -1;
+    _topPosition = -1;
 
     return true;
 }
@@ -1329,12 +1330,6 @@ void Document::save()
 
     File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
     file.write(Unicode::stringToBytes(_text, _encoding, _bom, _crLf));
-
-    lineColumnToPosition(0, 1, 1, _line, _column, _position, _line, _column);
-
-    _modified = false;
-    _selectionMode = false;
-    _selection = -1;
 }
 
 void Document::clear()
@@ -1355,7 +1350,7 @@ void Document::clear()
     _preferredColumn = 1;
 
     _top = _left = 1;
-    _prevTopPosition = _topPosition = 0;
+    _topPosition = 0;
 
     _selectionMode = false;
     _selection = -1;
@@ -1377,12 +1372,16 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     ASSERT(screenWidth > 0);
 
     int l;
-    _prevTopPosition = _topPosition;
+    bool highlightFromStart = true;
 
     if (_line < _top)
         lineColumnToPosition(_position, _line, _column, _line, 1, _topPosition, _top, l);
     else if (_line >= _top + _height)
         lineColumnToPosition(_position, _line, _column, _line - _height + 1, 1, _topPosition, _top, l);
+    else if (_topPosition < 0)
+        lineColumnToPosition(_position, _line, _column, _top, 1, _topPosition, _top, l);
+    else
+        highlightFromStart = false;
 
     if (_column < _left)
         _left = _column;
@@ -1401,34 +1400,25 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
     int len = _left + _width - 1;
 
     const ForegroundColor brightBackgroundColors[] = {
-        defaultForeground(),      FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED,          defaultForeground(),
-        FOREGROUND_COLOR_BLUE,    FOREGROUND_COLOR_CYAN,   FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_BRIGHT_BLACK,
-        FOREGROUND_COLOR_MAGENTA, FOREGROUND_COLOR_CYAN,   FOREGROUND_COLOR_MAGENTA,      FOREGROUND_COLOR_BLUE,
-        FOREGROUND_COLOR_CYAN,    defaultForeground(),     FOREGROUND_COLOR_YELLOW
+        defaultForeground(), FOREGROUND_COLOR_YELLOW, FOREGROUND_COLOR_RED, defaultForeground(),
+        FOREGROUND_COLOR_BLUE, FOREGROUND_COLOR_CYAN,FOREGROUND_COLOR_BRIGHT_BLACK, FOREGROUND_COLOR_BRIGHT_BLACK,
+        FOREGROUND_COLOR_MAGENTA, FOREGROUND_COLOR_CYAN, FOREGROUND_COLOR_MAGENTA, FOREGROUND_COLOR_BLUE,
+        FOREGROUND_COLOR_CYAN, defaultForeground(), FOREGROUND_COLOR_YELLOW
     };
 
-    const ForegroundColor darkBackgroundColors[] = { defaultForeground(),
-                                                     FOREGROUND_COLOR_BRIGHT_YELLOW,
-                                                     FOREGROUND_COLOR_BRIGHT_RED,
-                                                     defaultForeground(),
-                                                     FOREGROUND_COLOR_BRIGHT_GREEN,
-                                                     FOREGROUND_COLOR_BRIGHT_CYAN,
-                                                     FOREGROUND_COLOR_WHITE,
-                                                     FOREGROUND_COLOR_WHITE,
-                                                     FOREGROUND_COLOR_BRIGHT_MAGENTA,
-                                                     FOREGROUND_COLOR_BRIGHT_CYAN,
-                                                     FOREGROUND_COLOR_BRIGHT_MAGENTA,
-                                                     FOREGROUND_COLOR_BRIGHT_GREEN,
-                                                     FOREGROUND_COLOR_BRIGHT_CYAN,
-                                                     defaultForeground(),
-                                                     FOREGROUND_COLOR_BRIGHT_YELLOW };
+    const ForegroundColor darkBackgroundColors[] = {
+        defaultForeground(), FOREGROUND_COLOR_BRIGHT_YELLOW, FOREGROUND_COLOR_BRIGHT_RED, defaultForeground(),
+        FOREGROUND_COLOR_BRIGHT_GREEN, FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_WHITE, FOREGROUND_COLOR_WHITE,
+        FOREGROUND_COLOR_BRIGHT_MAGENTA, FOREGROUND_COLOR_BRIGHT_CYAN, FOREGROUND_COLOR_BRIGHT_MAGENTA, FOREGROUND_COLOR_BRIGHT_GREEN,
+        FOREGROUND_COLOR_BRIGHT_CYAN, defaultForeground(), FOREGROUND_COLOR_BRIGHT_YELLOW
+    };
 
     SyntaxHighlighter* syntaxHighlighter = _editor->syntaxHighlighter(_documentType);
     const ForegroundColor* colors = _editor->brightBackground() ? brightBackgroundColors : darkBackgroundColors;
 
     if (syntaxHighlighter)
     {
-        if (_prevTopPosition != _topPosition)
+        if (highlightFromStart)
         {
             p = 0;
             syntaxHighlighter->highlightingState() = HighlightingState();
@@ -1865,6 +1855,7 @@ void Document::changeLines(int (Document::*lineOp)(int))
         }
 
         _selectionMode = false;
+        _topPosition = -1;
     }
 
     _modified = true;
@@ -2014,7 +2005,13 @@ void Document::trimTrailingWhitespace()
     }
 
     swap(trimmed, _text);
-    _position = 0;
+
+    lineColumnToPosition(0, 1, 1, _line, _column, _position, _line, _column);
+
+    _modified = false;
+    _selectionMode = false;
+    _selection = -1;
+    _topPosition = -1;
 }
 
 void Document::determineDocumentType(bool fileExecutable)

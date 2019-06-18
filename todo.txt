@@ -1,9 +1,4 @@
 bugs:
-* enable asserts in release version
-debug version optimized with asserts enabled?
-code with asserts must be exception safe
-* changeLines() doesn't redraw the screen with large selection
-reset relative positioning on redraw all
 * shell script highlighting
 str gets highlighted as var after $var at the end of line
 --abc=123 command line option highlighted as var assignment
@@ -14,6 +9,7 @@ line follwing past the edge comment is also highlighted as comment
 * don't open directories as text files
 * ctrl+x after indent deletes entire indented block
 * second multiline indent doesn't work
+* don't use asserts in low level OS specific code
 
 editor:
 * support wildecards in file names on windows

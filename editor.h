@@ -339,7 +339,6 @@ protected:
 
     int _top, _left;
     int _topPosition;
-    int _prevTopPosition;
 
     int _x, _y;
     int _width, _height;
