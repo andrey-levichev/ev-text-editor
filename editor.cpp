@@ -1441,7 +1441,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
         unichar_t ch = 0;
         bool eol = false;
 
-        for (int i = 1; i <= len; ++i)
+        for (int i = 1; i <= len || !eol; ++i)
         {
             if (!eol)
             {
@@ -1455,20 +1455,23 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                     if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
                         p = _text.charForward(p);
                 }
-                else if (ch && ch != '\n')
-                    p = _text.charForward(p);
-                else
+                else if (!ch || ch == '\n')
                 {
                     eol = true;
+                    if (ch == '\n')
+                        p = _text.charForward(p);
+
 #ifdef PLATFORM_WINDOWS
                     ch = ' ';
 #else
                     ch = 0;
 #endif
                 }
+                else
+                    p = _text.charForward(p);
             }
 
-            if (i >= _left)
+            if (i >= _left && i <= len)
             {
                 screen[q].ch = unicodeLimit16 && ch > 0xffff ? '?' : ch;
 
@@ -1487,23 +1490,6 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
 
                 ++q;
             }
-        }
-
-        ch = _text.charAt(p);
-        if (ch == '\n')
-            p = _text.charForward(p);
-        else
-        {
-            while (ch && ch != '\n')
-            {
-                if (syntaxHighlighter)
-                    syntaxHighlighter->highlightChar(_text, p);
-                p = _text.charForward(p);
-                ch = _text.charAt(p);
-            }
-
-            if (ch == '\n')
-                p = _text.charForward(p);
         }
     }
 }

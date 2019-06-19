@@ -1,8 +1,4 @@
 bugs:
-* shell script highlighting
-str gets highlighted as var after $var at the end of line
---abc=123 command line option highlighted as var assignment
-line follwing past the edge comment is also highlighted as comment
 * stop at newline when deleting word back?
 * toggle selection doesn't work sometimes
 * don't trim whitespace by default
@@ -36,10 +32,9 @@ editor:
 * run macro n times, run macro on selection
 * graphical user interface
 * syntax highlighting improvements
+improved handling of highlighting corner cases
 improved document type detection with shebang
 support for other languages
-better highlighting for numbers, nested strings
-comments in preprocessor directive
 cache highlighting info
 document type override
 * autocomplete improvements

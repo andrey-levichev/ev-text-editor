@@ -21,7 +21,7 @@ SOL_OPTIONS=-std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2,wvarhidenmem
 
 XLC_OPTIONS=-qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306 -qsuppress=1500-030
 
-all: $(APPLICATION_NAME).dbg.vcpp.exe
+all: $(APPLICATION_NAME).dbg.gcc
 
 $(APPLICATION_NAME).dbg.vcpp.exe: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
 	cl $(VCPP_OPTIONS) /MT /O1 $(APPLICATION_SOURCES) $(VCPP_LINKER_OPTIONS)
