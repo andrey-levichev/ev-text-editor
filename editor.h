@@ -288,6 +288,7 @@ public:
     void open(const String& filename);
     void save();
     void clear();
+    void trimTrailingWhitespace();
 
     void setDimensions(int x, int y, int width, int height);
     void draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLimit16);
@@ -318,7 +319,6 @@ protected:
     int commentLine(int pos);
     int uncommentLine(int pos);
 
-    void trimTrailingWhitespace();
     void determineDocumentType(bool fileExecutable);
 
 protected:

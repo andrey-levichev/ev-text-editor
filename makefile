@@ -13,7 +13,7 @@ VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 /wd4723 \
 	/D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS /Fe:$@
 VCPP_LINKER_OPTIONS=/link user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib
 
-GCC_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable
+GCC_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-set-variable -lrt
 
 CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable
 
@@ -21,7 +21,7 @@ SOL_OPTIONS=-std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2,wvarhidenmem
 
 XLC_OPTIONS=-qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306 -qsuppress=1500-030
 
-all: $(APPLICATION_NAME).dbg.gcc
+all: $(APPLICATION_NAME).dbg.sol
 
 $(APPLICATION_NAME).dbg.vcpp.exe: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
 	cl $(VCPP_OPTIONS) /MT /O1 $(APPLICATION_SOURCES) $(VCPP_LINKER_OPTIONS)

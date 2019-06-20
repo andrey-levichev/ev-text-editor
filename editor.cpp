@@ -1326,10 +1326,12 @@ void Document::save()
     if (_filename.empty())
         throw Exception(STR("filename must be specified"));
 
-    trimTrailingWhitespace();
-
     File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
     file.write(Unicode::stringToBytes(_text, _encoding, _bom, _crLf));
+
+    _modified = false;
+    _selectionMode = false;
+    _selection = -1;
 }
 
 void Document::clear()
@@ -1354,6 +1356,51 @@ void Document::clear()
 
     _selectionMode = false;
     _selection = -1;
+}
+
+void Document::trimTrailingWhitespace()
+{
+    String trimmed;
+    int p = 0, start = 0, whitespace = 0;
+
+    while (true)
+    {
+        unichar_t ch = _text.charAt(p);
+
+        if (ch == '\n' || ch == 0)
+        {
+            if (whitespace)
+            {
+                trimmed.append(_text.chars() + start, whitespace - start);
+                start = p;
+                whitespace = 0;
+            }
+        }
+        else if (ch == ' ' || ch == '\t')
+        {
+            if (!whitespace)
+                whitespace = p;
+        }
+        else
+            whitespace = 0;
+
+        if (p < _text.length())
+            p = _text.charForward(p);
+        else
+        {
+            trimmed.append(_text.chars() + start, p - start);
+            break;
+        }
+    }
+
+    swap(trimmed, _text);
+
+    lineColumnToPosition(0, 1, 1, _line, _column, _position, _line, _column);
+
+    _modified = true;
+    _selectionMode = false;
+    _selection = -1;
+    _topPosition = -1;
 }
 
 void Document::setDimensions(int x, int y, int width, int height)
@@ -1953,51 +2000,6 @@ int Document::uncommentLine(int pos)
     }
 
     return start;
-}
-
-void Document::trimTrailingWhitespace()
-{
-    String trimmed;
-    int p = 0, start = 0, whitespace = 0;
-
-    while (true)
-    {
-        unichar_t ch = _text.charAt(p);
-
-        if (ch == '\n' || ch == 0)
-        {
-            if (whitespace)
-            {
-                trimmed.append(_text.chars() + start, whitespace - start);
-                start = p;
-                whitespace = 0;
-            }
-        }
-        else if (ch == ' ' || ch == '\t')
-        {
-            if (!whitespace)
-                whitespace = p;
-        }
-        else
-            whitespace = 0;
-
-        if (p < _text.length())
-            p = _text.charForward(p);
-        else
-        {
-            trimmed.append(_text.chars() + start, p - start);
-            break;
-        }
-    }
-
-    swap(trimmed, _text);
-
-    lineColumnToPosition(0, 1, 1, _line, _column, _position, _line, _column);
-
-    _modified = false;
-    _selectionMode = false;
-    _selection = -1;
-    _topPosition = -1;
 }
 
 void Document::determineDocumentType(bool fileExecutable)
@@ -3023,6 +3025,13 @@ bool Editor::processCommand(const String& command)
     {
         saveAllDocuments();
         return false;
+    }
+    else if (command == STR("tw"))
+    {
+        if (_document)
+            _document->value.trimTrailingWhitespace();
+
+        return true;
     }
 
     int p = 0;
