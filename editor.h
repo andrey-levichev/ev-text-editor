@@ -396,7 +396,8 @@ class Editor : public Application
 {
 public:
     Editor(const Array<String>& args);
-
+    ~Editor();
+    
     bool brightBackground() const
     {
         return _brightBackground;

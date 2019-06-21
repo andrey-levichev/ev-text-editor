@@ -1306,25 +1306,17 @@ void Document::open(const String& filename)
     ASSERT(!filename.empty());
 
     clear();
+
+    File file(filename);
+    _text.assign(Unicode::bytesToString(file.read(), _encoding, _bom, _crLf));
+
     _filename = filename;
-
-    File file;
-    bool executable = false;
-
-    if (file.open(filename))
-    {
-        ByteBuffer bytes = file.read();
-        _text.assign(Unicode::bytesToString(bytes, _encoding, _bom, _crLf));
-        executable = file.isExecutable();
-    }
-
-    determineDocumentType(executable);
+    determineDocumentType(file.isExecutable());
 }
 
 void Document::save()
 {
-    if (_filename.empty())
-        throw Exception(STR("filename must be specified"));
+    ASSERT(!_filename.empty());
 
     File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
     file.write(Unicode::stringToBytes(_text, _encoding, _bom, _crLf));
@@ -2040,6 +2032,7 @@ Editor::Editor(const Array<String>& args) :
 #else
     Console::getSize(_width, _height);
     _brightBackground = Console::brightBackground();
+    Console::setLineMode(false);
 #endif
 
     setDimensions();
@@ -2052,6 +2045,14 @@ Editor::Editor(const Array<String>& args) :
         _unicodeLimit16 = strstr(term, "xterm") != NULL;
     else
         _unicodeLimit16 = false;
+#endif
+}
+
+Editor::~Editor()
+{
+#ifndef GUI_MODE
+    Console::setLineMode(true);
+    Console::clear();
 #endif
 }
 
@@ -2092,7 +2093,15 @@ void Editor::openDocument(const String& filename)
     _document = _documents.last();
 
     _document->value.setDimensions(1, 1, _width, _height - 1);
-    _document->value.open(filename);
+    
+    try
+    {
+        _document->value.open(filename);
+    }
+    catch (Exception& ex)
+    {
+        _message = ex.message();
+    }
 
     findUniqueWords();
 }
@@ -2101,8 +2110,15 @@ void Editor::saveDocument()
 {
     if (_document)
     {
-        if (_document->value.modified())
-            _document->value.save();
+        try
+        {
+            if (_document->value.modified())
+                _document->value.save();
+        }
+        catch (Exception& ex)
+        {
+            _message = ex.message();
+        }
 
         findUniqueWords();
     }
@@ -2113,8 +2129,17 @@ void Editor::saveAllDocuments()
     if (!_documents.empty())
     {
         for (auto doc = _documents.first(); doc; doc = doc->next)
-            if (doc->value.modified())
-                doc->value.save();
+        {
+            try
+            {
+                if (doc->value.modified())
+                    doc->value.save();
+            }
+            catch (Exception& ex)
+            {
+                _message = ex.message();
+            }
+        }
 
         findUniqueWords();
     }
@@ -2163,17 +2188,8 @@ bool Editor::start()
 
 void Editor::run()
 {
-#ifndef GUI_MODE
-    Console::setLineMode(false);
-#endif
-
     updateScreen(true);
     Application::run();
-
-#ifndef GUI_MODE
-    Console::setLineMode(true);
-    Console::clear();
-#endif
 }
 
 void Editor::onPaint()
