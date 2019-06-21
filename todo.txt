@@ -1,26 +1,30 @@
+to do:
+* find in all open documents
+
 editor:
 * readonly mode
-* run command, run last command
-* auto detect line endings
+* run last command, command history
 * delete to start/end of line
-* autocomplete on enter
 * go to matching brace
 * cycle documents in most recently used order
 * copy/delete lines
 * change case
 * parse build output for errors
 * undo/redo
-* find all occurences/go to symbol
 * find/replace back
-* regex find/replace, match word, match newline
+* regex find/replace, match word/case
 * find/replace in files
-* command history
-* config file
+* config file, customizable build command and key mappings
 * selection with mouse/arrows and highlighting
-* customizable key mappings
 * line wrapping
 * run macro n times, run macro on selection
 * graphical user interface
+* move to prev/next paragraph
+* quick open for files in current directory
+* preserve console output when exiting
+* many ctrl and alt combinations don't work in Linux console
+* clipboard integration on macos
+* support wildecards in file names on windows
 * syntax highlighting improvements
 improved handling of highlighting corner cases
 improved document type detection with shebang
@@ -34,23 +38,16 @@ scan all documents in current directory
 more efficient data structure
 optimize rebuilding of word database
 autocomplete for file names
-* performance optimization
+* performance improvements
 open large files in native encoding
-turn off indexing and whitespace trimming for large files
+turn off indexing and syntax highlighting for large files
 use memory mapping and on demand/background loading
 group small insert/delete changes and apply together
 store text as a list of lines/blocks
 redraw as few characters as possible instead of enitre screen
-multiple input events in GUI mode
-* move to prev/next paragraph
-* quick open for files in current directoy
-* preserve console output when exiting
-* many ctrl and alt combinations don't work in Linux console
-* clipboard integration on macos
-* support wildecards in file names on windows
+handle multiple input events in GUI mode
 
 foundation:
-* log complex objects and memory allocations
 * international support
 locales (formatting, string compare/search/case conversion)
 encoding conversion
@@ -72,6 +69,7 @@ conversion to binary/hex
 simple parsing a la scanf
 simple regular expressions
 type safe string formatting
+* log memory allocations
 * convert any object to string
 * memory mapped I/O, file system access
 * date and time
