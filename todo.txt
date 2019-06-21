@@ -1,8 +1,3 @@
-bugs:
-* missing exception handlers in destructors
-* ctrl+x after indent deletes entire indented block
-* second multiline indent doesn't work
-
 editor:
 * readonly mode
 * run command, run last command

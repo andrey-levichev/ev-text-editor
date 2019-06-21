@@ -14,7 +14,18 @@ File::File(const String& filename, int openMode) : _handle(INVALID_HANDLE_VALUE)
 
 File::~File()
 {
-    close();
+    try
+    {
+        close();
+    }
+    catch (Exception& ex)
+    {
+        reportError(ex.message());
+    }
+    catch (...)
+    {
+        reportError(STR("unknown error"));
+    }
 }
 
 bool File::isOpen() const

@@ -8,14 +8,25 @@ Application* Application::_application = NULL;
 
 Application::~Application()
 {
-    if (_window)
+    try
     {
+        if (_window)
+        {
 #ifdef GUI_MODE
-        DestroyWindow(reinterpret_cast<HWND>(_window));
+            DestroyWindow(reinterpret_cast<HWND>(_window));
 #else
-        onDestroy();
-        _window = 0;
+            onDestroy();
+            _window = 0;
 #endif
+        }
+    }
+    catch (Exception& ex)
+    {
+        reportError(ex.message());
+    }
+    catch (...)
+    {
+        reportError(STR("unknown error"));
     }
 }
 

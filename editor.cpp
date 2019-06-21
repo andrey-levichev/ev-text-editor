@@ -2050,10 +2050,21 @@ Editor::Editor(const Array<String>& args) :
 
 Editor::~Editor()
 {
+    try
+    {
 #ifndef GUI_MODE
-    Console::setLineMode(true);
-    Console::clear();
+        Console::setLineMode(true);
+        Console::clear();
 #endif
+    }
+    catch (Exception& ex)
+    {
+        reportError(ex.message());
+    }
+    catch (...)
+    {
+        reportError(STR("unknown error"));
+    }
 }
 
 SyntaxHighlighter* Editor::syntaxHighlighter(DocumentType documentType)
