@@ -1,6 +1,3 @@
-to do:
-* find in all open documents
-
 editor:
 * readonly mode
 * run last command, command history
@@ -11,8 +8,7 @@ editor:
 * change case
 * parse build output for errors
 * undo/redo
-* find/replace back
-* regex find/replace, match word/case
+* find/replace regex, backwards, match word/case
 * find/replace in files
 * config file, customizable build command and key mappings
 * selection with mouse/arrows and highlighting
