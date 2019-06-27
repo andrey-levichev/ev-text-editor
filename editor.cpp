@@ -1307,7 +1307,7 @@ void Document::open(const String& filename)
 
     clear();
 
-    File file(filename);
+    File file(filename, FILE_MODE_READ | FILE_MODE_CREATE);
     _text.assign(Unicode::bytesToString(file.read(), _encoding, _bom, _crLf));
 
     _filename = filename;
@@ -1317,6 +1317,9 @@ void Document::open(const String& filename)
 void Document::save()
 {
     ASSERT(!_filename.empty());
+    
+    if (_trimWhitespace)
+        trimTrailingWhitespace();
 
     File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
     file.write(Unicode::stringToBytes(_text, _encoding, _bom, _crLf));
@@ -1339,6 +1342,7 @@ void Document::clear()
     _encoding = TEXT_ENCODING_UTF8;
     _bom = false;
     _crLf = CRLF;
+    _trimWhitespace = true;
 
     _line = _column = 1;
     _preferredColumn = 1;
@@ -2100,21 +2104,22 @@ void Editor::openDocument(const String& filename)
 {
     ASSERT(!filename.empty());
 
-    _documents.addLast(Document(this));
-    _document = _documents.last();
-
-    _document->value.setDimensions(1, 1, _width, _height - 1);
+    Document doc(this);
+    doc.setDimensions(1, 1, _width, _height - 1);
     
     try
     {
-        _document->value.open(filename);
+        doc.open(filename);
+
+        _documents.addLast(doc);
+        _document = _documents.last();
+
+        findUniqueWords();
     }
     catch (Exception& ex)
     {
         _message = ex.message();
     }
-
-    findUniqueWords();
 }
 
 void Editor::saveDocument()
@@ -3053,10 +3058,17 @@ bool Editor::processCommand(const String& command)
         saveAllDocuments();
         return false;
     }
-    else if (command == STR("tw"))
+    else if (command == STR("tw on"))
     {
         if (_document)
-            _document->value.trimTrailingWhitespace();
+            _document->value.trimWhitespace() = true;
+
+        return true;
+    }
+    else if (command == STR("tw off"))
+    {
+        if (_document)
+            _document->value.trimWhitespace() = false;
 
         return true;
     }

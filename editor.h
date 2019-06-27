@@ -190,6 +190,17 @@ public:
     {
         return _crLf;
     }
+    
+    bool& trimWhitespace()
+    {
+        _modified = true;
+        return _trimWhitespace;
+    }
+    
+    bool trimWhitespace() const
+    {
+        return _trimWhitespace;
+    }
 
     int line() const
     {
@@ -333,6 +344,7 @@ protected:
     TextEncoding _encoding;
     bool _bom;
     bool _crLf;
+    bool _trimWhitespace;
 
     int _line, _column;
     int _preferredColumn;
