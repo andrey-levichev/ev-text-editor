@@ -6,7 +6,7 @@ FOUNDATION_SOURCES=foundation.cpp file.cpp application.cpp input.cpp console.cpp
 APPLICATION_HEADERS=$(FOUNDATION_HEADERS) editor.h
 APPLICATION_SOURCES=$(FOUNDATION_SOURCES) editor.cpp
 
-TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o t.* *.log
+TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o t.* *.log $(APPLICATION_NAME)
 
 VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 /wd4723 \
 	/I. /D_UNICODE /DUNICODE /D_WIN32_WINNT=_WIN32_WINNT_WIN7 \
@@ -56,3 +56,28 @@ $(APPLICATION_NAME).xlc: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
 clean:
 	-del $(TRASH)
 	-rm $(TRASH)
+
+depl.win: $(APPLICATION_NAME).vcpp.exe
+	move /y $(APPLICATION_NAME).vcpp.exe $(APPLICATION_NAME).exe
+	"C:\Program Files\7-Zip\7z.exe" a $(APPLICATION_NAME)-win.zip $(APPLICATION_NAME).exe
+	move /y $(APPLICATION_NAME)-win.zip web
+
+depl.mac: $(APPLICATION_NAME).clang
+	mv $(APPLICATION_NAME).clang $(APPLICATION_NAME)
+	tar cJvf $(APPLICATION_NAME)-mac.tar.bz2 $(APPLICATION_NAME)
+	mv $(APPLICATION_NAME)-mac.tar.bz2 web
+
+depl.linux: $(APPLICATION_NAME).gcc
+	mv $(APPLICATION_NAME).gcc $(APPLICATION_NAME)
+	tar acvf $(APPLICATION_NAME)-linux.tar.bz2 $(APPLICATION_NAME)
+	mv $(APPLICATION_NAME)-linux.tar.bz2 web
+
+depl.solaris: $(APPLICATION_NAME).sol
+	mv $(APPLICATION_NAME).sol $(APPLICATION_NAME)
+	tar acvf $(APPLICATION_NAME)-solaris.tar.bz2 $(APPLICATION_NAME)
+	mv $(APPLICATION_NAME)-solaris.tar.bz2 web
+
+depl.aix: $(APPLICATION_NAME).xlc
+	mv $(APPLICATION_NAME).xlc $(APPLICATION_NAME)
+	tar acvf $(APPLICATION_NAME)-aix.tar.bz2 $(APPLICATION_NAME)
+	mv $(APPLICATION_NAME)-aix.tar.bz2 web

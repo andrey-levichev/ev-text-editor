@@ -1317,7 +1317,7 @@ void Document::open(const String& filename)
 void Document::save()
 {
     ASSERT(!_filename.empty());
-    
+
     if (_trimWhitespace)
         trimTrailingWhitespace();
 
@@ -2058,7 +2058,6 @@ Editor::~Editor()
     {
 #ifndef GUI_MODE
         Console::setLineMode(true);
-        Console::clear();
 #endif
     }
     catch (Exception& ex)
@@ -2106,7 +2105,7 @@ void Editor::openDocument(const String& filename)
 
     Document doc(this);
     doc.setDimensions(1, 1, _width, _height - 1);
-    
+
     try
     {
         doc.open(filename);
@@ -2179,7 +2178,7 @@ bool Editor::start()
     {
         if (_args[i] == STR("--version"))
         {
-            showMessage(STR("ev text editor version 2.0\n"
+            showMessage(STR("ev text editor version 1.8\n"
                                             "web: github.com/andrey-levichev/ev-text-editor\n"
                                             "Copyright (C) Andrey Levichev, 2019\n\n"
                                             "usage: ev [OPTIONS] [FILE]...\n\n"
@@ -2206,6 +2205,7 @@ void Editor::run()
 {
     updateScreen(true);
     Application::run();
+    Console::clear();
 }
 
 void Editor::onPaint()
