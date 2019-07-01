@@ -2203,13 +2203,36 @@ bool Editor::start()
 
 void Editor::run()
 {
-    updateScreen(true);
     Application::run();
+
+#ifndef GUI_MODE
     Console::clear();
+#endif
+}
+
+void Editor::onCreate()
+{
+#ifdef GUI_MODE
+    _graphics.create(_window);
+#endif
+}
+
+void Editor::onDestroy()
+{
+#ifdef GUI_MODE
+    _graphics.reset();
+#endif
 }
 
 void Editor::onPaint()
 {
+#ifdef GUI_MODE
+    _graphics->beginDraw();
+    _graphics->drawText(STR("Lucida Console"), 20, STR("some text"), { 0, 0, 200, 20 });
+    _graphics->endDraw();
+#else
+    updateScreen(true);
+#endif
 }
 
 void Editor::onInput(const Array<InputEvent>& inputEvents)

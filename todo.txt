@@ -78,5 +78,6 @@ misc:
 * minimal rebuild, precompiled headers, multiple targets
 * split foundation into a library
 * run release version in profiler, memory/thread checker
-* gcc compiled code on Solaris and AIX doesn't link
 * don't use asserts in low level OS specific code
+* get newer versions of solaris/aix compilers
+* support intel compiler and bsd

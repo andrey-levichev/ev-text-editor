@@ -4,6 +4,7 @@
 #include <foundation.h>
 #include <application.h>
 #include <file.h>
+#include <graphics.h>
 
 // ScreenCell
 
@@ -190,13 +191,13 @@ public:
     {
         return _crLf;
     }
-    
+
     bool& trimWhitespace()
     {
         _modified = true;
         return _trimWhitespace;
     }
-    
+
     bool trimWhitespace() const
     {
         return _trimWhitespace;
@@ -409,7 +410,7 @@ class Editor : public Application
 public:
     Editor(const Array<String>& args);
     ~Editor();
-    
+
     bool brightBackground() const
     {
         return _brightBackground;
@@ -432,6 +433,8 @@ public:
     virtual void run();
 
 protected:
+    virtual void onCreate();
+    virtual void onDestroy();
     virtual void onPaint();
     virtual void onInput(const Array<InputEvent>& inputEvents);
 
@@ -471,6 +474,10 @@ protected:
     Buffer<ScreenCell> _screen;
     Buffer<ScreenCell> _prevScreen;
     String _output;
+
+#ifdef GUI_MODE
+    Unique<Graphics> _graphics;
+#endif
 
     String _status, _message;
 

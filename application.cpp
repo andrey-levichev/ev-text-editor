@@ -49,6 +49,7 @@ void Application::run()
             break;
     }
 #else
+    onPaint();
     while (_window)
         onInput(Console::readInput());
 #endif
@@ -78,10 +79,10 @@ void Application::createWindow(const char_t* title, int width, int height)
     ATOM rc = RegisterClassEx(&wc);
     ASSERT(rc != 0);
 
-    _window = reinterpret_cast<uintptr_t>(CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS),
+    CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS),
         reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
-        NULL, NULL, GetModuleHandle(NULL), NULL));
+        NULL, NULL, GetModuleHandle(NULL), NULL);
 
     if (!_window)
         throw Exception(STR("failed to create window"));
@@ -130,6 +131,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
         switch (message)
         {
         case WM_CREATE:
+            _application->_window = reinterpret_cast<uintptr_t>(handle);
             _application->onCreate();
             return 0;
 
