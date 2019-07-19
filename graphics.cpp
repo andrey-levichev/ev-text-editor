@@ -33,11 +33,14 @@ __TextFactory::__TextFactory()
 }
 
 __TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRITE_FONT_WEIGHT fontWeight,
-                           DWRITE_FONT_STYLE fontStyle, DWRITE_FONT_STRETCH fontStretch, float fontSize,
-                           const String& locale)
+                           DWRITE_FONT_STYLE fontStyle, DWRITE_FONT_STRETCH fontStretch, float fontSize)
 {
+    WCHAR locale[LOCALE_NAME_MAX_LENGTH];
+    int rc = GetUserDefaultLocaleName(locale, LOCALE_NAME_MAX_LENGTH);
+    ASSERT(rc > 0);
+
     if (FAILED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), NULL, fontWeight, fontStyle,
-                                         fontStretch, fontSize, reinterpret_cast<const WCHAR*>(locale.chars()), &_ptr)))
+                                         fontStretch, fontSize, locale, &_ptr)))
         throw Exception(STR("failed to create text format"));
 }
 
@@ -206,7 +209,7 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
 #ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     __TextFormat textFormat(_textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
-                            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us"));
+                            DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize);
 
     DWRITE_TEXT_ALIGNMENT txtAlign;
     switch (textAlignment)

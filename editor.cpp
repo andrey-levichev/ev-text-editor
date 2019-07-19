@@ -2226,13 +2226,7 @@ void Editor::onDestroy()
 
 void Editor::onPaint()
 {
-#ifdef GUI_MODE
-    _graphics->beginDraw();
-    _graphics->drawText(STR("Lucida Console"), 20, STR("some text"), { 0, 0, 200, 20 });
-    _graphics->endDraw();
-#else
     updateScreen(true);
-#endif
 }
 
 void Editor::onInput(const Array<InputEvent>& inputEvents)
@@ -2828,7 +2822,12 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
+        Rect rect = { 0, 0, 200, 14 };
 
+        _graphics->beginDraw();
+        _graphics->fillRectangle(rect, 0xffffffdf);
+        _graphics->drawText(STR("Lucida Console"), 14, STR("ain't going to work"), rect);
+        _graphics->endDraw();
 #else
         SMALL_RECT rect;
         rect.Top = csbi.srWindow.Top;

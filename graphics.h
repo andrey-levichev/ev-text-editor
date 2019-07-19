@@ -141,7 +141,7 @@ class __TextFormat : public __ComPtr<IDWriteTextFormat>
 {
 public:
     __TextFormat(__TextFactory& factory, const String& fontName, DWRITE_FONT_WEIGHT fontWeight,
-                 DWRITE_FONT_STYLE fontStyle, DWRITE_FONT_STRETCH fontStretch, float fontSize, const String& locale);
+                 DWRITE_FONT_STYLE fontStyle, DWRITE_FONT_STRETCH fontStretch, float fontSize);
 };
 
 // __TextLayout
@@ -217,7 +217,7 @@ private:
     TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
               const Size& size) :
         _textFormat(textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
-                    DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, STR("en-us")),
+                    DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize),
         _textLayout(textFactory, text, _textFormat, size.width, size.height, true)
     {
     }
