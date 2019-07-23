@@ -51,7 +51,11 @@ void Application::run()
 #else
     onPaint();
     while (_window)
-        onInput(Console::readInput());
+    {
+        const Array<InputEvent>& inputEvents = Console::readInput();
+        onInput(inputEvents);
+    }
+
 #endif
 }
 
@@ -146,6 +150,10 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 _application->onPaint();
                 return 0;
             }
+            break;
+
+        case WM_SIZE:
+            _application->onResize(LOWORD(lParam), HIWORD(lParam));
             break;
 
         case WM_ERASEBKGND:

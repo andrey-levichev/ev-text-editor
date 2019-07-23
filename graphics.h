@@ -208,7 +208,7 @@ public:
 class TextBlock
 {
 public:
-    Size getTextSize() const;
+    Size getSize() const;
 
 private:
 

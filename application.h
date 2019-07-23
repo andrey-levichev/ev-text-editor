@@ -45,6 +45,10 @@ protected:
     {
     }
 
+    virtual void onResize(int width, int height)
+    {
+    }
+
     virtual void onInput(const Array<InputEvent>& inputEvents)
     {
     }

@@ -108,7 +108,7 @@ __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactor
 
 #endif
 
-Size TextBlock::getTextSize() const
+Size TextBlock::getSize() const
 {
 #ifdef PLATFORM_WINDOWS
     DWRITE_TEXT_METRICS textMetrics;

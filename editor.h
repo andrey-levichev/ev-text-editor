@@ -409,7 +409,6 @@ class Editor : public Application
 {
 public:
     Editor(const Array<String>& args);
-    ~Editor();
 
     bool brightBackground() const
     {
@@ -430,12 +429,12 @@ public:
     void closeDocument();
 
     virtual bool start();
-    virtual void run();
 
 protected:
     virtual void onCreate();
     virtual void onDestroy();
     virtual void onPaint();
+    virtual void onResize(int width, int height);
     virtual void onInput(const Array<InputEvent>& inputEvents);
 
     void setDimensions();
@@ -468,6 +467,7 @@ protected:
     Array<InputEvent> _macro;
 
     int _width, _height;
+    int _charWidth, _charHeight;
     bool _unicodeLimit16;
     bool _brightBackground;
 

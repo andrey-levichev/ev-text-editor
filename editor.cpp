@@ -2027,20 +2027,12 @@ void Document::determineDocumentType(bool fileExecutable)
 
 Editor::Editor(const Array<String>& args) :
     Application(args, STR("ev")),
-    _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL), _recordingMacro(false),
-    _caseSesitive(true), _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
+    _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL),
+    _recordingMacro(false), _width(1), _height(2),
+    _charWidth(1), _charHeight(1),
+    _brightBackground(true), _caseSesitive(true),
+    _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
 {
-#ifdef GUI_MODE
-    _width = 100;
-    _height = 50;
-#else
-    Console::getSize(_width, _height);
-    _brightBackground = Console::brightBackground();
-    Console::setLineMode(false);
-#endif
-
-    setDimensions();
-
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
 #else
@@ -2050,24 +2042,6 @@ Editor::Editor(const Array<String>& args) :
     else
         _unicodeLimit16 = false;
 #endif
-}
-
-Editor::~Editor()
-{
-    try
-    {
-#ifndef GUI_MODE
-        Console::setLineMode(true);
-#endif
-    }
-    catch (Exception& ex)
-    {
-        reportError(ex.message());
-    }
-    catch (...)
-    {
-        reportError(STR("unknown error"));
-    }
 }
 
 SyntaxHighlighter* Editor::syntaxHighlighter(DocumentType documentType)
@@ -2178,14 +2152,19 @@ bool Editor::start()
     {
         if (_args[i] == STR("--version"))
         {
-            showMessage(STR("ev text editor version 1.8\n"
-                                            "web: github.com/andrey-levichev/ev-text-editor\n"
-                                            "Copyright (C) Andrey Levichev, 2019\n\n"
-                                            "usage: ev [OPTIONS] [FILE]...\n\n"
-                                            "OPTIONS:\n\n"
-                                            "--version - print version information and exit\n"
-                                            "--dark - assume dark screen background\n"
-                                            "--bright - assume bright screen background\n"));
+#ifdef GUI_MODE
+            showMessage(
+#else
+            Console::writeLine(
+#endif
+                        STR("ev text editor version 1.8\n"
+                            "web: evtext.org\n"
+                            "Copyright (C) Andrey Levichev, 2019\n\n"
+                            "usage: ev [OPTIONS] [FILE]...\n\n"
+                            "OPTIONS:\n\n"
+                            "--version - print version information and exit\n"
+                            "--dark - assume dark screen background\n"
+                            "--bright - assume bright screen background\n"));
 
             return false;
         }
@@ -2201,31 +2180,45 @@ bool Editor::start()
     return true;
 }
 
-void Editor::run()
-{
-    Application::run();
-
-#ifndef GUI_MODE
-    Console::clear();
-#endif
-}
-
 void Editor::onCreate()
 {
 #ifdef GUI_MODE
     _graphics.create(_window);
+
+    Size size = _graphics->getSize();
+    _width = size.width / _charWidth;
+    _height = size.height / _charHeight;
+#else
+    _brightBackground = Console::brightBackground();
+    Console::getSize(_width, _height);
+
+    Console::setLineMode(false);
 #endif
+
+    setDimensions();
 }
 
 void Editor::onDestroy()
 {
 #ifdef GUI_MODE
     _graphics.reset();
+#else
+    Console::setLineMode(true);
+    Console::clear();
 #endif
 }
 
 void Editor::onPaint()
 {
+    updateScreen(true);
+}
+
+void Editor::onResize(int width, int height)
+{
+    _width = width / _charWidth;
+    _height = height / _charHeight;
+
+    setDimensions();
     updateScreen(true);
 }
 
@@ -2676,12 +2669,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
             else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
             {
                 WindowEvent windowEvent = event.event.windowEvent;
-
-                _width = windowEvent.width;
-                _height = windowEvent.height;
-
-                setDimensions();
-                updateScreen(true);
+                onResize(windowEvent.width, windowEvent.height);
             }
         }
         else
@@ -2717,12 +2705,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
             else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
             {
                 WindowEvent windowEvent = event.event.windowEvent;
-
-                _width = windowEvent.width;
-                _height = windowEvent.height;
-
-                setDimensions();
-                updateScreen(true);
+                onResize(windowEvent.width, windowEvent.height);
             }
         }
     }
