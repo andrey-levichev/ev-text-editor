@@ -154,7 +154,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
         case WM_SIZE:
             _application->onResize(LOWORD(lParam), HIWORD(lParam));
-            break;
+            return 0;
 
         case WM_ERASEBKGND:
             return 0;

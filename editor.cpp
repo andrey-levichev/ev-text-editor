@@ -4,6 +4,8 @@
 const char_t* APPLICATION_NAME = STR("ev");
 
 const int TAB_SIZE = 4;
+const char_t* GUI_FONT_NAME = STR("Lucida Console");
+const int GUI_FONT_SIZE = 14;
 
 bool charIsWord(unichar_t ch)
 {
@@ -2186,8 +2188,16 @@ void Editor::onCreate()
     _graphics.create(_window);
 
     Size size = _graphics->getSize();
-    _width = size.width / _charWidth;
-    _height = size.height / _charHeight;
+    _width = size.width;
+    _height = size.height;
+
+    TextBlock textBlock = _graphics->createTextBlock(GUI_FONT_NAME, GUI_FONT_SIZE, false, STR("W"), size);
+    size = textBlock.getSize();
+    _charWidth = size.width;
+    _charHeight = size.height;
+
+    _width /= _charWidth;
+    _height /= _charHeight;
 #else
     _brightBackground = Console::brightBackground();
     Console::getSize(_width, _height);
@@ -2215,6 +2225,10 @@ void Editor::onPaint()
 
 void Editor::onResize(int width, int height)
 {
+#ifdef GUI_MODE
+    _graphics->resize(width, height);
+#endif
+
     _width = width / _charWidth;
     _height = height / _charHeight;
 
@@ -2805,11 +2819,10 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
-        Rect rect = { 0, 0, 200, 14 };
+        Rect rect = { 0, 0, 200, GUI_FONT_SIZE };
 
         _graphics->beginDraw();
-        _graphics->fillRectangle(rect, 0xffffffdf);
-        _graphics->drawText(STR("Lucida Console"), 14, STR("ain't going to work"), rect);
+        _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, String::format(STR("%dx%d"), _width, _height), rect);
         _graphics->endDraw();
 #else
         SMALL_RECT rect;

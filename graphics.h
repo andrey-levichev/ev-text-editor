@@ -290,8 +290,7 @@ public:
 
     void drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color);
 
-    TextBlock createTextBlock(const String& font, float fontSize, bool bold, const String& text,
-                                      const Size& size)
+    TextBlock createTextBlock(const String& font, float fontSize, bool bold, const String& text, const Size& size)
     {
 #ifdef PLATFORM_WINDOWS
         return TextBlock(_textFactory, font, fontSize, bold, text, size);
