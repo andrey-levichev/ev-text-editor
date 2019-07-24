@@ -915,8 +915,10 @@ const Array<InputEvent>& Console::readInput()
             }
             else if (inputRec.EventType == WINDOW_BUFFER_SIZE_EVENT)
             {
-                WindowEvent windowEvent = { inputRec.Event.WindowBufferSizeEvent.dwSize.X,
-                                            inputRec.Event.WindowBufferSizeEvent.dwSize.Y };
+                int width, height;
+                getSize(width, height);
+
+                WindowEvent windowEvent = { width, height };
                 _inputEvents.addLast(windowEvent);
             }
         }

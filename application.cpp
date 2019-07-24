@@ -50,12 +50,20 @@ void Application::run()
     }
 #else
     onPaint();
+
     while (_window)
     {
         const Array<InputEvent>& inputEvents = Console::readInput();
+
+        for (int i = 0; i < inputEvents.size(); ++i)
+            if (inputEvents[i].eventType == INPUT_EVENT_TYPE_WINDOW)
+            {
+                WindowEvent windowEvent = inputEvents[i].event.windowEvent;
+                onResize(windowEvent.width, windowEvent.height);
+            }
+
         onInput(inputEvents);
     }
-
 #endif
 }
 

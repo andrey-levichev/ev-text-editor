@@ -2680,11 +2680,6 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                         update = doc.moveLines(20);
                 }
             }
-            else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
-            {
-                WindowEvent windowEvent = event.event.windowEvent;
-                onResize(windowEvent.width, windowEvent.height);
-            }
         }
         else
         {
@@ -2715,11 +2710,6 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                         return;
                     }
                 }
-            }
-            else if (event.eventType == INPUT_EVENT_TYPE_WINDOW)
-            {
-                WindowEvent windowEvent = event.event.windowEvent;
-                onResize(windowEvent.width, windowEvent.height);
             }
         }
     }
