@@ -1,5 +1,7 @@
 to do:
 * prevent resizing below minimum size
+* asserts for graphics
+* missing text format options for TextBlock
 
 editor:
 * readonly mode

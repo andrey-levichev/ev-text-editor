@@ -2227,10 +2227,12 @@ void Editor::onResize(int width, int height)
 {
 #ifdef GUI_MODE
     _graphics->resize(width, height);
-#endif
-
     _width = width / _charWidth;
     _height = height / _charHeight;
+#else
+    _width = width;
+    _height = height;
+#endif
 
     setDimensions();
     updateScreen(true);
