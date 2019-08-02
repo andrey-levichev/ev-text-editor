@@ -2184,17 +2184,22 @@ void Editor::onCreate()
 #ifdef GUI_MODE
     _graphics.create(_window);
 
-    Size size = _graphics->getSize();
+    Size size = _graphics->size();
     _width = size.width;
     _height = size.height;
 
     TextBlock textBlock = _graphics->createTextBlock(GUI_FONT_NAME, GUI_FONT_SIZE, false, STR("W"), size);
-    size = textBlock.getSize();
+    size = textBlock.size();
+
     _charWidth = size.width;
     _charHeight = size.height;
+    ASSERT(_charWidth > 0 && _charHeight > 0);
 
-    _width /= _charWidth;
-    _height /= _charHeight;
+    _width /= _charWidth + 1;
+    _height /= _charHeight + 1;
+
+    if (_height < 2)
+        _height = 2;
 #else
     _brightBackground = Console::brightBackground();
     Console::getSize(_width, _height);

@@ -142,6 +142,10 @@ class __TextFormat : public __ComPtr<IDWriteTextFormat>
 public:
     __TextFormat(__TextFactory& factory, const String& fontName, DWRITE_FONT_WEIGHT fontWeight,
                  DWRITE_FONT_STYLE fontStyle, DWRITE_FONT_STRETCH fontStretch, float fontSize);
+
+    void textAlignment(TextAlignment alignment);
+    void paragraphAlignment(ParagraphAlignment alignment);
+    void wordWrap(bool wrap);
 };
 
 // __TextLayout
@@ -208,7 +212,10 @@ public:
 class TextBlock
 {
 public:
-    Size getSize() const;
+    Size size() const;
+    void textAlignment(TextAlignment alignment);
+    void paragraphAlignment(ParagraphAlignment alignment);
+    void wordWrap(bool wrap);
 
 private:
 #ifdef PLATFORM_WINDOWS
@@ -239,6 +246,9 @@ private:
 
 class Image
 {
+public:
+    Size size() const;
+
 private:
 #ifdef PLATFORM_WINDOWS
 
@@ -283,7 +293,7 @@ public:
     void drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color = 0x000000,
                   TextAlignment textAlignment = TEXT_ALIGNMENT_LEFT,
                   ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP, bool bold = false,
-                  bool wrapLines = false);
+                  bool wordWrap = false);
 
     void drawText(const TextBlock& textBlock, const Point& pos, Color color);
 
@@ -308,7 +318,7 @@ public:
     }
 
     void resize(int width, int height);
-    Size getSize();
+    Size size() const;
 
 #ifdef PLATFORM_WINDOWS
 

@@ -40,6 +40,53 @@ __TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRIT
                                                    fontStyle, fontStretch, fontSize, locale, &_ptr));
 }
 
+void __TextFormat::textAlignment(TextAlignment alignment)
+{
+    DWRITE_TEXT_ALIGNMENT txtAlign;
+    switch (alignment)
+    {
+    default:
+    case TEXT_ALIGNMENT_LEFT:
+        txtAlign = DWRITE_TEXT_ALIGNMENT_LEADING;
+        break;
+    case TEXT_ALIGNMENT_RIGHT:
+        txtAlign = DWRITE_TEXT_ALIGNMENT_TRAILING;
+        break;
+    case TEXT_ALIGNMENT_CENTER:
+        txtAlign = DWRITE_TEXT_ALIGNMENT_CENTER;
+        break;
+    case TEXT_ALIGNMENT_JUSTIFIED:
+        txtAlign = DWRITE_TEXT_ALIGNMENT_JUSTIFIED;
+    }
+
+    ASSERT_COM_SUCCEEDED(_ptr->SetTextAlignment(txtAlign));
+}
+
+void __TextFormat::paragraphAlignment(ParagraphAlignment alignment)
+{
+    DWRITE_PARAGRAPH_ALIGNMENT paraAlign;
+    switch (alignment)
+    {
+    default:
+    case PARAGRAPH_ALIGNMENT_TOP:
+        paraAlign = DWRITE_PARAGRAPH_ALIGNMENT_NEAR;
+        break;
+    case PARAGRAPH_ALIGNMENT_BOTTOM:
+        paraAlign = DWRITE_PARAGRAPH_ALIGNMENT_FAR;
+        break;
+    case PARAGRAPH_ALIGNMENT_CENTER:
+        paraAlign = DWRITE_PARAGRAPH_ALIGNMENT_CENTER;
+        break;
+    }
+
+    ASSERT_COM_SUCCEEDED(_ptr->SetParagraphAlignment(paraAlign));
+}
+
+void __TextFormat::wordWrap(bool wrap)
+{
+    ASSERT_COM_SUCCEEDED(_ptr->SetWordWrapping(wrap ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP));
+}
+
 __TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width,
                            float height, bool legacyFontMeasuring)
 {
@@ -96,12 +143,44 @@ __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactor
 
 #endif
 
-Size TextBlock::getSize() const
+Size TextBlock::size() const
 {
 #ifdef PLATFORM_WINDOWS
     DWRITE_TEXT_METRICS textMetrics;
     ASSERT_COM_SUCCEEDED(_textLayout->GetMetrics(&textMetrics));
     return { textMetrics.width, textMetrics.height };
+#else
+    Size size = { 0, 0 };
+    return size;
+#endif
+}
+
+void TextBlock::textAlignment(TextAlignment alignment)
+{
+#ifdef PLATFORM_WINDOWS
+    _textFormat.textAlignment(alignment);
+#endif
+}
+
+void TextBlock::paragraphAlignment(ParagraphAlignment alignment)
+{
+#ifdef PLATFORM_WINDOWS
+    _textFormat.paragraphAlignment(alignment);
+#endif
+}
+
+void TextBlock::wordWrap(bool wrap)
+{
+#ifdef PLATFORM_WINDOWS
+    _textFormat.wordWrap(wrap);
+#endif
+}
+
+Size Image::size() const
+{
+#ifdef PLATFORM_WINDOWS
+    D2D1_SIZE_F size = _bitmap->GetSize();
+    return { size.width, size.height };
 #else
     Size size = { 0, 0 };
     return size;
@@ -191,49 +270,16 @@ void Graphics::fillRoundedRectangle(const Rect& rect, Color color, float cornerR
 }
 
 void Graphics::drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color,
-                        TextAlignment textAlignment, ParagraphAlignment paragraphAlignment, bool bold, bool wrapLines)
+                        TextAlignment textAlignment, ParagraphAlignment paragraphAlignment, bool bold, bool wordWrap)
 {
 #ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     __TextFormat textFormat(_textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
                             DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize);
 
-    DWRITE_TEXT_ALIGNMENT txtAlign;
-    switch (textAlignment)
-    {
-    default:
-    case TEXT_ALIGNMENT_LEFT:
-        txtAlign = DWRITE_TEXT_ALIGNMENT_LEADING;
-        break;
-    case TEXT_ALIGNMENT_RIGHT:
-        txtAlign = DWRITE_TEXT_ALIGNMENT_TRAILING;
-        break;
-    case TEXT_ALIGNMENT_CENTER:
-        txtAlign = DWRITE_TEXT_ALIGNMENT_CENTER;
-        break;
-    case TEXT_ALIGNMENT_JUSTIFIED:
-        txtAlign = DWRITE_TEXT_ALIGNMENT_JUSTIFIED;
-    }
-
-    DWRITE_PARAGRAPH_ALIGNMENT paraAlign;
-    switch (paragraphAlignment)
-    {
-    default:
-    case PARAGRAPH_ALIGNMENT_TOP:
-        paraAlign = DWRITE_PARAGRAPH_ALIGNMENT_NEAR;
-        break;
-    case PARAGRAPH_ALIGNMENT_BOTTOM:
-        paraAlign = DWRITE_PARAGRAPH_ALIGNMENT_FAR;
-        break;
-    case PARAGRAPH_ALIGNMENT_CENTER:
-        paraAlign = DWRITE_PARAGRAPH_ALIGNMENT_CENTER;
-        break;
-    }
-
-    ASSERT_COM_SUCCEEDED(textFormat->SetTextAlignment(txtAlign));
-    ASSERT_COM_SUCCEEDED(textFormat->SetParagraphAlignment(paraAlign));
-    ASSERT_COM_SUCCEEDED(
-        textFormat->SetWordWrapping(wrapLines ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP));
+    textFormat.textAlignment(textAlignment);
+    textFormat.paragraphAlignment(paragraphAlignment);
+    textFormat.wordWrap(wordWrap);
 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
                             { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,
@@ -273,7 +319,7 @@ void Graphics::resize(int width, int height)
 #endif
 }
 
-Size Graphics::getSize()
+Size Graphics::size() const
 {
 #ifdef PLATFORM_WINDOWS
     D2D1_SIZE_F size = _renderTarget->GetSize();

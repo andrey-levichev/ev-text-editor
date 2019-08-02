@@ -1,6 +1,3 @@
-to do:
-* missing text format options for TextBlock
-
 editor:
 * readonly mode
 * run last command, command history
