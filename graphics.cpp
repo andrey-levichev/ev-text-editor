@@ -4,32 +4,29 @@
 
 __DrawingFactory::__DrawingFactory()
 {
-    if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &_ptr)))
-        throw Exception(STR("failed to create Direct2D factory"));
+    ASSERT_COM_SUCCEEDED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &_ptr));
 }
 
 __RenderTarget::__RenderTarget(__DrawingFactory& factory, HWND window)
 {
-    RECT rc;
-    GetClientRect(window, &rc);
-    D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
+    RECT rect;
+    BOOL rc = GetClientRect(window, &rect);
+    ASSERT(rc);
 
-    if (FAILED(factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(),
-                                               D2D1::HwndRenderTargetProperties(window, size), &_ptr)))
-        throw Exception(STR("failed to create render target"));
+    D2D1_SIZE_U size = D2D1::SizeU(rect.right - rect.left, rect.bottom - rect.top);
+    ASSERT_COM_SUCCEEDED(factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(),
+                                               D2D1::HwndRenderTargetProperties(window, size), &_ptr));
 }
 
 __SolidBrush::__SolidBrush(__RenderTarget& renderTarget, const D2D1_COLOR_F& color)
 {
-    if (FAILED(renderTarget->CreateSolidColorBrush(color, &_ptr)))
-        throw Exception(STR("failed to create brush"));
+    ASSERT_COM_SUCCEEDED(renderTarget->CreateSolidColorBrush(color, &_ptr));
 }
 
 __TextFactory::__TextFactory()
 {
-    if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
-                                   reinterpret_cast<IUnknown**>(&_ptr))))
-        throw Exception(STR("failed to create DirectWrite factory"));
+    ASSERT_COM_SUCCEEDED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                                   reinterpret_cast<IUnknown**>(&_ptr)));
 }
 
 __TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRITE_FONT_WEIGHT fontWeight,
@@ -39,61 +36,52 @@ __TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRIT
     int rc = GetUserDefaultLocaleName(locale, LOCALE_NAME_MAX_LENGTH);
     ASSERT(rc > 0);
 
-    if (FAILED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), NULL, fontWeight, fontStyle,
-                                         fontStretch, fontSize, locale, &_ptr)))
-        throw Exception(STR("failed to create text format"));
+    ASSERT_COM_SUCCEEDED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), NULL, fontWeight, fontStyle,
+                                         fontStretch, fontSize, locale, &_ptr));
 }
 
 __TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width,
                            float height, bool legacyFontMeasuring)
 {
-    HRESULT hr;
-
     if (legacyFontMeasuring)
-        hr = factory->CreateGdiCompatibleTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
-                                                    textFormat, width, height, 1, NULL, false, &_ptr);
+    {
+        ASSERT_COM_SUCCEEDED(factory->CreateGdiCompatibleTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
+                                                    textFormat, width, height, 1, NULL, false, &_ptr));
+    }
     else
-        hr = factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat, width,
-                                       height, &_ptr);
-
-    if (FAILED(hr))
-        throw Exception(STR("failed to create text layout"));
+    {
+        ASSERT_COM_SUCCEEDED(factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat, width,
+                                       height, &_ptr));
+    }
 }
 
 __EllipsisTrimmingSign::__EllipsisTrimmingSign(__TextFactory& factory, __TextFormat& textFormat)
 {
-    if (FAILED(factory->CreateEllipsisTrimmingSign(textFormat, &_ptr)))
-        throw Exception(STR("failed to create trimming sign"));
+    ASSERT_COM_SUCCEEDED(factory->CreateEllipsisTrimmingSign(textFormat, &_ptr));
 }
 
 __ImagingFactory::__ImagingFactory()
 {
-    if (FAILED(CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, __uuidof(IWICImagingFactory),
-                                reinterpret_cast<void**>(&_ptr))))
-        throw Exception(STR("Failed to create WIC imaging factory"));
+    ASSERT_COM_SUCCEEDED(CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, __uuidof(IWICImagingFactory),
+                                reinterpret_cast<void**>(&_ptr)));
 }
 
 __BitmapDecoder::__BitmapDecoder(__ImagingFactory& factory, const String& fileName)
 {
-    if (FAILED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()), NULL, GENERIC_READ,
-                                                  WICDecodeMetadataCacheOnLoad, &_ptr)))
-        throw Exception(STR("Failed to create WIC decoder"));
+    ASSERT_COM_SUCCEEDED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()), NULL, GENERIC_READ,
+                                                  WICDecodeMetadataCacheOnLoad, &_ptr));
 }
 
 __BitmapFrameDecode::__BitmapFrameDecode(__BitmapDecoder& decoder)
 {
-    if (FAILED(decoder->GetFrame(0, &_ptr)))
-        throw Exception(STR("Failed to load bitmap frame"));
+    ASSERT_COM_SUCCEEDED(decoder->GetFrame(0, &_ptr));
 }
 
 __FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDecode& frame)
 {
-    if (FAILED(factory->CreateFormatConverter(&_ptr)))
-        throw Exception(STR("Failed to create WIC format converter"));
-
-    if (FAILED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, NULL, 0,
-                                WICBitmapPaletteTypeMedianCut)))
-        throw Exception(STR("Failed to initialize WIC format converter"));
+    ASSERT_COM_SUCCEEDED(factory->CreateFormatConverter(&_ptr));
+    ASSERT_COM_SUCCEEDED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, NULL, 0,
+                                WICBitmapPaletteTypeMedianCut));
 }
 
 __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName)
@@ -102,8 +90,7 @@ __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactor
     __BitmapFrameDecode frame(bitmapDecoder);
     __FormatConverter formatConverter(imagingFactory, frame);
 
-    if (FAILED(renderTarget->CreateBitmapFromWicBitmap(formatConverter, &_ptr)))
-        throw Exception(STR("Failed to create D2D bitmap"));
+    ASSERT_COM_SUCCEEDED(renderTarget->CreateBitmapFromWicBitmap(formatConverter, &_ptr));
 }
 
 #endif
@@ -112,7 +99,7 @@ Size TextBlock::getSize() const
 {
 #ifdef PLATFORM_WINDOWS
     DWRITE_TEXT_METRICS textMetrics;
-    _textLayout->GetMetrics(&textMetrics);
+    ASSERT_COM_SUCCEEDED(_textLayout->GetMetrics(&textMetrics));
     return { textMetrics.width, textMetrics.height };
 #else
     Size size = { 0, 0 };
@@ -141,7 +128,7 @@ void Graphics::beginDraw()
 void Graphics::endDraw()
 {
 #ifdef PLATFORM_WINDOWS
-    _renderTarget->EndDraw();
+    ASSERT_COM_SUCCEEDED(_renderTarget->EndDraw());
 #endif
 }
 
@@ -243,9 +230,9 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
         break;
     }
 
-    textFormat->SetTextAlignment(txtAlign);
-    textFormat->SetParagraphAlignment(paraAlign);
-    textFormat->SetWordWrapping(wrapLines ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP);
+    ASSERT_COM_SUCCEEDED(textFormat->SetTextAlignment(txtAlign));
+    ASSERT_COM_SUCCEEDED(textFormat->SetParagraphAlignment(paraAlign));
+    ASSERT_COM_SUCCEEDED(textFormat->SetWordWrapping(wrapLines ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP));
 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
                             { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,
@@ -253,7 +240,7 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
 #endif
 }
 
-void Graphics::drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color)
+void Graphics::drawText(const TextBlock& textBlock, const Point& pos, Color color)
 {
 #ifdef PLATFORM_WINDOWS
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
@@ -281,7 +268,7 @@ void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
 void Graphics::resize(int width, int height)
 {
 #ifdef PLATFORM_WINDOWS
-    _renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height) });
+    ASSERT_COM_SUCCEEDED(_renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height) }));
 #endif
 }
 

@@ -298,6 +298,16 @@ void terminate(const String& message);
 
 #endif
 
+#ifdef PLATFORM_WINDOWS
+
+#define ASSERT_COM_SUCCEEDED(...) \
+    { \
+        HRESULT hr = __VA_ARGS__; \
+        ASSERT_MSG(SUCCEEDED(hr), STR(#__VA_ARGS__)); \
+    }
+
+#endif
+
 // debug logging
 
 class String;

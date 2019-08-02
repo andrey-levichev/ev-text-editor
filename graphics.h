@@ -288,7 +288,7 @@ public:
                   ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP, bool bold = false,
                   bool wrapLines = false);
 
-    void drawTextBlock(const TextBlock& textBlock, const Point& pos, Color color);
+    void drawText(const TextBlock& textBlock, const Point& pos, Color color);
 
     TextBlock createTextBlock(const String& font, float fontSize, bool bold, const String& text, const Size& size)
     {
