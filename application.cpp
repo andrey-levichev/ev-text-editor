@@ -91,10 +91,9 @@ void Application::createWindow(const char_t* title, int width, int height)
     ATOM rc = RegisterClassEx(&wc);
     ASSERT(rc != 0);
 
-    CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS),
-        reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
-        NULL, NULL, GetModuleHandle(NULL), NULL);
+    CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS), reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
+                 CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
+                 NULL, NULL, GetModuleHandle(NULL), NULL);
 
     if (!_window)
         throw Exception(STR("failed to create window"));
@@ -168,146 +167,146 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             return 0;
 
         case WM_KEYDOWN:
+        {
+            inputEvents.clear();
+
+            KeyEvent keyEvent = { KEY_NONE };
+
+            switch (wParam)
             {
-                inputEvents.clear();
+            case VK_UP:
+                keyEvent.key = KEY_UP;
+                break;
 
-                KeyEvent keyEvent = { KEY_NONE };
+            case VK_DOWN:
+                keyEvent.key = KEY_DOWN;
+                break;
 
-                switch (wParam)
-                {
-                case VK_UP:
-                    keyEvent.key = KEY_UP;
-                    break;
+            case VK_LEFT:
+                keyEvent.key = KEY_LEFT;
+                break;
 
-                case VK_DOWN:
-                    keyEvent.key = KEY_DOWN;
-                    break;
+            case VK_RIGHT:
+                keyEvent.key = KEY_RIGHT;
+                break;
 
-                case VK_LEFT:
-                    keyEvent.key = KEY_LEFT;
-                    break;
+            case VK_INSERT:
+                keyEvent.key = KEY_INSERT;
+                break;
 
-                case VK_RIGHT:
-                    keyEvent.key = KEY_RIGHT;
-                    break;
+            case VK_DELETE:
+                keyEvent.key = KEY_DELETE;
+                break;
 
-                case VK_INSERT:
-                    keyEvent.key = KEY_INSERT;
-                    break;
+            case VK_HOME:
+                keyEvent.key = KEY_HOME;
+                break;
 
-                case VK_DELETE:
-                    keyEvent.key = KEY_DELETE;
-                    break;
+            case VK_END:
+                keyEvent.key = KEY_END;
+                break;
 
-                case VK_HOME:
-                    keyEvent.key = KEY_HOME;
-                    break;
+            case VK_PRIOR:
+                keyEvent.key = KEY_PGUP;
+                break;
 
-                case VK_END:
-                    keyEvent.key = KEY_END;
-                    break;
+            case VK_NEXT:
+                keyEvent.key = KEY_PGDN;
+                break;
 
-                case VK_PRIOR:
-                    keyEvent.key = KEY_PGUP;
-                    break;
+            case VK_F1:
+                keyEvent.key = KEY_F1;
+                break;
 
-                case VK_NEXT:
-                    keyEvent.key = KEY_PGDN;
-                    break;
+            case VK_F2:
+                keyEvent.key = KEY_F2;
+                break;
 
-                case VK_F1:
-                    keyEvent.key = KEY_F1;
-                    break;
+            case VK_F3:
+                keyEvent.key = KEY_F3;
+                break;
 
-                case VK_F2:
-                    keyEvent.key = KEY_F2;
-                    break;
+            case VK_F4:
+                keyEvent.key = KEY_F4;
+                break;
 
-                case VK_F3:
-                    keyEvent.key = KEY_F3;
-                    break;
+            case VK_F5:
+                keyEvent.key = KEY_F5;
+                break;
 
-                case VK_F4:
-                    keyEvent.key = KEY_F4;
-                    break;
+            case VK_F6:
+                keyEvent.key = KEY_F6;
+                break;
 
-                case VK_F5:
-                    keyEvent.key = KEY_F5;
-                    break;
+            case VK_F7:
+                keyEvent.key = KEY_F7;
+                break;
 
-                case VK_F6:
-                    keyEvent.key = KEY_F6;
-                    break;
+            case VK_F8:
+                keyEvent.key = KEY_F8;
+                break;
 
-                case VK_F7:
-                    keyEvent.key = KEY_F7;
-                    break;
+            case VK_F9:
+                keyEvent.key = KEY_F9;
+                break;
 
-                case VK_F8:
-                    keyEvent.key = KEY_F8;
-                    break;
+            case VK_F10:
+                keyEvent.key = KEY_F10;
+                break;
 
-                case VK_F9:
-                    keyEvent.key = KEY_F9;
-                    break;
+            case VK_F11:
+                keyEvent.key = KEY_F11;
+                break;
 
-                case VK_F10:
-                    keyEvent.key = KEY_F10;
-                    break;
-
-                case VK_F11:
-                    keyEvent.key = KEY_F11;
-                    break;
-
-                case VK_F12:
-                    keyEvent.key = KEY_F12;
-                    break;
-                }
-
-                if (keyEvent.key != KEY_NONE)
-                {
-                    keyEvent.ctrl = GetKeyState(VK_CONTROL);
-                    keyEvent.alt = GetKeyState(VK_MENU);
-                    keyEvent.shift = GetKeyState(VK_SHIFT);
-
-                    inputEvents.addLast(keyEvent);
-                    _application->onInput(inputEvents);
-
-                    return 0;
-                }
+            case VK_F12:
+                keyEvent.key = KEY_F12;
+                break;
             }
-            break;
+
+            if (keyEvent.key != KEY_NONE)
+            {
+                keyEvent.ctrl = GetKeyState(VK_CONTROL);
+                keyEvent.alt = GetKeyState(VK_MENU);
+                keyEvent.shift = GetKeyState(VK_SHIFT);
+
+                inputEvents.addLast(keyEvent);
+                _application->onInput(inputEvents);
+
+                return 0;
+            }
+        }
+        break;
 
         case WM_CHAR:
+        {
+            inputEvents.clear();
+
+            KeyEvent keyEvent = { KEY_NONE };
+
+            if (wParam > 0)
             {
-                inputEvents.clear();
+                if (wParam == 0x08)
+                    keyEvent.key = KEY_BACKSPACE;
+                else if (wParam == 0x09)
+                    keyEvent.key = KEY_TAB;
+                else if (wParam == 0x0d)
+                    keyEvent.key = KEY_ENTER;
+                else if (wParam == 0x1b)
+                    keyEvent.key = KEY_ESC;
+                else
+                    keyEvent.ch = wParam < 0x20 ? CONTROL_KEYS[wParam] : wParam;
 
-                KeyEvent keyEvent = { KEY_NONE };
+                keyEvent.ctrl = GetKeyState(VK_CONTROL);
+                keyEvent.alt = GetKeyState(VK_MENU);
+                keyEvent.shift = GetKeyState(VK_SHIFT);
 
-                if (wParam > 0)
-                {
-                    if (wParam == 0x08)
-                        keyEvent.key = KEY_BACKSPACE;
-                    else if (wParam == 0x09)
-                        keyEvent.key = KEY_TAB;
-                    else if (wParam == 0x0d)
-                        keyEvent.key = KEY_ENTER;
-                    else if (wParam == 0x1b)
-                        keyEvent.key = KEY_ESC;
-                    else
-                        keyEvent.ch = wParam < 0x20 ? CONTROL_KEYS[wParam] : wParam;
+                inputEvents.addLast(keyEvent);
+                _application->onInput(inputEvents);
 
-                    keyEvent.ctrl = GetKeyState(VK_CONTROL);
-                    keyEvent.alt = GetKeyState(VK_MENU);
-                    keyEvent.shift = GetKeyState(VK_SHIFT);
-
-                    inputEvents.addLast(keyEvent);
-                    _application->onInput(inputEvents);
-
-                    return 0;
-                }
+                return 0;
             }
-            break;
+        }
+        break;
         }
     }
     catch (Exception& ex)

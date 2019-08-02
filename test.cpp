@@ -5575,7 +5575,7 @@ void testFile()
         ASSERT(f.isOpen());
     }
 
-        // bool isExecutable() const
+    // bool isExecutable() const
 
 #ifdef PLATFORM_WINDOWS
     {

@@ -240,7 +240,8 @@ void terminate(const String& message);
     do \
     { \
         if (!(condition)) \
-            throw Exception(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) STR(": ") msg); \
+            throw Exception(STR("assertion failed in ") STR_MACRO(__FILE__) STR(" at line ") NUM_MACRO(__LINE__) \
+                                STR(": ") msg); \
     } while (false)
 
 #define ASSERT(...) ASSERT_MSG(__VA_ARGS__, STR(#__VA_ARGS__))
@@ -315,9 +316,12 @@ class String;
 void logDebugMessage(const char_t* message);
 void logDebugMessage(const String& message);
 
-#define LOG_LOC logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR_MACRO(__FUNCTION__) NEWLINE)
+#define LOG_LOC \
+    logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR_MACRO(__FUNCTION__) NEWLINE)
 #define LOG_MSG(msg) logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") msg NEWLINE)
-#define LOG_STMT(...) __VA_ARGS__; logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR(#__VA_ARGS__) NEWLINE)
+#define LOG_STMT(...) \
+    __VA_ARGS__; \
+    logDebugMessage(STR_MACRO(__FILE__) STR(":") NUM_MACRO(__LINE__) STR(": ") STR(#__VA_ARGS__) NEWLINE)
 
 #define LOG_FMT(fmt, ...) \
     do \
@@ -740,7 +744,7 @@ inline _Type* createArrayMove(int size, int capacity, _Type* values)
     return ptr;
 }
 
-}
+} // namespace Memory
 
 // swap
 

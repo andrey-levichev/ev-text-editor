@@ -2028,12 +2028,9 @@ void Document::determineDocumentType(bool fileExecutable)
 // Editor
 
 Editor::Editor(const Array<String>& args) :
-    Application(args, STR("ev")),
-    _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL),
-    _recordingMacro(false), _width(1), _height(2),
-    _charWidth(1), _charHeight(1),
-    _brightBackground(true), _caseSesitive(true),
-    _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
+    Application(args, STR("ev")), _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL),
+    _recordingMacro(false), _width(1), _height(2), _charWidth(1), _charHeight(1), _brightBackground(true),
+    _caseSesitive(true), _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
 {
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
@@ -2159,14 +2156,14 @@ bool Editor::start()
 #else
             Console::writeLine(
 #endif
-                        STR("ev text editor version 1.8\n"
-                            "web: evtext.org\n"
-                            "Copyright (C) Andrey Levichev, 2019\n\n"
-                            "usage: ev [OPTIONS] [FILE]...\n\n"
-                            "OPTIONS:\n\n"
-                            "--version - print version information and exit\n"
-                            "--dark - assume dark screen background\n"
-                            "--bright - assume bright screen background\n"));
+                STR("ev text editor version 1.8\n"
+                    "web: evtext.org\n"
+                    "Copyright (C) Andrey Levichev, 2019\n\n"
+                    "usage: ev [OPTIONS] [FILE]...\n\n"
+                    "OPTIONS:\n\n"
+                    "--version - print version information and exit\n"
+                    "--dark - assume dark screen background\n"
+                    "--bright - assume bright screen background\n"));
 
             return false;
         }

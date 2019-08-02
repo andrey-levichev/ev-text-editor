@@ -211,7 +211,6 @@ public:
     Size getSize() const;
 
 private:
-
 #ifdef PLATFORM_WINDOWS
 
     TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
@@ -241,14 +240,12 @@ private:
 class Image
 {
 private:
-
 #ifdef PLATFORM_WINDOWS
 
     Image(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName) :
         _bitmap(renderTarget, imagingFactory, fileName)
     {
     }
-
 
     __Bitmap _bitmap;
 

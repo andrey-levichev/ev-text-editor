@@ -15,7 +15,7 @@ __RenderTarget::__RenderTarget(__DrawingFactory& factory, HWND window)
 
     D2D1_SIZE_U size = D2D1::SizeU(rect.right - rect.left, rect.bottom - rect.top);
     ASSERT_COM_SUCCEEDED(factory->CreateHwndRenderTarget(D2D1::RenderTargetProperties(),
-                                               D2D1::HwndRenderTargetProperties(window, size), &_ptr));
+                                                         D2D1::HwndRenderTargetProperties(window, size), &_ptr));
 }
 
 __SolidBrush::__SolidBrush(__RenderTarget& renderTarget, const D2D1_COLOR_F& color)
@@ -25,8 +25,8 @@ __SolidBrush::__SolidBrush(__RenderTarget& renderTarget, const D2D1_COLOR_F& col
 
 __TextFactory::__TextFactory()
 {
-    ASSERT_COM_SUCCEEDED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
-                                   reinterpret_cast<IUnknown**>(&_ptr)));
+    ASSERT_COM_SUCCEEDED(
+        DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&_ptr)));
 }
 
 __TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRITE_FONT_WEIGHT fontWeight,
@@ -36,8 +36,8 @@ __TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRIT
     int rc = GetUserDefaultLocaleName(locale, LOCALE_NAME_MAX_LENGTH);
     ASSERT(rc > 0);
 
-    ASSERT_COM_SUCCEEDED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), NULL, fontWeight, fontStyle,
-                                         fontStretch, fontSize, locale, &_ptr));
+    ASSERT_COM_SUCCEEDED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), NULL, fontWeight,
+                                                   fontStyle, fontStretch, fontSize, locale, &_ptr));
 }
 
 __TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width,
@@ -45,13 +45,14 @@ __TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFor
 {
     if (legacyFontMeasuring)
     {
-        ASSERT_COM_SUCCEEDED(factory->CreateGdiCompatibleTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
-                                                    textFormat, width, height, 1, NULL, false, &_ptr));
+        ASSERT_COM_SUCCEEDED(factory->CreateGdiCompatibleTextLayout(reinterpret_cast<const WCHAR*>(text.chars()),
+                                                                    text.length(), textFormat, width, height, 1, NULL,
+                                                                    false, &_ptr));
     }
     else
     {
-        ASSERT_COM_SUCCEEDED(factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat, width,
-                                       height, &_ptr));
+        ASSERT_COM_SUCCEEDED(factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
+                                                       textFormat, width, height, &_ptr));
     }
 }
 
@@ -62,14 +63,14 @@ __EllipsisTrimmingSign::__EllipsisTrimmingSign(__TextFactory& factory, __TextFor
 
 __ImagingFactory::__ImagingFactory()
 {
-    ASSERT_COM_SUCCEEDED(CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, __uuidof(IWICImagingFactory),
-                                reinterpret_cast<void**>(&_ptr)));
+    ASSERT_COM_SUCCEEDED(CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER,
+                                          __uuidof(IWICImagingFactory), reinterpret_cast<void**>(&_ptr)));
 }
 
 __BitmapDecoder::__BitmapDecoder(__ImagingFactory& factory, const String& fileName)
 {
-    ASSERT_COM_SUCCEEDED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()), NULL, GENERIC_READ,
-                                                  WICDecodeMetadataCacheOnLoad, &_ptr));
+    ASSERT_COM_SUCCEEDED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()), NULL,
+                                                            GENERIC_READ, WICDecodeMetadataCacheOnLoad, &_ptr));
 }
 
 __BitmapFrameDecode::__BitmapFrameDecode(__BitmapDecoder& decoder)
@@ -81,7 +82,7 @@ __FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDec
 {
     ASSERT_COM_SUCCEEDED(factory->CreateFormatConverter(&_ptr));
     ASSERT_COM_SUCCEEDED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, NULL, 0,
-                                WICBitmapPaletteTypeMedianCut));
+                                          WICBitmapPaletteTypeMedianCut));
 }
 
 __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName)
@@ -108,8 +109,7 @@ Size TextBlock::getSize() const
 }
 
 #ifdef PLATFORM_WINDOWS
-Graphics::Graphics(uintptr_t window)  :
-    _renderTarget(_drawingFactory, reinterpret_cast<HWND>(window))
+Graphics::Graphics(uintptr_t window) : _renderTarget(_drawingFactory, reinterpret_cast<HWND>(window))
 #else
 Graphics::Graphics(uintptr_t window)
 #endif
@@ -232,7 +232,8 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
 
     ASSERT_COM_SUCCEEDED(textFormat->SetTextAlignment(txtAlign));
     ASSERT_COM_SUCCEEDED(textFormat->SetParagraphAlignment(paraAlign));
-    ASSERT_COM_SUCCEEDED(textFormat->SetWordWrapping(wrapLines ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP));
+    ASSERT_COM_SUCCEEDED(
+        textFormat->SetWordWrapping(wrapLines ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP));
 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
                             { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,

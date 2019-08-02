@@ -1,5 +1,4 @@
 to do:
-* format the code
 * missing text format options for TextBlock
 
 editor:
