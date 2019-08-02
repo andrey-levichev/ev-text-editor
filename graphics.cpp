@@ -200,7 +200,6 @@ void Graphics::beginDraw()
 #ifdef PLATFORM_WINDOWS
     _renderTarget->BeginDraw();
     _renderTarget->SetTransform(D2D1::IdentityMatrix());
-    _renderTarget->Clear(D2D1::ColorF(D2D1::ColorF::White));
 #endif
 }
 
@@ -208,6 +207,13 @@ void Graphics::endDraw()
 {
 #ifdef PLATFORM_WINDOWS
     ASSERT_COM_SUCCEEDED(_renderTarget->EndDraw());
+#endif
+}
+
+void Graphics::clear(Color color)
+{
+#ifdef PLATFORM_WINDOWS
+    _renderTarget->Clear(D2D1::ColorF(color));
 #endif
 }
 

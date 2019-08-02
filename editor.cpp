@@ -2187,6 +2187,7 @@ void Editor::onCreate()
     Size size = _graphics->size();
     _width = size.width;
     _height = size.height;
+    LOG_FMT("onCreate: %dx%d", _width, _height);
 
     TextBlock textBlock = _graphics->createTextBlock(GUI_FONT_NAME, GUI_FONT_SIZE, false, STR("W"), size);
     size = textBlock.size();
@@ -2195,11 +2196,13 @@ void Editor::onCreate()
     _charHeight = size.height;
     ASSERT(_charWidth > 0 && _charHeight > 0);
 
-    _width /= _charWidth + 1;
-    _height /= _charHeight + 1;
+    _width = _width / _charWidth + 1;
+    _height = _height / _charHeight + 1;
 
     if (_height < 2)
         _height = 2;
+
+    LOG_FMT("onCreate: %dx%d", _width, _height);
 #else
     _brightBackground = Console::brightBackground();
     Console::getSize(_width, _height);
@@ -2222,7 +2225,8 @@ void Editor::onDestroy()
 
 void Editor::onPaint()
 {
-    updateScreen(true);
+//    LOG_MSG("onPaint");
+//    updateScreen(true);
 }
 
 void Editor::onResize(int width, int height)
@@ -2235,6 +2239,8 @@ void Editor::onResize(int width, int height)
 
     if (_height < 2)
         _height = 2;
+
+    LOG_FMT("onResize: %dx%d %dx%d", width, height, _width, _height);
 #else
     _width = width;
     _height = height;
@@ -2773,7 +2779,8 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
-
+    _graphics->beginDraw();
+    _graphics->clear();
 #else
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
@@ -2817,11 +2824,24 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
-        Rect rect = { 0, 0, 200, GUI_FONT_SIZE };
+        for (int j = 0; j < _height; ++j)
+        {
+            int jw = j * _width, start = jw, end = start + _width;
+            int color = 0;
 
-        _graphics->beginDraw();
-        _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, String::format(STR("%dx%d"), _width, _height), rect);
-        _graphics->endDraw();
+            _output.clear();
+
+            for (int i = start; i < end; ++i)
+            {
+                if (color != _screen[i].color)
+                    color = _screen[i].color;
+
+                _output += _screen[i].ch;
+            }
+
+            Rect rect = { 0, j * _charHeight, _width * _charHeight, (j + 1) * _charHeight };
+            _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect);
+        }
 #else
         SMALL_RECT rect;
         rect.Top = csbi.srWindow.Top;
@@ -2882,7 +2902,17 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
+                for (int i = start; i <= end; ++i)
+                {
+                    if (color != _screen[i].color)
+                        color = _screen[i].color;
 
+                    _output += _screen[i].ch;
+                }
+
+                Rect rect = { (start - jw) * _charWidth, j * _charHeight,
+                    (end - jw + 1) * _charWidth, (j + 1) * _charHeight };
+                _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect);
 #else
                 COORD pos;
                 pos.X = start - jw;
@@ -2924,7 +2954,7 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
-
+    _graphics->endDraw();
 #else
     Console::setCursorPosition(line, col);
 #endif

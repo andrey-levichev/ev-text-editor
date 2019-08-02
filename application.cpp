@@ -133,6 +133,11 @@ void Application::destroyWindow()
 
 #ifdef GUI_MODE
 
+bool isKeyPressed(int key)
+{
+    return (key & 0x8000) != 0;
+}
+
 LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static Array<InputEvent> inputEvents;
@@ -265,9 +270,9 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
             if (keyEvent.key != KEY_NONE)
             {
-                keyEvent.ctrl = GetKeyState(VK_CONTROL);
-                keyEvent.alt = GetKeyState(VK_MENU);
-                keyEvent.shift = GetKeyState(VK_SHIFT);
+                keyEvent.ctrl = isKeyPressed(VK_CONTROL);
+                keyEvent.alt = isKeyPressed(VK_MENU);
+                keyEvent.shift = isKeyPressed(VK_SHIFT);
 
                 inputEvents.addLast(keyEvent);
                 _application->onInput(inputEvents);
@@ -296,9 +301,9 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 else
                     keyEvent.ch = wParam < 0x20 ? CONTROL_KEYS[wParam] : wParam;
 
-                keyEvent.ctrl = GetKeyState(VK_CONTROL);
-                keyEvent.alt = GetKeyState(VK_MENU);
-                keyEvent.shift = GetKeyState(VK_SHIFT);
+                keyEvent.ctrl = isKeyPressed(VK_CONTROL);
+                keyEvent.alt = isKeyPressed(VK_MENU);
+                keyEvent.shift = isKeyPressed(VK_SHIFT);
 
                 inputEvents.addLast(keyEvent);
                 _application->onInput(inputEvents);

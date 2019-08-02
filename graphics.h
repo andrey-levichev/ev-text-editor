@@ -279,6 +279,7 @@ public:
 
     void beginDraw();
     void endDraw();
+    void clear(Color color = 0xffffff);
 
     void drawLine(const Point& p1, const Point& p2, Color color, float width = 1);
     void drawHorizontalLine(float y, float x1, float x2, Color color, float width = 1);
@@ -290,7 +291,7 @@ public:
     void fillRectangle(const Rect& rect, Color color);
     void fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius);
 
-    void drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color = 0x000000,
+    void drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color = 0,
                   TextAlignment textAlignment = TEXT_ALIGNMENT_LEFT,
                   ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP, bool bold = false,
                   bool wordWrap = false);
