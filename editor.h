@@ -467,7 +467,8 @@ protected:
     Array<InputEvent> _macro;
 
     int _width, _height;
-    int _charWidth, _charHeight;
+    int _cursorLine, _cursorColumn;
+    float _charWidth, _charHeight;
     bool _unicodeLimit16;
     bool _brightBackground;
 

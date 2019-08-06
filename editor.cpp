@@ -5,7 +5,7 @@ const char_t* APPLICATION_NAME = STR("ev");
 
 const int TAB_SIZE = 4;
 const char_t* GUI_FONT_NAME = STR("Lucida Console");
-const int GUI_FONT_SIZE = 14;
+const int GUI_FONT_SIZE = 13;
 
 bool charIsWord(unichar_t ch)
 {
@@ -39,6 +39,47 @@ BackgroundColor defaultBackground()
 #else
     return Console::defaultBackground();
 #endif
+}
+
+
+uint32_t rgbColor(uint16_t color)
+{
+    switch (color & (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY))
+    {
+    default:
+    case 0:
+        return 0x000000;
+    case FOREGROUND_RED:
+        return 0x800000;
+    case FOREGROUND_GREEN:
+        return 0x008000;
+    case FOREGROUND_GREEN | FOREGROUND_RED:
+        return 0x808000;
+    case FOREGROUND_BLUE:
+        return 0x000080;
+    case FOREGROUND_RED | FOREGROUND_BLUE:
+        return 0x800080;
+    case FOREGROUND_GREEN | FOREGROUND_BLUE:
+        return 0x008080;
+    case FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE:
+        return 0xc0c0c0;
+    case FOREGROUND_INTENSITY:
+        return 0x808080;
+    case FOREGROUND_RED | FOREGROUND_INTENSITY:
+        return 0xff0000;
+    case FOREGROUND_GREEN | FOREGROUND_INTENSITY:
+        return 0x00ff00;
+    case FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY:
+        return 0xffff00;
+    case FOREGROUND_BLUE | FOREGROUND_INTENSITY:
+        return 0x0000ff;
+    case FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY:
+        return 0xff00ff;
+    case FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY:
+        return 0x00ffff;
+    case FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY:
+        return 0xffffff;
+    }
 }
 
 // ScreenCell
@@ -2029,8 +2070,9 @@ void Document::determineDocumentType(bool fileExecutable)
 
 Editor::Editor(const Array<String>& args) :
     Application(args, STR("ev")), _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL),
-    _recordingMacro(false), _width(1), _height(2), _charWidth(1), _charHeight(1), _brightBackground(true),
-    _caseSesitive(true), _recentLocation(NULL), _currentSuggestion(INVALID_POSITION)
+    _recordingMacro(false), _width(1), _height(2), _cursorLine(0), _cursorColumn(0),
+    _charWidth(1), _charHeight(1), _brightBackground(true), _caseSesitive(true), _recentLocation(NULL),
+    _currentSuggestion(INVALID_POSITION)
 {
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
@@ -2184,25 +2226,20 @@ void Editor::onCreate()
 #ifdef GUI_MODE
     _graphics.create(_window);
 
-    Size size = _graphics->size();
-    _width = size.width;
-    _height = size.height;
-    LOG_FMT("onCreate: %dx%d", _width, _height);
+    Size scrSize = _graphics->size();
 
-    TextBlock textBlock = _graphics->createTextBlock(GUI_FONT_NAME, GUI_FONT_SIZE, false, STR("W"), size);
-    size = textBlock.size();
+    TextBlock textBlock = _graphics->createTextBlock(GUI_FONT_NAME, GUI_FONT_SIZE, false, STR("w"), scrSize);
+    Size chrSize = textBlock.size();
 
-    _charWidth = size.width;
-    _charHeight = size.height;
+    _charWidth = chrSize.width;
+    _charHeight = chrSize.height;
     ASSERT(_charWidth > 0 && _charHeight > 0);
 
-    _width = _width / _charWidth + 1;
-    _height = _height / _charHeight + 1;
+    _width = scrSize.width / _charWidth;
+    _height = scrSize.height / _charHeight;
 
     if (_height < 2)
         _height = 2;
-
-    LOG_FMT("onCreate: %dx%d", _width, _height);
 #else
     _brightBackground = Console::brightBackground();
     Console::getSize(_width, _height);
@@ -2225,8 +2262,7 @@ void Editor::onDestroy()
 
 void Editor::onPaint()
 {
-//    LOG_MSG("onPaint");
-//    updateScreen(true);
+    updateScreen(true);
 }
 
 void Editor::onResize(int width, int height)
@@ -2234,20 +2270,18 @@ void Editor::onResize(int width, int height)
 #ifdef GUI_MODE
     _graphics->resize(width, height);
 
-    _width = width / _charWidth + 1;
-    _height = height / _charHeight + 1;
+    Size size = _graphics->size();
+    _width = size.width / _charWidth;
+    _height = size.height / _charHeight;
 
     if (_height < 2)
         _height = 2;
-
-    LOG_FMT("onResize: %dx%d %dx%d", width, height, _width, _height);
 #else
     _width = width;
     _height = height;
 #endif
 
     setDimensions();
-    updateScreen(true);
 }
 
 void Editor::onInput(const Array<InputEvent>& inputEvents)
@@ -2780,7 +2814,8 @@ void Editor::updateScreen(bool redrawAll)
 
 #ifdef GUI_MODE
     _graphics->beginDraw();
-    _graphics->clear();
+    if (redrawAll)
+        _graphics->clear();
 #else
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
@@ -2827,20 +2862,31 @@ void Editor::updateScreen(bool redrawAll)
         for (int j = 0; j < _height; ++j)
         {
             int jw = j * _width, start = jw, end = start + _width;
-            int color = 0;
+            int color = -1, ii = 0;
 
             _output.clear();
 
             for (int i = start; i < end; ++i)
             {
                 if (color != _screen[i].color)
+                {
+                    if (color >= 0)
+                    {
+                        Rect rect = { ii * _charWidth, j * _charHeight, (i - jw) * _charWidth, (j + 1) * _charHeight };
+                        _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColor(color));
+
+                        _output.clear();
+                        ii = i - jw;
+                    }
+
                     color = _screen[i].color;
+                }
 
                 _output += _screen[i].ch;
             }
 
-            Rect rect = { 0, j * _charHeight, _width * _charHeight, (j + 1) * _charHeight };
-            _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect);
+            Rect rect = { ii * _charWidth, j * _charHeight, _width * _charWidth, (j + 1) * _charHeight };
+            _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColor(color));
         }
 #else
         SMALL_RECT rect;
@@ -2857,7 +2903,7 @@ void Editor::updateScreen(bool redrawAll)
         for (int j = 0; j < _height; ++j)
         {
             int jw = j * _width, start = jw, end = start + _width;
-            int color = 0;
+            int color = -1;
 
             _output.clear();
 
@@ -2887,7 +2933,7 @@ void Editor::updateScreen(bool redrawAll)
         for (int j = 0; j < _height; ++j)
         {
             int jw = j * _width, start = jw, end = start + _width - 1;
-            int color = 0;
+            int color = -1;
 
             _output.clear();
 
@@ -2902,17 +2948,31 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
+                int ii = start - jw;
+
                 for (int i = start; i <= end; ++i)
                 {
                     if (color != _screen[i].color)
+                    {
+                        if (color >= 0)
+                        {
+                            Rect rect = { ii * _charWidth, j * _charHeight, (i - jw) * _charWidth, (j + 1) * _charHeight };
+                            _graphics->fillRectangle(rect, 0xffffff);
+                            _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColor(color));
+
+                            _output.clear();
+                            ii = i - jw;
+                        }
+
                         color = _screen[i].color;
+                    }
 
                     _output += _screen[i].ch;
                 }
 
-                Rect rect = { (start - jw) * _charWidth, j * _charHeight,
-                    (end - jw + 1) * _charWidth, (j + 1) * _charHeight };
-                _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect);
+                Rect rect = { ii * _charWidth, j * _charHeight, (end - jw + 1) * _charWidth, (j + 1) * _charHeight };
+                _graphics->fillRectangle(rect, 0xffffff);
+                _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColor(color));
 #else
                 COORD pos;
                 pos.X = start - jw;
@@ -2954,6 +3014,24 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
+    if (_cursorLine > 0)
+    {
+        int i = (_cursorLine - 1) * _width + _cursorColumn - 1;
+        _output = _screen[i].ch;
+
+        Rect rect = { (_cursorColumn - 1) * _charWidth, (_cursorLine - 1) * _charHeight,
+                    _cursorColumn * _charWidth, _cursorLine * _charHeight };
+
+        _graphics->fillRectangle(rect, 0xffffff);
+        _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColor(_screen[i].color));
+    }
+
+    _cursorLine = line;
+    _cursorColumn = col;
+
+    _graphics->fillRectangle({ (col - 1) * _charWidth, line * _charHeight - 2,
+        col * _charWidth, line * _charHeight }, 0);
+
     _graphics->endDraw();
 #else
     Console::setCursorPosition(line, col);

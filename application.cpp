@@ -135,7 +135,7 @@ void Application::destroyWindow()
 
 bool isKeyPressed(int key)
 {
-    return (key & 0x8000) != 0;
+    return (GetKeyState(key) & 0x8000) != 0;
 }
 
 LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wParam, LPARAM lParam)
@@ -160,6 +160,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             if (GetForegroundWindow() == reinterpret_cast<HWND>(_application->_window))
             {
                 _application->onPaint();
+                ValidateRect(handle, NULL);
                 return 0;
             }
             break;
@@ -168,10 +169,8 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             _application->onResize(LOWORD(lParam), HIWORD(lParam));
             return 0;
 
-        case WM_ERASEBKGND:
-            return 0;
-
         case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
         {
             inputEvents.clear();
 

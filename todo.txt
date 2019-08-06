@@ -1,3 +1,16 @@
+to do:
+* tw off must apply to all files
+* tabs disappear when pasting into terminal window
+* WM_PAINT handling, erase background
+* repaint region
+* font measuring gives incorrect width
+* alt+key doesn't work
+* cursor, colors
+* key repeat
+* color alpha
+* drawing spaces and nulls
+* update rectangle boundaries
+
 editor:
 * readonly mode
 * run last command, command history
