@@ -1,15 +1,7 @@
 to do:
-* tw off must apply to all files
-* tabs disappear when pasting into terminal window
-* WM_PAINT handling, erase background
-* repaint region
 * font measuring gives incorrect width
-* alt+key doesn't work
-* cursor, colors
-* key repeat
-* color alpha
+* repaint region
 * drawing spaces and nulls
-* update rectangle boundaries
 
 editor:
 * readonly mode
@@ -24,6 +16,7 @@ editor:
 * find/replace regex, backwards, match word/case
 * find/replace in files
 * config file, customizable build command and key mappings
+* configurable font and text size
 * selection with mouse/arrows and highlighting
 * line wrapping
 * run macro n times, run macro on selection
@@ -85,6 +78,7 @@ type safe string formatting
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
+* alpha and floating point color
 
 misc:
 * create public web page

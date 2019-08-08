@@ -273,7 +273,10 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 keyEvent.alt = isKeyPressed(VK_MENU);
                 keyEvent.shift = isKeyPressed(VK_SHIFT);
 
-                inputEvents.addLast(keyEvent);
+                int count = lParam & 0x7fff;
+                for (int i = 0; i < count; ++i)
+                    inputEvents.addLast(keyEvent);
+
                 _application->onInput(inputEvents);
 
                 return 0;
@@ -304,7 +307,10 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 keyEvent.alt = isKeyPressed(VK_MENU);
                 keyEvent.shift = isKeyPressed(VK_SHIFT);
 
-                inputEvents.addLast(keyEvent);
+                int count = lParam & 0x7fff;
+                for (int i = 0; i < count; ++i)
+                    inputEvents.addLast(keyEvent);
+
                 _application->onInput(inputEvents);
 
                 return 0;

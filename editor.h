@@ -192,17 +192,6 @@ public:
         return _crLf;
     }
 
-    bool& trimWhitespace()
-    {
-        _modified = true;
-        return _trimWhitespace;
-    }
-
-    bool trimWhitespace() const
-    {
-        return _trimWhitespace;
-    }
-
     int line() const
     {
         return _line;
@@ -345,7 +334,6 @@ protected:
     TextEncoding _encoding;
     bool _bom;
     bool _crLf;
-    bool _trimWhitespace;
 
     int _line, _column;
     int _preferredColumn;
@@ -420,7 +408,12 @@ public:
         return _brightBackground;
     }
 
-    SyntaxHighlighter* syntaxHighlighter(DocumentType documentType);
+    bool trimWhitespace() const
+    {
+        return _trimWhitespace;
+    }
+
+        SyntaxHighlighter* syntaxHighlighter(DocumentType documentType);
 
     void newDocument(const String& filename);
     void openDocument(const String& filename);
@@ -494,6 +487,7 @@ protected:
     int _currentSuggestion;
 
     List<Unique<SyntaxHighlighter>> _syntaxHighlighters;
+    bool _trimWhitespace;
 };
 
 #endif

@@ -41,7 +41,6 @@ BackgroundColor defaultBackground()
 #endif
 }
 
-
 uint32_t rgbColor(uint16_t color)
 {
     switch (color & (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY))
@@ -1361,7 +1360,7 @@ void Document::save()
 {
     ASSERT(!_filename.empty());
 
-    if (_trimWhitespace)
+    if (_editor->trimWhitespace())
         trimTrailingWhitespace();
 
     File file(_filename, FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
@@ -1385,7 +1384,6 @@ void Document::clear()
     _encoding = TEXT_ENCODING_UTF8;
     _bom = false;
     _crLf = CRLF;
-    _trimWhitespace = true;
 
     _line = _column = 1;
     _preferredColumn = 1;
@@ -2072,7 +2070,7 @@ Editor::Editor(const Array<String>& args) :
     Application(args, STR("ev")), _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL),
     _recordingMacro(false), _width(1), _height(2), _cursorLine(0), _cursorColumn(0),
     _charWidth(1), _charHeight(1), _brightBackground(true), _caseSesitive(true), _recentLocation(NULL),
-    _currentSuggestion(INVALID_POSITION)
+    _currentSuggestion(INVALID_POSITION), _trimWhitespace(true)
 {
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
@@ -2156,23 +2154,20 @@ void Editor::saveDocument()
 
 void Editor::saveAllDocuments()
 {
-    if (!_documents.empty())
+    for (auto doc = _documents.first(); doc; doc = doc->next)
     {
-        for (auto doc = _documents.first(); doc; doc = doc->next)
+        try
         {
-            try
-            {
-                if (doc->value.modified())
-                    doc->value.save();
-            }
-            catch (Exception& ex)
-            {
-                _message = ex.message();
-            }
+            if (doc->value.modified())
+                doc->value.save();
         }
-
-        findUniqueWords();
+        catch (Exception& ex)
+        {
+            _message = ex.message();
+        }
     }
+
+    findUniqueWords();
 }
 
 void Editor::closeDocument()
@@ -2198,7 +2193,7 @@ bool Editor::start()
 #else
             Console::writeLine(
 #endif
-                STR("ev text editor version 1.8\n"
+                STR("ev text editor version 2.0\n"
                     "web: evtext.org\n"
                     "Copyright (C) Andrey Levichev, 2019\n\n"
                     "usage: ev [OPTIONS] [FILE]...\n\n"
@@ -3184,16 +3179,12 @@ bool Editor::processCommand(const String& command)
     }
     else if (command == STR("tw on"))
     {
-        if (_document)
-            _document->value.trimWhitespace() = true;
-
+        _trimWhitespace = true;
         return true;
     }
     else if (command == STR("tw off"))
     {
-        if (_document)
-            _document->value.trimWhitespace() = false;
-
+        _trimWhitespace = false;
         return true;
     }
 
