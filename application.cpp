@@ -60,6 +60,7 @@ void Application::run()
             {
                 WindowEvent windowEvent = inputEvents[i].event.windowEvent;
                 onResize(windowEvent.width, windowEvent.height);
+                onPaint();
             }
 
         onInput(inputEvents);

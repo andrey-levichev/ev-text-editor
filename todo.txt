@@ -2,6 +2,7 @@ to do:
 * font measuring gives incorrect width
 * repaint region
 * drawing spaces and nulls
+* building project
 
 editor:
 * readonly mode
@@ -16,11 +17,13 @@ editor:
 * find/replace regex, backwards, match word/case
 * find/replace in files
 * config file, customizable build command and key mappings
-* configurable font and text size
+configurable font and text size
 * selection with mouse/arrows and highlighting
 * line wrapping
 * run macro n times, run macro on selection
 * graphical user interface
+linux and macos version
+blinking cursor
 * move to prev/next paragraph
 * quick open for files in current directory
 * preserve console output when exiting

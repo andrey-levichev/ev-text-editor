@@ -221,10 +221,10 @@ private:
 #ifdef PLATFORM_WINDOWS
 
     TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
-              const Size& size) :
+              const Size& size, bool legacyFontMeasuring = true) :
         _textFormat(textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
                     DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize),
-        _textLayout(textFactory, text, _textFormat, size.width, size.height, true)
+        _textLayout(textFactory, text, _textFormat, size.width, size.height, legacyFontMeasuring)
     {
     }
 
@@ -296,12 +296,13 @@ public:
                   ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP, bool bold = false,
                   bool wordWrap = false);
 
-    void drawText(const TextBlock& textBlock, const Point& pos, Color color);
+    void drawText(const TextBlock& textBlock, const Point& pos, Color color = 0);
 
-    TextBlock createTextBlock(const String& font, float fontSize, bool bold, const String& text, const Size& size)
+    TextBlock createTextBlock(const String& font, float fontSize, bool bold,
+        const String& text, const Size& size, bool legacyFontMeasuring = false)
     {
 #ifdef PLATFORM_WINDOWS
-        return TextBlock(_textFactory, font, fontSize, bold, text, size);
+        return TextBlock(_textFactory, font, fontSize, bold, text, size, legacyFontMeasuring);
 #else
         return TextBlock();
 #endif
