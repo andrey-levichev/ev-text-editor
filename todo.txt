@@ -2,9 +2,14 @@ to do:
 * font measuring gives incorrect width
 * repaint region
 * drawing spaces and nulls
-* building project
+* mouse positioning
+* cursor drawing issues
+* nice icon
 
 editor:
+* reasonable window sze and position
+* quick open files
+support name completion, wildcards for file and directory
 * readonly mode
 * run last command, command history
 * delete to start/end of line
@@ -18,6 +23,7 @@ editor:
 * find/replace in files
 * config file, customizable build command and key mappings
 configurable font and text size
+build commands and environment for them
 * selection with mouse/arrows and highlighting
 * line wrapping
 * run macro n times, run macro on selection

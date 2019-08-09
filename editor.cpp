@@ -2994,8 +2994,8 @@ void Editor::updateScreen(bool redrawAll)
     _cursorLine = line;
     _cursorColumn = col;
 
-    _graphics->fillRectangle({ (col - 1) * _charWidth, line * _charHeight - 2,
-        col * _charWidth, line * _charHeight }, 0);
+    _graphics->fillRectangle({ (col - 1) * _charWidth, (line - 1) * _charHeight,
+        (col - 1) * _charWidth + 2, line * _charHeight }, 0);
 
     _graphics->endDraw();
 #else
@@ -3095,26 +3095,23 @@ void Editor::showCommandLine()
 
 void Editor::buildProject()
 {
-#ifdef GUI_MODE
-
-#else
+#ifndef GUI_MODE
     Console::setLineMode(true);
     Console::setColor(defaultForeground(), defaultBackground());
     Console::clear();
+#endif
 
     saveAllDocuments();
 
 #ifdef PLATFORM_WINDOWS
     const wchar_t* makeCmd = _wgetenv(L"MAKE_CMD");
-    _wsystem(makeCmd ? makeCmd : L"nmake.exe");
+    _wsystem(makeCmd ? makeCmd : L"nmake.exe || pause");
 #else
     const char* makeCmd = getenv("MAKE_CMD");
-    system(makeCmd ? makeCmd : "make");
+    system(makeCmd ? makeCmd : "make || read -n1 -sr -p 'Press any key to continue...'");
 #endif
 
-    Console::writeLine(STR("Press ENTER to continue..."));
-    Console::readLine();
-
+#ifndef GUI_MODE
     Console::setLineMode(false);
 #endif
 }
