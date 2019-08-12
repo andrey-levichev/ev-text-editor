@@ -163,6 +163,10 @@ typedef unsigned char32_t;
 #include <alloca.h>
 #endif
 
+#ifdef PLATFORM_AIX
+#include <alloca.h>
+#endif
+
 // typdefs and macros
 
 #define CHAR(arg) U##arg

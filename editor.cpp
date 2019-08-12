@@ -59,7 +59,7 @@ ScreenCell::ScreenCell() :
 #endif
 
 #else
-    ch(0), color(defaultColor())
+    ch(0), color(defaultForeground())
 #endif
 {
 }
