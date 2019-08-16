@@ -3108,7 +3108,10 @@ void Editor::buildProject()
     _wsystem(makeCmd ? makeCmd : L"nmake.exe || pause");
 #else
     const char* makeCmd = getenv("MAKE_CMD");
-    system(makeCmd ? makeCmd : "make || read -n1 -sr -p 'Press any key to continue...'");
+    system(makeCmd ? makeCmd : "make");
+
+    Console::writeLine(STR("Press ENTER to continue..."));
+    Console::readLine();
 #endif
 
 #ifndef GUI_MODE

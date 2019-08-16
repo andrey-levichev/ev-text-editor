@@ -1,13 +1,15 @@
 to do:
+* remove depl targets?
+* key press after build
 * font measuring gives incorrect width
-* repaint region
-* drawing spaces and nulls
 * mouse positioning
 * cursor drawing issues
 * nice icon
+* reasonable window sze and position
+* assert when minimized
+* better solution for build iutput
 
 editor:
-* reasonable window sze and position
 * quick open files
 support name completion, wildcards for file and directory
 * readonly mode
@@ -97,3 +99,4 @@ misc:
 * don't use asserts in low level OS specific code
 * get newer versions of solaris/aix compilers
 * support intel compiler, linux on arm and bsd
+* drop support for Solaris and AIX compilers
