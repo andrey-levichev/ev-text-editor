@@ -351,6 +351,14 @@ protected:
     HighlightingState _highlightingState;
 };
 
+// ProjectCommand
+
+enum Projectommand
+{
+    PROJECT_COMMAND_BUILD,
+    PROJECT_COMMAND_CLEAN
+};
+
 // RecentLocation
 
 struct RecentLocation
@@ -435,9 +443,8 @@ protected:
     void updateStatusLine();
 
     void showCommandLine();
-    void buildProject();
-
     bool processCommand(const String& command);
+    void buildProject(Projectommand command);
 
     void updateRecentLocations();
     bool moveToNextRecentLocation();

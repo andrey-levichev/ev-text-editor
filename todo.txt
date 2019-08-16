@@ -1,13 +1,10 @@
 to do:
-* remove depl targets?
-* key press after build
 * font measuring gives incorrect width
 * mouse positioning
 * cursor drawing issues
 * nice icon
 * reasonable window sze and position
 * assert when minimized
-* better solution for build iutput
 
 editor:
 * quick open files
@@ -19,6 +16,7 @@ support name completion, wildcards for file and directory
 * cycle documents in most recently used order
 * copy/delete lines
 * change case
+* better solution for build iutput
 * parse build output for errors
 * undo/redo
 * find/replace regex, backwards, match word/case
@@ -90,6 +88,7 @@ type safe string formatting
 * function objects (function/bind)
 * type traits
 * alpha and floating point color
+* envitonmrnt class - get variable, execute command
 
 misc:
 * create public web page

@@ -47,6 +47,41 @@ BackgroundColor defaultBackground()
 #endif
 }
 
+// Environment
+
+class Environment
+{
+public:
+    static String getVariable(const String& name)
+    {
+        return getVariable(name.chars());
+    }
+
+    static String getVariable(const char_t* name)
+    {
+#ifdef PLATFORM_WINDOWS
+        return String(reinterpret_cast<const char_t*>(
+            _wgetenv(reinterpret_cast<const wchar_t*>(name))));
+#else
+        return String(getenv(name));
+#endif
+    }
+
+    static int executeCommand(const String& command)
+    {
+        return executeCommand(command.chars());
+    }
+
+    static int executeCommand(const char_t* command)
+    {
+#ifdef PLATFORM_WINDOWS
+        return _wsystem(reinterpret_cast<const wchar_t*>(command));
+#else
+        return system(command);
+#endif
+    }
+};
+
 // ScreenCell
 
 ScreenCell::ScreenCell() :
@@ -2047,11 +2082,8 @@ Editor::Editor(const Array<String>& args) :
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
 #else
-    const char* term = getenv("TERM");
-    if (term)
-        _unicodeLimit16 = strstr(term, "xterm") != NULL;
-    else
-        _unicodeLimit16 = false;
+    String term = Environment::getVariable(STR("TERM"));
+    _unicodeLimit16 = term.contains(STR("xterm"));
 #endif
 }
 
@@ -2522,7 +2554,12 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                 }
                 else if (keyEvent.key == KEY_F5)
                 {
-                    buildProject();
+                    buildProject(PROJECT_COMMAND_BUILD);
+                    updateScreen(true);
+                }
+                else if (keyEvent.key == KEY_F6)
+                {
+                    buildProject(PROJECT_COMMAND_CLEAN);
                     updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_F8)
@@ -2700,11 +2737,6 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                 {
                     showCommandLine();
                     update = true;
-                }
-                else if (keyEvent.key == KEY_F5)
-                {
-                    buildProject();
-                    updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_ESC)
                 {
@@ -3093,26 +3125,42 @@ void Editor::showCommandLine()
     }
 }
 
-void Editor::buildProject()
+void Editor::buildProject(Projectommand command)
 {
+    saveAllDocuments();
+
 #ifndef GUI_MODE
     Console::setLineMode(true);
     Console::setColor(defaultForeground(), defaultBackground());
     Console::clear();
 #endif
 
-    saveAllDocuments();
+    String cmd;
 
+    switch (command)
+    {
+    case PROJECT_COMMAND_BUILD:
+        cmd = Environment::getVariable(STR("EV_MAKE_CMD"));
+        if (cmd.empty())
 #ifdef PLATFORM_WINDOWS
-    const wchar_t* makeCmd = _wgetenv(L"MAKE_CMD");
-    _wsystem(makeCmd ? makeCmd : L"nmake.exe || pause");
+            cmd = STR("nmake.exe & pause");
 #else
-    const char* makeCmd = getenv("MAKE_CMD");
-    system(makeCmd ? makeCmd : "make");
-
-    Console::writeLine(STR("Press ENTER to continue..."));
-    Console::readLine();
+            cmd = STR("make");
 #endif
+        break;
+    case PROJECT_COMMAND_CLEAN:
+        cmd = Environment::getVariable(STR("EV_CLEAN_CMD"));
+#ifdef PLATFORM_WINDOWS
+            cmd = STR("nmake.exe clean & pause");
+#else
+            cmd = STR("make clean");
+#endif
+        break;
+    default:
+        throw Exception(STR("invalid project command"));
+    }
+
+    Environment::executeCommand(cmd);
 
 #ifndef GUI_MODE
     Console::setLineMode(false);
