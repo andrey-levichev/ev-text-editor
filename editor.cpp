@@ -2075,7 +2075,7 @@ void Document::determineDocumentType(bool fileExecutable)
 
 Editor::Editor(const Array<String>& args) :
     Application(args, STR("ev")), _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL),
-    _recordingMacro(false), _width(1), _height(2), _cursorLine(0), _cursorColumn(0),
+    _recordingMacro(false), _width(2), _height(2), _cursorLine(0), _cursorColumn(0),
     _charWidth(1), _charHeight(1), _brightBackground(true), _caseSesitive(true), _recentLocation(NULL),
     _currentSuggestion(INVALID_POSITION), _trimWhitespace(true)
 {
@@ -2768,8 +2768,8 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
 
 void Editor::setDimensions()
 {
-    if (_width < 1)
-        _width = 1;
+    if (_width < 2)
+        _width = 2;
 
     if (_height < 2)
         _height = 2;

@@ -193,6 +193,7 @@ Graphics::Graphics(uintptr_t window) : _renderTarget(_drawingFactory, reinterpre
 Graphics::Graphics(uintptr_t window)
 #endif
 {
+    _drawingFactory->GetDesktopDpi(&_horizontalDpi, &_verticalDpi);
 }
 
 void Graphics::beginDraw()
