@@ -1,4 +1,5 @@
 to do:
+* copying last line without line end doesn't work
 * font measuring gives incorrect width
 * mouse positioning
 * cursor drawing issues
@@ -7,6 +8,7 @@ to do:
 * assert when minimized
 
 editor:
+* execute shell commands
 * quick open files
 support name completion, wildcards for file and directory
 * readonly mode

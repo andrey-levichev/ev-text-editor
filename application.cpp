@@ -322,11 +322,37 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
         case WM_LBUTTONDOWN:
         case WM_RBUTTONDOWN:
+        case WM_MBUTTONDOWN:
             {
                 inputEvents.clear();
 
+                MouseEvent mouseEvent = { MOUSE_BUTTON_PRIMARY,
+                    true, LOWORD(lParam), HIWORD(lParam) };
+
+                if (message == WM_RBUTTONDOWN)
+                    mouseEvent.button = MOUSE_BUTTON_SECONDARY;
+                else if (message == WM_MBUTTONDOWN)
+                    mouseEvent.button = MOUSE_BUTTON_WHEEL;
+
+                mouseEvent.ctrl = isKeyPressed(VK_CONTROL);
+                mouseEvent.alt = isKeyPressed(VK_MENU);
+                mouseEvent.shift = isKeyPressed(VK_SHIFT);
+
+                inputEvents.addLast(mouseEvent);
+                _application->onInput(inputEvents);
+
+                return 0;
+            }
+            break;
+
+        case WM_MOUSEWHEEL:
+            {
+                inputEvents.clear();
+
+                int delta = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
+
                 MouseEvent mouseEvent = {
-                    message == WM_LBUTTONDOWN ? MOUSE_BUTTON_PRIMARY : MOUSE_BUTTON_SECONDARY,
+                    delta > 0 ? MOUSE_BUTTON_WHEEL_UP : MOUSE_BUTTON_WHEEL_DOWN,
                     true, LOWORD(lParam), HIWORD(lParam) };
 
                 mouseEvent.ctrl = isKeyPressed(VK_CONTROL);

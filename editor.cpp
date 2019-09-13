@@ -2719,7 +2719,15 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                 if (mouseEvent.buttonDown)
                 {
                     if (mouseEvent.button == MOUSE_BUTTON_PRIMARY)
-                        update = doc.moveToLineColumn(doc.top() + mouseEvent.y - 1, doc.left() + mouseEvent.x - 1);
+                    {
+#ifdef GUI_MODE
+                        int line = _graphics->deviceToY(mouseEvent.y) / _charHeight;
+                        int col = _graphics->deviceToX(mouseEvent.x) / _charWidth;
+#else
+                        int line = mouseEvent.y - 1, col = mouseEvent.x - 1;
+#endif
+                        update = doc.moveToLineColumn(doc.top() + line, doc.left() + col);
+                    }
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_UP)
                         update = doc.moveLines(-20);
                     else if (mouseEvent.button == MOUSE_BUTTON_WHEEL_DOWN)

@@ -322,34 +322,34 @@ public:
     void resize(int width, int height);
     Size size() const;
 
-    float horizontalDpi() const
+    float xDpi() const
     {
-        return _horizontalDpi;
+        return _xDpi;
     }
 
-    float verticalDpi() const
+    float yDpi() const
     {
-        return _verticalDpi;
+        return _yDpi;
     }
 
-    int horizontalToDevice(float x)
+    int xToDevice(float x)
     {
-        return (x * _horizontalDpi) / 96;
+        return (x * _xDpi) / 96;
     }
 
-    float deviceToHorizontal(int x)
+    float deviceToX(int x)
     {
-        return (x * 96) / _horizontalDpi;
+        return (x * 96) / _xDpi;
     }
 
-    int verticalToDevice(float y)
+    int yToDevice(float y)
     {
-        return (y * _verticalDpi) / 96;
+        return (y * _yDpi) / 96;
     }
 
-    float deviceToVertical(int y)
+    float deviceToY(int y)
     {
-        return (y * 96) / _verticalDpi;
+        return (y * 96) / _yDpi;
     }
 
 #ifdef PLATFORM_WINDOWS
@@ -359,7 +359,7 @@ private:
     __ImagingFactory _imagingFactory;
     __TextFactory _textFactory;
     __RenderTarget _renderTarget;
-    float _horizontalDpi, _verticalDpi;
+    float _xDpi, _yDpi;
 
 #endif
 };
