@@ -95,7 +95,7 @@ public:
     }
 
 protected:
-    __ComPtr() : _ptr(NULL)
+    __ComPtr() : _ptr(nullptr)
     {
     }
 
@@ -308,7 +308,7 @@ public:
 #endif
     }
 
-    void drawImage(const Image& image, const Point& pos, const Size* size = NULL);
+    void drawImage(const Image& image, const Point& pos, const Size* size = nullptr);
 
     Image createImage(const String& fileName)
     {

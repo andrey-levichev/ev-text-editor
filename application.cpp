@@ -4,7 +4,7 @@
 // Application
 
 const char_t* Application::WINDOW_CLASS = STR("WINDOW_CLASS");
-Application* Application::_application = NULL;
+Application* Application::_application = nullptr;
 
 Application::~Application()
 {
@@ -40,7 +40,7 @@ void Application::run()
     {
         MSG msg;
 
-        if (GetMessage(&msg, NULL, 0, 0) > 0)
+        if (GetMessage(&msg, nullptr, 0, 0) > 0)
         {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -81,20 +81,20 @@ void Application::createWindow(const char_t* title, int width, int height)
     wc.lpfnWndProc = windowProc;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
-    wc.hInstance = GetModuleHandle(NULL);
-    wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = NULL;
-    wc.lpszMenuName = NULL;
+    wc.hInstance = GetModuleHandle(nullptr);
+    wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wc.hbrBackground = nullptr;
+    wc.lpszMenuName = nullptr;
     wc.lpszClassName = reinterpret_cast<LPCWSTR>(WINDOW_CLASS);
-    wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+    wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
 
     ATOM rc = RegisterClassEx(&wc);
     ASSERT(rc != 0);
 
     CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS), reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
                  CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
-                 NULL, NULL, GetModuleHandle(NULL), NULL);
+                 nullptr, nullptr, GetModuleHandle(nullptr), nullptr);
 
     if (!_window)
         throw Exception(STR("failed to create window"));
@@ -161,7 +161,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             if (GetForegroundWindow() == reinterpret_cast<HWND>(_application->_window))
             {
                 _application->onPaint();
-                ValidateRect(handle, NULL);
+                ValidateRect(handle, nullptr);
                 return 0;
             }
             break;

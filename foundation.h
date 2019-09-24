@@ -582,7 +582,7 @@ inline _Type* allocate(int size)
             throw OutOfMemoryException();
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 template<typename _Type>
@@ -602,7 +602,7 @@ inline _Type* reallocate(_Type* ptr, int size)
     else
     {
         free(ptr);
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -766,13 +766,13 @@ template<typename _Type>
 class Unique
 {
 public:
-    Unique() : _ptr(NULL)
+    Unique() : _ptr(nullptr)
     {
     }
 
     Unique(Unique<_Type>&& other) : _ptr(other._ptr)
     {
-        other._ptr = NULL;
+        other._ptr = nullptr;
     }
 
     template<typename _T>
@@ -826,7 +826,7 @@ public:
 
     bool empty() const
     {
-        return _ptr == NULL;
+        return _ptr == nullptr;
     }
 
     _Type* ptr() const
@@ -844,7 +844,7 @@ public:
     void reset()
     {
         Memory::destroy(_ptr);
-        _ptr = NULL;
+        _ptr = nullptr;
     }
 
     template<typename _T>
@@ -856,7 +856,7 @@ public:
     _Type* release()
     {
         _Type* ptr = _ptr;
-        _ptr = NULL;
+        _ptr = nullptr;
         return ptr;
     }
 
@@ -914,7 +914,7 @@ protected:
     };
 
 public:
-    Shared() : _sharedPtr(NULL)
+    Shared() : _sharedPtr(nullptr)
     {
     }
 
@@ -933,7 +933,7 @@ public:
 
     Shared(Shared<_Type>&& other) : _sharedPtr(other._sharedPtr)
     {
-        other._sharedPtr = NULL;
+        other._sharedPtr = nullptr;
     }
 
     template<typename _T>
@@ -1003,7 +1003,7 @@ public:
 
     bool empty() const
     {
-        return _sharedPtr == NULL;
+        return _sharedPtr == nullptr;
     }
 
     _Type* ptr() const
@@ -1011,7 +1011,7 @@ public:
         if (_sharedPtr)
             return &_sharedPtr->object;
         else
-            return NULL;
+            return nullptr;
     }
 
     int refCount() const
@@ -1039,13 +1039,13 @@ public:
         if (_sharedPtr)
             releaseRef();
 
-        _sharedPtr = NULL;
+        _sharedPtr = nullptr;
     }
 
     RefCountedObject* release()
     {
         RefCountedObject* ptr = _sharedPtr;
-        _sharedPtr = NULL;
+        _sharedPtr = nullptr;
         return ptr;
     }
 
@@ -1098,7 +1098,7 @@ template<typename _Type>
 class Buffer
 {
 public:
-    Buffer() : _size(0), _values(NULL)
+    Buffer() : _size(0), _values(nullptr)
     {
     }
 
@@ -1139,7 +1139,7 @@ public:
         _size = other._size;
         _values = other._values;
         other._size = 0;
-        other._values = NULL;
+        other._values = nullptr;
     }
 
     ~Buffer()
@@ -1270,7 +1270,7 @@ public:
     {
         Memory::deallocate(_values);
         _size = 0;
-        _values = NULL;
+        _values = nullptr;
     }
 
     static Buffer<_Type> acquire(int size, _Type* values)
@@ -1282,7 +1282,7 @@ public:
     {
         _Type* values = _values;
         _size = 0;
-        _values = NULL;
+        _values = nullptr;
         return values;
     }
 
@@ -1353,7 +1353,7 @@ class String;
 class ConstStringIterator
 {
 public:
-    ConstStringIterator(const String& str) : _str(str), _pos(NULL)
+    ConstStringIterator(const String& str) : _str(str), _pos(nullptr)
     {
     }
 
@@ -1363,7 +1363,7 @@ public:
 
     void reset()
     {
-        _pos = NULL;
+        _pos = nullptr;
     }
 
 private:
@@ -1380,7 +1380,7 @@ public:
     typedef ConstStringIterator ConstIterator;
 
 public:
-    String() : _length(0), _capacity(0), _chars(NULL)
+    String() : _length(0), _capacity(0), _chars(nullptr)
     {
     }
 
@@ -1930,7 +1930,7 @@ public:
     typedef ConstArrayIterator<_Type> ConstIterator;
 
 public:
-    Array() : _size(0), _capacity(0), _values(NULL)
+    Array() : _size(0), _capacity(0), _values(nullptr)
     {
     }
 
@@ -1976,7 +1976,7 @@ public:
 
         other._size = 0;
         other._capacity = 0;
-        other._values = NULL;
+        other._values = nullptr;
     }
 
     ~Array()
@@ -2281,7 +2281,7 @@ public:
 
         _size = 0;
         _capacity = 0;
-        _values = NULL;
+        _values = nullptr;
     }
 
     static Array<_Type> acquire(int size, _Type* values)
@@ -2294,7 +2294,7 @@ public:
         _Type* values = _values;
         _size = 0;
         _capacity = 0;
-        _values = NULL;
+        _values = nullptr;
 
         return values;
     }
@@ -2390,7 +2390,7 @@ template<typename _Type>
 class ListIterator
 {
 public:
-    ListIterator(List<_Type>& list) : _list(list), _node(NULL)
+    ListIterator(List<_Type>& list) : _list(list), _node(nullptr)
     {
     }
 
@@ -2407,7 +2407,7 @@ public:
         else
             _node = _list.first();
 
-        return _node != NULL;
+        return _node != nullptr;
     }
 
     bool movePrev()
@@ -2417,12 +2417,12 @@ public:
         else
             _node = _list.last();
 
-        return _node != NULL;
+        return _node != nullptr;
     }
 
     void reset()
     {
-        _node = NULL;
+        _node = nullptr;
     }
 
 protected:
@@ -2436,7 +2436,7 @@ template<typename _Type>
 class ConstListIterator
 {
 public:
-    ConstListIterator(const List<_Type>& list) : _list(list), _node(NULL)
+    ConstListIterator(const List<_Type>& list) : _list(list), _node(nullptr)
     {
     }
 
@@ -2453,7 +2453,7 @@ public:
         else
             _node = _list.first();
 
-        return _node != NULL;
+        return _node != nullptr;
     }
 
     bool movePrev()
@@ -2463,12 +2463,12 @@ public:
         else
             _node = _list.last();
 
-        return _node != NULL;
+        return _node != nullptr;
     }
 
     void reset()
     {
-        _node = NULL;
+        _node = nullptr;
     }
 
 protected:
@@ -2492,11 +2492,11 @@ public:
     typedef ConstListIterator<_Type> ConstIterator;
 
 public:
-    List() : _first(NULL), _last(NULL)
+    List() : _first(nullptr), _last(nullptr)
     {
     }
 
-    List(int size) : _first(NULL), _last(NULL)
+    List(int size) : _first(nullptr), _last(nullptr)
     {
         ASSERT(size >= 0);
 
@@ -2512,7 +2512,7 @@ public:
         }
     }
 
-    List(int size, const _Type& value) : _first(NULL), _last(NULL)
+    List(int size, const _Type& value) : _first(nullptr), _last(nullptr)
     {
         ASSERT(size >= 0);
 
@@ -2528,7 +2528,7 @@ public:
         }
     }
 
-    List(int size, const _Type* values) : _first(NULL), _last(NULL)
+    List(int size, const _Type* values) : _first(nullptr), _last(nullptr)
     {
         ASSERT(values ? size >= 0 : size == 0);
 
@@ -2544,7 +2544,7 @@ public:
         }
     }
 
-    List(const List<_Type>& other) : _first(NULL), _last(NULL)
+    List(const List<_Type>& other) : _first(nullptr), _last(nullptr)
     {
         try
         {
@@ -2562,8 +2562,8 @@ public:
     {
         _first = other._first;
         _last = other._last;
-        other._first = NULL;
-        other._last = NULL;
+        other._first = nullptr;
+        other._last = nullptr;
     }
 
     ~List()
@@ -2635,7 +2635,7 @@ public:
             if (node->value == value)
                 return node;
 
-        return NULL;
+        return nullptr;
     }
 
     const ListNode<_Type>* find(const _Type& value) const
@@ -2644,7 +2644,7 @@ public:
             if (node->value == value)
                 return node;
 
-        return NULL;
+        return nullptr;
     }
 
     void assign(int size, const _Type& value)
@@ -2673,9 +2673,9 @@ public:
         _first = _first->next;
 
         if (_first)
-            _first->prev = NULL;
+            _first->prev = nullptr;
         else
-            _last = NULL;
+            _last = nullptr;
 
         Memory::destroy(node);
     }
@@ -2688,9 +2688,9 @@ public:
         _last = _last->prev;
 
         if (_last)
-            _last->next = NULL;
+            _last->next = nullptr;
         else
-            _first = NULL;
+            _first = nullptr;
 
         Memory::destroy(node);
     }
@@ -2699,13 +2699,13 @@ public:
     {
         if (_first)
         {
-            auto node = createListNode(value, NULL, _first);
+            auto node = createListNode(value, nullptr, _first);
             _first->prev = node;
             _first = node;
         }
         else
         {
-            auto node = createListNode(value, NULL, NULL);
+            auto node = createListNode(value, nullptr, nullptr);
             _first = _last = node;
         }
     }
@@ -2714,13 +2714,13 @@ public:
     {
         if (_first)
         {
-            auto node = createListNode(static_cast<_Type&&>(value), NULL, _first);
+            auto node = createListNode(static_cast<_Type&&>(value), nullptr, _first);
             _first->prev = node;
             _first = node;
         }
         else
         {
-            auto node = createListNode(static_cast<_Type&&>(value), NULL, NULL);
+            auto node = createListNode(static_cast<_Type&&>(value), nullptr, nullptr);
             _first = _last = node;
         }
     }
@@ -2729,13 +2729,13 @@ public:
     {
         if (_first)
         {
-            auto node = createListNode(value, _last, NULL);
+            auto node = createListNode(value, _last, nullptr);
             _last->next = node;
             _last = node;
         }
         else
         {
-            auto node = createListNode(value, NULL, NULL);
+            auto node = createListNode(value, nullptr, nullptr);
             _first = _last = node;
         }
     }
@@ -2744,13 +2744,13 @@ public:
     {
         if (_first)
         {
-            auto node = createListNode(static_cast<_Type&&>(value), _last, NULL);
+            auto node = createListNode(static_cast<_Type&&>(value), _last, nullptr);
             _last->next = node;
             _last = node;
         }
         else
         {
-            auto node = createListNode(static_cast<_Type&&>(value), NULL, NULL);
+            auto node = createListNode(static_cast<_Type&&>(value), nullptr, nullptr);
             _first = _last = node;
         }
     }
@@ -2835,7 +2835,7 @@ public:
     void clear()
     {
         destroyNodes();
-        _first = _last = NULL;
+        _first = _last = nullptr;
     }
 
     friend void swap(List<_Type>& left, List<_Type>& right)
@@ -2937,7 +2937,7 @@ template<typename _Key, typename _Value>
 class MapIterator
 {
 public:
-    MapIterator(Map<_Key, _Value>& map) : _map(map), _index(0), _node(NULL)
+    MapIterator(Map<_Key, _Value>& map) : _map(map), _index(0), _node(nullptr)
     {
     }
 
@@ -2979,14 +2979,14 @@ public:
         }
 
         _index = 0;
-        _node = NULL;
+        _node = nullptr;
         return false;
     }
 
     void reset()
     {
         _index = 0;
-        _node = NULL;
+        _node = nullptr;
     }
 
 protected:
@@ -3001,7 +3001,7 @@ template<typename _Key, typename _Value>
 class ConstMapIterator
 {
 public:
-    ConstMapIterator(const Map<_Key, _Value>& map) : _map(map), _index(0), _node(NULL)
+    ConstMapIterator(const Map<_Key, _Value>& map) : _map(map), _index(0), _node(nullptr)
     {
     }
 
@@ -3043,14 +3043,14 @@ public:
         }
 
         _index = 0;
-        _node = NULL;
+        _node = nullptr;
         return false;
     }
 
     void reset()
     {
         _index = 0;
-        _node = NULL;
+        _node = nullptr;
     }
 
 protected:
@@ -3221,7 +3221,7 @@ public:
             }
         }
 
-        return NULL;
+        return nullptr;
     }
 
     const _Value* find(const _Key& key) const
@@ -3237,7 +3237,7 @@ public:
             }
         }
 
-        return NULL;
+        return nullptr;
     }
 
     void assign(const Map<_Key, _Value>& other)
@@ -3366,7 +3366,7 @@ template<typename _Type>
 class ConstSetIterator
 {
 public:
-    ConstSetIterator(const Set<_Type>& set) : _set(set), _index(0), _node(NULL)
+    ConstSetIterator(const Set<_Type>& set) : _set(set), _index(0), _node(nullptr)
     {
     }
 
@@ -3408,14 +3408,14 @@ public:
         }
 
         _index = 0;
-        _node = NULL;
+        _node = nullptr;
         return false;
     }
 
     void reset()
     {
         _index = 0;
-        _node = NULL;
+        _node = nullptr;
     }
 
 protected:

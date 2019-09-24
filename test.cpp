@@ -502,7 +502,7 @@ void testBuffer()
 {
     int z = 0;
     int elem[] = { 1, 2, 3 };
-    const int* np = NULL;
+    const int* np = nullptr;
     const int* ep = elem;
 
     // Buffer()
@@ -829,7 +829,7 @@ void testBuffer()
     {
         int v;
         ASSERT_EXCEPTION(Exception, Buffer<int>::acquire(-1, &v));
-        ASSERT_EXCEPTION(Exception, Buffer<int>::acquire(1, NULL));
+        ASSERT_EXCEPTION(Exception, Buffer<int>::acquire(1, nullptr));
     }
 
     {
@@ -874,7 +874,7 @@ void testString()
 #endif
 
     unichar_t zc = 0;
-    const char_t* np = NULL;
+    const char_t* np = nullptr;
 
     // Unicode support
 
@@ -1011,13 +1011,13 @@ void testString()
     ASSERT(charIsAlphaNum(CHAR('q')));
     ASSERT(charToUpper(CHAR('q')) == CHAR('Q'));
     ASSERT(strCompareNoCase(STR("qwerty"), STR("QWERTY")) == 0);
-    ASSERT(strFindNoCase(STR("qwerty"), STR("WER")) != NULL);
+    ASSERT(strFindNoCase(STR("qwerty"), STR("WER")) != nullptr);
 
 #if defined(PLATFORM_WINDOWS) && defined(PLATFORM_APPLE)
     ASSERT(charIsAlphaNum(CHAR('й')));
     ASSERT(charToUpper(CHAR('й')) == CHAR('Й'));
     ASSERT(strCompareNoCase(STR("йцукенг"), STR("ЙЦУКЕНГ")) == 0);
-    ASSERT(strFindNoCase(STR("йцукенг"), STR("ЦУК")) != NULL);
+    ASSERT(strFindNoCase(STR("йцукенг"), STR("ЦУК")) != nullptr);
 #endif
 
     // String()
@@ -1370,14 +1370,14 @@ void testString()
 
     // int compare(const char_t* chars, bool caseSensitive = true) const
 
-    ASSERT(String(STR("a")).compare(NULL) > 0);
-    ASSERT(String().compare(NULL) == 0);
+    ASSERT(String(STR("a")).compare(nullptr) > 0);
+    ASSERT(String().compare(nullptr) == 0);
     ASSERT(String(STR("ab")).compare(STR("a")) > 0);
     ASSERT(String(STR("a")).compare(STR("ab")) < 0);
     ASSERT(String(STR("a")).compare(STR("a")) == 0);
 
-    ASSERT(String(STR("a")).compare(NULL, false) > 0);
-    ASSERT(String().compare(NULL, false) == 0);
+    ASSERT(String(STR("a")).compare(nullptr, false) > 0);
+    ASSERT(String().compare(nullptr, false) == 0);
     ASSERT(String(STR("AB")).compare(STR("a"), false) > 0);
     ASSERT(String(STR("A")).compare(STR("ab"), false) < 0);
     ASSERT(String(STR("A")).compare(STR("a"), false) == 0);
@@ -2926,8 +2926,8 @@ void testUnicode()
         bool bom, crLf;
         ASSERT(Unicode::bytesToString(ByteBuffer(), encoding, bom, crLf).empty());
         ASSERT_EXCEPTION(Exception, Unicode::bytesToString(-1, BYTES_UTF8_UNIX, encoding, bom, crLf));
-        ASSERT_EXCEPTION(Exception, Unicode::bytesToString(1, NULL, encoding, bom, crLf));
-        ASSERT(Unicode::bytesToString(0, NULL, encoding, bom, crLf).empty());
+        ASSERT_EXCEPTION(Exception, Unicode::bytesToString(1, nullptr, encoding, bom, crLf));
+        ASSERT(Unicode::bytesToString(0, nullptr, encoding, bom, crLf).empty());
     }
 
     {
@@ -3093,7 +3093,7 @@ void testStringIterator()
 void testArray()
 {
     int elem[] = { 1, 2, 3 };
-    const int* np = NULL;
+    const int* np = nullptr;
     const int* ep = elem;
 
     // Array()
@@ -4013,7 +4013,7 @@ void testArrayIterator()
 void testList()
 {
     int elem[] = { 1, 2, 3 };
-    const int* np = NULL;
+    const int* np = nullptr;
     const int* ep = elem;
 
     // List()
@@ -4383,7 +4383,7 @@ void testList()
 
     {
         int v;
-        ASSERT_EXCEPTION(Exception, List<int>().insertBefore(NULL, v));
+        ASSERT_EXCEPTION(Exception, List<int>().insertBefore(nullptr, v));
     }
 
     {
@@ -4397,7 +4397,7 @@ void testList()
 
     // ListNode<_Type>* insertBefore(ListNode<_Type>* pos, _Type&& value)
 
-    ASSERT_EXCEPTION(Exception, List<int>().insertBefore(NULL, 0));
+    ASSERT_EXCEPTION(Exception, List<int>().insertBefore(nullptr, 0));
 
     {
         List<int> l;
@@ -4411,7 +4411,7 @@ void testList()
 
     {
         int v;
-        ASSERT_EXCEPTION(Exception, List<int>().insertAfter(NULL, v));
+        ASSERT_EXCEPTION(Exception, List<int>().insertAfter(nullptr, v));
     }
 
     {
@@ -4425,7 +4425,7 @@ void testList()
 
     // ListNode<_Type>* insertAfter(ListNode<_Type>* pos, _Type&& value)
 
-    ASSERT_EXCEPTION(Exception, List<int>().insertAfter(NULL, 0));
+    ASSERT_EXCEPTION(Exception, List<int>().insertAfter(nullptr, 0));
 
     {
         List<int> l;
@@ -4437,7 +4437,7 @@ void testList()
 
     // void remove(ListNode<_Type>* pos)
 
-    ASSERT_EXCEPTION(Exception, List<int>().remove(NULL));
+    ASSERT_EXCEPTION(Exception, List<int>().remove(nullptr));
 
     {
         List<int> l(3, ep);
@@ -5635,8 +5635,8 @@ void testFile()
     {
         File f(STR("test.txt"), FILE_MODE_WRITE | FILE_MODE_CREATE | FILE_MODE_TRUNCATE);
         ASSERT_EXCEPTION(Exception, f.write(-1, BYTES));
-        ASSERT_EXCEPTION(Exception, f.write(1, NULL));
-        f.write(0, NULL);
+        ASSERT_EXCEPTION(Exception, f.write(1, nullptr));
+        f.write(0, nullptr);
         ASSERT(f.size() == 0);
     }
 
@@ -5671,7 +5671,7 @@ void testFile()
         File f(STR("test.txt"));
         byte_t bytes[sizeof(BYTES)];
         ASSERT_EXCEPTION(Exception, f.read(-1, bytes));
-        ASSERT_EXCEPTION(Exception, f.read(1, NULL));
+        ASSERT_EXCEPTION(Exception, f.read(1, nullptr));
         ASSERT_NO_EXCEPTION(f.read(0, bytes));
     }
 

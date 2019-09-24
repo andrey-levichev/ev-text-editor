@@ -91,8 +91,8 @@ bool File::open(const String& filename, int openMode)
     if ((openMode & FILE_MODE_TRUNCATE) != 0)
         disposition = CREATE_ALWAYS;
 
-    _handle = CreateFile(reinterpret_cast<LPCTSTR>(filename.chars()), access, 0, NULL, disposition,
-                         FILE_ATTRIBUTE_NORMAL, NULL);
+    _handle = CreateFile(reinterpret_cast<LPCTSTR>(filename.chars()), access, 0, nullptr, disposition,
+                         FILE_ATTRIBUTE_NORMAL, nullptr);
 #else
     int mode = 0;
 
@@ -201,7 +201,7 @@ ByteBuffer File::read(int size)
     ByteBuffer data(bytesSize);
 
 #ifdef PLATFORM_WINDOWS
-    if (ReadFile(_handle, data.values(), bytesSize, &bytesRead, NULL))
+    if (ReadFile(_handle, data.values(), bytesSize, &bytesRead, nullptr))
 #else
     if ((bytesRead = ::read(_handle, data.values(), bytesSize)) >= 0)
 #endif
@@ -225,7 +225,7 @@ void File::read(int size, void* data)
 #ifdef PLATFORM_WINDOWS
     DWORD bytesSize = size, bytesRead;
 
-    if (ReadFile(_handle, data, bytesSize, &bytesRead, NULL))
+    if (ReadFile(_handle, data, bytesSize, &bytesRead, nullptr))
 #else
     ssize_t bytesSize = size, bytesRead;
 
@@ -254,7 +254,7 @@ void File::write(int size, const void* data)
 #ifdef PLATFORM_WINDOWS
     DWORD bytesSize = size, bytesWritten;
 
-    if (WriteFile(_handle, data, bytesSize, &bytesWritten, NULL))
+    if (WriteFile(_handle, data, bytesSize, &bytesWritten, nullptr))
 #else
     ssize_t bytesSize = size, bytesWritten;
 

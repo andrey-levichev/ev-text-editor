@@ -30,7 +30,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* command
 {
     try
     {
-        CoInitialize(NULL);
+        CoInitialize(nullptr);
         SetProcessDPIAware();
 
         __run(__argc, reinterpret_cast<const char_t**>(const_cast<const wchar_t**>(__wargv)));

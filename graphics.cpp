@@ -36,7 +36,7 @@ __TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRIT
     int rc = GetUserDefaultLocaleName(locale, LOCALE_NAME_MAX_LENGTH);
     ASSERT(rc > 0);
 
-    ASSERT_COM_SUCCEEDED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), NULL, fontWeight,
+    ASSERT_COM_SUCCEEDED(factory->CreateTextFormat(reinterpret_cast<const WCHAR*>(fontName.chars()), nullptr, fontWeight,
                                                    fontStyle, fontStretch, fontSize, locale, &_ptr));
 }
 
@@ -93,7 +93,7 @@ __TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFor
     if (legacyFontMeasuring)
     {
         ASSERT_COM_SUCCEEDED(factory->CreateGdiCompatibleTextLayout(reinterpret_cast<const WCHAR*>(text.chars()),
-                                                                    text.length(), textFormat, width, height, 1, NULL,
+                                                                    text.length(), textFormat, width, height, 1, nullptr,
                                                                     false, &_ptr));
     }
     else
@@ -110,13 +110,13 @@ __EllipsisTrimmingSign::__EllipsisTrimmingSign(__TextFactory& factory, __TextFor
 
 __ImagingFactory::__ImagingFactory()
 {
-    ASSERT_COM_SUCCEEDED(CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER,
+    ASSERT_COM_SUCCEEDED(CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER,
                                           __uuidof(IWICImagingFactory), reinterpret_cast<void**>(&_ptr)));
 }
 
 __BitmapDecoder::__BitmapDecoder(__ImagingFactory& factory, const String& fileName)
 {
-    ASSERT_COM_SUCCEEDED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()), NULL,
+    ASSERT_COM_SUCCEEDED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()), nullptr,
                                                             GENERIC_READ, WICDecodeMetadataCacheOnLoad, &_ptr));
 }
 
@@ -128,7 +128,7 @@ __BitmapFrameDecode::__BitmapFrameDecode(__BitmapDecoder& decoder)
 __FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDecode& frame)
 {
     ASSERT_COM_SUCCEEDED(factory->CreateFormatConverter(&_ptr));
-    ASSERT_COM_SUCCEEDED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, NULL, 0,
+    ASSERT_COM_SUCCEEDED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0,
                                           WICBitmapPaletteTypeMedianCut));
 }
 

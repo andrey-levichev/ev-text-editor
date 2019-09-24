@@ -2074,9 +2074,9 @@ void Document::determineDocumentType(bool fileExecutable)
 // Editor
 
 Editor::Editor(const Array<String>& args) :
-    Application(args, STR("ev")), _commandLine(Document(this), NULL, NULL), _document(NULL), _lastDocument(NULL),
+    Application(args, STR("ev")), _commandLine(Document(this), nullptr, nullptr), _document(nullptr), _lastDocument(nullptr),
     _recordingMacro(false), _width(2), _height(2), _cursorLine(0), _cursorColumn(0),
-    _charWidth(1), _charHeight(1), _brightBackground(true), _caseSesitive(true), _recentLocation(NULL),
+    _charWidth(1), _charHeight(1), _brightBackground(true), _caseSesitive(true), _recentLocation(nullptr),
     _currentSuggestion(INVALID_POSITION), _trimWhitespace(true)
 {
 #ifdef PLATFORM_WINDOWS
@@ -2100,7 +2100,7 @@ SyntaxHighlighter* Editor::syntaxHighlighter(DocumentType documentType)
     else if (documentType == DOCUMENT_TYPE_XML)
         _syntaxHighlighters.addLast(createUnique<XmlSyntaxHighlighter>());
     else
-        return NULL;
+        return nullptr;
 
     return _syntaxHighlighters.last()->value.ptr();
 }
@@ -3350,7 +3350,7 @@ bool Editor::processCommand(const String& command)
 void Editor::updateRecentLocations()
 {
     ListNode<RecentLocation>* node;
-    _recentLocation = NULL;
+    _recentLocation = nullptr;
 
     for (node = _recentLocations.first(); node; node = node->next)
     {
@@ -3519,7 +3519,7 @@ bool Editor::completeWord(int next)
 void Editor::copyToClipboard(const String& text)
 {
 #ifdef PLATFORM_WINDOWS
-    BOOL rc = OpenClipboard(NULL);
+    BOOL rc = OpenClipboard(nullptr);
     ASSERT(rc);
 
     rc = EmptyClipboard();
@@ -3551,7 +3551,7 @@ void Editor::pasteFromClipboard(String& text)
 #ifdef PLATFORM_WINDOWS
     if (IsClipboardFormatAvailable(CF_UNICODETEXT))
     {
-        BOOL rc = OpenClipboard(NULL);
+        BOOL rc = OpenClipboard(nullptr);
         ASSERT(rc);
 
         HGLOBAL hText = GetClipboardData(CF_UNICODETEXT);

@@ -339,7 +339,7 @@ void Console::initialize()
     _defaultBackground = static_cast<BackgroundColor>(
         csbi.wAttributes & (BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY));
 #else
-    int rc = setvbuf(stdout, NULL, _IONBF, 0);
+    int rc = setvbuf(stdout, nullptr, _IONBF, 0);
     ASSERT(rc == 0);
 
     signal(SIGWINCH, onSIGWINCH);
@@ -446,7 +446,7 @@ void Console::write(const char_t* chars, int len)
     ASSERT(handle);
 
     DWORD written;
-    BOOL rc = WriteConsole(handle, chars, l, &written, NULL);
+    BOOL rc = WriteConsole(handle, chars, l, &written, nullptr);
     ASSERT(rc);
 #else
     int written = ::write(STDOUT_FILENO, chars, l);
@@ -519,7 +519,7 @@ void Console::write(int line, int column, const char_t* chars, int len)
     ASSERT(rc);
 
     DWORD written;
-    rc = WriteConsole(handle, chars, l, &written, NULL);
+    rc = WriteConsole(handle, chars, l, &written, nullptr);
     ASSERT(rc);
 
     rc = SetConsoleMode(handle, ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT);
@@ -585,12 +585,12 @@ unichar_t Console::readChar()
     ASSERT(handle);
 
     wchar_t ch;
-    BOOL rc = ReadConsole(handle, &ch, 1, &written, NULL);
+    BOOL rc = ReadConsole(handle, &ch, 1, &written, nullptr);
     ASSERT(rc);
 
     if (ch == '\r')
     {
-        rc = ReadConsole(handle, &ch, 1, &written, NULL);
+        rc = ReadConsole(handle, &ch, 1, &written, nullptr);
         ASSERT(rc);
     }
 

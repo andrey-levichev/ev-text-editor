@@ -10,25 +10,25 @@ extern const char_t* APPLICATION_NAME;
 
 void showMessage(const char_t* message)
 {
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
+    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
                MB_OK | MB_TASKMODAL);
 }
 
 void showMessage(const String& message)
 {
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
+    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
                MB_OK | MB_TASKMODAL);
 }
 
 void reportError(const char_t* message)
 {
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
+    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
                MB_OK | MB_ICONERROR | MB_TASKMODAL);
 }
 
 void reportError(const String& message)
 {
-    MessageBox(NULL, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
+    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
                MB_OK | MB_ICONERROR | MB_TASKMODAL);
 }
 
@@ -163,7 +163,7 @@ char_t* strFindNoCase(char_t* str, const char_t* searchStr)
         if (!strncasecmp(str, searchStr, len))
             return str;
 
-    return NULL;
+    return nullptr;
 #else
     return strcasestr(str, searchStr);
 #endif
@@ -177,7 +177,7 @@ const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
         if (!strncasecmp(str, searchStr, len))
             return str;
 
-    return NULL;
+    return nullptr;
 #else
     return strcasestr(str, searchStr);
 #endif
@@ -298,18 +298,18 @@ char_t* strFindNoCase(char_t* str, const char_t* searchStr)
 {
     int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, FIND_FROMSTART | LINGUISTIC_IGNORECASE,
                                 reinterpret_cast<const wchar_t*>(str), -1, reinterpret_cast<const wchar_t*>(searchStr),
-                                -1, NULL, NULL, NULL, 0);
+                                -1, nullptr, nullptr, nullptr, 0);
 
-    return index >= 0 ? str + index : NULL;
+    return index >= 0 ? str + index : nullptr;
 }
 
 const char_t* strFindNoCase(const char_t* str, const char_t* searchStr)
 {
     int index = FindNLSStringEx(LOCALE_NAME_USER_DEFAULT, FIND_FROMSTART | LINGUISTIC_IGNORECASE,
                                 reinterpret_cast<const wchar_t*>(str), -1, reinterpret_cast<const wchar_t*>(searchStr),
-                                -1, NULL, NULL, NULL, 0);
+                                -1, nullptr, nullptr, nullptr, 0);
 
-    return index >= 0 ? str + index : NULL;
+    return index >= 0 ? str + index : nullptr;
 }
 
 long strToLong(const char_t* str, char_t** end, int base)
@@ -734,7 +734,7 @@ String::String(const String& other)
     {
         _length = 0;
         _capacity = 0;
-        _chars = NULL;
+        _chars = nullptr;
     }
 }
 
@@ -753,7 +753,7 @@ String::String(const char_t* chars, int len)
         else
         {
             _capacity = 0;
-            _chars = NULL;
+            _chars = nullptr;
         }
     }
     else
@@ -761,7 +761,7 @@ String::String(const char_t* chars, int len)
         ASSERT(len <= 0);
         _length = 0;
         _capacity = 0;
-        _chars = NULL;
+        _chars = nullptr;
     }
 }
 
@@ -781,7 +781,7 @@ String::String(unichar_t ch, int n)
     {
         _length = 0;
         _capacity = 0;
-        _chars = NULL;
+        _chars = nullptr;
     }
 }
 
@@ -797,7 +797,7 @@ String::String(char_t* chars)
     {
         _length = 0;
         _capacity = 0;
-        _chars = NULL;
+        _chars = nullptr;
     }
 }
 
@@ -809,7 +809,7 @@ String::String(String&& other)
 
     other._length = 0;
     other._capacity = 0;
-    other._chars = NULL;
+    other._chars = nullptr;
 }
 
 int String::charLength() const
@@ -1274,7 +1274,7 @@ void String::eraseString(const String& str, bool caseSensitive)
             char_t* found;
             int foundCnt = 0;
 
-            while ((found = findFunc(from, str._chars)) != NULL)
+            while ((found = findFunc(from, str._chars)) != nullptr)
             {
                 ++foundCnt;
                 from = found + str._length;
@@ -1286,7 +1286,7 @@ void String::eraseString(const String& str, bool caseSensitive)
                 if (newLen > 0)
                 {
                     from = _chars;
-                    while ((found = findFunc(from, str._chars)) != NULL)
+                    while ((found = findFunc(from, str._chars)) != nullptr)
                     {
                         strMove(found, found + str._length, _chars + _length - found - str._length + 1);
 
@@ -1317,7 +1317,7 @@ void String::eraseString(const char_t* chars, bool caseSensitive)
             char_t* found;
             int foundCnt = 0, len = strLen(chars);
 
-            while ((found = findFunc(from, chars)) != NULL)
+            while ((found = findFunc(from, chars)) != nullptr)
             {
                 ++foundCnt;
                 from = found + len;
@@ -1329,7 +1329,7 @@ void String::eraseString(const char_t* chars, bool caseSensitive)
                 if (newLen > 0)
                 {
                     from = _chars;
-                    while ((found = findFunc(from, chars)) != NULL)
+                    while ((found = findFunc(from, chars)) != nullptr)
                     {
                         strMove(found, found + len, _chars + _length - found - len + 1);
 
@@ -1441,7 +1441,7 @@ void String::replaceString(const String& searchStr, const String& replaceStr, bo
                 char_t* found;
                 int foundCnt = 0;
 
-                while ((found = findFunc(from, searchStr._chars)) != NULL)
+                while ((found = findFunc(from, searchStr._chars)) != nullptr)
                 {
                     ++foundCnt;
                     from = found + searchStr._length;
@@ -1453,7 +1453,7 @@ void String::replaceString(const String& searchStr, const String& replaceStr, bo
                     ensureCapacity(capacity);
 
                     from = _chars;
-                    while ((found = findFunc(from, searchStr._chars)) != NULL)
+                    while ((found = findFunc(from, searchStr._chars)) != nullptr)
                     {
                         strMove(found + replaceStr._length, found + searchStr._length,
                                 _chars + _length - found - searchStr._length + 1);
@@ -1491,7 +1491,7 @@ void String::replaceString(const char_t* searchChars, const char_t* replaceChars
                 int foundCnt = 0;
                 int searchLen = strLen(searchChars);
 
-                while ((found = findFunc(from, searchChars)) != NULL)
+                while ((found = findFunc(from, searchChars)) != nullptr)
                 {
                     ++foundCnt;
                     from = found + searchLen;
@@ -1504,7 +1504,7 @@ void String::replaceString(const char_t* searchChars, const char_t* replaceChars
                     ensureCapacity(capacity);
 
                     from = _chars;
-                    while ((found = findFunc(from, searchChars)) != NULL)
+                    while ((found = findFunc(from, searchChars)) != nullptr)
                     {
                         strMove(found + replaceLen, found + searchLen, _chars + _length - found - searchLen + 1);
                         strCopyLen(found, replaceChars, replaceLen);
@@ -1668,7 +1668,7 @@ void String::reset()
 
     _length = 0;
     _capacity = 0;
-    _chars = NULL;
+    _chars = nullptr;
 }
 
 char_t* String::release()
@@ -1676,7 +1676,7 @@ char_t* String::release()
     char_t* chars = _chars;
     _length = 0;
     _capacity = 0;
-    _chars = NULL;
+    _chars = nullptr;
 
     return chars;
 }
@@ -1877,7 +1877,7 @@ bool ConstStringIterator::moveNext()
         return true;
     else
     {
-        _pos = NULL;
+        _pos = nullptr;
         return false;
     }
 }
@@ -1894,7 +1894,7 @@ bool ConstStringIterator::movePrev()
     }
     else
     {
-        _pos = NULL;
+        _pos = nullptr;
         return false;
     }
 }
