@@ -359,9 +359,11 @@ private:
     __ImagingFactory _imagingFactory;
     __TextFactory _textFactory;
     __RenderTarget _renderTarget;
-    float _xDpi, _yDpi;
 
 #endif
+
+private:
+    float _xDpi, _yDpi;
 };
 
 #endif

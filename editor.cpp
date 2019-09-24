@@ -63,7 +63,7 @@ public:
         return String(reinterpret_cast<const char_t*>(
             _wgetenv(reinterpret_cast<const wchar_t*>(name))));
 #else
-        return String(getenv(name));
+        return String(static_cast<const char_t*>(getenv(name)));
 #endif
     }
 

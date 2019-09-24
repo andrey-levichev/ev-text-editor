@@ -1,4 +1,5 @@
 to do:
+* shell highlighting bug - $#
 * copying last line without line end doesn't work
 * font measuring gives incorrect width
 * mouse positioning

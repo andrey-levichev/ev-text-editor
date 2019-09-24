@@ -16,10 +16,6 @@ GCC_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-se
 
 CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable
 
-SOL_OPTIONS=-std=c++11 +w -o $@ -I. -errtags=yes -erroff=arrowrtn2,wvarhidenmem
-
-XLC_OPTIONS=-qlanglvl=extended0x -o $@ -I. -qsuppress=1540-0306 -qsuppress=1500-030
-
 all: $(APPLICATION_NAME).dbg.vcpp.exe
 
 $(APPLICATION_NAME).dbg.vcpp.exe: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
@@ -40,18 +36,6 @@ $(APPLICATION_NAME).dbg.clang: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) mak
 $(APPLICATION_NAME).clang: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
 	clang++ $(CLANG_OPTIONS) -O3 -flto -DDISABLE_ASSERT $(APPLICATION_SOURCES)
 
-$(APPLICATION_NAME).dbg.sol: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
-	CC $(SOL_OPTIONS) -O1 $(APPLICATION_SOURCES)
-
-$(APPLICATION_NAME).sol: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
-	CC $(SOL_OPTIONS) -O3 -xlinkopt -DDISABLE_ASSERT $(APPLICATION_SOURCES)
-
-$(APPLICATION_NAME).dbg.xlc: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
-	xlC_r $(XLC_OPTIONS) -O $(APPLICATION_SOURCES)
-
-$(APPLICATION_NAME).xlc: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
-	xlC_r $(XLC_OPTIONS) -O3 -DDISABLE_ASSERT $(APPLICATION_SOURCES)
-
 clean:
 	-del $(TRASH)
 	-rm $(TRASH)
@@ -70,13 +54,3 @@ depl.linux: $(APPLICATION_NAME).gcc
 	mv $(APPLICATION_NAME).gcc $(APPLICATION_NAME)
 	tar acvf $(APPLICATION_NAME)-linux.tar.bz2 $(APPLICATION_NAME)
 	mv $(APPLICATION_NAME)-linux.tar.bz2 web
-
-depl.solaris: $(APPLICATION_NAME).sol
-	mv $(APPLICATION_NAME).sol $(APPLICATION_NAME)
-	tar acvf $(APPLICATION_NAME)-solaris.tar.bz2 $(APPLICATION_NAME)
-	mv $(APPLICATION_NAME)-solaris.tar.bz2 web
-
-depl.aix: $(APPLICATION_NAME).xlc
-	mv $(APPLICATION_NAME).xlc $(APPLICATION_NAME)
-	tar acvf $(APPLICATION_NAME)-aix.tar.bz2 $(APPLICATION_NAME)
-	mv $(APPLICATION_NAME)-aix.tar.bz2 web
