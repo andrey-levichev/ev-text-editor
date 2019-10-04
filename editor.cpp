@@ -491,7 +491,8 @@ void ShellSyntaxHighlighter::highlightChar(const String& text, int pos)
         }
         else
         {
-            if (!(charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_'))
+            if (!(charIsAlphaNum(ch) || charIsDigit(ch) || ch == '_' || ch == '*' ||
+                    ch == '@' || ch == '#' || ch == '?' || ch == '-' || ch == '$' || ch == '!'))
                 _highlightingState.highlightingType = HIGHLIGHTING_TYPE_NONE;
             else
                 return;

@@ -1,5 +1,5 @@
 to do:
-* shell highlighting bug - $#
+* modern C++ conversion
 * copying last line without line end doesn't work
 * font measuring gives incorrect width
 * mouse positioning
@@ -94,11 +94,9 @@ type safe string formatting
 * envitonmrnt class - get variable, execute command
 
 misc:
-* create public web page
+* move webpage to evtext.org
 * minimal rebuild, precompiled headers, multiple targets
 * split foundation into a library
 * run release version in profiler, memory/thread checker
 * don't use asserts in low level OS specific code
-* get newer versions of solaris/aix compilers
-* support intel compiler, linux on arm and bsd
-* drop support for Solaris and AIX compilers
+* support intel compiler, arm hardware
