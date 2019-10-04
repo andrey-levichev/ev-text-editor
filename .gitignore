@@ -1,3 +1,4 @@
+ev
 *.swp
 *.pdb
 *.o
@@ -6,8 +7,6 @@
 *.ilk
 *.gcc
 *.clang
-*.sol
-*.xlc
 *.dSYM
 *.log
 t.*

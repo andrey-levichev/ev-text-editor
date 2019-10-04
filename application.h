@@ -10,10 +10,13 @@ class Application
 {
 public:
     Application(const Array<String>& args, const char_t* title = STR("Application")) :
-        _args(args), _title(title), _window(0)
+        _args(args), _title(title)
     {
         _application = this;
     }
+
+    Application(const Application&) = delete;
+    Application& operator=(const Application&) = delete;
 
     virtual ~Application();
 
@@ -23,10 +26,6 @@ public:
     }
 
     virtual void run();
-
-private:
-    Application(const Application&);
-    Application& operator=(const Application&);
 
 protected:
     void createWindow(const char_t* title, int width = 0, int height = 0);
@@ -56,7 +55,7 @@ protected:
 protected:
     Array<String> _args;
     const char_t* _title;
-    uintptr_t _window;
+    uintptr_t _window = 0;
 
     static const char_t* WINDOW_CLASS;
     static Application* _application;

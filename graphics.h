@@ -7,24 +7,24 @@
 
 struct Point
 {
-    float x, y;
+    float x = 0, y = 0;
 };
 
 // Rect
 
 struct Rect
 {
-    float left;
-    float top;
-    float right;
-    float bottom;
+    float left = 0;
+    float top = 0;
+    float right = 0;
+    float bottom = 0;
 };
 
 // Size
 
 struct Size
 {
-    float width, height;
+    float width = 0, height = 0;
 };
 
 // Color

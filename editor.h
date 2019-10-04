@@ -61,16 +61,11 @@ enum HighlightingType
 
 struct HighlightingState
 {
-    HighlightingType highlightingType;
-    int charsRemaining;
-    bool reset;
-    unichar_t startCh, prevCh;
+    HighlightingType highlightingType = HIGHLIGHTING_TYPE_NONE;
+    int charsRemaining = 0;
+    bool reset = false;
+    unichar_t startCh = 0, prevCh = 0;
     String word;
-
-    HighlightingState() :
-        highlightingType(HIGHLIGHTING_TYPE_NONE), charsRemaining(0), reset(false), startCh(0), prevCh(0)
-    {
-    }
 };
 
 // SyntaxHighlighter
@@ -114,7 +109,7 @@ class CppSyntaxHighlighter : public SyntaxHighlighter
 {
 public:
     CppSyntaxHighlighter();
-    virtual void highlightChar(const String& text, int pos);
+    void highlightChar(const String& text, int pos) override;
 
 protected:
     Set<String> _keywords;
@@ -128,7 +123,7 @@ class ShellSyntaxHighlighter : public SyntaxHighlighter
 {
 public:
     ShellSyntaxHighlighter();
-    virtual void highlightChar(const String& text, int pos);
+    void highlightChar(const String& text, int pos) override;
 
 protected:
     Set<String> _keywords;
@@ -143,7 +138,7 @@ public:
     {
     }
 
-    virtual void highlightChar(const String& text, int pos);
+    void highlightChar(const String& text, int pos) override;
 };
 
 // Document
@@ -405,6 +400,8 @@ class Editor : public Application
 {
 public:
     Editor(const Array<String>& args);
+    Editor(const Editor&) = delete;
+    Editor& operator=(const Editor&) = delete;
 
     bool brightBackground() const
     {
@@ -421,7 +418,7 @@ public:
         return _trimWhitespace;
     }
 
-        SyntaxHighlighter* syntaxHighlighter(DocumentType documentType);
+    SyntaxHighlighter* syntaxHighlighter(DocumentType documentType);
 
     void newDocument(const String& filename);
     void openDocument(const String& filename);
@@ -429,14 +426,14 @@ public:
     void saveAllDocuments();
     void closeDocument();
 
-    virtual bool start();
+    bool start() override;
 
 protected:
-    virtual void onCreate();
-    virtual void onDestroy();
-    virtual void onPaint();
-    virtual void onResize(int width, int height);
-    virtual void onInput(const Array<InputEvent>& inputEvents);
+    void onCreate() override;
+    void onDestroy() override;
+    void onPaint() override;
+    void onResize(int width, int height) override;
+    void onInput(const Array<InputEvent>& inputEvents) override;
 
     void setDimensions();
     void updateScreen(bool redrawAll);

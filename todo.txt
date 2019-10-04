@@ -1,5 +1,4 @@
 to do:
-* modern C++ conversion
 * copying last line without line end doesn't work
 * font measuring gives incorrect width
 * mouse positioning
@@ -7,6 +6,8 @@ to do:
 * nice icon
 * reasonable window sze and position
 * assert when minimized
+* replace explicit pointers with smart pointers, add week pointer
+* default constructors for input events
 
 editor:
 * execute shell commands

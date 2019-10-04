@@ -31,6 +31,10 @@ class File
 public:
     File();
     File(const String& filename, int openMode = FILE_MODE_READ);
+
+    File(const File&) = delete;
+    File& operator=(const File&) = delete;
+
     ~File();
 
     bool isOpen() const;
@@ -51,10 +55,6 @@ public:
 public:
     static bool exists(const String& filename);
     static void remove(const String& filename);
-
-private:
-    File(const File&);
-    File& operator=(const File&);
 
 protected:
 #ifdef PLATFORM_WINDOWS

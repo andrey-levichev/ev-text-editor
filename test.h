@@ -5,8 +5,6 @@
 #include <console.h>
 #include <file.h>
 
-void printPlatformInfo();
-
 // Test
 
 class Test
@@ -96,7 +94,7 @@ struct Base
 
 struct Derived : public Base
 {
-    virtual void f()
+    void f() override
     {
         val = 456;
     }

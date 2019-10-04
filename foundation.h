@@ -128,8 +128,6 @@
 
 #define COMPILER_XL_CPP
 #define COMPILER_VERSION __IBMCPP__
-typedef unsigned short char16_t;
-typedef unsigned char32_t;
 
 #endif
 
@@ -186,13 +184,7 @@ typedef char16_t char_t;
 
 #define CHAR_ENCODING_UTF8
 #define MAIN main
-
-#ifdef COMPILER_XL_CPP
-#define STR(arg) arg
-#else
 #define STR(arg) u8##arg
-#endif
-
 #define CRLF false
 #define NEWLINE STR("\n")
 
@@ -206,12 +198,7 @@ typedef unsigned char byte_t;
 #define TO_STR(arg) #arg
 #define STR_MACRO(arg) STR(arg)
 #define NUM_MACRO(arg) STR_MACRO(TO_STR(arg))
-
-#ifdef COMPILER_XL_CPP
-#define ALIGN_AS(n) __attribute__((aligned(n)))
-#else
 #define ALIGN_AS(n) alignas(n)
-#endif
 
 // diagnostic messages
 
@@ -494,14 +481,10 @@ inline uint16_t swapBytes(uint16_t value)
     return (value << 8) | (value >> 8);
 }
 
-#ifndef COMPILER_XL_CPP
-
 inline char16_t swapBytes(char16_t value)
 {
     return swapBytes(static_cast<uint16_t>(value));
 }
-
-#endif
 
 inline uint32_t swapBytes(uint32_t value)
 {
@@ -509,14 +492,10 @@ inline uint32_t swapBytes(uint32_t value)
     return (value << 16) | (value >> 16);
 }
 
-#ifndef COMPILER_XL_CPP
-
 inline char32_t swapBytes(char32_t value)
 {
     return swapBytes(static_cast<uint32_t>(value));
 }
-
-#endif
 
 inline uint64_t swapBytes(uint64_t value)
 {
@@ -770,6 +749,8 @@ public:
     {
     }
 
+    Unique(const Unique<_Type>&) = delete;
+
     Unique(Unique<_Type>&& other) : _ptr(other._ptr)
     {
         other._ptr = nullptr;
@@ -784,6 +765,8 @@ public:
     {
         Memory::destroy(_ptr);
     }
+
+    Unique<_Type>& operator=(const Unique<_Type>&) = delete;
 
     Unique<_Type>& operator=(Unique<_Type>&& other)
     {
@@ -875,10 +858,6 @@ protected:
     Unique(_Type* ptr) : _ptr(ptr)
     {
     }
-
-private:
-    Unique(const Unique<_Type>&);
-    Unique<_Type>& operator=(const Unique<_Type>&);
 
 protected:
     _Type* _ptr;

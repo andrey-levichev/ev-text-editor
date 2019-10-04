@@ -150,8 +150,7 @@ Size TextBlock::size() const
     ASSERT_COM_SUCCEEDED(_textLayout->GetMetrics(&textMetrics));
     return { textMetrics.width, textMetrics.height };
 #else
-    Size size = { 0, 0 };
-    return size;
+    return Size();
 #endif
 }
 
@@ -182,8 +181,7 @@ Size Image::size() const
     D2D1_SIZE_F size = _bitmap->GetSize();
     return { size.width, size.height };
 #else
-    Size size = { 0, 0 };
-    return size;
+    return Size();
 #endif
 }
 
@@ -193,7 +191,7 @@ Graphics::Graphics(uintptr_t window) : _renderTarget(_drawingFactory, reinterpre
     _drawingFactory->GetDesktopDpi(&_xDpi, &_yDpi);
 }
 #else
-Graphics::Graphics(uintptr_t window)
+Graphics::Graphics(uintptr_t window) : _xDpi(96), _yDpi(96)
 {
 }
 #endif
@@ -334,7 +332,6 @@ Size Graphics::size() const
     D2D1_SIZE_F size = _renderTarget->GetSize();
     return { size.width, size.height };
 #else
-    Size size = { 0, 0 };
-    return size;
+    return Size();
 #endif
 }
