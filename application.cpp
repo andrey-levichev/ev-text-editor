@@ -32,7 +32,7 @@ Application::~Application()
 
 void Application::run()
 {
-    createWindow(_title, 1400, 1104);
+    createWindow(_title);
     showWindow();
 
 #ifdef GUI_MODE

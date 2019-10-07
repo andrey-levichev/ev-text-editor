@@ -1142,8 +1142,8 @@ void Document::markSelection()
 
 String Document::copyDeleteText(bool copy)
 {
-    int start;
-    int end;
+    int start, end;
+    bool lastLine = false;
 
     if (_selection < 0)
     {
@@ -1151,6 +1151,8 @@ String Document::copyDeleteText(bool copy)
         end = findLineEnd(_position);
         if (_text.charAt(end) == '\n')
             end = _text.charForward(end);
+        else
+            lastLine = true;
     }
     else
     {
@@ -1169,6 +1171,8 @@ String Document::copyDeleteText(bool copy)
     if (start < end)
     {
         String text = _text.substr(start, end - start);
+        if (lastLine)
+            text += '\n';
 
         if (!copy)
         {

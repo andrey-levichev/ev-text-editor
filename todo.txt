@@ -1,5 +1,4 @@
 to do:
-* copying last line without line end doesn't work
 * font measuring gives incorrect width
 * mouse positioning
 * cursor drawing issues
