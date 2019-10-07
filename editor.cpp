@@ -3156,15 +3156,24 @@ void Editor::buildProject(Projectommand command)
         cmd = Environment::getVariable(STR("EV_MAKE_CMD"));
         if (cmd.empty())
 #ifdef PLATFORM_WINDOWS
+#ifdef GUI_MODE
             cmd = STR("nmake.exe & pause");
+#else
+            cmd = STR("nmake.exe");
+#endif
 #else
             cmd = STR("make");
 #endif
         break;
     case PROJECT_COMMAND_CLEAN:
         cmd = Environment::getVariable(STR("EV_CLEAN_CMD"));
+        if (cmd.empty())
 #ifdef PLATFORM_WINDOWS
+#ifdef GUI_MODE
             cmd = STR("nmake.exe clean & pause");
+#else
+            cmd = STR("nmake.exe clean");
+#endif
 #else
             cmd = STR("make clean");
 #endif
@@ -3176,6 +3185,8 @@ void Editor::buildProject(Projectommand command)
     Environment::executeCommand(cmd);
 
 #ifndef GUI_MODE
+    Console::write(STR("Press Enter to continue..."));
+    Console::readLine();
     Console::setLineMode(false);
 #endif
 }

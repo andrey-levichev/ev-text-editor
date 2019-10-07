@@ -16,7 +16,7 @@ GCC_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable -Wno-unused-but-se
 
 CLANG_OPTIONS=-std=gnu++14 -Wall -o $@ -I. -Wno-unused-variable
 
-all: $(APPLICATION_NAME).dbg.gcc
+all: $(APPLICATION_NAME).dbg.vcpp.exe
 
 $(APPLICATION_NAME).dbg.vcpp.exe: $(APPLICATION_HEADERS) $(APPLICATION_SOURCES) makefile
 	cl $(VCPP_OPTIONS) /MT /O1 $(APPLICATION_SOURCES) $(VCPP_LINKER_OPTIONS)
