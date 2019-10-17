@@ -2054,7 +2054,7 @@ int Document::uncommentLine(int pos)
 void Document::determineDocumentType(bool fileExecutable)
 {
     if (_filename.endsWith(STR(".c")) || _filename.endsWith(STR(".h")) || _filename.endsWith(STR(".cpp")) ||
-        _filename.endsWith(STR(".hpp")))
+            _filename.endsWith(STR(".hpp")) || _filename.endsWith(STR(".cc")))
         _documentType = DOCUMENT_TYPE_CPP;
     else if (_filename.endsWith(STR(".sh")) || _filename.endsWith(STR(".ksh")))
         _documentType = DOCUMENT_TYPE_SHELL;
