@@ -1,6 +1,5 @@
 to do:
 * font measuring gives incorrect width
-* mouse positioning
 * cursor drawing issues
 * nice icon
 * reasonable window sze and position

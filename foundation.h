@@ -136,6 +136,7 @@
 #ifdef PLATFORM_WINDOWS
 
 #include <windows.h>
+#include <windowsx.h>
 #include <io.h>
 #include <fcntl.h>
 #include <conio.h>

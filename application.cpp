@@ -327,7 +327,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 inputEvents.clear();
 
                 MouseEvent mouseEvent = { MOUSE_BUTTON_PRIMARY,
-                    true, LOWORD(lParam), HIWORD(lParam) };
+                    true, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
                 if (message == WM_RBUTTONDOWN)
                     mouseEvent.button = MOUSE_BUTTON_SECONDARY;
@@ -353,7 +353,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
                 MouseEvent mouseEvent = {
                     delta > 0 ? MOUSE_BUTTON_WHEEL_UP : MOUSE_BUTTON_WHEEL_DOWN,
-                    true, LOWORD(lParam), HIWORD(lParam) };
+                    true, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 
                 mouseEvent.ctrl = isKeyPressed(VK_CONTROL);
                 mouseEvent.alt = isKeyPressed(VK_MENU);
