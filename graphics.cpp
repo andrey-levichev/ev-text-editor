@@ -87,20 +87,10 @@ void __TextFormat::wordWrap(bool wrap)
     ASSERT_COM_SUCCEEDED(_ptr->SetWordWrapping(wrap ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP));
 }
 
-__TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width,
-                           float height, bool legacyFontMeasuring)
+__TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width, float height)
 {
-    if (legacyFontMeasuring)
-    {
-        ASSERT_COM_SUCCEEDED(factory->CreateGdiCompatibleTextLayout(reinterpret_cast<const WCHAR*>(text.chars()),
-                                                                    text.length(), textFormat, width, height, 1, nullptr,
-                                                                    false, &_ptr));
-    }
-    else
-    {
-        ASSERT_COM_SUCCEEDED(factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
-                                                       textFormat, width, height, &_ptr));
-    }
+    ASSERT_COM_SUCCEEDED(factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
+                                                   textFormat, width, height, &_ptr));
 }
 
 __EllipsisTrimmingSign::__EllipsisTrimmingSign(__TextFactory& factory, __TextFormat& textFormat)
@@ -276,6 +266,28 @@ void Graphics::fillRoundedRectangle(const Rect& rect, Color color, float cornerR
 #endif
 }
 
+void Graphics::setAntialias(bool on)
+{
+#ifdef PLATFORM_WINDOWS
+    _renderTarget->SetAntialiasMode(on ? D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE_ALIASED);
+#endif
+}
+
+void Graphics::setClip(const Rect& rect)
+{
+#ifdef PLATFORM_WINDOWS
+    _renderTarget->PushAxisAlignedClip(
+        { rect.left, rect.top, rect.right, rect.bottom }, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+#endif
+}
+
+void Graphics::cancelClip()
+{
+#ifdef PLATFORM_WINDOWS
+    _renderTarget->PopAxisAlignedClip();
+#endif
+}
+
 void Graphics::drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color,
                         TextAlignment textAlignment, ParagraphAlignment paragraphAlignment, bool bold, bool wordWrap)
 {
@@ -290,7 +302,7 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
                             { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,
-                            DWRITE_MEASURING_MODE_GDI_CLASSIC);
+                            DWRITE_MEASURING_MODE_NATURAL);
 #endif
 }
 

@@ -7,6 +7,7 @@ const int TAB_SIZE = 4;
 const char_t* GUI_FONT_NAME = STR("Lucida Console");
 const int GUI_FONT_SIZE = 13;
 const Color GUI_BACKGROUND = 0xffffff;
+const Color GUI_CURSOR_COLOR = 0x000000;
 
 uint32_t rgbColors[] = {
     0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0xc0c0c0,
@@ -2232,7 +2233,7 @@ void Editor::onCreate()
 
     Size scrSize = _graphics->size();
 
-    TextBlock textBlock = _graphics->createTextBlock(GUI_FONT_NAME, GUI_FONT_SIZE, false, STR("w"), scrSize, true);
+    TextBlock textBlock = _graphics->createTextBlock(GUI_FONT_NAME, GUI_FONT_SIZE, false, STR("w"), scrSize);
     Size chrSize = textBlock.size();
 
     _charWidth = chrSize.width;
@@ -2794,6 +2795,21 @@ void Editor::setDimensions()
         doc->value.setDimensions(1, 1, _width, _height - 1);
 }
 
+void Editor::drawBlockCursor(bool on)
+{
+    int i = (_cursorLine - 1) * _width + _cursorColumn - 1;
+    _output = _screen[i].ch;
+
+    Rect rect = { (_cursorColumn - 1) * _charWidth, (_cursorLine - 1) * _charHeight,
+                _cursorColumn * _charWidth, _cursorLine * _charHeight };
+
+    _graphics->setAntialias(false);
+    _graphics->fillRectangle(rect, on ? GUI_CURSOR_COLOR : GUI_BACKGROUND);
+    _graphics->setAntialias(true);
+    _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect,
+        on ? GUI_BACKGROUND : rgbColors[_screen[i].color]);
+}
+
 void Editor::updateScreen(bool redrawAll)
 {
     int line, col;
@@ -2868,6 +2884,7 @@ void Editor::updateScreen(bool redrawAll)
 
 #ifdef GUI_MODE
         _graphics->clear();
+        _cursorLine = 0;
 
         for (int j = 0; j < _height; ++j)
         {
@@ -2959,6 +2976,8 @@ void Editor::updateScreen(bool redrawAll)
 
 #ifdef GUI_MODE
                 int ii = start - jw;
+                _graphics->fillRectangle({ (start - jw) * _charWidth, j * _charHeight,
+                    (end - jw + 1) * _charWidth, (j + 1) * _charHeight }, GUI_BACKGROUND);
 
                 for (int i = start; i <= end; ++i)
                 {
@@ -2967,7 +2986,6 @@ void Editor::updateScreen(bool redrawAll)
                         if (color >= 0)
                         {
                             Rect rect = { ii * _charWidth, j * _charHeight, (i - jw) * _charWidth, (j + 1) * _charHeight };
-                            _graphics->fillRectangle(rect, GUI_BACKGROUND);
                             _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
 
                             _output.clear();
@@ -2981,7 +2999,6 @@ void Editor::updateScreen(bool redrawAll)
                 }
 
                 Rect rect = { ii * _charWidth, j * _charHeight, (end - jw + 1) * _charWidth, (j + 1) * _charHeight };
-                _graphics->fillRectangle(rect, GUI_BACKGROUND);
                 _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
 #else
                 COORD pos;
@@ -3025,22 +3042,11 @@ void Editor::updateScreen(bool redrawAll)
 
 #ifdef GUI_MODE
     if (_cursorLine > 0)
-    {
-        int i = (_cursorLine - 1) * _width + _cursorColumn - 1;
-        _output = _screen[i].ch;
-
-        Rect rect = { (_cursorColumn - 1) * _charWidth, (_cursorLine - 1) * _charHeight,
-                    _cursorColumn * _charWidth, _cursorLine * _charHeight };
-
-        _graphics->fillRectangle(rect, GUI_BACKGROUND);
-        _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[_screen[i].color]);
-    }
+        drawBlockCursor(false);
 
     _cursorLine = line;
     _cursorColumn = col;
-
-    _graphics->fillRectangle({ (col - 1) * _charWidth, (line - 1) * _charHeight,
-        (col - 1) * _charWidth + 2, line * _charHeight }, 0);
+    drawBlockCursor(true);
 
     _graphics->endDraw();
 #else

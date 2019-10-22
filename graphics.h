@@ -153,8 +153,7 @@ public:
 class __TextLayout : public __ComPtr<IDWriteTextLayout>
 {
 public:
-    __TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width, float height,
-                 bool legacyFontMeasuring);
+    __TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width, float height);
 };
 
 // __EllipsisTrimmingSign
@@ -220,11 +219,10 @@ public:
 private:
 #ifdef PLATFORM_WINDOWS
 
-    TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text,
-              const Size& size, bool legacyFontMeasuring = true) :
+    TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text, const Size& size) :
         _textFormat(textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
                     DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize),
-        _textLayout(textFactory, text, _textFormat, size.width, size.height, legacyFontMeasuring)
+        _textLayout(textFactory, text, _textFormat, size.width, size.height)
     {
     }
 
@@ -291,6 +289,10 @@ public:
     void fillRectangle(const Rect& rect, Color color);
     void fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius);
 
+    void setAntialias(bool on);
+    void setClip(const Rect& rect);
+    void cancelClip();
+
     void drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color = 0,
                   TextAlignment textAlignment = TEXT_ALIGNMENT_LEFT,
                   ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP, bool bold = false,
@@ -299,10 +301,10 @@ public:
     void drawText(const TextBlock& textBlock, const Point& pos, Color color = 0);
 
     TextBlock createTextBlock(const String& font, float fontSize, bool bold,
-        const String& text, const Size& size, bool legacyFontMeasuring = false)
+        const String& text, const Size& size)
     {
 #ifdef PLATFORM_WINDOWS
-        return TextBlock(_textFactory, font, fontSize, bold, text, size, legacyFontMeasuring);
+        return TextBlock(_textFactory, font, fontSize, bold, text, size);
 #else
         return TextBlock();
 #endif

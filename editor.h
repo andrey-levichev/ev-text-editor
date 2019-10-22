@@ -436,6 +436,7 @@ protected:
     void onInput(const Array<InputEvent>& inputEvents) override;
 
     void setDimensions();
+    void drawBlockCursor(bool on);
     void updateScreen(bool redrawAll);
     void updateStatusLine();
 
