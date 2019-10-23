@@ -350,6 +350,7 @@ protected:
 
 enum Projectommand
 {
+    PROJECT_COMMAND_RUN,
     PROJECT_COMMAND_BUILD,
     PROJECT_COMMAND_CLEAN
 };
@@ -441,8 +442,8 @@ protected:
     void updateStatusLine();
 
     void showCommandLine();
-    bool processCommand(const String& command);
-    void buildProject(Projectommand command);
+    bool executeCommand(const String& command);
+    void executeProjectCommand(Projectommand command);
 
     void updateRecentLocations();
     bool moveToNextRecentLocation();

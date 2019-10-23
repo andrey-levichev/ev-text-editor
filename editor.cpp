@@ -2560,12 +2560,17 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                 }
                 else if (keyEvent.key == KEY_F5)
                 {
-                    buildProject(PROJECT_COMMAND_BUILD);
+                    executeProjectCommand(PROJECT_COMMAND_RUN);
                     updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_F6)
                 {
-                    buildProject(PROJECT_COMMAND_CLEAN);
+                    executeProjectCommand(PROJECT_COMMAND_BUILD);
+                    updateScreen(true);
+                }
+                else if (keyEvent.key == KEY_F7)
+                {
+                    executeProjectCommand(PROJECT_COMMAND_CLEAN);
                     updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_F8)
@@ -2642,7 +2647,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                         {
                             if (!_commandLine.value.text().empty())
                             {
-                                if (!processCommand(_commandLine.value.text()))
+                                if (!executeCommand(_commandLine.value.text()))
                                 {
                                     destroyWindow();
                                     return;
@@ -2797,6 +2802,7 @@ void Editor::setDimensions()
 
 void Editor::drawBlockCursor(bool on)
 {
+#ifdef GUI_MODE
     int i = (_cursorLine - 1) * _width + _cursorColumn - 1;
     _output = _screen[i].ch;
 
@@ -2808,6 +2814,7 @@ void Editor::drawBlockCursor(bool on)
     _graphics->setAntialias(true);
     _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect,
         on ? GUI_BACKGROUND : rgbColors[_screen[i].color]);
+#endif
 }
 
 void Editor::updateScreen(bool redrawAll)
@@ -3144,60 +3151,7 @@ void Editor::showCommandLine()
     }
 }
 
-void Editor::buildProject(Projectommand command)
-{
-    saveAllDocuments();
-
-#ifndef GUI_MODE
-    Console::setLineMode(true);
-    Console::setColor(defaultForeground(), defaultBackground());
-    Console::clear();
-#endif
-
-    String cmd;
-
-    switch (command)
-    {
-    case PROJECT_COMMAND_BUILD:
-        cmd = Environment::getVariable(STR("EV_MAKE_CMD"));
-        if (cmd.empty())
-#ifdef PLATFORM_WINDOWS
-#ifdef GUI_MODE
-            cmd = STR("nmake.exe & pause");
-#else
-            cmd = STR("nmake.exe");
-#endif
-#else
-            cmd = STR("make");
-#endif
-        break;
-    case PROJECT_COMMAND_CLEAN:
-        cmd = Environment::getVariable(STR("EV_CLEAN_CMD"));
-        if (cmd.empty())
-#ifdef PLATFORM_WINDOWS
-#ifdef GUI_MODE
-            cmd = STR("nmake.exe clean & pause");
-#else
-            cmd = STR("nmake.exe clean");
-#endif
-#else
-            cmd = STR("make clean");
-#endif
-        break;
-    default:
-        throw Exception(STR("invalid project command"));
-    }
-
-    Environment::executeCommand(cmd);
-
-#ifndef GUI_MODE
-    Console::write(STR("Press Enter to continue..."));
-    Console::readLine();
-    Console::setLineMode(false);
-#endif
-}
-
-bool Editor::processCommand(const String& command)
+bool Editor::executeCommand(const String& command)
 {
     ASSERT(!command.empty());
 
@@ -3367,6 +3321,57 @@ bool Editor::processCommand(const String& command)
         throw Exception(STR("invalid command"));
 
     return true;
+}
+
+void Editor::executeProjectCommand(Projectommand command)
+{
+    saveAllDocuments();
+
+#ifndef GUI_MODE
+    Console::setLineMode(true);
+    Console::setColor(defaultForeground(), defaultBackground());
+    Console::clear();
+#endif
+
+    String cmd;
+    const char_t* target;
+
+    switch (command)
+    {
+    case PROJECT_COMMAND_RUN:
+        cmd = Environment::getVariable(STR("EV_RUN_CMD"));
+        target = STR("run");
+        break;
+    case PROJECT_COMMAND_BUILD:
+        cmd = Environment::getVariable(STR("EV_BUILD_CMD"));
+        target = STR("build");
+        break;
+    case PROJECT_COMMAND_CLEAN:
+        cmd = Environment::getVariable(STR("EV_CLEAN_CMD"));
+        target = STR("clean");
+        break;
+    default:
+        throw Exception(STR("invalid project command"));
+    }
+
+    if (cmd.empty())
+#ifdef PLATFORM_WINDOWS
+#ifdef GUI_MODE
+        cmd = String::format(STR("nmake.exe %s & pause"), target);
+#else
+        cmd = String::format(STR("nmake.exe %s"), target);
+#endif
+#else
+        cmd = String::format(STR("make %s"), target);
+#endif
+
+    Environment::executeCommand(cmd);
+
+#ifndef GUI_MODE
+    Console::write(STR("Press Enter to continue..."));
+    Console::readLine();
+    Console::setLineMode(false);
+#endif
 }
 
 void Editor::updateRecentLocations()

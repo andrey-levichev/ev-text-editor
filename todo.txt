@@ -1,13 +1,13 @@
 to do:
 * better solution for cursor
-edge antialiasing, don't draw when prev position is not on the screen
+edge antialiasing (overwrite instead of blend)
+don't draw when prev position is not on the screen
 * nice icon
 * reasonable window sze and position
 * assert when minimized
 * replace explicit pointers with smart pointers, add weak pointer
 * default constructors for input events
 * don't create empty file
-* key for make run command
 
 editor:
 * execute shell commands
