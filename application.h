@@ -13,6 +13,7 @@ public:
         _args(args), _title(title)
     {
         _application = this;
+        _dpi = GetDpiForSystem();
     }
 
     Application(const Application&) = delete;
@@ -26,6 +27,16 @@ public:
     }
 
     virtual void run();
+
+    float fromDevice(int coord)
+    {
+        return coord * 96.0f / _dpi;
+    }
+
+    int toDevice(float coord)
+    {
+        return coord * _dpi / 96;
+    }
 
 protected:
     void createWindow(const char_t* title, int width = 0, int height = 0);
@@ -56,6 +67,7 @@ protected:
     Array<String> _args;
     const char_t* _title;
     uintptr_t _window = 0;
+    int _dpi;
 
     static const char_t* WINDOW_CLASS;
     static Application* _application;

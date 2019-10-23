@@ -32,7 +32,7 @@ Application::~Application()
 
 void Application::run()
 {
-    createWindow(_title);
+    createWindow(_title, 11 * _dpi, 9 *_dpi);
     showWindow();
 
 #ifdef GUI_MODE
@@ -326,8 +326,10 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             {
                 inputEvents.clear();
 
-                MouseEvent mouseEvent = { MOUSE_BUTTON_PRIMARY,
-                    true, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+                int x = GET_X_LPARAM(lParam);
+                int y = GET_Y_LPARAM(lParam);
+                MouseEvent mouseEvent = { MOUSE_BUTTON_PRIMARY, true,
+                    _application->fromDevice(x), _application->fromDevice(y) };
 
                 if (message == WM_RBUTTONDOWN)
                     mouseEvent.button = MOUSE_BUTTON_SECONDARY;
@@ -351,9 +353,11 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
                 int delta = GET_WHEEL_DELTA_WPARAM(wParam) / WHEEL_DELTA;
 
+                int x = GET_X_LPARAM(lParam);
+                int y = GET_Y_LPARAM(lParam);
                 MouseEvent mouseEvent = {
                     delta > 0 ? MOUSE_BUTTON_WHEEL_UP : MOUSE_BUTTON_WHEEL_DOWN,
-                    true, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+                    true, _application->fromDevice(x), _application->fromDevice(y) };
 
                 mouseEvent.ctrl = isKeyPressed(VK_CONTROL);
                 mouseEvent.alt = isKeyPressed(VK_MENU);

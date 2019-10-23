@@ -324,36 +324,6 @@ public:
     void resize(int width, int height);
     Size size() const;
 
-    float xDpi() const
-    {
-        return _xDpi;
-    }
-
-    float yDpi() const
-    {
-        return _yDpi;
-    }
-
-    int xToDevice(float x)
-    {
-        return (x * _xDpi) / 96;
-    }
-
-    float deviceToX(int x)
-    {
-        return (x * 96) / _xDpi;
-    }
-
-    int yToDevice(float y)
-    {
-        return (y * _yDpi) / 96;
-    }
-
-    float deviceToY(int y)
-    {
-        return (y * 96) / _yDpi;
-    }
-
 #ifdef PLATFORM_WINDOWS
 
 private:
@@ -363,9 +333,6 @@ private:
     __RenderTarget _renderTarget;
 
 #endif
-
-private:
-    float _xDpi, _yDpi;
 };
 
 #endif

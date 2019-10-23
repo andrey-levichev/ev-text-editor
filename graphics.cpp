@@ -177,14 +177,11 @@ Size Image::size() const
 
 #ifdef PLATFORM_WINDOWS
 Graphics::Graphics(uintptr_t window) : _renderTarget(_drawingFactory, reinterpret_cast<HWND>(window))
-{
-    _drawingFactory->GetDesktopDpi(&_xDpi, &_yDpi);
-}
 #else
-Graphics::Graphics(uintptr_t window) : _xDpi(96), _yDpi(96)
+Graphics::Graphics(uintptr_t window)
+#endif
 {
 }
-#endif
 
 void Graphics::beginDraw()
 {

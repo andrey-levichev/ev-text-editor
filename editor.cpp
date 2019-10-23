@@ -2732,8 +2732,8 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                     if (mouseEvent.button == MOUSE_BUTTON_PRIMARY)
                     {
 #ifdef GUI_MODE
-                        int line = _graphics->deviceToY(mouseEvent.y) / _charHeight;
-                        int col = _graphics->deviceToX(mouseEvent.x) / _charWidth;
+                        int line = mouseEvent.y / _charHeight;
+                        int col = mouseEvent.x / _charWidth;
 #else
                         int line = mouseEvent.y - 1, col = mouseEvent.x - 1;
 #endif
