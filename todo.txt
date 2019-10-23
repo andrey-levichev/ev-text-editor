@@ -8,6 +8,7 @@ don't draw when prev position is not on the screen
 * replace explicit pointers with smart pointers, add weak pointer
 * default constructors for input events
 * don't create empty file
+* print debug output to console if attached
 
 editor:
 * execute shell commands

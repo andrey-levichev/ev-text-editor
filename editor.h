@@ -350,8 +350,8 @@ protected:
 
 enum Projectommand
 {
-    PROJECT_COMMAND_RUN,
     PROJECT_COMMAND_BUILD,
+    PROJECT_COMMAND_RUN,
     PROJECT_COMMAND_CLEAN
 };
 

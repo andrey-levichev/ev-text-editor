@@ -2560,12 +2560,12 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                 }
                 else if (keyEvent.key == KEY_F5)
                 {
-                    executeProjectCommand(PROJECT_COMMAND_RUN);
+                    executeProjectCommand(PROJECT_COMMAND_BUILD);
                     updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_F6)
                 {
-                    executeProjectCommand(PROJECT_COMMAND_BUILD);
+                    executeProjectCommand(PROJECT_COMMAND_RUN);
                     updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_F7)
@@ -3338,13 +3338,13 @@ void Editor::executeProjectCommand(Projectommand command)
 
     switch (command)
     {
-    case PROJECT_COMMAND_RUN:
-        cmd = Environment::getVariable(STR("EV_RUN_CMD"));
-        target = STR("run");
-        break;
     case PROJECT_COMMAND_BUILD:
         cmd = Environment::getVariable(STR("EV_BUILD_CMD"));
         target = STR("build");
+        break;
+    case PROJECT_COMMAND_RUN:
+        cmd = Environment::getVariable(STR("EV_RUN_CMD"));
+        target = STR("run");
         break;
     case PROJECT_COMMAND_CLEAN:
         cmd = Environment::getVariable(STR("EV_CLEAN_CMD"));
@@ -3356,20 +3356,14 @@ void Editor::executeProjectCommand(Projectommand command)
 
     if (cmd.empty())
 #ifdef PLATFORM_WINDOWS
-#ifdef GUI_MODE
         cmd = String::format(STR("nmake.exe %s & pause"), target);
 #else
-        cmd = String::format(STR("nmake.exe %s"), target);
-#endif
-#else
-        cmd = String::format(STR("make %s"), target);
+        cmd = String::format(STR("make %s; read -p 'Press ENTER to continue...'"), target);
 #endif
 
     Environment::executeCommand(cmd);
 
 #ifndef GUI_MODE
-    Console::write(STR("Press Enter to continue..."));
-    Console::readLine();
     Console::setLineMode(false);
 #endif
 }
