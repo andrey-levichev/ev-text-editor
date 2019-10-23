@@ -437,6 +437,7 @@ protected:
     void onInput(const Array<InputEvent>& inputEvents) override;
 
     void setDimensions();
+    Rect rectFromLineCol(int left, int top, int right, int bottom);
     void drawBlockCursor(bool on);
     void updateScreen(bool redrawAll);
     void updateStatusLine();
@@ -468,6 +469,7 @@ protected:
     int _width, _height;
     int _cursorLine, _cursorColumn;
     float _charWidth, _charHeight;
+    float _offsetX, _offsetY;
     bool _unicodeLimit16;
     bool _brightBackground;
 

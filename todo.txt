@@ -1,15 +1,15 @@
 to do:
+* nice application icon
+* eliminate device pixels from editor (like resize)
 * support dpi support for multiple monitors
 * better solution for cursor
 edge antialiasing (overwrite instead of blend)
 don't draw when prev position is not on the screen
-* nice application icon
 * assert when minimized
 * replace explicit pointers with smart pointers, add weak pointer
 * default constructors for input events
 * don't create empty file
 * print debug output to console if attached
-* center output in the window in gui mode
 
 editor:
 * execute shell commands

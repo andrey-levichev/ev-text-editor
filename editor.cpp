@@ -2082,7 +2082,8 @@ void Document::determineDocumentType(bool fileExecutable)
 Editor::Editor(const Array<String>& args) :
     Application(args, STR("ev")), _commandLine(Document(this), nullptr, nullptr), _document(nullptr), _lastDocument(nullptr),
     _recordingMacro(false), _width(2), _height(2), _cursorLine(0), _cursorColumn(0),
-    _charWidth(1), _charHeight(1), _brightBackground(true), _caseSesitive(true), _recentLocation(nullptr),
+    _charWidth(1), _charHeight(1), _offsetX(0), _offsetY(0),
+    _brightBackground(true), _caseSesitive(true), _recentLocation(nullptr),
     _currentSuggestion(INVALID_POSITION), _trimWhitespace(true)
 {
 #ifdef PLATFORM_WINDOWS
@@ -2242,6 +2243,9 @@ void Editor::onCreate()
 
     _width = scrSize.width / _charWidth;
     _height = scrSize.height / _charHeight;
+
+    _offsetX = (scrSize.width - _width * _charWidth) / 2;
+    _offsetY = (scrSize.height - _height * _charHeight) / 2;
 #else
     _brightBackground = Console::brightBackground();
     Console::getSize(_width, _height);
@@ -2271,10 +2275,13 @@ void Editor::onResize(int width, int height)
 {
 #ifdef GUI_MODE
     _graphics->resize(width, height);
-
     Size size = _graphics->size();
+
     _width = size.width / _charWidth;
     _height = size.height / _charHeight;
+
+    _offsetX = (size.width - _width * _charWidth) / 2;
+    _offsetY = (size.height - _height * _charHeight) / 2;
 #else
     _width = width;
     _height = height;
@@ -2800,18 +2807,24 @@ void Editor::setDimensions()
         doc->value.setDimensions(1, 1, _width, _height - 1);
 }
 
+Rect Editor::rectFromLineCol(int left, int top, int right, int bottom)
+{
+    return { left * _charWidth + _offsetX, top * _charHeight + _offsetY,
+        right * _charWidth + _offsetX, bottom * _charHeight + _offsetY };
+}
+
 void Editor::drawBlockCursor(bool on)
 {
 #ifdef GUI_MODE
     int i = (_cursorLine - 1) * _width + _cursorColumn - 1;
     _output = _screen[i].ch;
 
-    Rect rect = { (_cursorColumn - 1) * _charWidth, (_cursorLine - 1) * _charHeight,
-                _cursorColumn * _charWidth, _cursorLine * _charHeight };
+    Rect rect = rectFromLineCol(_cursorColumn - 1, _cursorLine - 1, _cursorColumn, _cursorLine);
 
     _graphics->setAntialias(false);
     _graphics->fillRectangle(rect, on ? GUI_CURSOR_COLOR : GUI_BACKGROUND);
     _graphics->setAntialias(true);
+
     _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect,
         on ? GUI_BACKGROUND : rgbColors[_screen[i].color]);
 #endif
@@ -2906,7 +2919,7 @@ void Editor::updateScreen(bool redrawAll)
                 {
                     if (color >= 0)
                     {
-                        Rect rect = { ii * _charWidth, j * _charHeight, (i - jw) * _charWidth, (j + 1) * _charHeight };
+                        Rect rect = rectFromLineCol(ii, j, i - jw, j + 1);
                         _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
 
                         _output.clear();
@@ -2919,7 +2932,7 @@ void Editor::updateScreen(bool redrawAll)
                 _output += _screen[i].ch;
             }
 
-            Rect rect = { ii * _charWidth, j * _charHeight, _width * _charWidth, (j + 1) * _charHeight };
+            Rect rect = rectFromLineCol(ii, j, _width, j + 1);
             _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
         }
 #else
@@ -2983,8 +2996,9 @@ void Editor::updateScreen(bool redrawAll)
 
 #ifdef GUI_MODE
                 int ii = start - jw;
-                _graphics->fillRectangle({ (start - jw) * _charWidth, j * _charHeight,
-                    (end - jw + 1) * _charWidth, (j + 1) * _charHeight }, GUI_BACKGROUND);
+
+                Rect rect = rectFromLineCol(start - jw, j, end - jw + 1, j + 1);
+                _graphics->fillRectangle(rect, GUI_BACKGROUND);
 
                 for (int i = start; i <= end; ++i)
                 {
@@ -2992,7 +3006,7 @@ void Editor::updateScreen(bool redrawAll)
                     {
                         if (color >= 0)
                         {
-                            Rect rect = { ii * _charWidth, j * _charHeight, (i - jw) * _charWidth, (j + 1) * _charHeight };
+                            Rect rect = rectFromLineCol(ii, j, i - jw, j + 1);
                             _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
 
                             _output.clear();
@@ -3005,7 +3019,7 @@ void Editor::updateScreen(bool redrawAll)
                     _output += _screen[i].ch;
                 }
 
-                Rect rect = { ii * _charWidth, j * _charHeight, (end - jw + 1) * _charWidth, (j + 1) * _charHeight };
+                rect = rectFromLineCol(ii, j, end - jw + 1, j + 1);
                 _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
 #else
                 COORD pos;
