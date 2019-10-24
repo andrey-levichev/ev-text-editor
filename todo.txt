@@ -1,5 +1,5 @@
 to do:
-* nice application icon
+* hi-res icon and icon scaling at high dpi
 * eliminate device pixels from editor (like resize)
 * support dpi support for multiple monitors
 * better solution for cursor

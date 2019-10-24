@@ -75,19 +75,20 @@ void Application::createWindow(const char_t* title, int width, int height)
 
 #ifdef GUI_MODE
     WNDCLASSEX wc;
+    HINSTANCE instance = GetModuleHandle(nullptr);
 
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = windowProc;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
-    wc.hInstance = GetModuleHandle(nullptr);
-    wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+    wc.hInstance = instance;
+    wc.hIcon = LoadIcon(instance, L"AppIcon");
     wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = nullptr;
     wc.lpszMenuName = nullptr;
     wc.lpszClassName = reinterpret_cast<LPCWSTR>(WINDOW_CLASS);
-    wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
+    wc.hIconSm = LoadIcon(instance, L"AppIconSmall");
 
     ATOM rc = RegisterClassEx(&wc);
     ASSERT(rc != 0);
