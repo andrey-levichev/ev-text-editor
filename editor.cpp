@@ -6,8 +6,8 @@ const char_t* APPLICATION_NAME = STR("ev");
 const int TAB_SIZE = 4;
 const char_t* GUI_FONT_NAME = STR("Lucida Console");
 const int GUI_FONT_SIZE = 13;
-const Color GUI_BACKGROUND = 0xffffff;
-const Color GUI_CURSOR_COLOR = 0x000000;
+static Color GUI_BACKGROUND = 0xffffff;
+static Color GUI_CURSOR_COLOR = 0x000000;
 
 uint32_t rgbColors[] = {
     0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0xc0c0c0,
@@ -2216,8 +2216,8 @@ bool Editor::start()
                     "usage: ev [OPTIONS] [FILE]...\n\n"
                     "OPTIONS:\n\n"
                     "--version - print version information and exit\n"
-                    "--dark - assume dark screen background\n"
-                    "--bright - assume bright screen background\n"));
+                    "--dark - dark screen background\n"
+                    "--bright - bright screen background\n"));
 
             return false;
         }
@@ -2252,6 +2252,22 @@ void Editor::onCreate()
 
     _offsetX = (scrSize.width - _width * _charWidth) / 2;
     _offsetY = (scrSize.height - _height * _charHeight) / 2;
+
+    if (_brightBackground)
+    {
+        GUI_BACKGROUND = 0xffffff;
+        GUI_CURSOR_COLOR = 0x000000;
+        rgbColors[FOREGROUND_COLOR_BLACK] = 0x000000;
+        rgbColors[BACKGROUND_COLOR_BRIGHT_WHITE] = 0xffffff;
+    }
+    else
+    {
+        GUI_BACKGROUND = 0x000000;
+        GUI_CURSOR_COLOR = 0xffffff;
+        rgbColors[FOREGROUND_COLOR_BLACK] = 0xffffff;
+        rgbColors[BACKGROUND_COLOR_BRIGHT_WHITE] = 0x000000;
+    }
+
 #else
     _brightBackground = Console::brightBackground();
     Console::getSize(_width, _height);
@@ -2909,7 +2925,7 @@ void Editor::updateScreen(bool redrawAll)
 #ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
-        _graphics->clear();
+        _graphics->clear(GUI_BACKGROUND);
         _cursorLine = 0;
 
         for (int j = 0; j < _height; ++j)

@@ -1,6 +1,5 @@
 to do:
-* dark GUI mode
-* move webpage to evtext.org, update documentation
+* move webpage to evtext.org
 
 editor:
 * execute shell commands
