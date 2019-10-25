@@ -6,6 +6,17 @@
 const char_t* Application::WINDOW_CLASS = STR("WINDOW_CLASS");
 Application* Application::_application = nullptr;
 
+Application::Application(const Array<String>& args, const char_t* title) :
+    _args(args), _title(title)
+{
+    _application = this;
+#ifdef GUI_MODE
+    _dpi = GetDpiForSystem();
+#else
+    _dpi = 96;
+#endif
+}
+
 Application::~Application()
 {
     try

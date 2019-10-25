@@ -9,12 +9,7 @@
 class Application
 {
 public:
-    Application(const Array<String>& args, const char_t* title = STR("Application")) :
-        _args(args), _title(title)
-    {
-        _application = this;
-        _dpi = GetDpiForSystem();
-    }
+    Application(const Array<String>& args, const char_t* title = STR("Application"));
 
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;

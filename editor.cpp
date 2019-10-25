@@ -2211,8 +2211,9 @@ bool Editor::start()
             Console::writeLine(
 #endif
                 STR("ev text editor version 2.0\n"
-                    "web: evtext.org\n"
-                    "Copyright (C) Andrey Levichev, 2019\n\n"
+                    "Copyright (C) Andrey Levichev, 2019\n"
+                    "email: andrey.levichev@gmail.com\n"
+                    "web: evtext.org\n\n"
                     "usage: ev [OPTIONS] [FILE]...\n\n"
                     "OPTIONS:\n\n"
                     "--version - print version information and exit\n"
