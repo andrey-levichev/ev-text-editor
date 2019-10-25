@@ -1,9 +1,11 @@
 ev
 *.swp
-*.pdb
 *.o
-*.obj
+*.a
+*.d
 *.exe
+*.obj
+*.pdb
 *.ilk
 *.gcc
 *.clang
