@@ -1,4 +1,5 @@
 to do:
+* dark GUI mode
 * move webpage to evtext.org, update documentation
 
 editor:
