@@ -1362,11 +1362,18 @@ void Document::open(const String& filename)
 
     clear();
 
-    File file(filename, FILE_MODE_READ | FILE_MODE_CREATE);
-    _text.assign(Unicode::bytesToString(file.read(), _encoding, _bom, _crLf));
+    File file;
+
+    if (file.open(filename, FILE_MODE_READ))
+    {
+        _text.assign(Unicode::bytesToString(file.read(), _encoding, _bom, _crLf));
+        determineDocumentType(file.isExecutable());
+        _modified = false;
+    }
+    else
+        determineDocumentType(false);
 
     _filename = filename;
-    determineDocumentType(file.isExecutable());
 }
 
 void Document::save()
@@ -1390,7 +1397,7 @@ void Document::clear()
     _text.clear();
 
     _position = 0;
-    _modified = false;
+    _modified = true;
 
     _filename.clear();
     _documentType = DOCUMENT_TYPE_TEXT;

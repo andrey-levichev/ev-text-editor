@@ -1,14 +1,13 @@
 to do:
+* open multiple files in the same instance from file manager
 * hi-res icon and icon scaling at high dpi
 * eliminate device pixels from editor (like resize)
 * support dpi support for multiple monitors
 * better solution for cursor
 edge antialiasing (overwrite instead of blend)
 don't draw when prev position is not on the screen
-* assert when minimized
 * replace explicit pointers with smart pointers, add weak pointer
 * default constructors for input events
-* don't create empty file
 * print debug output to console if attached
 
 editor:
