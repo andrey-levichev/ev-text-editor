@@ -1361,19 +1361,18 @@ void Document::open(const String& filename)
     ASSERT(!filename.empty());
 
     clear();
+    _filename = filename;
 
     File file;
 
     if (file.open(filename, FILE_MODE_READ))
     {
         _text.assign(Unicode::bytesToString(file.read(), _encoding, _bom, _crLf));
-        determineDocumentType(file.isExecutable());
         _modified = false;
+        determineDocumentType(file.isExecutable());
     }
     else
         determineDocumentType(false);
-
-    _filename = filename;
 }
 
 void Document::save()

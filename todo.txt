@@ -1,14 +1,5 @@
 to do:
-* open multiple files in the same instance from file manager
-* hi-res icon and icon scaling at high dpi
-* eliminate device pixels from editor (like resize)
-* support dpi support for multiple monitors
-* better solution for cursor
-edge antialiasing (overwrite instead of blend)
-don't draw when prev position is not on the screen
-* replace explicit pointers with smart pointers, add weak pointer
-* default constructors for input events
-* print debug output to console if attached
+* move webpage to evtext.org, update documentation
 
 editor:
 * execute shell commands
@@ -62,6 +53,10 @@ group small insert/delete changes and apply together
 store text as a list of lines/blocks
 redraw as few characters as possible instead of enitre screen
 handle multiple input events in GUI mode
+* replace explicit pointers with smart pointers, add weak pointer
+* high resolution icon
+* better solution for drawing cursor (overwrite instead of blend)
+* don't erase cusror when prev position is not on the screen
 
 foundation:
 * international support
@@ -96,9 +91,8 @@ type safe string formatting
 * envitonmrnt class - get variable, execute command
 
 misc:
-* move webpage to evtext.org
 * minimal rebuild, precompiled headers, multiple targets
-* split foundation into a library
+* move foundation into a library
 * run release version in profiler, memory/thread checker
 * don't use asserts in low level OS specific code
 * support intel compiler, arm hardware
