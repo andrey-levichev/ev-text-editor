@@ -1,7 +1,16 @@
+to do:
+* set default font size based on dpi
+* minimal rebuild, precompiled headers, multiple targets
+* move foundation into a library
+* config file, customizable build command and key mappings
+configurable font and text size
+* graphical user interface for linux and macos
+
 editor:
 * execute shell commands
 * quick open files
-support name completion, wildcards for file and directory
+wildcards for file and directory
+open all files in current directory
 * readonly mode
 * run last command, command history
 * delete to start/end of line
@@ -9,26 +18,18 @@ support name completion, wildcards for file and directory
 * cycle documents in most recently used order
 * copy/delete lines
 * change case
-* better solution for build iutput
-* parse build output for errors
+* display build output inside the editor, parse for errors
 * undo/redo
 * find/replace regex, backwards, match word/case
 * find/replace in files
-* config file, customizable build command and key mappings
-configurable font and text size
-build commands and environment for them
+* customizable key mappings
 * selection with mouse/arrows and highlighting
 * line wrapping
 * run macro n times, run macro on selection
-* graphical user interface
-linux and macos version
-blinking cursor
 * move to prev/next paragraph
-* quick open for files in current directory
 * preserve console output when exiting
 * many ctrl and alt combinations don't work in Linux console
 * clipboard integration on macos
-* support wildecards in file names on windows
 * syntax highlighting improvements
 improved handling of highlighting corner cases
 improved document type detection with shebang
@@ -70,7 +71,7 @@ append for Array? merge Buffer and Array?
 * strings
 use USC-2 for all strings?
 charAt/charForward as one call
-string constructor that accepts ascii strings
+string constructor that accepts utf-8 strings
 store short strings in place
 split/join, tokenizer
 conversion to binary/hex
@@ -84,12 +85,8 @@ type safe string formatting
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
-* alpha and floating point color
-* envitonmrnt class - get variable, execute command
 
 misc:
-* minimal rebuild, precompiled headers, multiple targets
-* move foundation into a library
 * run release version in profiler, memory/thread checker
 * don't use asserts in low level OS specific code
 * support intel compiler, arm hardware

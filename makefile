@@ -6,7 +6,7 @@ FOUNDATION_SOURCES=foundation.cpp file.cpp application.cpp input.cpp console.cpp
 APPLICATION_HEADERS=$(FOUNDATION_HEADERS) editor.h
 APPLICATION_SOURCES=$(FOUNDATION_SOURCES) editor.cpp
 
-TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.sol *.xlc *.o t.* *.log $(APPLICATION_NAME)
+TRASH=*.exe *.obj *.ilk *.pdb *.gcc *.clang *.o *.d *.a t.* *.log $(APPLICATION_NAME)
 
 VCPP_OPTIONS=/nologo /std:c++latest /utf-8 /EHsc /W3 /wd4244 /wd4267 /wd4723 /wd4838 /DGUI_MODE \
 	/I. /D_UNICODE /DUNICODE /D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS /Fe:$@
