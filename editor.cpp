@@ -2,8 +2,8 @@
 #include <console.h>
 
 const char_t* APPLICATION_NAME = STR("ev");
-
 const int TAB_SIZE = 4;
+
 const char_t* GUI_FONT_NAME = STR("Lucida Console");
 const int GUI_FONT_SIZE = 13;
 static Color GUI_BACKGROUND = 0xffffff;
@@ -378,7 +378,6 @@ void CppSyntaxHighlighter::highlightChar(const String& text, int pos)
     }
     else if (ch == '#')
     {
-        int s = pos;
         pos = text.charForward(pos);
 
         if (pos < text.length())

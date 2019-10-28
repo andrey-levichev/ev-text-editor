@@ -1,7 +1,7 @@
 to do:
 * set default font size based on dpi
-* minimal rebuild, precompiled headers, multiple targets
-* move foundation into a library
+* precompiled headers
+* build with foundation library causes linking error
 * config file, customizable build command and key mappings
 configurable font and text size
 * graphical user interface for linux and macos
