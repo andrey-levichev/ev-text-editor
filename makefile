@@ -10,6 +10,7 @@ endif
 
 ifeq ($(CXX), g++)
 COMPILER_FLAGS += -Wno-unused-but-set-variable
+LINKER_FLAGS += -lrt
 endif
 
 build: ev
@@ -20,7 +21,7 @@ clean:
 	-rm ev *.a *.o *.d ev.exe *.lib *.obj *.pdb *.ilk t.* *.log
 
 ev: editor.o foundation.o file.o application.o input.o console.o graphics.o main.o
-	$(CXX) -o $@ $^ -lrt
+	$(CXX) -o $@ $^ $(LINKER_FLAGS)
 
 %.o: %.cpp
 	$(CXX) $(COMPILER_FLAGS) $<
