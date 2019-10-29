@@ -1,6 +1,6 @@
 to do:
-* set default font size based on dpi
-* precompiled headers
+* guess font size based on physical dpi in editor
+* precompiled headers, parallel build with vc++
 * build with foundation library causes linking error
 * config file, customizable build command and key mappings
 configurable font and text size
