@@ -1,4 +1,5 @@
 to do:
+* better looking website, code with example of highlighting
 * guess font size based on physical dpi in editor
 * precompiled headers, parallel build with vc++
 * build with foundation library causes linking error
