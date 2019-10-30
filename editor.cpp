@@ -2,10 +2,7 @@
 #include <console.h>
 
 const char_t* APPLICATION_NAME = STR("ev");
-const int TAB_SIZE = 4;
 
-const char_t* GUI_FONT_NAME = STR("Lucida Console");
-const int GUI_FONT_SIZE = 13;
 static Color GUI_BACKGROUND = 0xffffff;
 static Color GUI_CURSOR_COLOR = 0x000000;
 
@@ -81,6 +78,21 @@ public:
         return system(command);
 #endif
     }
+
+    static String getUserDirectory()
+    {
+#ifdef PLATFORM_WINDOWS
+        return getVariable(STR("USERPROFILE"));
+#else
+        return getVariable(STR("HOME"));
+#endif
+    }
+
+#ifdef PLATFORM_WINDOWS
+    static const char_t DIRECTORY_SEPARATOR = '\\';
+#else
+    static const char_t DIRECTORY_SEPARATOR = '/';
+#endif
 };
 
 // ScreenCell
@@ -1364,7 +1376,7 @@ void Document::open(const String& filename)
 
     File file;
 
-    if (file.open(filename, FILE_MODE_READ))
+    if (file.open(filename))
     {
         _text.assign(Unicode::bytesToString(file.read(), _encoding, _bom, _crLf));
         _modified = false;
@@ -1554,7 +1566,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                 if (ch == '\t')
                 {
                     ch = ' ';
-                    if (i == ((i - 1) / TAB_SIZE + 1) * TAB_SIZE)
+                    if (i == ((i - 1) / _editor->tabSize() + 1) * _editor->tabSize())
                         p = _text.charForward(p);
                 }
                 else if (!ch || ch == '\n')
@@ -1638,7 +1650,7 @@ void Document::positionToLineColumn(int startPos, int startLine, int startColumn
             column = 1;
         }
         else if (ch == '\t')
-            column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+            column = ((column - 1) / _editor->tabSize() + 1) * _editor->tabSize() + 1;
         else
             ++column;
 
@@ -1691,7 +1703,7 @@ void Document::lineColumnToPosition(int startPos, int startLine, int startColumn
         if (ch == '\n')
             break;
         else if (ch == '\t')
-            column = ((column - 1) / TAB_SIZE + 1) * TAB_SIZE + 1;
+            column = ((column - 1) / _editor->tabSize() + 1) * _editor->tabSize() + 1;
         else
             ++column;
 
@@ -1961,7 +1973,7 @@ int Document::indentLine(int pos)
     while (ch == ' ' || ch == '\t')
     {
         if (ch == '\t')
-            n += TAB_SIZE - (p - start) % TAB_SIZE;
+            n += _editor->tabSize() - (p - start) % _editor->tabSize();
         else
             ++n;
 
@@ -1969,7 +1981,7 @@ int Document::indentLine(int pos)
         ch = _text.charAt(p);
     }
 
-    n = (n / TAB_SIZE + 1) * TAB_SIZE;
+    n = (n / _editor->tabSize() + 1) * _editor->tabSize();
     _text.erase(start, p - start);
     _text.insert(start, ' ', n);
 
@@ -1988,7 +2000,7 @@ int Document::unindentLine(int pos)
     while (ch == ' ' || ch == '\t')
     {
         if (ch == '\t')
-            n += TAB_SIZE - (p - start) % TAB_SIZE;
+            n += _editor->tabSize() - (p - start) % _editor->tabSize();
         else
             ++n;
 
@@ -1998,7 +2010,7 @@ int Document::unindentLine(int pos)
 
     if (n > 0)
     {
-        n = (n - 1) / TAB_SIZE * TAB_SIZE;
+        n = (n - 1) / _editor->tabSize() * _editor->tabSize();
         _text.erase(start, p - start);
         _text.insert(start, ' ', n);
 
@@ -2230,6 +2242,8 @@ bool Editor::start()
     }
 
     _document = _documents.first();
+    readConfigFile();
+
     return true;
 }
 
@@ -2240,7 +2254,7 @@ void Editor::onCreate()
 
     Size scrSize = _graphics->size();
 
-    TextBlock textBlock = _graphics->createTextBlock(GUI_FONT_NAME, GUI_FONT_SIZE, false, STR("w"), scrSize);
+    TextBlock textBlock = _graphics->createTextBlock(_guiFontName, _guiFontSize, false, STR("w"), scrSize);
     Size chrSize = textBlock.size();
 
     _charWidth = chrSize.width;
@@ -2589,17 +2603,17 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                 }
                 else if (keyEvent.key == KEY_F5)
                 {
-                    executeProjectCommand(PROJECT_COMMAND_BUILD);
+                    executeProjectCommand(_buildCommand);
                     updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_F6)
                 {
-                    executeProjectCommand(PROJECT_COMMAND_RUN);
+                    executeProjectCommand(_runCommand);
                     updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_F7)
                 {
-                    executeProjectCommand(PROJECT_COMMAND_CLEAN);
+                    executeProjectCommand(_cleanCommand);
                     updateScreen(true);
                 }
                 else if (keyEvent.key == KEY_F8)
@@ -2847,7 +2861,7 @@ void Editor::drawBlockCursor(bool on)
     _graphics->fillRectangle(rect, on ? GUI_CURSOR_COLOR : GUI_BACKGROUND);
     _graphics->setAntialias(true);
 
-    _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect,
+    _graphics->drawText(_guiFontName, _guiFontSize, _output, rect,
         on ? GUI_BACKGROUND : rgbColors[_screen[i].color]);
 #endif
 }
@@ -2942,7 +2956,7 @@ void Editor::updateScreen(bool redrawAll)
                     if (color >= 0)
                     {
                         Rect rect = rectFromLineCol(ii, j, i - jw, j + 1);
-                        _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
+                        _graphics->drawText(_guiFontName, _guiFontSize, _output, rect, rgbColors[color]);
 
                         _output.clear();
                         ii = i - jw;
@@ -2955,7 +2969,7 @@ void Editor::updateScreen(bool redrawAll)
             }
 
             Rect rect = rectFromLineCol(ii, j, _width, j + 1);
-            _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
+            _graphics->drawText(_guiFontName, _guiFontSize, _output, rect, rgbColors[color]);
         }
 #else
         SMALL_RECT rect;
@@ -3029,7 +3043,7 @@ void Editor::updateScreen(bool redrawAll)
                         if (color >= 0)
                         {
                             Rect rect = rectFromLineCol(ii, j, i - jw, j + 1);
-                            _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
+                            _graphics->drawText(_guiFontName, _guiFontSize, _output, rect, rgbColors[color]);
 
                             _output.clear();
                             ii = i - jw;
@@ -3042,7 +3056,7 @@ void Editor::updateScreen(bool redrawAll)
                 }
 
                 rect = rectFromLineCol(ii, j, end - jw + 1, j + 1);
-                _graphics->drawText(GUI_FONT_NAME, GUI_FONT_SIZE, _output, rect, rgbColors[color]);
+                _graphics->drawText(_guiFontName, _guiFontSize, _output, rect, rgbColors[color]);
 #else
                 COORD pos;
                 pos.X = start - jw;
@@ -3359,7 +3373,7 @@ bool Editor::executeCommand(const String& command)
     return true;
 }
 
-void Editor::executeProjectCommand(Projectommand command)
+void Editor::executeProjectCommand(const String& command)
 {
     saveAllDocuments();
 
@@ -3369,35 +3383,7 @@ void Editor::executeProjectCommand(Projectommand command)
     Console::clear();
 #endif
 
-    String cmd;
-    const char_t* target;
-
-    switch (command)
-    {
-    case PROJECT_COMMAND_BUILD:
-        cmd = Environment::getVariable(STR("EV_BUILD_CMD"));
-        target = STR("build");
-        break;
-    case PROJECT_COMMAND_RUN:
-        cmd = Environment::getVariable(STR("EV_RUN_CMD"));
-        target = STR("run");
-        break;
-    case PROJECT_COMMAND_CLEAN:
-        cmd = Environment::getVariable(STR("EV_CLEAN_CMD"));
-        target = STR("clean");
-        break;
-    default:
-        throw Exception(STR("invalid project command"));
-    }
-
-    if (cmd.empty())
-#ifdef PLATFORM_WINDOWS
-        cmd = String::format(STR("nmake.exe %s & pause"), target);
-#else
-        cmd = String::format(STR("make %s; read -p 'Press ENTER to continue...'"), target);
-#endif
-
-    Environment::executeCommand(cmd);
+    Environment::executeCommand(command);
 
 #ifndef GUI_MODE
     Console::setLineMode(false);
@@ -3630,6 +3616,57 @@ void Editor::pasteFromClipboard(String& text)
     else
         text.clear();
 #endif
+}
+
+void Editor::readConfigFile()
+{
+    String filename = Environment::getUserDirectory() +
+        Environment::DIRECTORY_SEPARATOR + STR(".ev.cfg");
+
+    File file;
+
+    if (file.open(filename))
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
+
+        String text = Unicode::bytesToString(file.read(), encoding, bom, crLf);
+        String name, value;
+        int pos = 0;
+
+        while (true)
+        {
+            int p = text.find('=', true, pos);
+            if (p == INVALID_POSITION)
+                break;
+
+            name = text.substr(pos, p - pos);
+            p = text.charForward(p);
+
+            int q = text.find('\n', true,  p);
+            if (q == INVALID_POSITION)
+                q = text.length();
+
+            value = text.substr(p, q - p);
+            pos = text.charForward(q);
+
+            if (!name.empty())
+            {
+                if (name == STR("tab_size"))
+                    _tabSize = value.toInt();
+                else if (name == STR("gui_font_size"))
+                    _guiFontSize = value.toInt();
+                else if (name == STR("gui_font_name"))
+                    _guiFontName = value;
+                else if (name == STR("build_command"))
+                    _buildCommand = value;
+                else if (name == STR("run_command"))
+                    _runCommand = value;
+                else if (name == STR("clean_command"))
+                    _cleanCommand = value;
+            }
+        }
+    }
 }
 
 void run(const Array<String>& args)

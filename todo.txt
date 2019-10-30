@@ -1,13 +1,13 @@
 to do:
 * better looking website, code with example of highlighting
 * guess font size based on physical dpi in editor
+change font with ctrl +/-
 * precompiled headers, parallel build with vc++
 * build with foundation library causes linking error
-* config file, customizable build command and key mappings
-configurable font and text size
 * graphical user interface for linux and macos
 
 editor:
+* customizable key mappings
 * execute shell commands
 * quick open files
 wildcards for file and directory

@@ -346,15 +346,6 @@ protected:
     HighlightingState _highlightingState;
 };
 
-// ProjectCommand
-
-enum Projectommand
-{
-    PROJECT_COMMAND_BUILD,
-    PROJECT_COMMAND_RUN,
-    PROJECT_COMMAND_CLEAN
-};
-
 // RecentLocation
 
 struct RecentLocation
@@ -419,6 +410,11 @@ public:
         return _trimWhitespace;
     }
 
+    int tabSize() const
+    {
+        return _tabSize;
+    }
+
     SyntaxHighlighter* syntaxHighlighter(DocumentType documentType);
 
     void newDocument(const String& filename);
@@ -444,7 +440,7 @@ protected:
 
     void showCommandLine();
     bool executeCommand(const String& command);
-    void executeProjectCommand(Projectommand command);
+    void executeProjectCommand(const String& command);
 
     void updateRecentLocations();
     bool moveToNextRecentLocation();
@@ -456,6 +452,8 @@ protected:
 
     void copyToClipboard(const String& text);
     void pasteFromClipboard(String& text);
+
+    void readConfigFile();
 
 protected:
     List<Document> _documents;
@@ -496,6 +494,20 @@ protected:
 
     List<Unique<SyntaxHighlighter>> _syntaxHighlighters;
     bool _trimWhitespace;
+
+    int _tabSize = 4;
+    int _guiFontSize = 13;
+    String _guiFontName = STR("Lucida Console");
+
+#ifdef PLATFORM_WINDOWS
+    String _buildCommand = STR("nmake.exe & pause");
+    String _runCommand = STR("nmake.exe run & pause");
+    String _cleanCommand = STR("nmake.exe clean & pause");
+#else
+    String _buildCommand = STR("make; read -p 'Press ENTER to continue...'");
+    String _runCommand = STR("make run; read -p 'Press ENTER to continue...'");
+    String _cleanCommand = STR("make clean; read -p 'Press ENTER to continue...'");
+#endif
 };
 
 #endif
