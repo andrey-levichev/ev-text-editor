@@ -3,6 +3,12 @@
 
 const char_t* APPLICATION_NAME = STR("ev");
 
+#ifdef PLATFORM_WINDOWS
+const char_t* CONFIG_FILE_NAME = STR("ev.cfg");
+#else
+const char_t* CONFIG_FILE_NAME = STR(".ev.cfg");
+#endif
+
 static Color GUI_BACKGROUND = 0xffffff;
 static Color GUI_CURSOR_COLOR = 0x000000;
 
@@ -2100,7 +2106,7 @@ Editor::Editor(const Array<String>& args) :
     Application(args, STR("ev")), _commandLine(Document(this), nullptr, nullptr), _document(nullptr), _lastDocument(nullptr),
     _recordingMacro(false), _width(2), _height(2), _cursorLine(0), _cursorColumn(0),
     _charWidth(1), _charHeight(1), _offsetX(0), _offsetY(0),
-    _brightBackground(true), _caseSesitive(true), _recentLocation(nullptr),
+    _caseSesitive(true), _recentLocation(nullptr),
     _currentSuggestion(INVALID_POSITION), _trimWhitespace(true)
 {
 #ifdef PLATFORM_WINDOWS
@@ -2227,22 +2233,20 @@ bool Editor::start()
                     "web: evtext.org\n\n"
                     "usage: ev [OPTIONS] [FILE]...\n\n"
                     "OPTIONS:\n\n"
-                    "--version - print version information and exit\n"
-                    "--dark - dark screen background\n"
-                    "--bright - bright screen background\n"));
+                    "--version - print version information and exit\n"));
 
             return false;
         }
-        else if (_args[i] == STR("--bright"))
-            _brightBackground = true;
-        else if (_args[i] == STR("--dark"))
-            _brightBackground = false;
         else
             openDocument(_args[i]);
     }
 
     _document = _documents.first();
-    readConfigFile();
+
+    readConfigFile(Environment::getUserDirectory() +
+        Environment::DIRECTORY_SEPARATOR + CONFIG_FILE_NAME);
+
+    readConfigFile(CONFIG_FILE_NAME);
 
     return true;
 }
@@ -3618,11 +3622,8 @@ void Editor::pasteFromClipboard(String& text)
 #endif
 }
 
-void Editor::readConfigFile()
+void Editor::readConfigFile(const String& filename)
 {
-    String filename = Environment::getUserDirectory() +
-        Environment::DIRECTORY_SEPARATOR + STR(".ev.cfg");
-
     File file;
 
     if (file.open(filename))
@@ -3652,7 +3653,9 @@ void Editor::readConfigFile()
 
             if (!name.empty())
             {
-                if (name == STR("tab_size"))
+                if (name == STR("bright_background"))
+                    _brightBackground = value.compare(STR("true"), false) == 0;
+                else if (name == STR("tab_size"))
                     _tabSize = value.toInt();
                 else if (name == STR("gui_font_size"))
                     _guiFontSize = value.toInt();

@@ -1,4 +1,5 @@
 to do:
+* use createprocess to execute commands on windows
 * better looking website, code with example of highlighting
 * guess font size based on physical dpi in editor
 change font with ctrl +/-

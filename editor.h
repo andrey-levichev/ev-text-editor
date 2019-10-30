@@ -400,11 +400,6 @@ public:
         return _brightBackground;
     }
 
-    bool& brightBackground()
-    {
-        return _brightBackground;
-    }
-
     bool trimWhitespace() const
     {
         return _trimWhitespace;
@@ -453,7 +448,7 @@ protected:
     void copyToClipboard(const String& text);
     void pasteFromClipboard(String& text);
 
-    void readConfigFile();
+    void readConfigFile(const String& filename);
 
 protected:
     List<Document> _documents;
@@ -469,7 +464,6 @@ protected:
     float _charWidth, _charHeight;
     float _offsetX, _offsetY;
     bool _unicodeLimit16;
-    bool _brightBackground;
 
     Buffer<ScreenCell> _screen;
     Buffer<ScreenCell> _prevScreen;
@@ -495,6 +489,7 @@ protected:
     List<Unique<SyntaxHighlighter>> _syntaxHighlighters;
     bool _trimWhitespace;
 
+    bool _brightBackground = true;
     int _tabSize = 4;
     int _guiFontSize = 13;
     String _guiFontName = STR("Lucida Console");
