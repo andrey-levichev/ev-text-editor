@@ -2107,7 +2107,7 @@ Editor::Editor(const Array<String>& args) :
     _recordingMacro(false), _width(2), _height(2), _cursorLine(0), _cursorColumn(0),
     _charWidth(1), _charHeight(1), _offsetX(0), _offsetY(0),
     _caseSesitive(true), _recentLocation(nullptr),
-    _currentSuggestion(INVALID_POSITION), _trimWhitespace(true)
+    _currentSuggestion(INVALID_POSITION)
 {
 #ifdef PLATFORM_WINDOWS
     _unicodeLimit16 = true;
@@ -3655,6 +3655,8 @@ void Editor::readConfigFile(const String& filename)
             {
                 if (name == STR("bright_background"))
                     _brightBackground = value.compare(STR("true"), false) == 0;
+                else if (name == STR("trim_shitespace"))
+                    _trimWhitespace = value.compare(STR("true"), false) == 0;
                 else if (name == STR("tab_size"))
                     _tabSize = value.toInt();
                 else if (name == STR("gui_font_size"))

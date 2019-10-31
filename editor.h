@@ -487,9 +487,9 @@ protected:
     int _currentSuggestion;
 
     List<Unique<SyntaxHighlighter>> _syntaxHighlighters;
-    bool _trimWhitespace;
 
     bool _brightBackground = true;
+    bool _trimWhitespace = true;
     int _tabSize = 4;
     int _guiFontSize = 13;
     String _guiFontName = STR("Lucida Console");

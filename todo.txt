@@ -1,62 +1,66 @@
 to do:
+* configurable window size in gui mode
+* implement keypress in code after executing command
 * use createprocess to execute commands on windows
 * better looking website, code with example of highlighting
 * guess font size based on physical dpi in editor
 change font with ctrl +/-
 * precompiled headers, parallel build with vc++
 * build with foundation library causes linking error
-* graphical user interface for linux and macos
+* many ctrl and alt combinations don't work in Linux console
+* handle multiple input events in GUI mode
 
-editor:
-* customizable key mappings
-* execute shell commands
+editor likely:
+* graphical user interface for linux and macos
+* open files over network
+* switch between source/header
 * quick open files
-wildcards for file and directory
-open all files in current directory
-* readonly mode
-* run last command, command history
+name autocomplete, wildcards
+open recrusively, open file at cursor
 * delete to start/end of line
-* go to matching brace
+* go to matching brace, next/previous brace
 * cycle documents in most recently used order
 * copy/delete lines
 * change case
-* display build output inside the editor, parse for errors
-* undo/redo
 * find/replace regex, backwards, match word/case
-* find/replace in files
+* undo/redo
+* open multiple files in the same instance
+* run macro until it reaches specified line
+
+syntax highlighting improvements:
+* support for other languages
+* improved handling of highlighting corner cases
+* document type detection with shebang
+* document type override
+
+autocomplete improvements:
+* complete longest
+* give nearby words higher priority
+* autocomplete for file names
+* scan all documents in directories
+
+performance improvements:
+* turn off indexing and syntax highlighting for large files
+* group small insert/delete changes and apply together
+* redraw as few characters as possible instead of enitre screen
+
+editor maybe:
 * customizable key mappings
+* execute shell commands
+* readonly mode
+* run last command, command history
+* file browser
+* parse build output for errors, display inside the editor
+* find/replace in files
 * selection with mouse/arrows and highlighting
 * line wrapping
-* run macro n times, run macro on selection
-* move to prev/next paragraph
+* move to prev/next paragraph/function
 * preserve console output when exiting
-* many ctrl and alt combinations don't work in Linux console
-* clipboard integration on macos
-* syntax highlighting improvements
-improved handling of highlighting corner cases
-improved document type detection with shebang
-support for other languages
-cache highlighting info
-document type override
-* autocomplete improvements
-complete longest
-give nearby words higher priority
-scan all documents in current directory
-more efficient data structure
-optimize rebuilding of word database
-autocomplete for file names
 * performance improvements
 open large files in native encoding
-turn off indexing and syntax highlighting for large files
 use memory mapping and on demand/background loading
-group small insert/delete changes and apply together
 store text as a list of lines/blocks
-redraw as few characters as possible instead of enitre screen
-handle multiple input events in GUI mode
-* replace explicit pointers with smart pointers, add weak pointer
-* high resolution icon
-* better solution for drawing cursor (overwrite instead of blend)
-* don't erase cusror when prev position is not on the screen
+syntax highlighting and autocomplete
 
 foundation:
 * international support
@@ -87,8 +91,14 @@ type safe string formatting
 * threads/atomics/async
 * function objects (function/bind)
 * type traits
+* optional, variant, weak pointer
 
 misc:
 * run release version in profiler, memory/thread checker
 * don't use asserts in low level OS specific code
-* support intel compiler, arm hardware
+* support intel compiler, arm hardware, windows server
+* version for mobile devices
+* replace explicit pointers with smart pointers
+* high resolution icon
+* better solution for drawing cursor (overwrite instead of blend)
+* don't erase cusror when prev position is not on the screen
