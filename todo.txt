@@ -1,6 +1,4 @@
 to do:
-* implement keypress in code after executing command
-* use createprocess to execute commands on windows
 * better looking website, code with example of highlighting
 * guess font size based on physical dpi in editor
 change font with ctrl +/-
