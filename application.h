@@ -36,6 +36,7 @@ public:
 protected:
     void createWindow(const char_t* title, int width = 0, int height = 0);
     void showWindow();
+    void resizeWindow(int width, int height);
     void destroyWindow();
 
     virtual void onCreate()

@@ -491,7 +491,7 @@ protected:
     bool _brightBackground = true;
     bool _trimWhitespace = true;
     int _tabSize = 4;
-    int _guiFontSize = 13;
+    float _guiFontSize = 13;
     String _guiFontName = STR("Lucida Console");
 
 #ifdef PLATFORM_WINDOWS

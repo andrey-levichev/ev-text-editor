@@ -43,7 +43,7 @@ Application::~Application()
 
 void Application::run()
 {
-    createWindow(_title, 11 * _dpi, 9 *_dpi);
+    createWindow(_title);
     showWindow();
 
 #ifdef GUI_MODE
@@ -114,6 +114,18 @@ void Application::createWindow(const char_t* title, int width, int height)
     _window = 1;
     onCreate();
 #endif
+}
+
+void Application::resizeWindow(int width, int height)
+{
+    if (_window)
+    {
+#ifdef GUI_MODE
+        SetWindowPos(reinterpret_cast<HWND>(_window), nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
+#endif
+    }
+    else
+        throw Exception(STR("window not created"));
 }
 
 void Application::showWindow()

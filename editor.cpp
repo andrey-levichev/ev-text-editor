@@ -2104,7 +2104,7 @@ void Document::determineDocumentType(bool fileExecutable)
 
 Editor::Editor(const Array<String>& args) :
     Application(args, STR("ev")), _commandLine(Document(this), nullptr, nullptr), _document(nullptr), _lastDocument(nullptr),
-    _recordingMacro(false), _width(2), _height(2), _cursorLine(0), _cursorColumn(0),
+    _recordingMacro(false), _width(120), _height(60), _cursorLine(0), _cursorColumn(0),
     _charWidth(1), _charHeight(1), _offsetX(0), _offsetY(0),
     _caseSesitive(true), _recentLocation(nullptr),
     _currentSuggestion(INVALID_POSITION)
@@ -2256,20 +2256,15 @@ void Editor::onCreate()
 #ifdef GUI_MODE
     _graphics.create(_window);
 
-    Size scrSize = _graphics->size();
+    TextBlock textBlock = _graphics->createTextBlock(_guiFontName,
+        _guiFontSize, false, STR("w"), { _guiFontSize, _guiFontSize });
+    Size size = textBlock.size();
 
-    TextBlock textBlock = _graphics->createTextBlock(_guiFontName, _guiFontSize, false, STR("w"), scrSize);
-    Size chrSize = textBlock.size();
-
-    _charWidth = chrSize.width;
-    _charHeight = chrSize.height;
+    _charWidth = size.width;
+    _charHeight = size.height;
     ASSERT(_charWidth > 0 && _charHeight > 0);
 
-    _width = scrSize.width / _charWidth;
-    _height = scrSize.height / _charHeight;
-
-    _offsetX = (scrSize.width - _width * _charWidth) / 2;
-    _offsetY = (scrSize.height - _height * _charHeight) / 2;
+    resizeWindow(toDevice(_width * _charWidth), toDevice(_height * _charHeight));
 
     if (_brightBackground)
     {
@@ -2285,7 +2280,6 @@ void Editor::onCreate()
         rgbColors[FOREGROUND_COLOR_BLACK] = 0xffffff;
         rgbColors[BACKGROUND_COLOR_BRIGHT_WHITE] = 0x000000;
     }
-
 #else
     _brightBackground = Console::brightBackground();
     Console::getSize(_width, _height);
@@ -3659,8 +3653,12 @@ void Editor::readConfigFile(const String& filename)
                     _trimWhitespace = value.compare(STR("true"), false) == 0;
                 else if (name == STR("tab_size"))
                     _tabSize = value.toInt();
+                else if (name == STR("gui_columns"))
+                    _width = value.toInt();
+                else if (name == STR("gui_lines"))
+                    _height = value.toInt();
                 else if (name == STR("gui_font_size"))
-                    _guiFontSize = value.toInt();
+                    _guiFontSize = value.toFloat();
                 else if (name == STR("gui_font_name"))
                     _guiFontName = value;
                 else if (name == STR("build_command"))
