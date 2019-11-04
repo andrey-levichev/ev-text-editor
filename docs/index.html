@@ -8,19 +8,27 @@
 
 <style>
 
+body
+{
+    color: #000000;
+    background-color: #ffffff;
+    font-family: sans-serif;
+    width: 800px; margin: auto
+}
+
 h1 { text-align: center; }
 
 </style>
 
 </head>
 
-<body style="font-family: sans-serif; width: 800px; margin: auto">
+<body>
 
 <h1>ev text editor</h1>
 
 <p>ev is a simple cross-platform text editor written in C++ with minimal dependencies. The executable is just a few hundred kilobytes in size. The editor works in either GUI or terminal mode on three platforms - Windows, macOS and Linux. The editor has some advanced features like autocomplete and syntax highlighting that makes it possible to use it as a development environment.</p>
 
-<p>If you think that ev stands for "eradicate vi" then you are mistaken :-) I have great respsect for that venerable text editor. I personally used vim as my main development environment for several years and I love it passionately!</p>
+<p>If you think that ev stands for "eradicate vi" then you are mistaken :-) I have great respect for that venerable text editor. I personally used vim as my main development environment for several years and I love it passionately!</p>
 
 <img src="ev_win.png" style="width: auto">
 
@@ -159,8 +167,8 @@ any character can be used as string separator instead of space</p>
 <p>The editor reads a configuration file from two locations if it exists. The first location is the user's personal directory (/home/user or C:\Users\User). The second location is the current directory. Configuration settings from current directory take precedence. That allows you to specify project specific setting like build commands. The configuration file name is .ev.cfg on UNIX and ev.cfg on Windows. The format of the file is setting-name=setting-value, one setting per line.</p>
 
 <p>Supported settings:<table>
-<tr><td style="width: 120px">setting</td><td>values</td><td>defailt</td><td>descriptiom</td></tr>
-<tr><td>bright_background</td><td>true/false</td><td>true</td><td>changes color schme to look nice on terminals with dark or bright background</td></tr>
+<tr><td style="width: 120px">setting</td><td>values</td><td>default</td><td>description</td></tr>
+<tr><td>bright_background</td><td>true/false</td><td>true</td><td>changes color scheme to look nice on terminals with dark or bright background</td></tr>
 <tr><td>trim_shitespace</td><td>true/false</td><td>true</td><td>trim trailing whitespace on save</td></tr>
 <tr><td>indent_size</td><td>number</td><td>4</td><td>number of spaces to indent lines</td></tr>
 <tr><td>gui_columns</td><td>number</td><td>120</td><td>number of columns in GUI mode<td></td></tr>
@@ -174,23 +182,23 @@ any character can be used as string separator instead of space</p>
 
 <h3>Autocomplete</h3>
 
-<p>Autocomplete works by scanning for all identifiers in open documents and it lets you complete words as you type by pressing Tab key. The list of autocomplete suggestions can be refreshed by saving documents or by pressing alt+'. Completetion works best with at least two starting letters. When you press Tab the current suggestion is inserted into the text but the cursor remains after the last letter typed. If there're letters to the right of the cursor, the inserted word overwrites them.</p>
+<p>Autocomplete works by scanning for all identifiers in open documents and it lets you complete words as you type by pressing Tab key. The list of autocomplete suggestions can be refreshed by saving documents or by pressing alt+'. Completion works best with at least two starting letters. When you press Tab the current suggestion is inserted into the text but the cursor remains after the last letter typed. If there're letters to the right of the cursor, the inserted word overwrites them.</p>
 
-<p>If you are satisfied with the suggestion, you can type the next character following the word such as space or punctuation. The cursor jumps to the end of the word and that character is inserted, minimizing the number of keystokes. If you move the cursor instead, the 'jump to end' feature is disabled and the next character will be inserted where the cursor is.</p>
+<p>If you are satisfied with the suggestion, you can type the next character following the word such as space or punctuation. The cursor jumps to the end of the word and that character is inserted, minimizing the number of keystrokes. If you move the cursor instead, the 'jump to end' feature is disabled and the next character will be inserted where the cursor is.</p>
 
 <p>If you are not satisfied with the suggestion, you can press Tab or Shift+Tab to go to the previous/next suggestion or you can type one or more letters until autocomplete gives you the expected result without pressing Tab too many times. You can also press Backspace to erase previous letter and automatically suggest a new word based on the shorter prefix.</p>
 
 <h3>Syntax highlighting</h3>
 
-<p>Languages for which syntax highlighting is currently supported: C, C++, XML, HTML and UNIX shell scripts. ev by default assumes bright screen background and uses darker colors for syntax highlighting to improve contrast. You can overridie that with bright_background setting in the configuration file.</p>
+<p>Languages for which syntax highlighting is currently supported: C, C++, XML, HTML and UNIX shell scripts. ev by default assumes bright screen background and uses darker colors for syntax highlighting to improve contrast. You can override that with bright_background setting in the configuration file.</p>
 
 <h3>Building the project</h3>
 
-<p>By default ev executes 'make' on UNIX systems and 'nmake.exe' on Windows. The makefile must contain a default target that builds the project and two targets to run and clean the project. This can be overriden by setting build commands in the configuration file.</p>
+<p>By default ev executes 'make' on UNIX systems and 'nmake.exe' on Windows. The makefile must contain a default target that builds the project and two targets to run and clean the project. This can be overridden by setting build commands in the configuration file.</p>
 
 <h3>License</h3>
 
-<p>By dowloading and using the ev text editor you agree to the following license terms (stating that auther provides no gurantees and assumes no liability):</p>
+<p>By downloading and using the ev text editor you agree to the following license terms (stating that author provides no guarantees and assumes no liability):</p>
 
 <p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND<br>
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED<br>

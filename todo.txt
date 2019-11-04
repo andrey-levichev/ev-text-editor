@@ -4,7 +4,7 @@ to do:
 precompiled headers, build foundation as a library
 * better looking website
 high resolution screenshot, nice color scheme for text, links and headers
-test on mobile, minwidth, ev vs editor, spell check, evtext.app
+better mobile version, text size, evtext.app
 * guess font size based on physical dpi in editor
 change font with ctrl +/-
 * many ctrl and alt combinations don't work in Linux console
