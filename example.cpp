@@ -5,5 +5,8 @@ const char_t* APPLICATION_NAME = STR("example");
 
 void run(const Array<String>& args)
 {
-    Console::writeLine(APPLICATION_NAME);
+    // print command line arguments
+
+    for (int i = 0; i < args.size(); ++i)
+        Console::writeLine(args[i]);
 }

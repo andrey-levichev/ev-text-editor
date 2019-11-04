@@ -1572,7 +1572,7 @@ void Document::draw(int screenWidth, Buffer<ScreenCell>& screen, bool unicodeLim
                 if (ch == '\t')
                 {
                     ch = ' ';
-                    if (i == ((i - 1) / _editor->tabSize() + 1) * _editor->tabSize())
+                    if (i == ((i - 1) / _editor->indentSize() + 1) * _editor->indentSize())
                         p = _text.charForward(p);
                 }
                 else if (!ch || ch == '\n')
@@ -1656,7 +1656,7 @@ void Document::positionToLineColumn(int startPos, int startLine, int startColumn
             column = 1;
         }
         else if (ch == '\t')
-            column = ((column - 1) / _editor->tabSize() + 1) * _editor->tabSize() + 1;
+            column = ((column - 1) / _editor->indentSize() + 1) * _editor->indentSize() + 1;
         else
             ++column;
 
@@ -1709,7 +1709,7 @@ void Document::lineColumnToPosition(int startPos, int startLine, int startColumn
         if (ch == '\n')
             break;
         else if (ch == '\t')
-            column = ((column - 1) / _editor->tabSize() + 1) * _editor->tabSize() + 1;
+            column = ((column - 1) / _editor->indentSize() + 1) * _editor->indentSize() + 1;
         else
             ++column;
 
@@ -1979,7 +1979,7 @@ int Document::indentLine(int pos)
     while (ch == ' ' || ch == '\t')
     {
         if (ch == '\t')
-            n += _editor->tabSize() - (p - start) % _editor->tabSize();
+            n += _editor->indentSize() - (p - start) % _editor->indentSize();
         else
             ++n;
 
@@ -1987,7 +1987,7 @@ int Document::indentLine(int pos)
         ch = _text.charAt(p);
     }
 
-    n = (n / _editor->tabSize() + 1) * _editor->tabSize();
+    n = (n / _editor->indentSize() + 1) * _editor->indentSize();
     _text.erase(start, p - start);
     _text.insert(start, ' ', n);
 
@@ -2006,7 +2006,7 @@ int Document::unindentLine(int pos)
     while (ch == ' ' || ch == '\t')
     {
         if (ch == '\t')
-            n += _editor->tabSize() - (p - start) % _editor->tabSize();
+            n += _editor->indentSize() - (p - start) % _editor->indentSize();
         else
             ++n;
 
@@ -2016,7 +2016,7 @@ int Document::unindentLine(int pos)
 
     if (n > 0)
     {
-        n = (n - 1) / _editor->tabSize() * _editor->tabSize();
+        n = (n - 1) / _editor->indentSize() * _editor->indentSize();
         _text.erase(start, p - start);
         _text.insert(start, ' ', n);
 
@@ -3651,8 +3651,8 @@ void Editor::readConfigFile(const String& filename)
                     _brightBackground = value.compare(STR("true"), false) == 0;
                 else if (name == STR("trim_shitespace"))
                     _trimWhitespace = value.compare(STR("true"), false) == 0;
-                else if (name == STR("tab_size"))
-                    _tabSize = value.toInt();
+                else if (name == STR("indent_size"))
+                    _indentSize = value.toInt();
                 else if (name == STR("gui_columns"))
                     _width = value.toInt();
                 else if (name == STR("gui_lines"))

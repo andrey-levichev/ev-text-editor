@@ -405,9 +405,9 @@ public:
         return _trimWhitespace;
     }
 
-    int tabSize() const
+    int indentSize() const
     {
-        return _tabSize;
+        return _indentSize;
     }
 
     SyntaxHighlighter* syntaxHighlighter(DocumentType documentType);
@@ -490,7 +490,7 @@ protected:
 
     bool _brightBackground = true;
     bool _trimWhitespace = true;
-    int _tabSize = 4;
+    int _indentSize = 4;
     float _guiFontSize = 13;
     String _guiFontName = STR("Lucida Console");
 

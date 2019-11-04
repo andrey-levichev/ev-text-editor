@@ -1,10 +1,10 @@
 to do:
+* add gui version to website
 * makefile improvements
 precompiled headers, build foundation as a library
 * better looking website
-code with example of highlighting, hires screenshot
-nice color scheme for text, links and headers, test on mobile
-update documentation
+high resolution screenshot, nice color scheme for text, links and headers
+test on mobile, minwidth, ev vs editor, spell check, evtext.app
 * guess font size based on physical dpi in editor
 change font with ctrl +/-
 * many ctrl and alt combinations don't work in Linux console

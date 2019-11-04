@@ -154,6 +154,24 @@ any character can be used as string separator instead of space</p>
 
 <p>o filename - open file</p>
 
+<h3>Configuration file</h3>
+
+<p>The editor reads a configuration file from two locations if it exists. The first location is the user's personal directory (/home/user or C:\Users\User). The second location is the current directory. Configuration settings from current directory take precedence. That allows you to specify project specific setting like build commands. The configuration file name is .ev.cfg on UNIX and ev.cfg on Windows. The format of the file is setting-name=setting-value, one setting per line.</p>
+
+<p>Supported settings:<table>
+<tr><td style="width: 120px">setting</td><td>values</td><td>defailt</td><td>descriptiom</td></tr>
+<tr><td>bright_background</td><td>true/false</td><td>true</td><td>changes color schme to look nice on terminals with dark or bright background</td></tr>
+<tr><td>trim_shitespace</td><td>true/false</td><td>true</td><td>trim trailing whitespace on save</td></tr>
+<tr><td>indent_size</td><td>number</td><td>4</td><td>number of spaces to indent lines</td></tr>
+<tr><td>gui_columns</td><td>number</td><td>120</td><td>number of columns in GUI mode<td></td></tr>
+<tr><td>gui_lines</td><td>number</td><td>60</td><td>number of lines in GUI mode<td></td></tr>
+<tr><td>gui_font_size</td><td>number</td><td>13</td><td>font size in GUI mode<td></td></tr>
+<tr><td>gui_font_name</td><td>string</td><td>platform specific</td><td>font name in GUI mode<td></td></tr>
+<tr><td>build_command</td><td>string</td><td>make</td><td>default build command<td></td></tr>
+<tr><td>run_command</td><td>string</td><td>make run</td><td>default run command<td></td></tr>
+<tr><td>clean_command</td><td>string</td><td>make clean</td><td>default clean command<td></td></tr>
+</table></p>
+
 <h3>Autocomplete</h3>
 
 <p>Autocomplete works by scanning for all identifiers in open documents and it lets you complete words as you type by pressing Tab key. The list of autocomplete suggestions can be refreshed by saving documents or by pressing alt+'. Completetion works best with at least two starting letters. When you press Tab the current suggestion is inserted into the text but the cursor remains after the last letter typed. If there're letters to the right of the cursor, the inserted word overwrites them.</p>
@@ -164,10 +182,11 @@ any character can be used as string separator instead of space</p>
 
 <h3>Syntax highlighting</h3>
 
-<p>Languages for which syntax highlighting is currently supported: C, C++, XML, HTML and UNIX shell scripts. ev by default assumes bright screen background and uses darker colors for syntax highlighting to improve contrast. To override this you can use --dark command line option.</p>
+<p>Languages for which syntax highlighting is currently supported: C, C++, XML, HTML and UNIX shell scripts. ev by default assumes bright screen background and uses darker colors for syntax highlighting to improve contrast. You can overridie that with bright_background setting in the configuration file.</p>
 
 <h3>Building the project</h3>
-<p>By default ev executes 'make' on UNIX systems and 'nmake.exe' on Windows. Makefile msut contain three targets named build, run and clean. This can be overriden by setting EV_BUILD_CMD, EV_RUN_CMD and EV_CLEAN_CMD environment variables.</p>
+
+<p>By default ev executes 'make' on UNIX systems and 'nmake.exe' on Windows. The makefile must contain a default target that builds the project and two targets to run and clean the project. This can be overriden by setting build commands in the configuration file.</p>
 
 <h3>License</h3>
 
