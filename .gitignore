@@ -1,15 +1,3 @@
-ev
-*.swp
-*.o
-*.a
-*.d
-*.exe
-*.obj
-*.pdb
-*.ilk
-*.gcc
-*.clang
-*.dSYM
-*.log
+bin
 t.*
-.DS_Store
+*.log

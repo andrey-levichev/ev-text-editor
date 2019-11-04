@@ -1,18 +1,51 @@
 .SUFFIXES: .h
 
-BIN = bin\vcpp\$(BUILD)
+BIN = bin\vcpp
 
 !if "$(BUILD)" == "release"
-COMPILER_FLAGS = /O2 /GL
+
+BIN = $(BIN)\$(BUILD)
+COMPILER_FLAGS = /O2 /GL /DDISABLE_ASSERT
 LINKER_FLAGS = /LTCG
+
 !else if "$(BUILD)" == "debug"
+
+BIN = $(BIN)\$(BUILD)
 COMPILER_FLAGS = /Zi
+
 !else
+
 COMPILER_FLAGS = /O1
-BIN = bin\vcpp
+
 !endif
 
-build: $(BIN) $(BIN)\ev.exe
+!if "$(TARGET)" == "test"
+
+BIN = $(BIN)\$(TARGET)
+EXE = $(BIN)\test.exe
+OBJS = $(BIN)\test.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\input.obj $(BIN)\console.obj $(BIN)\main.obj
+LIBS = user32.lib ole32.lib
+
+!else if "$(TARGET)" == "console"
+
+BIN = $(BIN)\$(TARGET)
+EXE = $(BIN)\ev.exe
+OBJS = $(BIN)\editor.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\application.obj \
+	$(BIN)\input.obj $(BIN)\console.obj $(BIN)\main.obj
+LIBS = user32.lib ole32.lib
+COMPILER_FLAGS = $(COMPILER_FLAGS)
+
+!else
+
+EXE = $(BIN)\ev.exe
+OBJS = $(BIN)\editor.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\application.obj \
+	$(BIN)\input.obj $(BIN)\console.obj $(BIN)\graphics.obj $(BIN)\main.obj $(BIN)\editor.res
+LIBS = user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib
+COMPILER_FLAGS = $(COMPILER_FLAGS) /DGUI_MODE
+
+!endif
+
+build: $(BIN) $(EXE)
 
 $(BIN):
 	mkdir $(BIN)
@@ -20,12 +53,16 @@ $(BIN):
 rebuild: clean build
 
 clean:
-	-del /s /q $(BIN) t.* *.log
+	-rmdir /s /q $(BIN)
+	-del /q *.log
 
-$(BIN)\ev.exe: $(BIN)\editor.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\application.obj $(BIN)\input.obj $(BIN)\console.obj $(BIN)\graphics.obj $(BIN)\main.obj
-	cl /nologo /MT $** user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib editor.res /link /out:$@ $(LINKER_FLAGS)
+$(EXE): $(OBJS)
+	cl /nologo /MT $** $(LIBS) /link /out:$@ $(LINKER_FLAGS)
 
 .h.cpp:
 .cpp{$(BIN)\}.obj::
 	cl /nologo /c /Fo:$(BIN)\ /MP16 /std:c++latest /utf-8 /EHsc /MT /W3 /wd4244 /wd4267 /wd4723 /wd4838 /I. \
-		/DGUI_MODE /D_UNICODE /DUNICODE /D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS $(COMPILER_FLAGS) $<
+		/D_UNICODE /DUNICODE /D_CRT_SECURE_NO_WARNINGS /D_CRT_NON_CONFORMING_SWPRINTFS $(COMPILER_FLAGS) $<
+
+.rc{$(BIN)\}.res:
+	rc /nologo /fo$@ $<

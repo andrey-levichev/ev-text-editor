@@ -1,7 +1,6 @@
 to do:
 * makefile improvements
-multiple targets, precompiled headers, source file list
-* build with foundation library causes linking error
+precompiled headers, build foundation as a library
 * better looking website
 code with example of highlighting, hires screenshot
 nice color scheme for text, links and headers, test on mobile
