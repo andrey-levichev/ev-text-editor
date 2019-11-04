@@ -1,9 +1,13 @@
 to do:
-* better looking website, code with example of highlighting
+* makefile improvements
+multiple targets, precompiled headers, source file list
+* build with foundation library causes linking error
+* better looking website
+code with example of highlighting, hires screenshot
+nice color scheme for text, links and headers, test on mobile
+update documentation
 * guess font size based on physical dpi in editor
 change font with ctrl +/-
-* precompiled headers
-* build with foundation library causes linking error
 * many ctrl and alt combinations don't work in Linux console
 * handle multiple input events in GUI mode
 
