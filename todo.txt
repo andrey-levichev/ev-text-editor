@@ -1,5 +1,8 @@
 to do:
-* add gui version to website
+* create a new file on startup?
+* display short help message if there're no files?
+* signed installation package
+* add gui version to website, deb and rpm packages
 * makefile improvements
 precompiled headers, build foundation as a library
 * better looking website
@@ -9,6 +12,8 @@ better mobile version, text size, evtext.app
 change font with ctrl +/-
 * many ctrl and alt combinations don't work in Linux console
 * handle multiple input events in GUI mode
+scan the input queue and process all keystrokes at once
+handle repeating keys
 
 editor likely:
 * graphical user interface for linux and macos

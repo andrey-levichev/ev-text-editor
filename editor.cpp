@@ -2256,14 +2256,7 @@ void Editor::onCreate()
 #ifdef GUI_MODE
     _graphics.create(_window);
 
-    TextBlock textBlock = _graphics->createTextBlock(_guiFontName,
-        _guiFontSize, false, STR("w"), { _guiFontSize, _guiFontSize });
-    Size size = textBlock.size();
-
-    _charWidth = size.width;
-    _charHeight = size.height;
-    ASSERT(_charWidth > 0 && _charHeight > 0);
-
+    measureCharSize();
     resizeWindow(toDevice(_width * _charWidth), toDevice(_height * _charHeight));
 
     if (_brightBackground)
@@ -2309,13 +2302,7 @@ void Editor::onResize(int width, int height)
 {
 #ifdef GUI_MODE
     _graphics->resize(width, height);
-    Size size = _graphics->size();
-
-    _width = size.width / _charWidth;
-    _height = size.height / _charHeight;
-
-    _offsetX = (size.width - _width * _charWidth) / 2;
-    _offsetY = (size.height - _height * _charHeight) / 2;
+    computeWidthHeight();
 #else
     _width = width;
     _height = height;
@@ -2593,6 +2580,26 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                             onInput(_macro);
                         }
                     }
+                    else if (keyEvent.ch == '-')
+                    {
+                        _guiFontSize *= 0.9f;
+                        if (_guiFontSize < 1)
+                            _guiFontSize = 1;
+
+                        measureCharSize();
+                        computeWidthHeight();
+                        setDimensions();
+                        updateScreen(true);
+                    }
+                    else if (keyEvent.ch == '=')
+                    {
+                        _guiFontSize *= 1.1f;
+
+                        measureCharSize();
+                        computeWidthHeight();
+                        setDimensions();
+                        updateScreen(true);
+                    }
                 }
                 else if (keyEvent.key == KEY_F2)
                 {
@@ -2824,6 +2831,28 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
 
     if (modified && _document != &_commandLine)
         updateRecentLocations();
+}
+
+void Editor::measureCharSize()
+{
+    TextBlock textBlock = _graphics->createTextBlock(_guiFontName,
+        _guiFontSize, false, STR("w"), { _guiFontSize, _guiFontSize });
+    Size size = textBlock.size();
+
+    _charWidth = size.width;
+    _charHeight = size.height;
+    ASSERT(_charWidth > 0 && _charHeight > 0);
+}
+
+void Editor::computeWidthHeight()
+{
+    Size size = _graphics->size();
+
+    _width = size.width / _charWidth;
+    _height = size.height / _charHeight;
+
+    _offsetX = (size.width - _width * _charWidth) / 2;
+    _offsetY = (size.height - _height * _charHeight) / 2;
 }
 
 void Editor::setDimensions()

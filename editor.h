@@ -427,7 +427,10 @@ protected:
     void onResize(int width, int height) override;
     void onInput(const Array<InputEvent>& inputEvents) override;
 
+    void measureCharSize();
+    void computeWidthHeight();
     void setDimensions();
+
     Rect rectFromLineCol(int left, int top, int right, int bottom);
     void drawBlockCursor(bool on);
     void updateScreen(bool redrawAll);
