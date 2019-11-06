@@ -2835,6 +2835,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
 
 void Editor::measureCharSize()
 {
+#ifdef GUI_MODE
     TextBlock textBlock = _graphics->createTextBlock(_guiFontName,
         _guiFontSize, false, STR("w"), { _guiFontSize, _guiFontSize });
     Size size = textBlock.size();
@@ -2842,10 +2843,12 @@ void Editor::measureCharSize()
     _charWidth = size.width;
     _charHeight = size.height;
     ASSERT(_charWidth > 0 && _charHeight > 0);
+#endif
 }
 
 void Editor::computeWidthHeight()
 {
+#ifdef GUI_MODE
     Size size = _graphics->size();
 
     _width = size.width / _charWidth;
@@ -2853,6 +2856,7 @@ void Editor::computeWidthHeight()
 
     _offsetX = (size.width - _width * _charWidth) / 2;
     _offsetY = (size.height - _height * _charHeight) / 2;
+#endif
 }
 
 void Editor::setDimensions()
