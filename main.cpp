@@ -24,42 +24,34 @@ void __run(int argc, const char_t** argv)
     }
 }
 
-#ifdef GUI_MODE
-
+#if defined(GUI_MODE) && defined(PLATFORM_WINDOWS)
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, wchar_t* commandLine, int cmdShow)
+#else
+int MAIN(int argc, const char_t** argv)
+#endif
 {
     try
     {
+#ifdef GUI_MODE
+
+#ifdef PLATFORM_WINDOWS
         CoInitialize(nullptr);
         SetProcessDPIAware();
 
         __run(__argc, reinterpret_cast<const char_t**>(const_cast<const wchar_t**>(__wargv)));
 
         CoUninitialize();
-    }
-    catch (Exception& ex)
-    {
-        reportError(ex.message());
-    }
-    catch (...)
-    {
-        reportError(STR("unknown error"));
-    }
-
-    return 0;
-}
+#else
+        __run(argc, argv);
+#endif
 
 #else
-
-int MAIN(int argc, const char_t** argv)
-{
-    try
-    {
         Console::initialize();
 
         __run(argc, argv);
 
         Console::shutdown();
+#endif
     }
     catch (Exception& ex)
     {
@@ -72,5 +64,3 @@ int MAIN(int argc, const char_t** argv)
 
     return 0;
 }
-
-#endif

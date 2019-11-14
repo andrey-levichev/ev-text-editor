@@ -10,8 +10,12 @@ Application::Application(const Array<String>& args, const char_t* title) :
     _args(args), _title(title)
 {
     _application = this;
+
 #ifdef GUI_MODE
+#ifdef PLATFORM_WINDOWS
     _dpi = GetDpiForSystem();
+#else
+#endif
 #else
     _dpi = 96;
 #endif
@@ -24,7 +28,10 @@ Application::~Application()
         if (_window)
         {
 #ifdef GUI_MODE
+#ifdef PLATFORM_WINDOWS
             DestroyWindow(reinterpret_cast<HWND>(_window));
+#else
+#endif
 #else
             onDestroy();
             _window = 0;
@@ -47,6 +54,7 @@ void Application::run()
     showWindow();
 
 #ifdef GUI_MODE
+#ifdef PLATFORM_WINDOWS
     while (_window)
     {
         MSG msg;
@@ -59,6 +67,8 @@ void Application::run()
         else
             break;
     }
+#else
+#endif
 #else
     onPaint();
 
@@ -85,6 +95,7 @@ void Application::createWindow(const char_t* title, int width, int height)
         throw Exception(STR("window already created"));
 
 #ifdef GUI_MODE
+#ifdef PLATFORM_WINDOWS
     WNDCLASSEX wc;
     HINSTANCE instance = GetModuleHandle(nullptr);
 
@@ -111,6 +122,8 @@ void Application::createWindow(const char_t* title, int width, int height)
     if (!_window)
         throw Exception(STR("failed to create window"));
 #else
+#endif
+#else
     _window = 1;
     onCreate();
 #endif
@@ -121,7 +134,10 @@ void Application::resizeWindow(int width, int height)
     if (_window)
     {
 #ifdef GUI_MODE
+#ifdef PLATFORM_WINDOWS
         SetWindowPos(reinterpret_cast<HWND>(_window), nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
+#else
+#endif
 #endif
     }
     else
@@ -133,8 +149,11 @@ void Application::showWindow()
     if (_window)
     {
 #ifdef GUI_MODE
+#ifdef PLATFORM_WINDOWS
         ShowWindow(reinterpret_cast<HWND>(_window), SW_SHOWDEFAULT);
         UpdateWindow(reinterpret_cast<HWND>(_window));
+#else
+#endif
 #endif
     }
     else
@@ -146,7 +165,10 @@ void Application::destroyWindow()
     if (_window)
     {
 #ifdef GUI_MODE
+#ifdef PLATFORM_WINDOWS
         DestroyWindow(reinterpret_cast<HWND>(_window));
+#else
+#endif
 #else
         onDestroy();
         _window = 0;
@@ -156,7 +178,7 @@ void Application::destroyWindow()
         throw Exception(STR("window not created"));
 }
 
-#ifdef GUI_MODE
+#if defined(GUI_MODE) && defined(PLATFORM_WINDOWS)
 
 bool isKeyPressed(int key)
 {

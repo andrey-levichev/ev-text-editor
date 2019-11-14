@@ -105,13 +105,11 @@ public:
 
 ScreenCell::ScreenCell() :
 #ifdef PLATFORM_WINDOWS
-
 #ifdef GUI_MODE
     ch(' '), color(defaultForeground())
 #else
     ch(' '), color(defaultForeground() | defaultBackground())
 #endif
-
 #else
     ch(0), color(defaultForeground())
 #endif
@@ -2923,11 +2921,11 @@ void Editor::updateScreen(bool redrawAll)
         line = col = 1;
     }
 
-#ifdef PLATFORM_WINDOWS
-
 #ifdef GUI_MODE
     _graphics->beginDraw();
 #else
+
+#ifdef PLATFORM_WINDOWS
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     ASSERT(handle);
 
@@ -2959,16 +2957,14 @@ void Editor::updateScreen(bool redrawAll)
 
         redrawAll = changed > 2;
     }
-#endif
-
 #else
     Console::showCursor(false);
 #endif
 
+#endif
+
     if (redrawAll)
     {
-#ifdef PLATFORM_WINDOWS
-
 #ifdef GUI_MODE
         _graphics->clear(GUI_BACKGROUND);
         _cursorLine = 0;
@@ -3003,6 +2999,8 @@ void Editor::updateScreen(bool redrawAll)
             _graphics->drawText(_guiFontName, _guiFontSize, _output, rect, rgbColors[color]);
         }
 #else
+
+#ifdef PLATFORM_WINDOWS
         SMALL_RECT rect;
         rect.Top = csbi.srWindow.Top;
         rect.Left = csbi.srWindow.Left;
@@ -3011,8 +3009,6 @@ void Editor::updateScreen(bool redrawAll)
 
         rc = WriteConsoleOutput(handle, reinterpret_cast<CHAR_INFO*>(_screen.values()), size, { 0, 0 }, &rect);
         ASSERT(rc);
-#endif
-
 #else
         for (int j = 0; j < _height; ++j)
         {
@@ -3041,6 +3037,8 @@ void Editor::updateScreen(bool redrawAll)
             Console::write(j + 1, 1, _output);
         }
 #endif
+
+#endif
     }
     else
     {
@@ -3059,8 +3057,6 @@ void Editor::updateScreen(bool redrawAll)
 
             if (start <= end)
             {
-#ifdef PLATFORM_WINDOWS
-
 #ifdef GUI_MODE
                 int ii = start - jw;
 
@@ -3089,6 +3085,8 @@ void Editor::updateScreen(bool redrawAll)
                 rect = rectFromLineCol(ii, j, end - jw + 1, j + 1);
                 _graphics->drawText(_guiFontName, _guiFontSize, _output, rect, rgbColors[color]);
 #else
+
+#ifdef PLATFORM_WINDOWS
                 COORD pos;
                 pos.X = start - jw;
                 pos.Y = j;
@@ -3100,8 +3098,6 @@ void Editor::updateScreen(bool redrawAll)
 
                 rc = WriteConsoleOutput(handle, reinterpret_cast<CHAR_INFO*>(_screen.values()), size, pos, &rect);
                 ASSERT(rc);
-#endif
-
 #else
                 for (int i = start; i <= end; ++i)
                 {
@@ -3122,11 +3118,11 @@ void Editor::updateScreen(bool redrawAll)
 
                 Console::write(j + 1, start - jw + 1, _output);
 #endif
+
+#endif
             }
         }
     }
-
-#ifdef PLATFORM_WINDOWS
 
 #ifdef GUI_MODE
     if (_cursorLine > 0)
@@ -3138,12 +3134,14 @@ void Editor::updateScreen(bool redrawAll)
 
     _graphics->endDraw();
 #else
-    Console::setCursorPosition(line, col);
-#endif
 
+#ifdef PLATFORM_WINDOWS
+    Console::setCursorPosition(line, col);
 #else
     Console::setCursorPosition(line, col);
     Console::showCursor(true);
+#endif
+
 #endif
 }
 

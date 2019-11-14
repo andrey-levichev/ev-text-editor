@@ -29,8 +29,16 @@ BIN := $(BIN)/$(TARGET)
 EXE = $(BIN)/test
 OBJS = $(BIN)/test.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/input.o $(BIN)/console.o $(BIN)/main.o
 
+else ifeq ($(TARGET), console)
+
+BIN := $(BIN)/$(TARGET)
+EXE = $(BIN)/ev
+OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
+	$(BIN)/input.o $(BIN)/console.o $(BIN)/graphics.o $(BIN)/main.o
+
 else
 
+COMPILER_FLAGS += -DGUI_MODE
 EXE = $(BIN)/ev
 OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
 	$(BIN)/input.o $(BIN)/console.o $(BIN)/graphics.o $(BIN)/main.o

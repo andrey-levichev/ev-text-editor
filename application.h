@@ -68,7 +68,7 @@ protected:
     static const char_t* WINDOW_CLASS;
     static Application* _application;
 
-#ifdef GUI_MODE
+#if defined(GUI_MODE) && defined(PLATFORM_WINDOWS)
     static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 #endif
 };

@@ -6,55 +6,65 @@ extern const char_t* APPLICATION_NAME;
 
 // diagnostic messages
 
+void showMessage(const char_t* message)
+{
 #ifdef GUI_MODE
 
-void showMessage(const char_t* message)
-{
+#ifdef PLATFORM_WINDOWS
     MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
                MB_OK | MB_TASKMODAL);
-}
-
-void showMessage(const String& message)
-{
-    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
-               MB_OK | MB_TASKMODAL);
-}
-
-void reportError(const char_t* message)
-{
-    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
-               MB_OK | MB_ICONERROR | MB_TASKMODAL);
-}
-
-void reportError(const String& message)
-{
-    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
-               MB_OK | MB_ICONERROR | MB_TASKMODAL);
-}
+#else
+#endif
 
 #else
-
-void showMessage(const char_t* message)
-{
     Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message);
+#endif
 }
 
 void showMessage(const String& message)
 {
+#ifdef GUI_MODE
+
+#ifdef PLATFORM_WINDOWS
+    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
+               MB_OK | MB_TASKMODAL);
+#else
+#endif
+
+#else
     Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message.chars());
+#endif
 }
 
 void reportError(const char_t* message)
 {
+#ifdef GUI_MODE
+
+#ifdef PLATFORM_WINDOWS
+    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
+               MB_OK | MB_ICONERROR | MB_TASKMODAL);
+#else
+#endif
+
+#else
     Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message);
+#endif
 }
 
 void reportError(const String& message)
 {
-    Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message.chars());
-}
+#ifdef GUI_MODE
 
+#ifdef PLATFORM_WINDOWS
+    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
+               MB_OK | MB_ICONERROR | MB_TASKMODAL);
+#else
 #endif
+
+#else
+    Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message.chars());
+#endif
+}
 
 // assert macros
 
