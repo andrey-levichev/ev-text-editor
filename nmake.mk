@@ -28,20 +28,20 @@ LIBS = user32.lib ole32.lib
 
 !else if "$(TARGET)" == "console"
 
+COMPILER_FLAGS = $(COMPILER_FLAGS)
+LIBS = user32.lib ole32.lib
 BIN = $(BIN)\$(TARGET)
 EXE = $(BIN)\ev.exe
 OBJS = $(BIN)\editor.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\application.obj \
 	$(BIN)\input.obj $(BIN)\console.obj $(BIN)\main.obj
-LIBS = user32.lib ole32.lib
-COMPILER_FLAGS = $(COMPILER_FLAGS)
 
 !else
 
+COMPILER_FLAGS = $(COMPILER_FLAGS) /DGUI_MODE
+LIBS = user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib
 EXE = $(BIN)\ev.exe
 OBJS = $(BIN)\editor.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\application.obj \
 	$(BIN)\input.obj $(BIN)\console.obj $(BIN)\graphics.obj $(BIN)\main.obj $(BIN)\editor.res
-LIBS = user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib
-COMPILER_FLAGS = $(COMPILER_FLAGS) /DGUI_MODE
 
 !endif
 
