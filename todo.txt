@@ -1,4 +1,6 @@
 to do:
+* remote desktop issues
+blurry font, screen all messed up
 * create a new file on startup?
 * display short help message if there're no files?
 * signed installation package
