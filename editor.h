@@ -502,9 +502,9 @@ protected:
     String _runCommand = STR("nmake.exe run & pause");
     String _cleanCommand = STR("nmake.exe clean & pause");
 #else
-    String _buildCommand = STR("make; read -p 'Press ENTER to continue...'");
-    String _runCommand = STR("make run; read -p 'Press ENTER to continue...'");
-    String _cleanCommand = STR("make clean; read -p 'Press ENTER to continue...'");
+    String _buildCommand = STR("make; echo 'Press ENTER to continue...'; read");
+    String _runCommand = STR("make run; echo 'Press ENTER to continue...'; read");
+    String _cleanCommand = STR("make clean; echo 'Press ENTER to continue...'; read");
 #endif
 };
 
