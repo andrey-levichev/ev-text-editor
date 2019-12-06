@@ -34,7 +34,7 @@ public:
     }
 
 protected:
-    void createWindow(const char_t* title, int width = 0, int height = 0);
+    void createWindow(int width = 0, int height = 0);
     void showWindow();
     void resizeWindow(int width, int height);
     void destroyWindow();
@@ -61,15 +61,21 @@ protected:
 
 protected:
     Array<String> _args;
-    const char_t* _title;
     uintptr_t _window = 0;
+    const char_t* _title;
     int _dpi;
 
     static const char_t* WINDOW_CLASS;
     static Application* _application;
 
-#if defined(GUI_MODE) && defined(PLATFORM_WINDOWS)
+#ifdef GUI_MODE
+
+#if defined(PLATFORM_WINDOWS)
     static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+#elif defined(PLATFORM_LINUX)
+    GtkWidget* _drawingArea;
+#endif
+
 #endif
 };
 

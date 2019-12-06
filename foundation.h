@@ -157,6 +157,12 @@
 
 #endif
 
+#ifdef PLATFORM_LINUX
+#ifdef GUI_MODE
+#include <gtk/gtk.h>
+#endif
+#endif
+
 #ifdef PLATFORM_SOLARIS
 #include <sys/filio.h>
 #include <alloca.h>

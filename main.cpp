@@ -34,15 +34,18 @@ int MAIN(int argc, const char_t** argv)
     {
 #ifdef GUI_MODE
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
         CoInitialize(nullptr);
         SetProcessDPIAware();
 
         __run(__argc, reinterpret_cast<const char_t**>(const_cast<const wchar_t**>(__wargv)));
 
         CoUninitialize();
-#else
+#elif defined(PLATFORM_LINUX)
+        gtk_init(nullptr, nullptr);
         __run(argc, argv);
+#else
+#error Unsupported GUI platform
 #endif
 
 #else

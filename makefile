@@ -38,7 +38,8 @@ OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
 
 else
 
-COMPILER_FLAGS += -DGUI_MODE
+COMPILER_FLAGS += -DGUI_MODE `pkg-config --cflags gtk+-3.0`
+LINKER_FLAGS += `pkg-config --libs gtk+-3.0`
 EXE = $(BIN)/ev
 OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
 	$(BIN)/input.o $(BIN)/console.o $(BIN)/graphics.o $(BIN)/main.o

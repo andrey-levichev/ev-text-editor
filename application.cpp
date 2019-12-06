@@ -14,7 +14,6 @@ Application::Application(const Array<String>& args, const char_t* title) :
 #ifdef GUI_MODE
 #ifdef PLATFORM_WINDOWS
     _dpi = GetDpiForSystem();
-#else
 #endif
 #else
     _dpi = 96;
@@ -30,7 +29,6 @@ Application::~Application()
 #ifdef GUI_MODE
 #ifdef PLATFORM_WINDOWS
             DestroyWindow(reinterpret_cast<HWND>(_window));
-#else
 #endif
 #else
             onDestroy();
@@ -50,11 +48,12 @@ Application::~Application()
 
 void Application::run()
 {
-    createWindow(_title);
+    createWindow();
     showWindow();
 
 #ifdef GUI_MODE
-#ifdef PLATFORM_WINDOWS
+
+#if defined(PLATFORM_WINDOWS)
     while (_window)
     {
         MSG msg;
@@ -67,8 +66,10 @@ void Application::run()
         else
             break;
     }
-#else
+#elif defined(PLATFORM_LINUX)
+    gtk_main();
 #endif
+
 #else
     onPaint();
 
@@ -89,13 +90,14 @@ void Application::run()
 #endif
 }
 
-void Application::createWindow(const char_t* title, int width, int height)
+void Application::createWindow(int width, int height)
 {
     if (_window)
         throw Exception(STR("window already created"));
 
 #ifdef GUI_MODE
-#ifdef PLATFORM_WINDOWS
+
+#if defined(PLATFORM_WINDOWS)
     WNDCLASSEX wc;
     HINSTANCE instance = GetModuleHandle(nullptr);
 
@@ -115,14 +117,25 @@ void Application::createWindow(const char_t* title, int width, int height)
     ATOM rc = RegisterClassEx(&wc);
     ASSERT(rc != 0);
 
-    CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS), reinterpret_cast<LPCWSTR>(title), WS_OVERLAPPEDWINDOW,
+    CreateWindow(reinterpret_cast<LPCWSTR>(WINDOW_CLASS), reinterpret_cast<LPCWSTR>(_title), WS_OVERLAPPEDWINDOW,
                  CW_USEDEFAULT, CW_USEDEFAULT, width > 0 ? width : CW_USEDEFAULT, height > 0 ? height : CW_USEDEFAULT,
                  nullptr, nullptr, GetModuleHandle(nullptr), nullptr);
 
     if (!_window)
         throw Exception(STR("failed to create window"));
-#else
+#elif defined(PLATFORM_LINUX)
+    _window = reinterpret_cast<uintptr_t>(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+    gtk_window_set_title(GTK_WINDOW(_window), _title);
+    g_signal_connect(reinterpret_cast<GtkWidget*>(_window),
+        "destroy", G_CALLBACK(gtk_main_quit), nullptr);
+
+    _drawingArea = gtk_drawing_area_new();
+    if (width > 0 && height > 0)
+        gtk_widget_set_size_request(_drawingArea, width, height);
+
+    gtk_container_add(GTK_CONTAINER(_window), _drawingArea);
 #endif
+
 #else
     _window = 1;
     onCreate();
@@ -136,7 +149,6 @@ void Application::resizeWindow(int width, int height)
 #ifdef GUI_MODE
 #ifdef PLATFORM_WINDOWS
         SetWindowPos(reinterpret_cast<HWND>(_window), nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
-#else
 #endif
 #endif
     }
@@ -149,11 +161,14 @@ void Application::showWindow()
     if (_window)
     {
 #ifdef GUI_MODE
-#ifdef PLATFORM_WINDOWS
+
+#if defined(PLATFORM_WINDOWS)
         ShowWindow(reinterpret_cast<HWND>(_window), SW_SHOWDEFAULT);
         UpdateWindow(reinterpret_cast<HWND>(_window));
-#else
+#elif defined(PLATFORM_LINUX)
+        gtk_widget_show_all(reinterpret_cast<GtkWidget*>(_window));
 #endif
+
 #endif
     }
     else
@@ -167,7 +182,6 @@ void Application::destroyWindow()
 #ifdef GUI_MODE
 #ifdef PLATFORM_WINDOWS
         DestroyWindow(reinterpret_cast<HWND>(_window));
-#else
 #endif
 #else
         onDestroy();
