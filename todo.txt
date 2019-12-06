@@ -1,4 +1,5 @@
 to do:
+* pasting text in russian produces garbage
 * use default makefile target for build
 * remote desktop issues
 blurry font, screen all messed up
@@ -34,6 +35,7 @@ open recrusively, open file at cursor
 * undo/redo
 * open multiple files in the same instance
 * run macro until it reaches specified line
+* language specific toggle comment
 
 syntax highlighting improvements:
 * support for other languages
@@ -43,7 +45,7 @@ syntax highlighting improvements:
 
 autocomplete improvements:
 * complete longest
-* give nearby words higher priority
+* give nearby words or words from same document higher priority
 * autocomplete for file names
 * scan all documents in directories
 
