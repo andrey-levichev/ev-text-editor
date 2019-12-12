@@ -2908,15 +2908,14 @@ void testUnicode()
     const byte_t BYTES_UTF8_UNIX[] = { 0x24, 0xc2, 0xa2, 0x0a, 0xe2, 0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
     const byte_t BYTES_UTF8_BOM_UNIX[] = { 0xef, 0xbb, 0xbf, 0x24, 0xc2, 0xa2, 0x0a, 0xe2,
                                            0x82, 0xac, 0xf0, 0x90, 0x8d, 0x88, 0x0a };
-    ALIGN_AS(2)
-    const byte_t BYTES_UTF16_LE_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00,
+    const byte_t BYTES_UTF16_LE_WIN[] = { 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00,
                                           0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
-    ALIGN_AS(2)
-    const byte_t BYTES_UTF16_LE_UNIX[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0a, 0x00,
-                                           0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0a, 0x00 };
-    ALIGN_AS(2)
-    const byte_t BYTES_UTF16_BE_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a,
+    const byte_t BYTES_UTF16_BE_UNIX[] = { 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a,
                                            0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
+    const byte_t BYTES_UTF16_LE_BOM_WIN[] = { 0xff, 0xfe, 0x24, 0x00, 0xa2, 0x00, 0x0d, 0x00, 0x0a, 0x00,
+                                              0xac, 0x20, 0x00, 0xd8, 0x48, 0xdf, 0x0d, 0x00, 0x0a, 0x00 };
+    const byte_t BYTES_UTF16_BE_BOM_UNIX[] = { 0xfe, 0xff, 0x00, 0x24, 0x00, 0xa2, 0x00, 0x0a,
+                                               0x20, 0xac, 0xd8, 0x00, 0xdf, 0x48, 0x00, 0x0a };
 
     // static String bytesToString(ByteBuffer& bytes, TextEncoding& encoding, bool& bom, bool& crLf)
     // static String bytesToString(int size, byte_t* bytes, TextEncoding& encoding, bool& bom, bool& crLf)
@@ -2956,6 +2955,26 @@ void testUnicode()
         String s = Unicode::bytesToString(sizeof(BYTES_UTF16_LE_WIN), BYTES_UTF16_LE_WIN, encoding, bom, crLf);
         ASSERT(s == str);
         ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
+        ASSERT(!bom);
+        ASSERT(crLf);
+    }
+
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = Unicode::bytesToString(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX, encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF16_BE);
+        ASSERT(!bom);
+        ASSERT(!crLf);
+    }
+
+    {
+        TextEncoding encoding;
+        bool bom, crLf;
+        String s = Unicode::bytesToString(sizeof(BYTES_UTF16_LE_BOM_WIN), BYTES_UTF16_LE_BOM_WIN, encoding, bom, crLf);
+        ASSERT(s == str);
+        ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
         ASSERT(bom);
         ASSERT(crLf);
     }
@@ -2963,17 +2982,7 @@ void testUnicode()
     {
         TextEncoding encoding;
         bool bom, crLf;
-        String s = Unicode::bytesToString(sizeof(BYTES_UTF16_LE_UNIX), BYTES_UTF16_LE_UNIX, encoding, bom, crLf);
-        ASSERT(s == str);
-        ASSERT(encoding == TEXT_ENCODING_UTF16_LE);
-        ASSERT(bom);
-        ASSERT(!crLf);
-    }
-
-    {
-        TextEncoding encoding;
-        bool bom, crLf;
-        String s = Unicode::bytesToString(sizeof(BYTES_UTF16_BE_UNIX), BYTES_UTF16_BE_UNIX, encoding, bom, crLf);
+        String s = Unicode::bytesToString(sizeof(BYTES_UTF16_BE_BOM_UNIX), BYTES_UTF16_BE_BOM_UNIX, encoding, bom, crLf);
         ASSERT(s == str);
         ASSERT(encoding == TEXT_ENCODING_UTF16_BE);
         ASSERT(bom);
@@ -2993,18 +3002,23 @@ void testUnicode()
     }
 
     {
-        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_LE, true, true);
+        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_LE, false, true);
         ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_WIN, sizeof(BYTES_UTF16_LE_WIN)) == 0);
     }
 
     {
-        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_LE, true, false);
-        ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_UNIX, sizeof(BYTES_UTF16_LE_UNIX)) == 0);
+        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_BE, false, false);
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_BE_UNIX, sizeof(BYTES_UTF16_BE_UNIX)) == 0);
+    }
+
+    {
+        ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_LE, true, true);
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_LE_BOM_WIN, sizeof(BYTES_UTF16_LE_BOM_WIN)) == 0);
     }
 
     {
         ByteBuffer bytes = Unicode::stringToBytes(str, TEXT_ENCODING_UTF16_BE, true, false);
-        ASSERT(memcmp(bytes.values(), BYTES_UTF16_BE_UNIX, sizeof(BYTES_UTF16_BE_UNIX)) == 0);
+        ASSERT(memcmp(bytes.values(), BYTES_UTF16_BE_BOM_UNIX, sizeof(BYTES_UTF16_BE_BOM_UNIX)) == 0);
     }
 }
 

@@ -1944,6 +1944,27 @@ String Unicode::bytesToString(int size, const byte_t* bytes, TextEncoding& encod
     {
         encoding = TEXT_ENCODING_UTF8;
         bom = false;
+
+        if (size % 2 == 0)
+        {
+            const byte_t* p =  bytes;
+            const byte_t* e = p + size;
+            int le = 0, be = 0;
+
+            while (p < e)
+            {
+                if (*p++ == 0)
+                    ++be;
+
+                if (*p++ == 0)
+                    ++le;
+            }
+
+            if (le > be)
+                encoding = TEXT_ENCODING_UTF16_LE;
+            else if (be > le)
+                encoding = TEXT_ENCODING_UTF16_BE;
+        }
     }
 
     if (encoding != TEXT_ENCODING_UTF8 && size % 2 != 0)

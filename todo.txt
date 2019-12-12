@@ -1,5 +1,4 @@
 to do:
-* pasting text in russian produces garbage
 * use default makefile target for build
 * remote desktop issues
 blurry font, screen all messed up

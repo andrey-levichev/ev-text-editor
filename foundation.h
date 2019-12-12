@@ -205,7 +205,6 @@ typedef unsigned char byte_t;
 #define TO_STR(arg) #arg
 #define STR_MACRO(arg) STR(arg)
 #define NUM_MACRO(arg) STR_MACRO(TO_STR(arg))
-#define ALIGN_AS(n) alignas(n)
 
 // diagnostic messages
 
