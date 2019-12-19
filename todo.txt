@@ -1,16 +1,9 @@
 to do:
-* blurry text on remote desktop
 * website improvements
 add executables for gui version
 high resolution screenshot
 nice color scheme for text, links and headers
 better mobile version, alternative domains
-* input improvements
-ctrl+minus/plus don't work on windows, use WM_KEYUP instead?
-test fancy character input like wiwndows mnemonic for russian
-many ctrl and alt combinations don't work in Linux console
-fallback for function keys (either alt key or command)
-* run command that doesn't laucnh command prompt
 
 editor likely:
 * graphical user interface for linux and macos
@@ -30,9 +23,25 @@ open recrusively, open file at cursor
 * run macro until it reaches specified line
 * language specific toggle comment
 * display short help message if there're no files
-* signed executable and installation package
-* deb and rpm packages
 * guess font size based on physical dpi in editor
+* don't erase cusror when prev position is not on the screen
+* better solution for drawing cursor (overwrite instead of blend)
+* high resolution icon
+* replace explicit pointers with smart pointers
+* blurry text on remote desktop
+* run command that doesn't laucnh command prompt
+
+editor misc:
+* run release version in profiler, memory/thread checker
+* support intel compiler, arm hardware, windows server
+* makefile improvements: precompiled headers, foundation library, incremental link
+* signed executable and installation package, deb and rpm packages
+
+* input improvements
+ctrl+minus/plus don't work on windows, use WM_KEYUP instead?
+test fancy character input like wiwndows mnemonic for russian
+many ctrl and alt combinations don't work in Linux console
+fallback for function keys (either alt key or command)
 
 syntax highlighting improvements:
 * support for other languages
@@ -64,6 +73,7 @@ editor maybe:
 * move to prev/next paragraph/function
 * preserve console output when exiting
 * fallbacks for function keys
+* version for mobile devices
 * performance improvements
 open large files in native encoding
 use memory mapping and on demand/background loading
@@ -101,13 +111,5 @@ type safe string formatting
 * type traits
 * optional, variant, weak pointer
 
-misc:
-* run release version in profiler, memory/thread checker
+foundation misc:
 * don't use asserts in low level OS specific code
-* support intel compiler, arm hardware, windows server
-* version for mobile devices
-* replace explicit pointers with smart pointers
-* high resolution icon
-* better solution for drawing cursor (overwrite instead of blend)
-* don't erase cusror when prev position is not on the screen
-* makefile improvements: precompiled headers, foundation library, incremental link
