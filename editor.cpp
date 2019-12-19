@@ -2580,7 +2580,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                     }
                     else if (keyEvent.ch == '-')
                     {
-                        _guiFontSize *= 0.9f;
+                        _guiFontSize -= 0.5f;
                         if (_guiFontSize < 1)
                             _guiFontSize = 1;
 
@@ -2591,7 +2591,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                     }
                     else if (keyEvent.ch == '=')
                     {
-                        _guiFontSize *= 1.1f;
+                        _guiFontSize += 0.5f;
 
                         measureCharSize();
                         computeWidthHeight();
