@@ -1,7 +1,7 @@
 to do:
 * website improvements
-add executables for gui version
 high resolution screenshot
+unreadable font in mobile version
 
 editor likely:
 * graphical user interface for linux and macos
