@@ -2,8 +2,6 @@ to do:
 * website improvements
 add executables for gui version
 high resolution screenshot
-nice color scheme for text, links and headers
-better mobile version, alternative domains
 
 editor likely:
 * graphical user interface for linux and macos
@@ -36,8 +34,10 @@ editor misc:
 * support intel compiler, arm hardware, windows server
 * makefile improvements: precompiled headers, foundation library, incremental link
 * signed executable and installation package, deb and rpm packages
+* nicer website design and color scheme
+* alternative domains for website
 
-* input improvements
+input improvements:
 ctrl+minus/plus don't work on windows, use WM_KEYUP instead?
 test fancy character input like wiwndows mnemonic for russian
 many ctrl and alt combinations don't work in Linux console
