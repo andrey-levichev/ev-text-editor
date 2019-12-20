@@ -89,7 +89,7 @@ h2
 <p>Keyboard commands are designed to work on as many terminals as possible without the need to change ev or terminal settings. To achieve that ev provides alternatives for key combinations that may not be supported by a specific terminal.</p>
 
 <p><table>
-<tr><td style="width: 120px">arrows</td><td>move cursor</td></tr>
+<tr><td>arrows</td><td>move cursor</td></tr>
 <tr><td>alt+left/right</td><td>word (identifier) left/right (also ctrl+left/right, ctrl+b/w)</td></tr>
 <tr><td>alt+up/down</td><td>go to previous/next recently edited location (also ctrl+up/down)</td></tr>
 <tr><td>home/end</td><td>start/end of line (also ctrl+h/e)</td></tr>
@@ -102,10 +102,7 @@ h2
 <tr><td>backspace</td><td>delete character to the left of cursor position</td></tr>
 <tr><td>alt+del</td><td>delete word at cursor position (also ctrl+del, ctrl+d)</td></tr>
 <tr><td>alt+backspace</td><td>delete word to the left of cursor position (also ctrl+backspace, ctrl+])</td></tr>
-</table></p>
-
-<p><table>
-<tr><td style="width: 120px">ctrl+a</td><td>mark selection start</td></tr>
+<tr><td>ctrl+a</td><td>mark selection start</td></tr>
 <tr><td>ctrl+x</td><td>delete line/selection</td></tr>
 <tr><td>ctrl+k</td><td>copy line/selection (also ctrl+c)</td></tr>
 <tr><td>ctrl+l</td><td>paste line/selection (also ctrl+v)</td></tr>
@@ -114,10 +111,7 @@ h2
 <tr><td>ctrl+g</td><td>find word at cursor</td></tr>
 <tr><td>ctrl+^</td><td>switch between recently edited locations</td></tr>
 <tr><td>ctrl+t</td><td>insert tab character (\t)</td></tr>
-</table></p>
-
-<p><table>
-<tr><td style="width: 120px">alt+,</td><td>go to previous document</td></tr>
+<tr><td>alt+,</td><td>go to previous document</td></tr>
 <tr><td>alt+.</td><td>go to next document</td></tr>
 <tr><td>alt+digit</td><td>go to nth document</td></tr>
 <tr><td>alt+b/w</td><td>characters (space separated) left/right</td></tr>
@@ -129,10 +123,7 @@ h2
 <tr><td>alt+r</td><td>toggle macro recording</td></tr>
 <tr><td>alt+m</td><td>play macro</td></tr>
 <tr><td>alt+a</td><td>jump between selection start/end</td></tr>
-</table></p>
-
-<p><table>
-<tr><td style="width: 120px">F2</td><td>toggle command line</td></tr>
+<tr><td>F2</td><td>toggle command line</td></tr>
 <tr><td>F5</td><td>build project</td></tr>
 <tr><td>F6</td><td>run project</td></tr>
 <tr><td>F7</td><td>clean project</td></tr>
@@ -145,7 +136,7 @@ h2
 <p>macOS note: By default Mac Terminal app sends weird codes for alt+key combinations. They are not unsupported by ev. You can fix the issue by turning on 'Use Option as Meta key' on the Keyboard tab in the terminal profile settings. To make ev easier to use you can add a few key mappings there:</p>
 
 <p><table>
-<tr><td style="width: 120px">Home</td><td>\033[1~</td></tr>
+<tr><td>Home</td><td>\033[1~</td></tr>
 <tr><td>Option+Home</td><td>\033\033[1~</td></tr>
 <tr><td>End</td><td>\033[4~</td></tr>
 <tr><td>Option+End</td><td>\033\033[4~</td></tr>
@@ -192,7 +183,7 @@ any character can be used as string separator instead of space</p>
 <p>The editor reads a configuration file from two locations if it exists. The first location is the user's personal directory (/home/user or C:\Users\User). The second location is the current directory. Configuration settings from current directory take precedence. That allows you to specify project specific setting like build commands. The configuration file name is .ev.cfg on UNIX and ev.cfg on Windows. The format of the file is setting-name=setting-value, one setting per line.</p>
 
 <p>Supported settings:<table>
-<tr><td style="width: 120px">setting</td><td>values</td><td>default</td><td>description</td></tr>
+<table><tr><td>Setting</td><td>values</td><td>default</td><td>description</td></tr>
 <tr><td>bright_background</td><td>true/false</td><td>true</td><td>changes color scheme to look nice on terminals with dark or bright background</td></tr>
 <tr><td>trim_shitespace</td><td>true/false</td><td>true</td><td>trim trailing whitespace on save</td></tr>
 <tr><td>indent_size</td><td>number</td><td>4</td><td>number of spaces to indent lines</td></tr>
