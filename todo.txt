@@ -1,6 +1,10 @@
 to do:
 * website improvements
 mac executable
+high resolution screenshot
+unreadable font in mobile version
+nicer website design and color scheme
+high resolution screenshot
 
 editor likely:
 * graphical user interface for linux and macos
@@ -33,7 +37,6 @@ editor misc:
 * support intel compiler, arm hardware, windows server
 * makefile improvements: precompiled headers, foundation library, incremental link
 * signed executable and installation package, deb and rpm packages
-* nicer website design and color scheme, high resolution screenshot
 * alternative domains for website
 
 input improvements:
