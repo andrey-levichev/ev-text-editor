@@ -1,8 +1,8 @@
 to do:
 * website improvements
 mac executable
-sharper resizable screenshot
-mobile version
+sharper screenshot
+mobile version - no margins, small text in tables
 
 editor likely:
 * graphical user interface for linux and macos
