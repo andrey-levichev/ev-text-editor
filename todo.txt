@@ -1,7 +1,6 @@
 to do:
 * website improvements
-add executables for gui version
-high resolution screenshot
+mac executable
 
 editor likely:
 * graphical user interface for linux and macos
@@ -34,7 +33,7 @@ editor misc:
 * support intel compiler, arm hardware, windows server
 * makefile improvements: precompiled headers, foundation library, incremental link
 * signed executable and installation package, deb and rpm packages
-* nicer website design and color scheme
+* nicer website design and color scheme, high resolution screenshot
 * alternative domains for website
 
 input improvements:
