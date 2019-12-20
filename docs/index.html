@@ -8,8 +8,34 @@
 
 <style>
 
-body { font-family: sans-serif; }
-h1 { text-align: center; }
+body
+{
+    color: Black;
+    background-color: AliceBlue;
+    font-family: sans-serif;
+    max-width: 20cm;
+    margin: auto
+}
+
+main
+{
+    background-color: White;
+    padding: 0.5cm
+}
+
+h1
+{
+    color: White;
+    background-color: FireBrick;
+    text-align: center
+}
+
+h2
+{
+    color: White;
+    background-color: SteelBlue;
+    text-align: center
+}
 
 </style>
 
@@ -17,15 +43,17 @@ h1 { text-align: center; }
 
 <body>
 
+<main>
+
 <h1>ev text editor</h1>
 
 <p>ev is a simple cross-platform text editor written in C++ with minimal dependencies. The executable is just a few hundred kilobytes in size. The editor works in either GUI or terminal mode on three platforms - Windows, macOS and Linux. The editor has some advanced features like autocomplete and syntax highlighting that makes it possible to use it as a development environment.</p>
 
 <p>If you think that ev stands for "eradicate vi" then you are mistaken :-) I have great respect for that venerable text editor. I personally used vim as my main development environment for several years and I love it passionately!</p>
 
-<img src="ev_win.png" style="width: auto">
+<img src="ev_win.png" alt="ev screenshot" style="width: auto; margin-left: auto; margin-right: auto; display: block">
 
-<h3>Download</h3>
+<h2>Download</h2>
 
 <p>All executables are 64-bit for Intel architecture</p>
 
@@ -37,7 +65,7 @@ h1 { text-align: center; }
 
 <p>Linux terminal: <a href="ev-linux.tar.bz2">ev-linux.tar.bz2</a></p>
 
-<h3>Supported features</h3>
+<h2>Supported features</h2>
 
 <ul>
 <li>basic text editing operations, autoindent</li>
@@ -54,7 +82,7 @@ h1 { text-align: center; }
 <li>syntax highlighting</li>
 </ul>
 
-<h3>Keys</h3>
+<h2>Keys</h2>
 
 <p>Keyboard commands are designed to work on as many terminals as possible without the need to change ev or terminal settings. To achieve that ev provides alternatives for key combinations that may not be supported by a specific terminal.</p>
 
@@ -124,7 +152,7 @@ h1 { text-align: center; }
 <tr><td>Option+Forward Delete</td><td>\033\033[3~</td></tr>
 </table></p>
 
-<h3>Commands</h3>
+<h2>Commands</h2>
 
 <p>Command line is accessible at the bottom of the editor by pressing F2 key. Optional parameters are in square brackets.</p>
 
@@ -157,7 +185,7 @@ any character can be used as string separator instead of space</p>
 
 <p>o filename - open file</p>
 
-<h3>Configuration file</h3>
+<h2>Configuration file</h2>
 
 <p>The editor reads a configuration file from two locations if it exists. The first location is the user's personal directory (/home/user or C:\Users\User). The second location is the current directory. Configuration settings from current directory take precedence. That allows you to specify project specific setting like build commands. The configuration file name is .ev.cfg on UNIX and ev.cfg on Windows. The format of the file is setting-name=setting-value, one setting per line.</p>
 
@@ -175,7 +203,7 @@ any character can be used as string separator instead of space</p>
 <tr><td>clean_command</td><td>string</td><td>make clean</td><td>default clean command<td></td></tr>
 </table></p>
 
-<h3>Autocomplete</h3>
+<h2>Autocomplete</h2>
 
 <p>Autocomplete works by scanning for all identifiers in open documents and it lets you complete words as you type by pressing Tab key. The list of autocomplete suggestions can be refreshed by saving documents or by pressing alt+'. Completion works best with at least two starting letters. When you press Tab the current suggestion is inserted into the text but the cursor remains after the last letter typed. If there're letters to the right of the cursor, the inserted word overwrites them.</p>
 
@@ -183,35 +211,37 @@ any character can be used as string separator instead of space</p>
 
 <p>If you are not satisfied with the suggestion, you can press Tab or Shift+Tab to go to the previous/next suggestion or you can type one or more letters until autocomplete gives you the expected result without pressing Tab too many times. You can also press Backspace to erase previous letter and automatically suggest a new word based on the shorter prefix.</p>
 
-<h3>Syntax highlighting</h3>
+<h2>Syntax highlighting</h2>
 
 <p>Languages for which syntax highlighting is currently supported: C, C++, XML, HTML and UNIX shell scripts. ev by default assumes bright screen background and uses darker colors for syntax highlighting to improve contrast. You can override that with bright_background setting in the configuration file.</p>
 
-<h3>Building the project</h3>
+<h2>Building the project</h2>
 
 <p>By default ev executes 'make' on UNIX systems and 'nmake.exe' on Windows. The makefile must contain a default target that builds the project and two targets to run and clean the project. This can be overridden by setting build commands in the configuration file.</p>
 
-<h3>License</h3>
+<h2>License</h2>
 
 <p>By downloading and using the ev text editor you agree to the following license terms (stating that author provides no guarantees and assumes no liability):</p>
 
-<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND<br>
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED<br>
+<p>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.</p>
 
-<p>IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT,<br>
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,<br>
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;<br>
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND<br>
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT<br>
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS<br>
+<p>IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 
-<h3>Developer</h3>
+<h2>Developer</h2>
 
 <p>ev text editor<br>
 Copyright &copy; Andrey Levichev, 2019<br>
 email: <a href="mailto:andrey.levichev@gmail.com?Subject=ev">andrey.levichev@gmail.com</a></p>
+
+</main>
 
 </body>
 </html>

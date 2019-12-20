@@ -1,10 +1,8 @@
 to do:
 * website improvements
 mac executable
-high resolution screenshot
-unreadable font in mobile version
-nicer website design and color scheme
-high resolution screenshot
+sharper resizable screenshot
+mobile version
 
 editor likely:
 * graphical user interface for linux and macos
