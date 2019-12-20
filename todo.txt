@@ -2,7 +2,7 @@ to do:
 * website improvements
 mac executable
 sharper screenshot
-mobile version - no margins, small text in tables
+no margins in mobile version
 
 editor likely:
 * graphical user interface for linux and macos

@@ -15,11 +15,19 @@ body
     color: Black;
     background-color: AliceBlue;
     font-family: sans-serif;
-    max-width: 20cm;
-    margin: auto
+    margin: 0
 }
 
-main
+@media screen and (min-width: 20cm)
+{
+    body
+    {
+        width: 20cm;
+        margin: auto
+    }
+}
+
+.content
 {
     background-color: White;
     padding: 0.5cm
@@ -45,7 +53,7 @@ h2
 
 <body>
 
-<main>
+<div class="content">
 
 <h1>ev text editor</h1>
 
@@ -243,7 +251,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
 Copyright &copy; Andrey Levichev, 2019<br>
 email: <a href="mailto:andrey.levichev@gmail.com?Subject=ev">andrey.levichev@gmail.com</a></p>
 
-</main>
+</div>
 
 </body>
 </html>
