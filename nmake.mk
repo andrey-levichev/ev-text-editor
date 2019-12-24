@@ -1,6 +1,6 @@
 .SUFFIXES: .h
 
-BIN = bin\vcpp
+BIN = bin\Windows
 
 !if "$(BUILD)" == "release"
 

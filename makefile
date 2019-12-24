@@ -1,4 +1,5 @@
-BIN = bin/$(CXX)
+OS=$(shell uname)
+BIN = bin/$(OS)
 
 ifeq ($(BUILD), release)
 
@@ -16,10 +17,10 @@ COMPILER_FLAGS += -Os
 
 endif
 
-ifeq ($(CXX), g++)
+ifeq ($(OS), Linux)
 
-COMPILER_FLAGS += -Wno-unused-but-set-variable
-LINKER_FLAGS += -lrt
+COMPILER_FLAGS += -Wno-unused-but-set-variable -DGUI_MODE `pkg-config --cflags gtk+-3.0`
+LINKER_FLAGS += -lrt `pkg-config --libs gtk+-3.0`
 
 endif
 
@@ -38,8 +39,6 @@ OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
 
 else
 
-COMPILER_FLAGS += -DGUI_MODE `pkg-config --cflags gtk+-3.0`
-LINKER_FLAGS += `pkg-config --libs gtk+-3.0`
 EXE = $(BIN)/ev
 OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
 	$(BIN)/input.o $(BIN)/console.o $(BIN)/graphics.o $(BIN)/main.o
