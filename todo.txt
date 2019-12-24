@@ -1,6 +1,5 @@
 to do:
-* website improvements
-mac executable, sharper screenshot, nicer mobile version
+* nicer mobile website
 
 editor likely:
 * graphical user interface for linux and macos
