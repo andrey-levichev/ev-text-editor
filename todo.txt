@@ -1,12 +1,11 @@
 to do:
 * website improvements
-mac executable
-sharper screenshot
-no margins in mobile version
+mac executable, sharper screenshot, nicer mobile version
 
 editor likely:
 * graphical user interface for linux and macos
 * open files over network
+support mobile devices and bloomberg environment
 * switch between source/header
 * quick open files
 name autocomplete, wildcards
