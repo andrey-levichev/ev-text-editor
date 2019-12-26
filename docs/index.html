@@ -16,6 +16,14 @@ body
     margin: 0
 }
 
+@media screen and (min-width: 20cm)
+{
+    body
+    {
+        color: Brown
+    }
+}
+
 main
 {
     background-color: White;
@@ -47,7 +55,7 @@ h2
 <p><script>
 
 mobile = /android|iphone/i.test(navigator.userAgent);
-document.write("mobile: " + mobile + ", user agent: " + navigator.userAgent);
+document.write("width: " + window.innerWidth + ", mobile: " + mobile + ", user agent: " + navigator.userAgent);
 
 if (!mobile)
 {
