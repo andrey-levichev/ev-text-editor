@@ -16,11 +16,12 @@ body
     margin: 0
 }
 
-@media screen and (min-width: 20cm)
+@media screen and (min-width: 992px)
 {
     body
     {
-        color: Brown
+        margin: auto;
+        max-width: 992px;
     }
 }
 
@@ -51,19 +52,6 @@ h2
 <body>
 
 <main>
-
-<p><script>
-
-mobile = /android|iphone/i.test(navigator.userAgent);
-document.write("width: " + window.innerWidth + ", mobile: " + mobile + ", user agent: " + navigator.userAgent);
-
-if (!mobile)
-{
-    document.body.style.margin = "auto";
-    document.body.style.maxWidth = "20cm";
-}
-
-</script></p>
 
 <h1>ev text editor</h1>
 
