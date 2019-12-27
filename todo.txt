@@ -1,6 +1,3 @@
-to do:
-* nicer mobile website
-
 editor likely:
 * graphical user interface for linux and macos
 * open files over network
@@ -34,6 +31,7 @@ editor misc:
 * makefile improvements: precompiled headers, foundation library, incremental link
 * signed executable and installation package, deb and rpm packages
 * alternative domains for website
+* text in tables is too small on mobile website, magic page width
 
 input improvements:
 ctrl+minus/plus don't work on windows, use WM_KEYUP instead?
