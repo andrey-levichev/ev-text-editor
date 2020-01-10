@@ -19,8 +19,8 @@ endif
 
 ifeq ($(OS), Linux)
 
-COMPILER_FLAGS += -Wno-unused-but-set-variable -DGUI_MODE `pkg-config --cflags gtk+-3.0`
-LINKER_FLAGS += -lrt `pkg-config --libs gtk+-3.0`
+COMPILER_FLAGS += -Wno-unused-but-set-variable -DGUI_MODE $(shell pkg-config --cflags gtk+-3.0)
+LINKER_FLAGS += -lrt $(shell pkg-config --libs gtk+-3.0)
 
 endif
 

@@ -3,7 +3,6 @@
 
 // Application
 
-const char_t* Application::WINDOW_CLASS = STR("WINDOW_CLASS");
 Application* Application::_application = nullptr;
 
 Application::Application(const Array<String>& args, const char_t* title) :
@@ -68,6 +67,7 @@ void Application::run()
     }
 #elif defined(PLATFORM_LINUX)
     gtk_main();
+//    cairo_surface_destroy(_surface);
 #endif
 
 #else
@@ -130,10 +130,17 @@ void Application::createWindow(int width, int height)
         "destroy", G_CALLBACK(gtk_main_quit), nullptr);
 
     _drawingArea = gtk_drawing_area_new();
-    if (width > 0 && height > 0)
-        gtk_widget_set_size_request(_drawingArea, width, height);
-
     gtk_container_add(GTK_CONTAINER(_window), _drawingArea);
+
+    g_signal_connect(_drawingArea, "draw", G_CALLBACK(drawEventHandler), nullptr);
+    g_signal_connect(_drawingArea, "configure-event", G_CALLBACK(configureEventHandler), nullptr);
+    g_signal_connect(_drawingArea, "button-press-event", G_CALLBACK(buttonPressEventHandler), nullptr);
+
+    gtk_widget_set_events(_drawingArea,
+        gtk_widget_get_events(_drawingArea) | GDK_BUTTON_PRESS_MASK);
+
+    if (width > 0 && height > 0)
+        gtk_widget_set_size_request(reinterpret_cast<GtkWidget*>(_window), width, height);
 #endif
 
 #else
@@ -144,12 +151,18 @@ void Application::createWindow(int width, int height)
 
 void Application::resizeWindow(int width, int height)
 {
+    ASSERT(width > 0 && height > 0);
+
     if (_window)
     {
 #ifdef GUI_MODE
-#ifdef PLATFORM_WINDOWS
+
+#if defined(PLATFORM_WINDOWS)
         SetWindowPos(reinterpret_cast<HWND>(_window), nullptr, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER);
+#elif defined(PLATFORM_LINUX)
+        gtk_widget_set_size_request(reinterpret_cast<GtkWidget*>(_window), width, height);
 #endif
+
 #endif
     }
     else
@@ -192,9 +205,13 @@ void Application::destroyWindow()
         throw Exception(STR("window not created"));
 }
 
-#if defined(GUI_MODE) && defined(PLATFORM_WINDOWS)
+#ifdef GUI_MODE
 
-bool isKeyPressed(int key)
+#if defined(PLATFORM_WINDOWS)
+
+const char_t* Application::WINDOW_CLASS = STR("WINDOW_CLASS");
+
+static bool isKeyPressed(int key)
 {
     return (GetKeyState(key) & 0x8000) != 0;
 }
@@ -442,5 +459,59 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
     return DefWindowProc(handle, message, wParam, lParam);
 }
+
+#elif defined(PLATFORM_LINUX)
+
+static void clearSurface(cairo_surface_t* surface)
+{
+    cairo_t* cr = cairo_create(surface);
+
+    cairo_set_source_rgb(cr, 1, 1, 0.5);
+    cairo_paint(cr);
+
+    cairo_destroy(cr);
+}
+
+gboolean Application::drawEventHandler(GtkWidget* widget, cairo_t* cr, gpointer data)
+{
+    cairo_set_source_surface(cr, _application->_surface, 0, 0);
+    cairo_paint(cr);
+    return FALSE;
+}
+
+gboolean Application::configureEventHandler(GtkWidget* widget, GdkEventConfigure* event, gpointer data)
+{
+    _application->_surface = gdk_window_create_similar_surface(gtk_widget_get_window(widget), CAIRO_CONTENT_COLOR,
+        gtk_widget_get_allocated_width(widget), gtk_widget_get_allocated_height(widget));
+
+    clearSurface(_application->_surface);
+    return TRUE;
+}
+
+gboolean Application::buttonPressEventHandler(GtkWidget* widget, GdkEventButton* event, gpointer data)
+{
+    if (event->button == GDK_BUTTON_PRIMARY)
+    {
+        cairo_t* cr = cairo_create(_application->_surface);
+        cairo_rectangle(cr, event->x - 3, event->y - 3, 6, 6);
+        cairo_fill(cr);
+        cairo_destroy(cr);
+
+        gtk_widget_queue_draw(widget);
+
+        return TRUE;
+    }
+    else if (event->button == GDK_BUTTON_SECONDARY)
+    {
+        clearSurface(_application->_surface);
+        gtk_widget_queue_draw(widget);
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+#endif
 
 #endif

@@ -65,15 +65,21 @@ protected:
     const char_t* _title;
     int _dpi;
 
-    static const char_t* WINDOW_CLASS;
     static Application* _application;
 
 #ifdef GUI_MODE
 
 #if defined(PLATFORM_WINDOWS)
+    static const char_t* WINDOW_CLASS;
+
     static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 #elif defined(PLATFORM_LINUX)
-    GtkWidget* _drawingArea;
+    GtkWidget* _drawingArea = nullptr;
+    cairo_surface_t* _surface = nullptr;
+
+    static gboolean drawEventHandler(GtkWidget* widget, cairo_t* cr, gpointer data);
+    static gboolean configureEventHandler(GtkWidget* widget, GdkEventConfigure* event, gpointer data);
+    static gboolean buttonPressEventHandler(GtkWidget* widget, GdkEventButton* event, gpointer data);
 #endif
 
 #endif
