@@ -12,6 +12,7 @@ void __run(int argc, const char_t** argv)
         for (int i = 0; i < argc; ++i)
             args.addLast(String(argv[i]));
 
+        throw Exception(STR("you suck!"));
         run(args);
     }
     catch (Exception& ex)

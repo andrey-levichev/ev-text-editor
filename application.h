@@ -77,9 +77,13 @@ protected:
     GtkWidget* _drawingArea = nullptr;
     cairo_surface_t* _surface = nullptr;
 
+    static void realizeEventHandler(GtkWidget* widget, gpointer data);
+    static void destroyEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data);
+
     static gboolean drawEventHandler(GtkWidget* widget, cairo_t* cr, gpointer data);
-    static gboolean configureEventHandler(GtkWidget* widget, GdkEventConfigure* event, gpointer data);
+    static gboolean configureEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data);
     static gboolean buttonPressEventHandler(GtkWidget* widget, GdkEventButton* event, gpointer data);
+    static gboolean keyPressEventHandler(GtkWidget* widget, GdkEventKey* event, gpointer data);
 #endif
 
 #endif

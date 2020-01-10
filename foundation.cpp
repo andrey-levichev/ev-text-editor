@@ -10,10 +10,14 @@ void showMessage(const char_t* message)
 {
 #ifdef GUI_MODE
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
                MB_OK | MB_TASKMODAL);
-#else
+#elif defined(PLATFORM_LINUX)
+    GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, message);
+    gtk_window_set_title(GTK_WINDOW(dialog), APPLICATION_NAME);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(GTK_WIDGET(dialog));
 #endif
 
 #else
@@ -23,27 +27,21 @@ void showMessage(const char_t* message)
 
 void showMessage(const String& message)
 {
-#ifdef GUI_MODE
-
-#ifdef PLATFORM_WINDOWS
-    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
-               MB_OK | MB_TASKMODAL);
-#else
-#endif
-
-#else
-    Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message.chars());
-#endif
+    showMessage(message.chars());
 }
 
 void reportError(const char_t* message)
 {
 #ifdef GUI_MODE
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
                MB_OK | MB_ICONERROR | MB_TASKMODAL);
-#else
+#elif defined(PLATFORM_LINUX)
+    GtkWidget* dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK, message);
+    gtk_window_set_title(GTK_WINDOW(dialog), APPLICATION_NAME);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(GTK_WIDGET(dialog));
 #endif
 
 #else
@@ -53,17 +51,7 @@ void reportError(const char_t* message)
 
 void reportError(const String& message)
 {
-#ifdef GUI_MODE
-
-#ifdef PLATFORM_WINDOWS
-    MessageBox(nullptr, reinterpret_cast<LPCWSTR>(message.chars()), reinterpret_cast<LPCWSTR>(APPLICATION_NAME),
-               MB_OK | MB_ICONERROR | MB_TASKMODAL);
-#else
-#endif
-
-#else
-    Console::writeLineFormatted(STR("%s: %s"), APPLICATION_NAME, message.chars());
-#endif
+    reportError(message.chars());
 }
 
 // assert macros

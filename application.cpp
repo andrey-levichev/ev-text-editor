@@ -8,12 +8,18 @@ Application* Application::_application = nullptr;
 Application::Application(const Array<String>& args, const char_t* title) :
     _args(args), _title(title)
 {
+    if (_application)
+        terminate(STR("multiple instances for Application are not supported"));
     _application = this;
 
 #ifdef GUI_MODE
+
 #ifdef PLATFORM_WINDOWS
     _dpi = GetDpiForSystem();
+#else
+    _dpi = 96;
 #endif
+
 #else
     _dpi = 96;
 #endif
@@ -67,7 +73,6 @@ void Application::run()
     }
 #elif defined(PLATFORM_LINUX)
     gtk_main();
-//    cairo_surface_destroy(_surface);
 #endif
 
 #else
@@ -126,8 +131,9 @@ void Application::createWindow(int width, int height)
 #elif defined(PLATFORM_LINUX)
     _window = reinterpret_cast<uintptr_t>(gtk_window_new(GTK_WINDOW_TOPLEVEL));
     gtk_window_set_title(GTK_WINDOW(_window), _title);
-    g_signal_connect(reinterpret_cast<GtkWidget*>(_window),
-        "destroy", G_CALLBACK(gtk_main_quit), nullptr);
+
+    g_signal_connect(reinterpret_cast<GtkWidget*>(_window), "realize", G_CALLBACK(realizeEventHandler), nullptr);
+    g_signal_connect(reinterpret_cast<GtkWidget*>(_window), "destroy", G_CALLBACK(destroyEventHandler), nullptr);
 
     _drawingArea = gtk_drawing_area_new();
     gtk_container_add(GTK_CONTAINER(_window), _drawingArea);
@@ -135,9 +141,12 @@ void Application::createWindow(int width, int height)
     g_signal_connect(_drawingArea, "draw", G_CALLBACK(drawEventHandler), nullptr);
     g_signal_connect(_drawingArea, "configure-event", G_CALLBACK(configureEventHandler), nullptr);
     g_signal_connect(_drawingArea, "button-press-event", G_CALLBACK(buttonPressEventHandler), nullptr);
+    g_signal_connect(_drawingArea, "key-press-event", G_CALLBACK(keyPressEventHandler), nullptr);
 
     gtk_widget_set_events(_drawingArea,
-        gtk_widget_get_events(_drawingArea) | GDK_BUTTON_PRESS_MASK);
+        gtk_widget_get_events(_drawingArea) | GDK_BUTTON_PRESS_MASK | GDK_KEY_PRESS_MASK);
+
+    // can-focus
 
     if (width > 0 && height > 0)
         gtk_widget_set_size_request(reinterpret_cast<GtkWidget*>(_window), width, height);
@@ -472,15 +481,34 @@ static void clearSurface(cairo_surface_t* surface)
     cairo_destroy(cr);
 }
 
-gboolean Application::drawEventHandler(GtkWidget* widget, cairo_t* cr, gpointer data)
+void Application::realizeEventHandler(GtkWidget* widget, gpointer data)
 {
-    cairo_set_source_surface(cr, _application->_surface, 0, 0);
-    cairo_paint(cr);
-    return FALSE;
 }
 
-gboolean Application::configureEventHandler(GtkWidget* widget, GdkEventConfigure* event, gpointer data)
+void Application::destroyEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data)
 {
+    if (_application->_surface)
+        cairo_surface_destroy(_application->_surface);
+
+    gtk_main_quit();
+}
+
+gboolean Application::drawEventHandler(GtkWidget* widget, cairo_t* cr, gpointer data)
+{
+    if (_application->_surface)
+    {
+        cairo_set_source_surface(cr, _application->_surface, 0, 0);
+        cairo_paint(cr);
+    }
+
+    return TRUE;
+}
+
+gboolean Application::configureEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data)
+{
+    if (_application->_surface)
+        cairo_surface_destroy(_application->_surface);
+
     _application->_surface = gdk_window_create_similar_surface(gtk_widget_get_window(widget), CAIRO_CONTENT_COLOR,
         gtk_widget_get_allocated_width(widget), gtk_widget_get_allocated_height(widget));
 
@@ -509,6 +537,11 @@ gboolean Application::buttonPressEventHandler(GtkWidget* widget, GdkEventButton*
         return TRUE;
     }
 
+    return FALSE;
+}
+
+gboolean Application::keyPressEventHandler(GtkWidget* widget, GdkEventKey* event, gpointer data)
+{
     return FALSE;
 }
 
