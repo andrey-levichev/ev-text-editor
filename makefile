@@ -18,10 +18,7 @@ COMPILER_FLAGS += -Os
 endif
 
 ifeq ($(OS), Linux)
-
-COMPILER_FLAGS += -Wno-unused-but-set-variable -DGUI_MODE $(shell pkg-config --cflags gtk+-3.0)
-LINKER_FLAGS += -lrt $(shell pkg-config --libs gtk+-3.0)
-
+COMPILER_FLAGS += -Wno-unused-but-set-variable
 endif
 
 ifeq ($(TARGET), test)
@@ -39,6 +36,8 @@ OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
 
 else
 
+COMPILER_FLAGS += -DGUI_MODE $(shell pkg-config --cflags gtk+-3.0)
+LINKER_FLAGS += -lrt $(shell pkg-config --libs gtk+-3.0)
 EXE = $(BIN)/ev
 OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
 	$(BIN)/input.o $(BIN)/console.o $(BIN)/graphics.o $(BIN)/main.o

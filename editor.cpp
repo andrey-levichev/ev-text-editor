@@ -2272,7 +2272,6 @@ void Editor::onCreate()
         rgbColors[BACKGROUND_COLOR_BRIGHT_WHITE] = 0x000000;
     }
 #else
-    _brightBackground = Console::brightBackground();
     Console::getSize(_width, _height);
 
     Console::setLineMode(false);
