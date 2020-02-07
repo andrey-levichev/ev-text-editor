@@ -482,23 +482,17 @@ void Application::destroyEventHandler(GtkWidget* widget, GdkEvent* event, gpoint
 
 gboolean Application::drawEventHandler(GtkWidget* widget, cairo_t* cr, gpointer data)
 {
-    if (_application->_drawingOp == 1)
-    {
-        cairo_select_font_face(cr, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-        cairo_set_font_size(cr, 32);
-        cairo_set_source_rgb(cr, 0, 0, 1);
-        cairo_move_to(cr, 10, 50);
-        cairo_show_text(cr, "Linux sucks");
-    }
-    else if (_application->_drawingOp == 2)
-    {
-        cairo_set_source_rgb(cr, 0, 1, 0);
-        cairo_move_to(cr, 200, 50);
-        cairo_line_to(cr, 500, 500);
-        cairo_stroke(cr);
-    }
+    static int cnt = 0;
 
-    _application->_drawingOp = 0;
+    cairo_select_font_face(cr, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+    cairo_set_font_size(cr, 32);
+    cairo_set_source_rgb(cr, 0, 0, 1);
+    cairo_move_to(cr, 10, 50);
+
+    char text[15];
+    sprintf(text, "%d", ++cnt);
+    cairo_show_text(cr, text);
+
     return TRUE;
 }
 
@@ -511,14 +505,19 @@ gboolean Application::buttonPressEventHandler(GtkWidget* widget, GdkEventButton*
 {
     if (event->button == GDK_BUTTON_PRIMARY)
     {
-        _application->_drawingOp = 1;
-        gtk_widget_queue_draw(widget);
-        return TRUE;
-    }
-    else if (event->button == GDK_BUTTON_SECONDARY)
-    {
-        _application->_drawingOp = 2;
-        gtk_widget_queue_draw(widget);
+        GdkWindow* window = gtk_widget_get_parent_window(widget);
+        cairo_region_t* region = cairo_region_create();
+        GdkDrawingContext* context = gdk_window_begin_draw_frame(window, region);
+        cairo_t* cr = gdk_drawing_context_get_cairo_context(context);
+
+        cairo_set_source_rgb(cr, 0, 1, 0);
+        cairo_move_to(cr, 0, 0);
+        cairo_line_to(cr, 500, 200);
+        cairo_stroke(cr);
+
+        gdk_window_end_draw_frame(window, context);
+        cairo_region_destroy(region);
+
         return TRUE;
     }
 
