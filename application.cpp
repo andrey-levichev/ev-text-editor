@@ -471,69 +471,54 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
 #elif defined(PLATFORM_LINUX)
 
-static void clearSurface(cairo_surface_t* surface)
-{
-    cairo_t* cr = cairo_create(surface);
-
-    cairo_set_source_rgb(cr, 1, 1, 0.5);
-    cairo_paint(cr);
-
-    cairo_destroy(cr);
-}
-
 void Application::realizeEventHandler(GtkWidget* widget, gpointer data)
 {
 }
 
 void Application::destroyEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data)
 {
-    if (_application->_surface)
-        cairo_surface_destroy(_application->_surface);
-
     gtk_main_quit();
 }
 
 gboolean Application::drawEventHandler(GtkWidget* widget, cairo_t* cr, gpointer data)
 {
-    if (_application->_surface)
+    if (_application->_drawingOp == 1)
     {
-        cairo_set_source_surface(cr, _application->_surface, 0, 0);
-        cairo_paint(cr);
+        cairo_select_font_face(cr, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+        cairo_set_font_size(cr, 32);
+        cairo_set_source_rgb(cr, 0, 0, 1);
+        cairo_move_to(cr, 10, 50);
+        cairo_show_text(cr, "Linux sucks");
+    }
+    else if (_application->_drawingOp == 2)
+    {
+        cairo_set_source_rgb(cr, 0, 1, 0);
+        cairo_move_to(cr, 200, 50);
+        cairo_line_to(cr, 500, 500);
+        cairo_stroke(cr);
     }
 
+    _application->_drawingOp = 0;
     return TRUE;
 }
 
 gboolean Application::configureEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data)
 {
-    if (_application->_surface)
-        cairo_surface_destroy(_application->_surface);
-
-    _application->_surface = gdk_window_create_similar_surface(gtk_widget_get_window(widget), CAIRO_CONTENT_COLOR,
-        gtk_widget_get_allocated_width(widget), gtk_widget_get_allocated_height(widget));
-
-    clearSurface(_application->_surface);
-    return TRUE;
+    return FALSE;
 }
 
 gboolean Application::buttonPressEventHandler(GtkWidget* widget, GdkEventButton* event, gpointer data)
 {
     if (event->button == GDK_BUTTON_PRIMARY)
     {
-        cairo_t* cr = cairo_create(_application->_surface);
-        cairo_rectangle(cr, event->x - 3, event->y - 3, 6, 6);
-        cairo_fill(cr);
-        cairo_destroy(cr);
-
+        _application->_drawingOp = 1;
         gtk_widget_queue_draw(widget);
-
         return TRUE;
     }
     else if (event->button == GDK_BUTTON_SECONDARY)
     {
-        clearSurface(_application->_surface);
+        _application->_drawingOp = 2;
         gtk_widget_queue_draw(widget);
-
         return TRUE;
     }
 

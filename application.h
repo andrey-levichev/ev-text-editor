@@ -75,7 +75,7 @@ protected:
     static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 #elif defined(PLATFORM_LINUX)
     GtkWidget* _drawingArea = nullptr;
-    cairo_surface_t* _surface = nullptr;
+    int _drawingOp = 0;
 
     static void realizeEventHandler(GtkWidget* widget, gpointer data);
     static void destroyEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data);
