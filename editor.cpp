@@ -2290,7 +2290,7 @@ void Editor::onDestroy()
 #endif
 }
 
-void Editor::onPaint()
+void Editor::onPaint(uintptr_t context)
 {
     updateScreen(true);
 }
@@ -3704,7 +3704,7 @@ void Editor::readConfigFile(const String& filename)
 
 void run(const Array<String>& args)
 {
-    Editor app(args);
+    Application app(args);
 
     if (app.start())
         app.run();

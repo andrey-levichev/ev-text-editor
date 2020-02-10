@@ -214,6 +214,33 @@ void Application::destroyWindow()
         throw Exception(STR("window not created"));
 }
 
+void Application::onCreate()
+{
+    _graphics.create();
+}
+
+void Application::onDestroy()
+{
+    _graphics.reset();
+}
+
+void Application::onPaint(uintptr_t context)
+{
+    _graphics->beginDraw(context);
+    _graphics->clear();
+    _graphics->fillRoundedRectangle({ 100, 100, 500, 200 }, 0xff0000, 10);
+    _graphics->endDraw();
+}
+
+void Application::onResize(int width, int height)
+{
+    _graphics->resize(width, height);
+}
+
+void Application::onInput(const Array<InputEvent>& inputEvents)
+{
+}
+
 #ifdef GUI_MODE
 
 #if defined(PLATFORM_WINDOWS)
@@ -473,54 +500,29 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
 
 void Application::realizeEventHandler(GtkWidget* widget, gpointer data)
 {
+    _application->onCreate();
 }
 
 void Application::destroyEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data)
 {
     gtk_main_quit();
+    _application->onDestroy();
 }
 
 gboolean Application::drawEventHandler(GtkWidget* widget, cairo_t* cr, gpointer data)
 {
-    static int cnt = 0;
-
-    cairo_select_font_face(cr, "serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size(cr, 32);
-    cairo_set_source_rgb(cr, 0, 0, 1);
-    cairo_move_to(cr, 10, 50);
-
-    char text[15];
-    sprintf(text, "%d", ++cnt);
-    cairo_show_text(cr, text);
-
+    _application->onPaint(reinterpret_cast<uintptr_t>(cr));
     return TRUE;
 }
 
 gboolean Application::configureEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data)
 {
-    return FALSE;
+    _application->onResize(gtk_widget_get_allocated_width(widget), gtk_widget_get_allocated_height(widget));
+    return TRUE;
 }
 
 gboolean Application::buttonPressEventHandler(GtkWidget* widget, GdkEventButton* event, gpointer data)
 {
-    if (event->button == GDK_BUTTON_PRIMARY)
-    {
-        GdkWindow* window = gtk_widget_get_parent_window(widget);
-        cairo_region_t* region = cairo_region_create();
-        GdkDrawingContext* context = gdk_window_begin_draw_frame(window, region);
-        cairo_t* cr = gdk_drawing_context_get_cairo_context(context);
-
-        cairo_set_source_rgb(cr, 0, 1, 0);
-        cairo_move_to(cr, 0, 0);
-        cairo_line_to(cr, 500, 200);
-        cairo_stroke(cr);
-
-        gdk_window_end_draw_frame(window, context);
-        cairo_region_destroy(region);
-
-        return TRUE;
-    }
-
     return FALSE;
 }
 

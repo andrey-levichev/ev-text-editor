@@ -141,6 +141,12 @@
 #include <fcntl.h>
 #include <conio.h>
 
+#ifdef GUI_MODE
+#include <d2d1.h>
+#include <dwrite.h>
+#include <wincodec.h>
+#endif
+
 #undef min
 #undef max
 

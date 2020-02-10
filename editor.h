@@ -423,7 +423,7 @@ public:
 protected:
     void onCreate() override;
     void onDestroy() override;
-    void onPaint() override;
+    void onPaint(uintptr_t context) override;
     void onResize(int width, int height) override;
     void onInput(const Array<InputEvent>& inputEvents) override;
 

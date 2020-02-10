@@ -183,112 +183,202 @@ Graphics::Graphics(uintptr_t window)
 {
 }
 
-void Graphics::beginDraw()
+void Graphics::beginDraw(uintptr_t context)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     _renderTarget->BeginDraw();
     _renderTarget->SetTransform(D2D1::IdentityMatrix());
+#elif defined(PLATFORM_LINUX)
+    _context = context;
 #endif
 }
 
 void Graphics::endDraw()
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     ASSERT_COM_SUCCEEDED(_renderTarget->EndDraw());
+#elif defined(PLATFORM_LINUX)
+    _context = 0;
 #endif
 }
 
 void Graphics::clear(Color color)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     _renderTarget->Clear(D2D1::ColorF(color));
+#elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+    cairo_paint(reinterpret_cast<cairo_t*>(_context));
 #endif
 }
 
 void Graphics::drawLine(const Point& p1, const Point& p2, Color color, float width)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ p1.x, p1.y }, { p2.x, p2.y }, brush, width);
+#elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_move_to(cr, p1.x, p1.y);
+    cairo_line_to(cr, p2.x, p2.y);
+    cairo_set_line_width(cr, width);
+    cairo_stroke(cr);
 #endif
 }
 
 void Graphics::drawHorizontalLine(float y, float x1, float x2, Color color, float width)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ x1, y }, { x2, y }, brush, width);
+#elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_move_to(cr, x1, y);
+    cairo_line_to(cr, x2, y);
+    cairo_set_line_width(cr, width);
+    cairo_stroke(cr);
 #endif
 }
 
 void Graphics::drawVerticalLine(float x, float y1, float y2, Color color, float width)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawLine({ x, y1 }, { x, y2 }, brush, width);
+#elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_move_to(cr, x, y1);
+    cairo_line_to(cr, x, y2);
+    cairo_set_line_width(cr, width);
+    cairo_stroke(cr);
 #endif
 }
 
 void Graphics::drawRectangle(const Rect& rect, Color color, float borderWidth)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush, borderWidth);
+#elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_rectangle(cr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+    cairo_set_line_width(cr, borderWidth);
+    cairo_stroke(cr);
 #endif
 }
 
 void Graphics::drawRoundedRectangle(const Rect& rect, Color color, float cornerRadius, float borderWidth)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawRoundedRectangle(
         { { rect.left, rect.top, rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush, borderWidth);
+#elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    double x = rect.left, y = rect.top;
+    double width = rect.right - rect.left;
+    double height = rect.bottom - rect.top;
+    double radius = cornerRadius, degrees = M_PI / 180.0;
+
+    cairo_new_sub_path(cr);
+    cairo_arc(cr, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
+    cairo_arc(cr, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
+    cairo_arc(cr, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
+    cairo_arc(cr, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
+    cairo_close_path(cr);
+
+    cairo_set_line_width(cr, borderWidth);
+    cairo_stroke(cr);
 #endif
 }
 
 void Graphics::fillRectangle(const Rect& rect, Color color)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->FillRectangle({ rect.left, rect.top, rect.right, rect.bottom }, brush);
+#elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_rectangle(cr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+    cairo_fill(cr);
 #endif
 }
 
 void Graphics::fillRoundedRectangle(const Rect& rect, Color color, float cornerRadius)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->FillRoundedRectangle(
         { { rect.left, rect.top, rect.right, rect.bottom }, cornerRadius, cornerRadius }, brush);
+#elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    double x = rect.left, y = rect.top;
+    double width = rect.right - rect.left;
+    double height = rect.bottom - rect.top;
+    double radius = cornerRadius, degrees = M_PI / 180.0;
+
+    cairo_new_sub_path(cr);
+    cairo_arc(cr, x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
+    cairo_arc(cr, x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
+    cairo_arc(cr, x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
+    cairo_arc(cr, x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
+    cairo_close_path(cr);
+
+    cairo_fill(cr);
 #endif
 }
 
 void Graphics::setAntialias(bool on)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     _renderTarget->SetAntialiasMode(on ? D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE_ALIASED);
+#elif defined(PLATFORM_LINUX)
 #endif
 }
 
 void Graphics::setClip(const Rect& rect)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     _renderTarget->PushAxisAlignedClip(
         { rect.left, rect.top, rect.right, rect.bottom }, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+#elif defined(PLATFORM_LINUX)
 #endif
 }
 
 void Graphics::cancelClip()
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     _renderTarget->PopAxisAlignedClip();
+#elif defined(PLATFORM_LINUX)
 #endif
 }
 
 void Graphics::drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color,
                         TextAlignment textAlignment, ParagraphAlignment paragraphAlignment, bool bold, bool wordWrap)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     __TextFormat textFormat(_textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
                             DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize);
@@ -300,20 +390,22 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
                             { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,
                             DWRITE_MEASURING_MODE_NATURAL);
+#elif defined(PLATFORM_LINUX)
 #endif
 }
 
 void Graphics::drawText(const TextBlock& textBlock, const Point& pos, Color color)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawTextLayout({ pos.x, pos.y }, textBlock._textLayout, brush);
+#elif defined(PLATFORM_LINUX)
 #endif
 }
 
 void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     D2D1_RECT_F rect;
 
     if (size)
@@ -325,22 +417,36 @@ void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
     }
 
     _renderTarget->DrawBitmap(image._bitmap, rect);
+#elif defined(PLATFORM_LINUX)
 #endif
 }
 
 void Graphics::resize(int width, int height)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     ASSERT_COM_SUCCEEDED(_renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height) }));
+#elif defined(PLATFORM_LINUX)
 #endif
 }
 
 Size Graphics::size() const
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     D2D1_SIZE_F size = _renderTarget->GetSize();
     return { size.width, size.height };
+#elif defined(PLATFORM_LINUX)
+    return Size();
 #else
     return Size();
 #endif
 }
+
+#ifdef PLATFORM_LINUX
+
+void Graphics::cairoSetColor(Color color)
+{
+    cairo_set_source_rgb(reinterpret_cast<cairo_t*>(_context),
+        ((color & 0xff0000) >> 16) / 255.0, ((color & 0xff00) >> 8) / 255.0, (color & 0xff) / 255.0);
+}
+
+#endif

@@ -1,3 +1,6 @@
+bugs:
+* screen gets cleared when executing run command on Linux
+
 editor likely:
 * graphical user interface for linux and macos
 * open files over network

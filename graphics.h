@@ -52,10 +52,6 @@ enum ParagraphAlignment
 
 #ifdef PLATFORM_WINDOWS
 
-#include <d2d1.h>
-#include <dwrite.h>
-#include <wincodec.h>
-
 // __ComPtr
 
 template<typename _Interface>
@@ -273,9 +269,9 @@ private:
 class Graphics
 {
 public:
-    Graphics(uintptr_t window);
+    Graphics(uintptr_t window = 0);
 
-    void beginDraw();
+    void beginDraw(uintptr_t context = 0);
     void endDraw();
     void clear(Color color = 0xffffff);
 
@@ -324,13 +320,21 @@ public:
     void resize(int width, int height);
     Size size() const;
 
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
 
 private:
     __DrawingFactory _drawingFactory;
     __ImagingFactory _imagingFactory;
     __TextFactory _textFactory;
     __RenderTarget _renderTarget;
+
+#elif defined(PLATFORM_LINUX)
+
+private:
+    void cairoSetColor(Color color);
+
+private:
+    uintptr_t _context = 0;
 
 #endif
 };

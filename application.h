@@ -3,6 +3,7 @@
 
 #include <foundation.h>
 #include <input.h>
+#include <graphics.h>
 
 // Application
 
@@ -39,25 +40,11 @@ protected:
     void resizeWindow(int width, int height);
     void destroyWindow();
 
-    virtual void onCreate()
-    {
-    }
-
-    virtual void onDestroy()
-    {
-    }
-
-    virtual void onPaint()
-    {
-    }
-
-    virtual void onResize(int width, int height)
-    {
-    }
-
-    virtual void onInput(const Array<InputEvent>& inputEvents)
-    {
-    }
+    virtual void onCreate();
+    virtual void onDestroy();
+    virtual void onPaint(uintptr_t context = 0);
+    virtual void onResize(int width, int height);
+    virtual void onInput(const Array<InputEvent>& inputEvents);
 
 protected:
     Array<String> _args;
@@ -75,7 +62,7 @@ protected:
     static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 #elif defined(PLATFORM_LINUX)
     GtkWidget* _drawingArea = nullptr;
-    int _drawingOp = 0;
+    Unique<Graphics> _graphics;
 
     static void realizeEventHandler(GtkWidget* widget, gpointer data);
     static void destroyEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data);
