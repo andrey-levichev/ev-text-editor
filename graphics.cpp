@@ -355,6 +355,9 @@ void Graphics::setAntialias(bool on)
 #if defined(PLATFORM_WINDOWS)
     _renderTarget->SetAntialiasMode(on ? D2D1_ANTIALIAS_MODE_PER_PRIMITIVE : D2D1_ANTIALIAS_MODE_ALIASED);
 #elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairo_set_antialias(reinterpret_cast<cairo_t*>(_context),
+        on ? CAIRO_ANTIALIAS_DEFAULT : CAIRO_ANTIALIAS_NONE);
 #endif
 }
 
@@ -364,6 +367,10 @@ void Graphics::setClip(const Rect& rect)
     _renderTarget->PushAxisAlignedClip(
         { rect.left, rect.top, rect.right, rect.bottom }, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 #elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_rectangle(cr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
+    cairo_clip(cr);
 #endif
 }
 
@@ -372,6 +379,8 @@ void Graphics::cancelClip()
 #if defined(PLATFORM_WINDOWS)
     _renderTarget->PopAxisAlignedClip();
 #elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairo_reset_clip(reinterpret_cast<cairo_t*>(_context));
 #endif
 }
 
@@ -391,6 +400,16 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
                             { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,
                             DWRITE_MEASURING_MODE_NATURAL);
 #elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_select_font_face(cr, font.chars(), CAIRO_FONT_SLANT_NORMAL,
+        bold ? CAIRO_FONT_WEIGHT_BOLD : CAIRO_FONT_WEIGHT_NORMAL);
+    cairo_set_font_size(cr, fontSize);
+
+    cairo_move_to(cr, rect.left, rect.top);
+    cairo_show_text(cr, text.chars());
 #endif
 }
 
@@ -418,6 +437,10 @@ void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
 
     _renderTarget->DrawBitmap(image._bitmap, rect);
 #elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_set_source_surface(cr, image._image, pos.x, pos.y);
+    cairo_paint(cr);
 #endif
 }
 

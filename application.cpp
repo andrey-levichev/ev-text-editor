@@ -228,7 +228,10 @@ void Application::onPaint(uintptr_t context)
 {
     _graphics->beginDraw(context);
     _graphics->clear();
-    _graphics->fillRoundedRectangle({ 100, 100, 500, 200 }, 0xff0000, 10);
+
+    auto image = _graphics->createImage(STR("docs/ev_win.png"));
+    _graphics->drawImage(image, { 10, 10 });
+
     _graphics->endDraw();
 }
 

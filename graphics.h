@@ -243,9 +243,9 @@ class Image
 public:
     Size size() const;
 
-private:
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
 
+private:
     Image(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName) :
         _bitmap(renderTarget, imagingFactory, fileName)
     {
@@ -253,8 +253,25 @@ private:
 
     __Bitmap _bitmap;
 
+#elif defined(PLATFORM_LINUX)
+
+private:
+    Image(const String& fileName)
+    {
+        _image = cairo_image_surface_create_from_png(fileName.chars());
+    }
+
+    cairo_surface_t* _image;
+
+public:
+    ~Image()
+    {
+        cairo_surface_destroy(_image);
+    }
+
 #else
 
+private:
     Image()
     {
     }
@@ -313,7 +330,7 @@ public:
 #ifdef PLATFORM_WINDOWS
         return Image(_renderTarget, _imagingFactory, fileName);
 #else
-        return Image();
+        return Image(fileName);
 #endif
     }
 
