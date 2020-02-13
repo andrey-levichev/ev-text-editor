@@ -422,13 +422,13 @@ void Graphics::drawText(const TextBlock& textBlock, const Point& pos, Color colo
 #endif
 }
 
-void Graphics::drawImage(const Image& image, const Point& pos, const Size* size)
+void Graphics::drawImage(const Image& image, const Point& pos, const Size& size)
 {
 #if defined(PLATFORM_WINDOWS)
     D2D1_RECT_F rect;
 
-    if (size)
-        rect = { pos.x, pos.y, pos.x + size->width, pos.y + size->height };
+    if (size.width > 0 && size.height > 0)
+        rect = { pos.x, pos.y, pos.x + size.width, pos.y + size.height };
     else
     {
         D2D1_SIZE_F size = image._bitmap->GetSize();

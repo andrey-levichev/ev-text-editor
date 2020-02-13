@@ -57,6 +57,7 @@ protected:
 #ifdef GUI_MODE
 
     Unique<Graphics> _graphics;
+    Unique<Image> _image;
 
 #if defined(PLATFORM_WINDOWS)
     static const char_t* WINDOW_CLASS;

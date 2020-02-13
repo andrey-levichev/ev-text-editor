@@ -217,10 +217,12 @@ void Application::destroyWindow()
 void Application::onCreate()
 {
     _graphics.create(_window);
+    _image = createUnique<Image>(_graphics->createImage(STR("docs\\ev_win.png")));
 }
 
 void Application::onDestroy()
 {
+    _image.reset();
     _graphics.reset();
 }
 
@@ -230,7 +232,7 @@ void Application::onPaint(uintptr_t context)
     _graphics->clear();
 
     Size size = _graphics->size();
-    _graphics->drawRectangle({ 0, 0, size.width, size.height }, 0x0000ff);
+    _graphics->drawImage(_image, { 0, 0 }, { size.width, size.height });
 
     _graphics->endDraw();
 }

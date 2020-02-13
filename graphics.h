@@ -339,7 +339,7 @@ public:
 #endif
     }
 
-    void drawImage(const Image& image, const Point& pos, const Size* size = nullptr);
+    void drawImage(const Image& image, const Point& pos, const Size& size = Size());
 
     Image createImage(const String& fileName)
     {
