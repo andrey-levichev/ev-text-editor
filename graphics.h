@@ -63,6 +63,11 @@ public:
         _ptr->AddRef();
     }
 
+    __ComPtr(__ComPtr<_Interface>&& other) : _ptr(other._ptr)
+    {
+        other._ptr = nullptr;
+    }
+
     ~__ComPtr()
     {
         if (_ptr)
@@ -80,9 +85,15 @@ public:
         return *this;
     }
 
-    operator _Interface*() const
+    __ComPtr& operator=(__ComPtr&& other)
     {
-        return _ptr;
+        if (_ptr)
+            _ptr->Release();
+
+        _ptr = other._ptr;
+        other._ptr = nullptr;
+
+        return *this;
     }
 
     _Interface* operator->() const
@@ -352,6 +363,7 @@ private:
 
 private:
     uintptr_t _context = 0;
+    Size _size;
 
 #endif
 };

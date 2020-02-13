@@ -229,8 +229,8 @@ void Application::onPaint(uintptr_t context)
     _graphics->beginDraw(context);
     _graphics->clear();
 
-    auto image = _graphics->createImage(STR("docs/ev_win.png"));
-    _graphics->drawImage(image, { 10, 10 });
+    Size size = _graphics->size();
+    _graphics->drawRectangle({ 0, 0, size.width, size.height }, 0x0000ff);
 
     _graphics->endDraw();
 }

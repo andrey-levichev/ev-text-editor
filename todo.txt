@@ -1,6 +1,12 @@
 bugs:
 * screen gets cleared when executing run command on Linux
 
+cairo:
+* copy/move operations for image
+* image scaling
+* review memory management for graphics
+* floating point color
+
 editor likely:
 * graphical user interface for linux and macos
 * open files over network

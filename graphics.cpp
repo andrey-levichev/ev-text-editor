@@ -449,6 +449,8 @@ void Graphics::resize(int width, int height)
 #if defined(PLATFORM_WINDOWS)
     ASSERT_COM_SUCCEEDED(_renderTarget->Resize({ static_cast<UINT32>(width), static_cast<UINT32>(height) }));
 #elif defined(PLATFORM_LINUX)
+    _size.width = width;
+    _size.height = height;
 #endif
 }
 
@@ -458,7 +460,7 @@ Size Graphics::size() const
     D2D1_SIZE_F size = _renderTarget->GetSize();
     return { size.width, size.height };
 #elif defined(PLATFORM_LINUX)
-    return Size();
+    return _size;
 #else
     return Size();
 #endif
