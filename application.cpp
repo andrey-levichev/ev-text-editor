@@ -216,7 +216,7 @@ void Application::destroyWindow()
 
 void Application::onCreate()
 {
-    _graphics.create();
+    _graphics.create(_window);
 }
 
 void Application::onDestroy()

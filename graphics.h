@@ -96,6 +96,11 @@ public:
         return *this;
     }
 
+    operator _Interface*() const
+    {
+        return _ptr;
+    }
+
     _Interface* operator->() const
     {
         return _ptr;

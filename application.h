@@ -56,13 +56,14 @@ protected:
 
 #ifdef GUI_MODE
 
+    Unique<Graphics> _graphics;
+
 #if defined(PLATFORM_WINDOWS)
     static const char_t* WINDOW_CLASS;
 
     static LRESULT CALLBACK windowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 #elif defined(PLATFORM_LINUX)
     GtkWidget* _drawingArea = nullptr;
-    Unique<Graphics> _graphics;
 
     static void realizeEventHandler(GtkWidget* widget, gpointer data);
     static void destroyEventHandler(GtkWidget* widget, GdkEvent* event, gpointer data);
