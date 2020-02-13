@@ -167,9 +167,12 @@ void TextBlock::wordWrap(bool wrap)
 
 Size Image::size() const
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     D2D1_SIZE_F size = _bitmap->GetSize();
     return { size.width, size.height };
+#elif defined(PLATFORM_LINUX)
+    return { static_cast<float>(cairo_image_surface_get_width(_image)),
+        static_cast<float>(cairo_image_surface_get_height(_image)) };
 #else
     return Size();
 #endif
@@ -369,18 +372,20 @@ void Graphics::setClip(const Rect& rect)
 #elif defined(PLATFORM_LINUX)
     ASSERT(_context);
     cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+
+    cairo_save(cr);
     cairo_rectangle(cr, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top);
     cairo_clip(cr);
 #endif
 }
 
-void Graphics::cancelClip()
+void Graphics::resetClip()
 {
 #if defined(PLATFORM_WINDOWS)
     _renderTarget->PopAxisAlignedClip();
 #elif defined(PLATFORM_LINUX)
     ASSERT(_context);
-    cairo_reset_clip(reinterpret_cast<cairo_t*>(_context));
+    cairo_restore(reinterpret_cast<cairo_t*>(_context));
 #endif
 }
 
@@ -404,12 +409,24 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
     cairoSetColor(color);
 
     cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
-    cairo_select_font_face(cr, font.chars(), CAIRO_FONT_SLANT_NORMAL,
-        bold ? CAIRO_FONT_WEIGHT_BOLD : CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, fontSize);
+
+    PangoFontDescription* fd = pango_font_description_new();
+    pango_font_description_set_family(fd, font.chars());
+    pango_font_description_set_weight(fd, bold ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL);
+    pango_font_description_set_absolute_size(fd, fontSize * PANGO_SCALE);
+
+    PangoLayout* layout = pango_cairo_create_layout(cr);
+    pango_layout_set_font_description(layout, fd);
+    pango_layout_set_text(layout, text.chars(), -1);
+    pango_layout_set_width(layout, PANGO_SCALE * (rect.right - rect.left));
+    pango_layout_set_height(layout, PANGO_SCALE * (rect.bottom - rect.top));
+//    pango_layout_set_wrap(layout, PANGO_WRAP_WORD);
 
     cairo_move_to(cr, rect.left, rect.top);
-    cairo_show_text(cr, text.chars());
+    pango_cairo_show_layout(cr, layout);
+
+    g_object_unref(layout);
+    pango_font_description_free(fd);
 #endif
 }
 
@@ -431,14 +448,21 @@ void Graphics::drawImage(const Image& image, const Point& pos, const Size& size)
         rect = { pos.x, pos.y, pos.x + size.width, pos.y + size.height };
     else
     {
-        D2D1_SIZE_F size = image._bitmap->GetSize();
-        rect = { pos.x, pos.y, pos.x + size.width, pos.y + size.height };
+        Size imgSize = image.size();
+        rect = { pos.x, pos.y, pos.x + imgSize.width, pos.y + imgSize.height };
     }
 
     _renderTarget->DrawBitmap(image._bitmap, rect);
 #elif defined(PLATFORM_LINUX)
     ASSERT(_context);
     cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+
+    if (size.width > 0 && size.height > 0)
+    {
+        Size imgSize = image.size();
+        cairo_scale(cr, size.width / imgSize.width, size.height / imgSize.height);
+    }
+
     cairo_set_source_surface(cr, image._image, pos.x, pos.y);
     cairo_paint(cr);
 #endif

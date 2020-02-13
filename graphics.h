@@ -277,9 +277,14 @@ private:
         _image = cairo_image_surface_create_from_png(fileName.chars());
     }
 
-    cairo_surface_t* _image;
+    cairo_surface_t* _image = nullptr;
 
 public:
+    Image(const Image& other)
+    {
+        _image = cairo_surface_reference(other._image);
+    }
+
     ~Image()
     {
         cairo_surface_destroy(_image);
@@ -320,7 +325,7 @@ public:
 
     void setAntialias(bool on);
     void setClip(const Rect& rect);
-    void cancelClip();
+    void resetClip();
 
     void drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color = 0,
                   TextAlignment textAlignment = TEXT_ALIGNMENT_LEFT,

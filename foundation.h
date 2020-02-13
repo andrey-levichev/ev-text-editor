@@ -166,6 +166,7 @@
 #ifdef PLATFORM_LINUX
 #ifdef GUI_MODE
 #include <gtk/gtk.h>
+#include <pango/pangocairo.h>
 #endif
 #endif
 

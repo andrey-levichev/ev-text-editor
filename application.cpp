@@ -53,7 +53,7 @@ Application::~Application()
 
 void Application::run()
 {
-    createWindow();
+    createWindow(800, 800);
     showWindow();
 
 #ifdef GUI_MODE
@@ -217,12 +217,10 @@ void Application::destroyWindow()
 void Application::onCreate()
 {
     _graphics.create(_window);
-    _image = createUnique<Image>(_graphics->createImage(STR("docs\\ev_win.png")));
 }
 
 void Application::onDestroy()
 {
-    _image.reset();
     _graphics.reset();
 }
 
@@ -231,8 +229,11 @@ void Application::onPaint(uintptr_t context)
     _graphics->beginDraw(context);
     _graphics->clear();
 
-    Size size = _graphics->size();
-    _graphics->drawImage(_image, { 0, 0 }, { size.width, size.height });
+    Rect rect = { 100, 100, 400, 150 };
+    _graphics->fillRectangle(rect, 0xffeeff);
+    _graphics->drawText(STR("Source Code Pro"), 20,
+        STR("Cairo sucks. People who use it are idiots. "
+            "Pango is poorly documented buggy piece of crap."), rect);
 
     _graphics->endDraw();
 }
