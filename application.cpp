@@ -229,11 +229,13 @@ void Application::onPaint(uintptr_t context)
     _graphics->beginDraw(context);
     _graphics->clear();
 
-    Rect rect = { 100, 100, 400, 150 };
-    _graphics->fillRectangle(rect, 0xffeeff);
-    _graphics->drawText(STR("Source Code Pro"), 20,
+    auto tb = _graphics->createTextBlock(STR("Source Code Pro"), 20,
         STR("Cairo sucks. People who use it are idiots. "
-            "Pango is poorly documented buggy piece of crap."), rect);
+            "Pango is poorly documented buggy piece of crap."), { 300, 60 });
+
+    Rect rect = { 100, 100, 400, 400 };
+    _graphics->fillRectangle(rect, 0xffeeff);
+    _graphics->drawText(tb, { 100, 100 });
 
     _graphics->endDraw();
 }

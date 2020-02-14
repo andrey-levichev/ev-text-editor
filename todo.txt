@@ -3,11 +3,13 @@ bugs:
 * run build command before run?
 
 cairo:
-* review memory management for graphics
+* check memory management for graphics
+* font creation during text drawing may be slow
 * floating point color
-* text block
 * keyboard and mouse input
-* measure text drawing performance
+* vertical text alignment
+* ellipsis on windows
+* class name comments
 
 editor likely:
 * graphical user interface for linux and macos

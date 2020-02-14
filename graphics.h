@@ -194,10 +194,10 @@ public:
 
 // __BitmapFrameDecode
 
-class __BitmapFrameDecode : public __ComPtr<IWICBitmapFrameDecode>
+class __BitmapFrameDecoder : public __ComPtr<IWICBitmapFrameDecode>
 {
 public:
-    __BitmapFrameDecode(__BitmapDecoder& decoder);
+    __BitmapFrameDecoder(__BitmapDecoder& decoder);
 };
 
 // __FormatConverter
@@ -226,23 +226,50 @@ public:
     Size size() const;
     void textAlignment(TextAlignment alignment);
     void paragraphAlignment(ParagraphAlignment alignment);
-    void wordWrap(bool wrap);
+
+#if defined(PLATFORM_WINDOWS)
 
 private:
-#ifdef PLATFORM_WINDOWS
-
-    TextBlock(__TextFactory& textFactory, const String& font, float fontSize, bool bold, const String& text, const Size& size) :
-        _textFormat(textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
-                    DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize),
-        _textLayout(textFactory, text, _textFormat, size.width, size.height)
-    {
-    }
+    TextBlock(__TextFactory& textFactory, const String& font,
+        float fontSize, bool bold, const String& text, const Size& size, bool wrap);
 
     __TextFormat _textFormat;
     __TextLayout _textLayout;
 
+#elif defined(PLATFORM_LINUX)
+
+private:
+    TextBlock(cairo_t* cr, const String& font,
+        float fontSize, bool bold, const String& text, const Size& size, bool wrap);
+
+    PangoFontDescription* _fontDesc;
+    PangoLayout* _layout;
+
+public:
+    TextBlock(const TextBlock& other)
+    {
+        _fontDesc = pango_font_description_copy(other._fontDesc);
+        _layout = pango_layout_copy(other._layout);
+    }
+
+    TextBlock& operator=(const TextBlock& other)
+    {
+        if (_fontDesc)
+            pango_font_description_free(_fontDesc);
+
+        if (_layout)
+            g_object_unref(_layout);
+
+        _fontDesc = pango_font_description_copy(other._fontDesc);
+        _layout = pango_layout_copy(other._layout);
+        return *this;
+    }
+
+    ~TextBlock();
+
 #else
 
+private:
     TextBlock()
     {
     }
@@ -283,6 +310,15 @@ public:
     Image(const Image& other)
     {
         _image = cairo_surface_reference(other._image);
+    }
+
+    Image& operator=(const Image& other)
+    {
+        if (_image)
+            cairo_surface_destroy(_image);
+
+        _image = cairo_surface_reference(other._image);
+        return *this;
     }
 
     ~Image()
@@ -330,15 +366,18 @@ public:
     void drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color = 0,
                   TextAlignment textAlignment = TEXT_ALIGNMENT_LEFT,
                   ParagraphAlignment paragraphAlignment = PARAGRAPH_ALIGNMENT_TOP, bool bold = false,
-                  bool wordWrap = false);
+                  bool wrap = false);
 
     void drawText(const TextBlock& textBlock, const Point& pos, Color color = 0);
 
-    TextBlock createTextBlock(const String& font, float fontSize, bool bold,
-        const String& text, const Size& size)
+    TextBlock createTextBlock(const String& font, float fontSize,
+        const String& text, const Size& size, bool bold = false, bool wrap = true)
     {
-#ifdef PLATFORM_WINDOWS
-        return TextBlock(_textFactory, font, fontSize, bold, text, size);
+#if defined(PLATFORM_WINDOWS)
+        return TextBlock(_textFactory, font, fontSize, bold, text, size, wrap);
+#elif defined(PLATFORM_LINUX)
+        ASSERT(_context);
+        return TextBlock(reinterpret_cast<cairo_t*>(_context), font, fontSize, bold, text, size, wrap);
 #else
         return TextBlock();
 #endif

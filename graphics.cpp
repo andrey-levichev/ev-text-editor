@@ -2,10 +2,14 @@
 
 #ifdef PLATFORM_WINDOWS
 
+// __DrawingFactory
+
 __DrawingFactory::__DrawingFactory()
 {
     ASSERT_COM_SUCCEEDED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &_ptr));
 }
+
+// __RenderTarget
 
 __RenderTarget::__RenderTarget(__DrawingFactory& factory, HWND window)
 {
@@ -18,16 +22,22 @@ __RenderTarget::__RenderTarget(__DrawingFactory& factory, HWND window)
                                                          D2D1::HwndRenderTargetProperties(window, size), &_ptr));
 }
 
+// __SolidBrush
+
 __SolidBrush::__SolidBrush(__RenderTarget& renderTarget, const D2D1_COLOR_F& color)
 {
     ASSERT_COM_SUCCEEDED(renderTarget->CreateSolidColorBrush(color, &_ptr));
 }
+
+// __TextFactory
 
 __TextFactory::__TextFactory()
 {
     ASSERT_COM_SUCCEEDED(
         DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&_ptr)));
 }
+
+// __TextFormat
 
 __TextFormat::__TextFormat(__TextFactory& factory, const String& fontName, DWRITE_FONT_WEIGHT fontWeight,
                            DWRITE_FONT_STYLE fontStyle, DWRITE_FONT_STRETCH fontStretch, float fontSize)
@@ -87,16 +97,22 @@ void __TextFormat::wordWrap(bool wrap)
     ASSERT_COM_SUCCEEDED(_ptr->SetWordWrapping(wrap ? DWRITE_WORD_WRAPPING_WRAP : DWRITE_WORD_WRAPPING_NO_WRAP));
 }
 
+// __TextLayout
+
 __TextLayout::__TextLayout(__TextFactory& factory, const String& text, __TextFormat& textFormat, float width, float height)
 {
     ASSERT_COM_SUCCEEDED(factory->CreateTextLayout(reinterpret_cast<const WCHAR*>(text.chars()), text.length(),
                                                    textFormat, width, height, &_ptr));
 }
 
+// __EllipsisTrimmingSign
+
 __EllipsisTrimmingSign::__EllipsisTrimmingSign(__TextFactory& factory, __TextFormat& textFormat)
 {
     ASSERT_COM_SUCCEEDED(factory->CreateEllipsisTrimmingSign(textFormat, &_ptr));
 }
+
+// __ImagingFactory
 
 __ImagingFactory::__ImagingFactory()
 {
@@ -104,16 +120,22 @@ __ImagingFactory::__ImagingFactory()
                                           __uuidof(IWICImagingFactory), reinterpret_cast<void**>(&_ptr)));
 }
 
+// __BitmapDecoder
+
 __BitmapDecoder::__BitmapDecoder(__ImagingFactory& factory, const String& fileName)
 {
     ASSERT_COM_SUCCEEDED(factory->CreateDecoderFromFilename(reinterpret_cast<const WCHAR*>(fileName.chars()), nullptr,
                                                             GENERIC_READ, WICDecodeMetadataCacheOnLoad, &_ptr));
 }
 
-__BitmapFrameDecode::__BitmapFrameDecode(__BitmapDecoder& decoder)
+// __BitmapFrameDecoder
+
+__BitmapFrameDecoder::__BitmapFrameDecoder(__BitmapDecoder& decoder)
 {
     ASSERT_COM_SUCCEEDED(decoder->GetFrame(0, &_ptr));
 }
+
+// __FormatConverter
 
 __FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDecode& frame)
 {
@@ -121,6 +143,8 @@ __FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDec
     ASSERT_COM_SUCCEEDED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0,
                                           WICBitmapPaletteTypeMedianCut));
 }
+
+// __Bitmap
 
 __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName)
 {
@@ -133,12 +157,57 @@ __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactor
 
 #endif
 
+// TextBlock
+
+#if defined(PLATFORM_WINDOWS)
+
+TextBlock::TextBlock(__TextFactory& textFactory, const String& font,
+        float fontSize, bool bold, const String& text, const Size& size, bool wrap) :
+    _textFormat(textFactory, font.chars(), bold ? DWRITE_FONT_WEIGHT_BOLD : DWRITE_FONT_WEIGHT_REGULAR,
+                DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize),
+    _textLayout(textFactory, text, _textFormat, size.width, size.height)
+{
+    _textFormat.wordWrap(wrap);
+}
+
+#elif defined(PLATFORM_LINUX)
+
+TextBlock::TextBlock(cairo_t* cr, const String& font,
+    float fontSize, bool bold, const String& text, const Size& size, bool wrap)
+{
+    _fontDesc = pango_font_description_new();
+    pango_font_description_set_family(_fontDesc, font.chars());
+    pango_font_description_set_weight(_fontDesc, bold ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL);
+    pango_font_description_set_absolute_size(_fontDesc, fontSize * PANGO_SCALE);
+
+    _layout = pango_cairo_create_layout(cr);
+    pango_layout_set_font_description(_layout, _fontDesc);
+    pango_layout_set_text(_layout, text.chars(), -1);
+
+    pango_layout_set_ellipsize(_layout, PANGO_ELLIPSIZE_END);
+    pango_layout_set_width(_layout, PANGO_SCALE * size.width);
+    pango_layout_set_height(_layout, PANGO_SCALE * size.height);
+}
+
+TextBlock::~TextBlock()
+{
+    g_object_unref(_layout);
+    pango_font_description_free(_fontDesc);
+}
+
+#endif
+
 Size TextBlock::size() const
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     DWRITE_TEXT_METRICS textMetrics;
     ASSERT_COM_SUCCEEDED(_textLayout->GetMetrics(&textMetrics));
     return { textMetrics.width, textMetrics.height };
+#elif defined(PLATFORM_LINUX)
+    int width, height;
+
+    pango_layout_get_pixel_size(_layout, &width, &height);
+    return { static_cast<float>(width), static_cast<float>(height) };
 #else
     return Size();
 #endif
@@ -146,24 +215,39 @@ Size TextBlock::size() const
 
 void TextBlock::textAlignment(TextAlignment alignment)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     _textFormat.textAlignment(alignment);
+#elif defined(PLATFORM_LINUX)
+    switch (alignment)
+    {
+    case TEXT_ALIGNMENT_LEFT:
+        pango_layout_set_alignment(_layout, PANGO_ALIGN_LEFT);
+        break;
+
+    case TEXT_ALIGNMENT_RIGHT:
+        pango_layout_set_alignment(_layout, PANGO_ALIGN_RIGHT);
+        break;
+
+    case TEXT_ALIGNMENT_CENTER:
+        pango_layout_set_alignment(_layout, PANGO_ALIGN_CENTER);
+        break;
+
+    case TEXT_ALIGNMENT_JUSTIFIED:
+        pango_layout_set_justify(_layout, true);
+        break;
+    }
 #endif
 }
 
 void TextBlock::paragraphAlignment(ParagraphAlignment alignment)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS)
     _textFormat.paragraphAlignment(alignment);
+#elif defined(PLATFORM_LINUX)
 #endif
 }
 
-void TextBlock::wordWrap(bool wrap)
-{
-#ifdef PLATFORM_WINDOWS
-    _textFormat.wordWrap(wrap);
-#endif
-}
+// Image
 
 Size Image::size() const
 {
@@ -185,6 +269,8 @@ Graphics::Graphics(uintptr_t window)
 #endif
 {
 }
+
+// Graphics
 
 void Graphics::beginDraw(uintptr_t context)
 {
@@ -390,7 +476,7 @@ void Graphics::resetClip()
 }
 
 void Graphics::drawText(const String& font, float fontSize, const String& text, const Rect& rect, Color color,
-                        TextAlignment textAlignment, ParagraphAlignment paragraphAlignment, bool bold, bool wordWrap)
+                        TextAlignment textAlignment, ParagraphAlignment paragraphAlignment, bool bold, bool wrap)
 {
 #if defined(PLATFORM_WINDOWS)
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
@@ -399,7 +485,7 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
 
     textFormat.textAlignment(textAlignment);
     textFormat.paragraphAlignment(paragraphAlignment);
-    textFormat.wordWrap(wordWrap);
+    textFormat.wordWrap(wrap);
 
     _renderTarget->DrawText(reinterpret_cast<const WCHAR*>(text.chars()), text.length(), textFormat,
                             { rect.left, rect.top, rect.right, rect.bottom }, brush, D2D1_DRAW_TEXT_OPTIONS_CLIP,
@@ -410,23 +496,44 @@ void Graphics::drawText(const String& font, float fontSize, const String& text, 
 
     cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
 
-    PangoFontDescription* fd = pango_font_description_new();
-    pango_font_description_set_family(fd, font.chars());
-    pango_font_description_set_weight(fd, bold ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL);
-    pango_font_description_set_absolute_size(fd, fontSize * PANGO_SCALE);
+    PangoFontDescription* fontDesc = pango_font_description_new();
+    pango_font_description_set_family(fontDesc, font.chars());
+    pango_font_description_set_weight(fontDesc, bold ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL);
+    pango_font_description_set_absolute_size(fontDesc, fontSize * PANGO_SCALE);
 
     PangoLayout* layout = pango_cairo_create_layout(cr);
-    pango_layout_set_font_description(layout, fd);
+    pango_layout_set_font_description(layout, fontDesc);
     pango_layout_set_text(layout, text.chars(), -1);
+
+    pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
     pango_layout_set_width(layout, PANGO_SCALE * (rect.right - rect.left));
-    pango_layout_set_height(layout, PANGO_SCALE * (rect.bottom - rect.top));
-//    pango_layout_set_wrap(layout, PANGO_WRAP_WORD);
+    if (wrap)
+        pango_layout_set_height(layout, PANGO_SCALE * (rect.bottom - rect.top));
+
+    switch (textAlignment)
+    {
+    case TEXT_ALIGNMENT_LEFT:
+        pango_layout_set_alignment(layout, PANGO_ALIGN_LEFT);
+        break;
+
+    case TEXT_ALIGNMENT_RIGHT:
+        pango_layout_set_alignment(layout, PANGO_ALIGN_RIGHT);
+        break;
+
+    case TEXT_ALIGNMENT_CENTER:
+        pango_layout_set_alignment(layout, PANGO_ALIGN_CENTER);
+        break;
+
+    case TEXT_ALIGNMENT_JUSTIFIED:
+        pango_layout_set_justify(layout, true);
+        break;
+    }
 
     cairo_move_to(cr, rect.left, rect.top);
     pango_cairo_show_layout(cr, layout);
 
     g_object_unref(layout);
-    pango_font_description_free(fd);
+    pango_font_description_free(fontDesc);
 #endif
 }
 
@@ -436,6 +543,12 @@ void Graphics::drawText(const TextBlock& textBlock, const Point& pos, Color colo
     __SolidBrush brush(_renderTarget, D2D1::ColorF(color));
     _renderTarget->DrawTextLayout({ pos.x, pos.y }, textBlock._textLayout, brush);
 #elif defined(PLATFORM_LINUX)
+    ASSERT(_context);
+    cairoSetColor(color);
+
+    cairo_t* cr = reinterpret_cast<cairo_t*>(_context);
+    cairo_move_to(cr, pos.x, pos.y);
+    pango_cairo_show_layout(cr, textBlock._layout);
 #endif
 }
 

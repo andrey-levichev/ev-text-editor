@@ -2834,7 +2834,7 @@ void Editor::measureCharSize()
 {
 #ifdef GUI_MODE
     TextBlock textBlock = _graphics->createTextBlock(_guiFontName,
-        _guiFontSize, false, STR("w"), { _guiFontSize, _guiFontSize });
+        _guiFontSize, STR("w"), { _guiFontSize, _guiFontSize });
     Size size = textBlock.size();
 
     _charWidth = size.width;
