@@ -137,7 +137,7 @@ __BitmapFrameDecoder::__BitmapFrameDecoder(__BitmapDecoder& decoder)
 
 // __FormatConverter
 
-__FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDecode& frame)
+__FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDecoder& frame)
 {
     ASSERT_COM_SUCCEEDED(factory->CreateFormatConverter(&_ptr));
     ASSERT_COM_SUCCEEDED(_ptr->Initialize(frame, GUID_WICPixelFormat32bppPBGRA, WICBitmapDitherTypeNone, nullptr, 0,
@@ -149,7 +149,7 @@ __FormatConverter::__FormatConverter(__ImagingFactory& factory, __BitmapFrameDec
 __Bitmap::__Bitmap(__RenderTarget& renderTarget, __ImagingFactory& imagingFactory, const String& fileName)
 {
     __BitmapDecoder bitmapDecoder(imagingFactory, fileName.chars());
-    __BitmapFrameDecode frame(bitmapDecoder);
+    __BitmapFrameDecoder frame(bitmapDecoder);
     __FormatConverter formatConverter(imagingFactory, frame);
 
     ASSERT_COM_SUCCEEDED(renderTarget->CreateBitmapFromWicBitmap(formatConverter, &_ptr));

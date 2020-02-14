@@ -205,7 +205,7 @@ public:
 class __FormatConverter : public __ComPtr<IWICFormatConverter>
 {
 public:
-    __FormatConverter(__ImagingFactory& factory, __BitmapFrameDecode& frame);
+    __FormatConverter(__ImagingFactory& factory, __BitmapFrameDecoder& frame);
 };
 
 // __Bitmap
