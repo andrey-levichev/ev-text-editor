@@ -1,6 +1,7 @@
 bugs:
 * screen gets cleared when executing run command on Linux
 * run build command before run?
+* stay in block mode after paste for easy indenting
 
 cairo:
 * check memory management for graphics
