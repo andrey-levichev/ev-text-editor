@@ -64,6 +64,7 @@ autocomplete improvements:
 * give nearby words or words from same document higher priority
 * autocomplete for file names
 * scan all documents in directories
+* prebuild autocomplete file for directory
 
 performance improvements:
 * turn off indexing and syntax highlighting for large files
