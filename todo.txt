@@ -22,6 +22,7 @@ name autocomplete, wildcards
 open recrusively, open file at cursor
 * delete to start/end of line
 * go to matching brace, next/previous brace
+* next/previous C++ function
 * cycle documents in most recently used order
 * copy/delete lines
 * change case
