@@ -9,6 +9,8 @@ const char_t* CONFIG_FILE_NAME = STR("ev.cfg");
 const char_t* CONFIG_FILE_NAME = STR(".ev.cfg");
 #endif
 
+#ifdef GUI_MODE
+
 static Color GUI_BACKGROUND = 0xffffff;
 static Color GUI_CURSOR_COLOR = 0x000000;
 
@@ -16,6 +18,8 @@ uint32_t rgbColors[] = {
     0x000000, 0x800000, 0x008000, 0x808000, 0x000080, 0x800080, 0x008080, 0xc0c0c0,
     0x808080, 0xff0000, 0x00ff00, 0xffff00, 0x0000ff, 0xff00ff, 0x00ffff, 0xffffff
 };
+
+#endif
 
 bool charIsWord(unichar_t ch)
 {
@@ -2871,11 +2875,15 @@ void Editor::setDimensions()
         doc->value.setDimensions(1, 1, _width, _height - 1);
 }
 
+#ifdef GUI_MODE
+
 Rect Editor::rectFromLineCol(int left, int top, int right, int bottom)
 {
     return { left * _charWidth + _offsetX, top * _charHeight + _offsetY,
         right * _charWidth + _offsetX, bottom * _charHeight + _offsetY };
 }
+
+#endif
 
 void Editor::drawBlockCursor(bool on)
 {

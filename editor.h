@@ -4,7 +4,10 @@
 #include <foundation.h>
 #include <application.h>
 #include <file.h>
+
+#ifdef GUI_MODE
 #include <graphics.h>
+#endif
 
 // ScreenCell
 
@@ -431,7 +434,10 @@ protected:
     void computeWidthHeight();
     void setDimensions();
 
+#ifdef GUI_MODE
     Rect rectFromLineCol(int left, int top, int right, int bottom);
+#endif
+
     void drawBlockCursor(bool on);
     void updateScreen(bool redrawAll);
     void updateStatusLine();

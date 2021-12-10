@@ -3,7 +3,10 @@
 
 #include <foundation.h>
 #include <input.h>
+
+#ifdef GUI_MODE
 #include <graphics.h>
+#endif
 
 // Application
 

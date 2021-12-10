@@ -1,4 +1,4 @@
-OS=$(shell uname)
+OS = $(shell uname)
 BIN = bin/$(OS)
 
 ifeq ($(BUILD), release)
@@ -32,7 +32,7 @@ else ifeq ($(TARGET), console)
 BIN := $(BIN)/$(TARGET)
 EXE = $(BIN)/ev
 OBJS = $(BIN)/editor.o $(BIN)/foundation.o $(BIN)/file.o $(BIN)/application.o \
-	$(BIN)/input.o $(BIN)/console.o $(BIN)/graphics.o $(BIN)/main.o
+	$(BIN)/input.o $(BIN)/console.o $(BIN)/main.o
 
 else
 

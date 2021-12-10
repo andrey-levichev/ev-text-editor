@@ -216,16 +216,21 @@ void Application::destroyWindow()
 
 void Application::onCreate()
 {
+#ifdef GUI_MODE
     _graphics.create(_window);
+#endif
 }
 
 void Application::onDestroy()
 {
+#ifdef GUI_MODE
     _graphics.reset();
+#endif
 }
 
 void Application::onPaint(uintptr_t context)
 {
+#ifdef GUI_MODE
     _graphics->beginDraw(context);
     _graphics->clear();
 
@@ -238,11 +243,14 @@ void Application::onPaint(uintptr_t context)
     _graphics->drawText(tb, { 100, 100 });
 
     _graphics->endDraw();
+#endif
 }
 
 void Application::onResize(int width, int height)
 {
+#ifdef GUI_MODE
     _graphics->resize(width, height);
+#endif
 }
 
 void Application::onInput(const Array<InputEvent>& inputEvents)
