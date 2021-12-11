@@ -3712,7 +3712,11 @@ void Editor::readConfigFile(const String& filename)
 
 void run(const Array<String>& args)
 {
+#if defined(PLATFORM_LINUX) && defined(GUI_MODE)
     Application app(args);
+#else
+    Editor app(args);
+#endif
 
     if (app.start())
         app.run();
