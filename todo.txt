@@ -1,7 +1,10 @@
 bugs:
+* text drawing artefacts on windows
+* cursor jumps to next line after home/end
+* indent block after pasting without reselecting
+* center view on current line
+* leave last line on the screen for page up/down
 * screen gets cleared when executing run command on Linux
-* run build command before run?
-* stay in block mode after paste for easy indenting
 
 cairo:
 * check memory management for graphics
