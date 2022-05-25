@@ -3,46 +3,34 @@
 BIN = bin\Windows
 
 !if "$(BUILD)" == "release"
-
 BIN = $(BIN)\$(BUILD)
 COMPILER_FLAGS = /O2 /GL /DDISABLE_ASSERT
 LINKER_FLAGS = /LTCG
-
 !else if "$(BUILD)" == "debug"
-
 BIN = $(BIN)\$(BUILD)
 COMPILER_FLAGS = /Zi
-
 !else
-
 COMPILER_FLAGS = /O1
-
 !endif
 
 !if "$(TARGET)" == "test"
-
 BIN = $(BIN)\$(TARGET)
 EXE = $(BIN)\test.exe
 OBJS = $(BIN)\test.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\input.obj $(BIN)\console.obj $(BIN)\main.obj
 LIBS = user32.lib ole32.lib
-
-!else if "$(TARGET)" == "console"
-
-COMPILER_FLAGS = $(COMPILER_FLAGS)
-LIBS = user32.lib ole32.lib
+!else if "$(TARGET)" == "gui"
+COMPILER_FLAGS = $(COMPILER_FLAGS) /DGUI_MODE
+LIBS = user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib
 BIN = $(BIN)\$(TARGET)
 EXE = $(BIN)\ev.exe
 OBJS = $(BIN)\editor.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\application.obj \
-	$(BIN)\input.obj $(BIN)\console.obj $(BIN)\main.obj
-
+	$(BIN)\input.obj $(BIN)\console.obj $(BIN)\graphics.obj $(BIN)\main.obj $(BIN)\editor.res
 !else
-
-COMPILER_FLAGS = $(COMPILER_FLAGS) /DGUI_MODE
-LIBS = user32.lib ole32.lib dwrite.lib d2d1.lib windowscodecs.lib
+COMPILER_FLAGS = $(COMPILER_FLAGS)
+LIBS = user32.lib ole32.lib
 EXE = $(BIN)\ev.exe
 OBJS = $(BIN)\editor.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\application.obj \
-	$(BIN)\input.obj $(BIN)\console.obj $(BIN)\graphics.obj $(BIN)\main.obj $(BIN)\editor.res
-
+	$(BIN)\input.obj $(BIN)\console.obj $(BIN)\main.obj
 !endif
 
 build: $(BIN) $(EXE)
