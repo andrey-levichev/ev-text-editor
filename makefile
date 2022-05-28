@@ -24,7 +24,17 @@ else ifeq ($(OS), AIX)
     else
         COMPILER_FLAGS += -O
     endif
-else ifeq ($(OS), Linux)
+else ifeq ($(OS), Darwin)
+    COMPILER_FLAGS += --std=gnu++17 -MMD -Wall
+    ifeq ($(BUILD), release)
+        COMPILER_FLAGS += -Ofast -DDISABLE_ASSERT
+        LINKER_FLAGS += -Ofast
+    else ifeq ($(BUILD), debug)
+        COMPILER_FLAGS += -g
+    else
+        COMPILER_FLAGS += -Os
+    endif
+else
     COMPILER_FLAGS += -MMD -Wall -Wno-unused-but-set-variable -Wno-unused-variable
     ifeq ($(BUILD), release)
         COMPILER_FLAGS += -O3 -flto -DDISABLE_ASSERT
