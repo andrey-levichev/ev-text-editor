@@ -35,7 +35,7 @@ else ifeq ($(OS), Darwin)
         COMPILER_FLAGS += -Os
     endif
 else
-    COMPILER_FLAGS += -MMD -Wall -Wno-unused-but-set-variable -Wno-unused-variable
+    COMPILER_FLAGS += -MMD -Wall
     ifeq ($(BUILD), release)
         COMPILER_FLAGS += -O3 -flto -DDISABLE_ASSERT
         LINKER_FLAGS += -O3 -flto
