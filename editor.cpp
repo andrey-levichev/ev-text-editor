@@ -2230,7 +2230,7 @@ bool Editor::start()
             Console::writeLine(
 #endif
                 STR("ev text editor version 2.0\n"
-                    "Copyright (C) Andrey Levichev, 2019\n"
+                    "Copyright (C) Andrey Levichev, 2022\n"
                     "email: andrey.levichev@gmail.com\n"
                     "web: evtext.org\n\n"
                     "usage: ev [OPTIONS] [FILE]...\n\n"
