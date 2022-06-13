@@ -251,6 +251,7 @@ public:
     bool moveToLineEnd();
 
     bool moveLines(int lines);
+    bool movePage(bool down);
     bool moveToLine(int line);
     bool moveToLineColumn(int line, int column);
 

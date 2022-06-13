@@ -924,6 +924,15 @@ bool Document::moveLines(int lines)
     return moveToLine(line);
 }
 
+bool Document::movePage(bool down)
+{
+    int lines = _height - 1;
+    if (lines < 1)
+        lines = 1;
+
+    return moveLines(down ? lines : -lines);
+}
+
 bool Document::moveToLine(int line)
 {
     ASSERT(line > 0);
@@ -2364,7 +2373,7 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                     }
                     else if (keyEvent.key == KEY_PGUP)
                     {
-                        update = doc.moveLines(20);
+                        update = doc.moveLines(-20);
                     }
                     else if (keyEvent.key == KEY_PGDN)
                     {
@@ -2393,11 +2402,11 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                     }
                     else if (keyEvent.ch == 'p')
                     {
-                        update = doc.moveLines(-(_height - 1));
+                        update = doc.movePage(false);
                     }
                     else if (keyEvent.ch == 'n')
                     {
-                        update = doc.moveLines(_height - 1);
+                        update = doc.movePage(true);
                     }
                     else if (keyEvent.ch == 'g')
                     {
@@ -2679,11 +2688,11 @@ void Editor::onInput(const Array<InputEvent>& inputEvents)
                 }
                 else if (keyEvent.key == KEY_PGUP)
                 {
-                    redrawAll = update = doc.moveLines(-(_height - 1));
+                    redrawAll = update = doc.movePage(false);
                 }
                 else if (keyEvent.key == KEY_PGDN)
                 {
-                    redrawAll = update = doc.moveLines(_height - 1);
+                    redrawAll = update = doc.movePage(true);
                 }
                 else if (keyEvent.key == KEY_ENTER)
                 {

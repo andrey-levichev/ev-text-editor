@@ -1,10 +1,7 @@
 bugs:
-* text drawing artefacts on windows
+* blurry text, screen not refreshed under remote desktop
 * cursor jumps to next line after home/end
-* indent block after pasting without reselecting
-* center view on current line
-* leave last line on the screen for page up/down
-* screen gets cleared when executing run command on Linux
+* go to end of line doesn't work when pasting last line
 
 cairo:
 * check memory management for graphics
@@ -40,8 +37,9 @@ open recrusively, open file at cursor
 * better solution for drawing cursor (overwrite instead of blend)
 * high resolution icon
 * replace explicit pointers with smart pointers
-* blurry text on remote desktop
 * run command that doesn't laucnh command prompt
+* indent block after pasting without reselecting
+* center view on current line
 
 editor misc:
 * run release version in profiler, memory/thread checker
@@ -52,10 +50,10 @@ editor misc:
 * text in tables is too small on mobile website, magic page width
 
 input improvements:
-ctrl+minus/plus don't work on windows, use WM_KEYUP instead?
-test fancy character input like wiwndows mnemonic for russian
-many ctrl and alt combinations don't work in Linux console
-fallback for function keys (either alt key or command)
+* ctrl+minus/plus don't work on windows, use WM_KEYUP instead?
+* test fancy character input like wiwndows mnemonic for russian
+* many ctrl and alt combinations don't work in Linux console
+* fallback for function keys (either alt key or command)
 
 syntax highlighting improvements:
 * support for other languages
@@ -87,7 +85,6 @@ editor maybe:
 * line wrapping
 * move to prev/next paragraph/function
 * preserve console output when exiting
-* fallbacks for function keys
 * version for mobile devices
 * performance improvements
 open large files in native encoding
