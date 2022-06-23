@@ -287,6 +287,7 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
             return 0;
 
         case WM_PAINT:
+        case WM_DISPLAYCHANGE:
             if (GetForegroundWindow() == reinterpret_cast<HWND>(_application->_window))
             {
                 _application->onPaint();
