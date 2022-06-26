@@ -235,7 +235,8 @@ void formatAllocStringArgs(char_t** str, const char_t* format, va_list args)
     else
         *str = 0;
 #else
-    vasprintf(str, format, args);
+    int rc = vasprintf(str, format, args);
+    ASSERT(rc >= 0);
 #endif
 }
 

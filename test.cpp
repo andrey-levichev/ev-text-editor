@@ -867,10 +867,8 @@ void testString()
 
 #ifdef CHAR_ENCODING_UTF8
     const char_t* CHARS = CHARS8;
-    const char_t* BIG_CHAR = "\xf0\x90\x8d\x88";
 #else
     const char_t* CHARS = CHARS16;
-    const char_t* BIG_CHAR = u"\xd800\xdf48";
 #endif
 
     unichar_t zc = 0;
@@ -5604,7 +5602,8 @@ void testFile()
 
     {
         File f(STR("test.txt"));
-        system("chmod +x test.txt");
+        int rc = system("chmod +x test.txt");
+        ASSERT(rc >= 0);
         ASSERT(f.isExecutable());
     }
 #endif
