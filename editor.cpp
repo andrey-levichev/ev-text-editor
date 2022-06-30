@@ -1236,18 +1236,20 @@ void Document::pasteText(const String& text)
     if (text.charAt(text.charBack(text.length())) == '\n')
     {
         int start = findLineStart(_position);
+        _selection = start;
+        setPositionLineColumn(start);
         _text.insert(start, text);
-        lineColumnToPosition(start, _line, 1, _line, _preferredColumn, _position, _line, _column);
+        setPositionLineColumn(start + text.length());
     }
     else
     {
         _text.insert(_position, text);
+        _selection = _position;
         setPositionLineColumn(_position + text.length());
     }
 
     _modified = true;
     _selectionMode = false;
-    _selection = -1;
 }
 
 bool Document::toggleSelectionStart()
@@ -1926,6 +1928,7 @@ void Document::changeLines(int (Document::*lineOp)(int))
         setPositionLineColumn(start);
 
         setPositionLineColumn((this->*lineOp)(p));
+        _modified = true;
     }
     else
     {
@@ -1946,36 +1949,45 @@ void Document::changeLines(int (Document::*lineOp)(int))
         }
 
         start = findLineStart(start);
-        setPositionLineColumn(start);
 
-        int p = end, n = 0;
-
-        do
+        if (start < end)
         {
-            p = (this->*lineOp)(p);
-            p = findPreviousLine(p);
-            ++n;
-        } while (p != INVALID_POSITION && p >= start);
+            int p = _text.charBack(end), n = 0;
+            if (_text.charAt(p) != '\n')
+                p = end;
 
-        end = start;
-        while (--n > 0)
-            end = findNextLine(end);
+            if (start < p)
+            {
+                setPositionLineColumn(start);
 
-        end = findLineEnd(end);
+                do
+                {
+                    p = (this->*lineOp)(p);
+                    p = findPreviousLine(p);
+                    ++n;
+                } while (p != INVALID_POSITION && p >= start);
 
-        if (atStart)
-            _selection = end;
-        else
-        {
-            _selection = start;
-            setPositionLineColumn(end);
+                end = start;
+                while (--n > 0)
+                    end = findNextLine(end);
+
+                end = findLineEnd(end);
+
+                if (atStart)
+                    _selection = end;
+                else
+                {
+                    _selection = start;
+                    setPositionLineColumn(end);
+                }
+
+                _topPosition = -1;
+                _modified = true;
+            }
         }
 
         _selectionMode = false;
-        _topPosition = -1;
     }
-
-    _modified = true;
 }
 
 int Document::indentLine(int pos)

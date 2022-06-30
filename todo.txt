@@ -1,8 +1,3 @@
-bugs:
-* blurry text, screen not refreshed under remote desktop
-* cursor jumps to next line after home/end
-* go to end of line doesn't work when pasting last line
-
 cairo:
 * check memory management for graphics
 * font creation during text drawing may be slow
@@ -38,7 +33,6 @@ open recrusively, open file at cursor
 * high resolution icon
 * replace explicit pointers with smart pointers
 * run command that doesn't laucnh command prompt
-* indent block after pasting without reselecting
 * center view on current line
 
 editor misc:
