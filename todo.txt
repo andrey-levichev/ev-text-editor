@@ -1,3 +1,6 @@
+bugs:
+* screen and resolution are not updated on remote desktop
+
 cairo:
 * check memory management for graphics
 * font creation during text drawing may be slow
