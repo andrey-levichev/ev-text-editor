@@ -1,5 +1,9 @@
 bugs:
 * screen and resolution are not updated on remote desktop
+* deletes pasted line instead of current
+delete line, add new line in its place, paste line, delete line
+* text appears shifted after login, fine after refresh
+* ev: /lib64/libstdc++.so.6: version `CXXABI_1.3.9' not found (required by ev)
 
 cairo:
 * check memory management for graphics
