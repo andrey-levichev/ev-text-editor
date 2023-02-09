@@ -4,6 +4,7 @@ bugs:
 delete line, add new line in its place, paste line, delete line
 * text appears shifted after login, fine after refresh
 * ev: /lib64/libstdc++.so.6: version `CXXABI_1.3.9' not found (required by ev)
+* end of line on last line doesn't always work
 
 cairo:
 * check memory management for graphics
@@ -29,7 +30,7 @@ open recrusively, open file at cursor
 * copy/delete lines
 * change case
 * find/replace regex, backwards, match word/case
-* undo/redo
+* simple undo with rollback point, multilevel undo/redo
 * open multiple files in the same instance
 * run macro until it reaches specified line
 * language specific toggle comment
