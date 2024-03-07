@@ -1,10 +1,13 @@
 bugs:
+* revisit block operation - indent and comment
 * screen and resolution are not updated on remote desktop
+* text appears shifted after login, fine after refresh
 * deletes pasted line instead of current
 delete line, add new line in its place, paste line, delete line
-* text appears shifted after login, fine after refresh
 * ev: /lib64/libstdc++.so.6: version `CXXABI_1.3.9' not found (required by ev)
 * end of line on last line doesn't always work
+* shell script highlights --build-depends= incorrectly
+* shortcut to re-read document to pick up formatting
 
 cairo:
 * check memory management for graphics
@@ -42,6 +45,7 @@ open recrusively, open file at cursor
 * replace explicit pointers with smart pointers
 * run command that doesn't laucnh command prompt
 * center view on current line
+* reload files after build
 
 editor misc:
 * run release version in profiler, memory/thread checker
