@@ -36,12 +36,12 @@ OBJS = $(BIN)\editor.obj $(BIN)\foundation.obj $(BIN)\file.obj $(BIN)\applicatio
 build: $(BIN) $(EXE)
 
 $(BIN):
-	mkdir $(BIN)
+	md $(BIN)
 
 rebuild: clean build
 
 clean:
-	-rmdir /s /q $(BIN)
+	-rd /s /q $(BIN)
 	-del /q *.log
 
 $(EXE): $(OBJS)
