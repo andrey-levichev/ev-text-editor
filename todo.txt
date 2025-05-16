@@ -1,7 +1,10 @@
 to do:
 * if current file is executable, default run action is to execute it
 * reload file if it changed during build (formatted)
+* support wildcards in file names on windows
+* remember maximized window state
 * can't download package in corp environment
+* built-in help for keystrokes and commands
 
 bugs:
 * revisit block operation - indent and comment
