@@ -2264,12 +2264,11 @@ bool Editor::start()
             openDocument(_args[i]);
     }
 
-    _document = _documents.first();
-
     readConfigFile(Environment::getUserDirectory() +
         Environment::DIRECTORY_SEPARATOR + CONFIG_FILE_NAME);
-
     readConfigFile(CONFIG_FILE_NAME);
+
+    _document = _documents.first();
 
     return true;
 }
@@ -3729,6 +3728,8 @@ void Editor::readConfigFile(const String& filename)
                     _runCommand = value;
                 else if (name == STR("clean_command"))
                     _cleanCommand = value;
+                else if (name == STR("open"))
+                    openDocument(value);
             }
         }
     }
