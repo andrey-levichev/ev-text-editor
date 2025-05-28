@@ -185,7 +185,7 @@ void Application::showWindow()
 #ifdef GUI_MODE
 
 #if defined(PLATFORM_WINDOWS)
-        ShowWindow(reinterpret_cast<HWND>(_window), SW_SHOWDEFAULT);
+        ShowWindow(reinterpret_cast<HWND>(_window), _maximized ? SW_MAXIMIZE : SW_SHOWDEFAULT);
         UpdateWindow(reinterpret_cast<HWND>(_window));
 #elif defined(PLATFORM_LINUX)
         gtk_widget_show_all(reinterpret_cast<GtkWidget*>(_window));

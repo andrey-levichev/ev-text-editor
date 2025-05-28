@@ -53,6 +53,7 @@ protected:
     Array<String> _args;
     uintptr_t _window = 0;
     const char_t* _title;
+    bool _maximized = false;
     int _dpi;
 
     static Application* _application;

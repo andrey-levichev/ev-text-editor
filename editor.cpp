@@ -2281,6 +2281,7 @@ void Editor::onCreate()
 
     measureCharSize();
     resizeWindow(toDevice(_width * _charWidth), toDevice(_height * _charHeight));
+    _maximized = _startMaximized;
 
     if (_brightBackground)
     {
@@ -3720,6 +3721,8 @@ void Editor::readConfigFile(const String& filename)
                     _guiFontSize = value.toFloat();
                 else if (name == STR("gui_font_name"))
                     _guiFontName = value;
+                else if (name == STR("start_maximized"))
+                    _startMaximized = value.compare(STR("true"), false) == 0;
                 else if (name == STR("build_command"))
                     _buildCommand = value;
                 else if (name == STR("run_command"))

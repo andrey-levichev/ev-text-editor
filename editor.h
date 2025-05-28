@@ -503,6 +503,7 @@ protected:
     int _indentSize = 4;
     float _guiFontSize = 13;
     String _guiFontName = STR("Lucida Console");
+    bool _startMaximized = false;
 
 #ifdef PLATFORM_WINDOWS
     String _buildCommand = STR("nmake.exe & pause");
