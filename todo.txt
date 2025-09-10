@@ -6,6 +6,8 @@ to do:
 * built-in help for keystrokes and commands
 * can't get to the end of the last line just pasted
 * open specific file from taskbar doesn't work
+* macOS keyboard shortcuts don't work:
+alt+up/down/right
 
 bugs:
 * revisit block operation - indent and comment
