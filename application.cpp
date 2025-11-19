@@ -459,7 +459,8 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 int x = GET_X_LPARAM(lParam);
                 int y = GET_Y_LPARAM(lParam);
                 MouseEvent mouseEvent = { MOUSE_BUTTON_PRIMARY, true,
-                    _application->fromDevice(x), _application->fromDevice(y) };
+                    static_cast<int>(_application->fromDevice(x)),
+                    static_cast<int>(_application->fromDevice(y)) };
 
                 if (message == WM_RBUTTONDOWN)
                     mouseEvent.button = MOUSE_BUTTON_SECONDARY;
@@ -486,8 +487,9 @@ LRESULT CALLBACK Application::windowProc(HWND handle, UINT message, WPARAM wPara
                 int x = GET_X_LPARAM(lParam);
                 int y = GET_Y_LPARAM(lParam);
                 MouseEvent mouseEvent = {
-                    delta > 0 ? MOUSE_BUTTON_WHEEL_UP : MOUSE_BUTTON_WHEEL_DOWN,
-                    true, _application->fromDevice(x), _application->fromDevice(y) };
+                    delta > 0 ? MOUSE_BUTTON_WHEEL_UP : MOUSE_BUTTON_WHEEL_DOWN, true,
+                    static_cast<int>(_application->fromDevice(x)),
+                    static_cast<int>(_application->fromDevice(y)) };
 
                 mouseEvent.ctrl = isKeyPressed(VK_CONTROL);
                 mouseEvent.alt = isKeyPressed(VK_MENU);

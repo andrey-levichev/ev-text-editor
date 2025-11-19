@@ -61,6 +61,8 @@ else
         $(BIN)/input.o $(BIN)/console.o $(BIN)/main.o
 endif
 
+all: build
+
 build: $(BIN) $(EXE)
 
 $(BIN):
