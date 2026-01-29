@@ -1,4 +1,5 @@
 to do:
+* highlight class and function names for C++
 * if current file is executable, default run action is to execute it
 * reload file if it changed during build (formatted)
 * support wildcards in file names on windows

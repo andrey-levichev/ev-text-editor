@@ -1,4 +1,8 @@
 bin
+build
 t.*
 *.log
 .DS_Store
+.idea
+.vs
+.vscode
