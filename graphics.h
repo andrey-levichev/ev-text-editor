@@ -329,7 +329,7 @@ public:
 #else
 
 private:
-    Image()
+    Image(const String& fileName)
     {
     }
 
