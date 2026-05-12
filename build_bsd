@@ -1,0 +1,1 @@
+c++ -o ev -I. application.cpp console.cpp editor.cpp file.cpp foundation.cpp input.cpp main.cpp

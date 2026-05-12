@@ -79,6 +79,11 @@
 #define PLATFORM_ANDRIOD
 #define PLATFORM_UNIX
 
+#elif defined(__FreeBSD__)
+
+#define PLATFORM_BSD
+#define PLATFORM_UNIX
+
 #endif
 
 // compiler and version
