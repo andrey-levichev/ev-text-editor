@@ -1,4 +1,5 @@
 to do:
+* open last file if none provided
 * update all binaries, make sure Ubuntu and RedHat are supported
 * highlight class and function names for C++
 * if current file is executable, default run action is to execute it
